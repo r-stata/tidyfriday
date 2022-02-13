@@ -1,0 +1,141 @@
+<h1 id="ngStorage"><a href="#ngStorage" class="headerlink" title="ngStorage"></a>ngStorage</h1><p><a href="https://travis-ci.org/gsklee/ngStorage"><img src="https://travis-ci.org/gsklee/ngStorage.svg" alt="Build Status"></a><br><a href="https://david-dm.org/gsklee/ngStorage"><img src="https://david-dm.org/gsklee/ngStorage.svg" alt="Dependency Status"></a><br><a href="https://david-dm.org/gsklee/ngStorage#info=devDependencies"><img src="https://david-dm.org/gsklee/ngStorage/dev-status.svg" alt="devDependency Status"></a></p>
+<p>An <a href="https://github.com/angular/angular.js">AngularJS</a> module that makes Web Storage working in the <em>Angular Way</em>. Contains two services: <code>$localStorage</code> and <code>$sessionStorage</code>.</p>
+<h3 id="Differences-with-Other-Implementations"><a href="#Differences-with-Other-Implementations" class="headerlink" title="Differences with Other Implementations"></a>Differences with Other Implementations</h3><ul>
+<li><p><strong>No Getter ‘n’ Setter Bullshit</strong> - Right from AngularJS homepage: “Unlike other frameworks, there is no need to […] wrap the model in accessors methods. Just plain old JavaScript here.” Now you can enjoy the same benefit while achieving data persistence with Web Storage.</p>
+</li>
+<li><p><strong>sessionStorage</strong> - We got this often-overlooked buddy covered.</p>
+</li>
+<li><p><strong>Cleanly-Authored Code</strong> - Written in the <em>Angular Way</em>, well-structured with testability in mind.</p>
+</li>
+<li><p><strong>No Cookie Fallback</strong> - With Web Storage being <a href="http://caniuse.com/namevalue-storage">readily available</a> in <a href="http://docs.angularjs.org/misc/faq#canidownloadthesourcebuildandhosttheangularjsenvironmentlocally">all the browsers AngularJS officially supports</a>, such fallback is largely redundant.</p>
+</li>
+</ul>
+<h1 id="Install"><a href="#Install" class="headerlink" title="Install"></a>Install</h1><h3 id="Bower"><a href="#Bower" class="headerlink" title="Bower"></a>Bower</h3><pre><code class="bash">bower install ngstorage
+</code></pre>
+<p><em>NOTE:</em> We are <code>ngstorage</code> and <em>NOT</em> <code>ngStorage</code>. The casing is important!</p>
+<h3 id="NPM"><a href="#NPM" class="headerlink" title="NPM"></a>NPM</h3><pre><code class="bash">npm install ngstorage
+</code></pre>
+<p><em>NOTE:</em> We are <code>ngstorage</code> and <em>NOT</em> <code>ngStorage</code>. The casing is important!</p>
+<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><h3 id="cdnjs"><a href="#cdnjs" class="headerlink" title="cdnjs"></a>cdnjs</h3><p>cdnjs now hosts ngStorage at <a href="https://cdnjs.com/libraries/ngStorage">https://cdnjs.com/libraries/ngStorage</a></p>
+<p>To use it</p>
+<pre><code class="html">&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.6/ngStorage.min.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h3 id="jsDelivr"><a href="#jsDelivr" class="headerlink" title="jsDelivr"></a>jsDelivr</h3><p>jsDelivr hosts ngStorage at <a href="http://www.jsdelivr.com/#!ngstorage">http://www.jsdelivr.com/#!ngstorage</a></p>
+<p>To use is</p>
+<pre><code class="html">&lt;script src=&quot;https://cdn.jsdelivr.net/ngstorage/0.3.6/ngStorage.min.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h1 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h1><h3 id="Require-ngStorage-and-Inject-the-Services"><a href="#Require-ngStorage-and-Inject-the-Services" class="headerlink" title="Require ngStorage and Inject the Services"></a>Require ngStorage and Inject the Services</h3><pre><code class="javascript">angular.module(&#39;app&#39;, [
+    &#39;ngStorage&#39;
+]).controller(&#39;Ctrl&#39;, function(
+    $scope,
+    $localStorage,
+    $sessionStorage
+){});
+</code></pre>
+<h3 id="Read-and-Write-Demo"><a href="#Read-and-Write-Demo" class="headerlink" title="Read and Write | Demo"></a>Read and Write | <a href="http://plnkr.co/edit/3vfRkvG7R9DgQxtWbGHz?p=preview">Demo</a></h3><p>Pass <code>$localStorage</code> (or <code>$sessionStorage</code>) by reference to a hook under <code>$scope</code> in plain ol’ JavaScript:</p>
+<pre><code class="javascript">$scope.$storage = $localStorage;
+</code></pre>
+<p>And use it like you-already-know:</p>
+<pre><code class="html">&lt;body ng-controller=&quot;Ctrl&quot;&gt;
+    &lt;button ng-click=&quot;$storage.counter = $storage.counter + 1&quot;&gt;{{$storage.counter}}&lt;/button&gt;
+&lt;/body&gt;
+</code></pre>
+<blockquote>
+<p>Optionally, specify default values using the <code>$default()</code> method:</p>
+<pre><code class="javascript">$scope.$storage = $localStorage.$default({
+    counter: 42
+});
+</code></pre>
+</blockquote>
+<p>With this setup, changes will be automatically sync’d between <code>$scope.$storage</code>, <code>$localStorage</code>, and localStorage - even across different browser tabs!</p>
+<h3 id="Read-and-Write-Alternative-Not-Recommended-Demo"><a href="#Read-and-Write-Alternative-Not-Recommended-Demo" class="headerlink" title="Read and Write Alternative (Not Recommended) | Demo"></a>Read and Write Alternative (Not Recommended) | <a href="http://plnkr.co/edit/9ZmkzRkYzS3iZkG8J5IK?p=preview">Demo</a></h3><p>If you’re not fond of the presence of <code>$scope.$storage</code>, you can always use watchers:</p>
+<pre><code class="javascript">$scope.counter = $localStorage.counter || 42;
+
+$scope.$watch(&#39;counter&#39;, function() {
+    $localStorage.counter = $scope.counter;
+});
+
+$scope.$watch(function() {
+    return angular.toJson($localStorage);
+}, function() {
+    $scope.counter = $localStorage.counter;
+});
+</code></pre>
+<p>This, however, is not the way ngStorage is designed to be used with. As can be easily seen by comparing the demos, this approach is way more verbose, and may have potential performance implications as the values being watched quickly grow.</p>
+<h3 id="Delete-Demo"><a href="#Delete-Demo" class="headerlink" title="Delete | Demo"></a>Delete | <a href="http://plnkr.co/edit/o4w3VGqmp8opfrWzvsJy?p=preview">Demo</a></h3><p>Plain ol’ JavaScript again, what else could you better expect?</p>
+<pre><code class="javascript">// Both will do
+delete $scope.$storage.counter;
+delete $localStorage.counter;
+</code></pre>
+<p>This will delete the corresponding entry inside the Web Storage.</p>
+<h3 id="Delete-Everything-Demo"><a href="#Delete-Everything-Demo" class="headerlink" title="Delete Everything | Demo"></a>Delete Everything | <a href="http://plnkr.co/edit/YiG28KTFdkeFXskolZqs?p=preview">Demo</a></h3><p>If you wish to clear the Storage in one go, use the <code>$reset()</code> method:</p>
+<pre><code class="javascript">$localStorage.$reset();
+</code></pre>
+<blockquote>
+<p>Optionally, pass in an object you’d like the Storage to reset to:</p>
+<pre><code class="javascript">$localStorage.$reset({
+    counter: 42
+});
+</code></pre>
+</blockquote>
+<h3 id="Permitted-Values-Demo"><a href="#Permitted-Values-Demo" class="headerlink" title="Permitted Values | Demo"></a>Permitted Values | <a href="http://plnkr.co/edit/n0acYLdhk3AeZmPOGY9Z?p=preview">Demo</a></h3><p>You can store anything except those <a href="http://www.json.org/js.html">not supported by JSON</a>:</p>
+<ul>
+<li><code>Infinity</code>, <code>NaN</code> - Will be replaced with <code>null</code>.</li>
+<li><code>undefined</code>, Function - Will be removed.</li>
+</ul>
+<h3 id="Usage-from-config-phase"><a href="#Usage-from-config-phase" class="headerlink" title="Usage from config phase"></a>Usage from config phase</h3><p>To read and set values during the Angular config phase use the <code>.get/.set</code><br>functions provided by the provider.</p>
+<pre><code class="javascript">var app = angular.module(&#39;app&#39;, [&#39;ngStorage&#39;])
+.config([&#39;$localStorageProvider&#39;,
+    function ($localStorageProvider) {
+        $localStorageProvider.get(&#39;MyKey&#39;);
+
+        $localStorageProvider.set(&#39;MyKey&#39;, { k: &#39;value&#39; });
+    }]);
+</code></pre>
+<h3 id="Prefix"><a href="#Prefix" class="headerlink" title="Prefix"></a>Prefix</h3><p>To change the prefix used by ngStorage use the provider function <code>setKeyPrefix</code><br>during the config phase.</p>
+<pre><code class="javascript">var app = angular.module(&#39;app&#39;, [&#39;ngStorage&#39;])
+.config([&#39;$localStorageProvider&#39;,
+    function ($localStorageProvider) {
+        $localStorageProvider.setKeyPrefix(&#39;NewPrefix&#39;);
+    }])
+</code></pre>
+<h3 id="Custom-serialization"><a href="#Custom-serialization" class="headerlink" title="Custom serialization"></a>Custom serialization</h3><p>To change how ngStorage serializes and deserializes values (uses JSON by default) you can use your own functions.</p>
+<pre><code class="javascript">angular.module(&#39;app&#39;, [&#39;ngStorage&#39;])
+.config([&#39;$localStorageProvider&#39;, 
+  function ($localStorageProvider) {
+    var mySerializer = function (value) {
+      // Do what you want with the value.
+      return value;
+    };
+    
+    var myDeserializer = function (value) {
+      return value;
+    };
+
+    $localStorageProvider.setSerializer(mySerializer);
+    $localStorageProvider.setDeserializer(myDeserializer);
+  }];)
+</code></pre>
+<h3 id="Minification"><a href="#Minification" class="headerlink" title="Minification"></a>Minification</h3><p>Just run <code>$ npm install</code> to install dependencies.  Then run <code>$ grunt</code> for minification.</p>
+<h3 id="Hints"><a href="#Hints" class="headerlink" title="Hints"></a>Hints</h3><h4 id="Watch-the-watch"><a href="#Watch-the-watch" class="headerlink" title="Watch the watch"></a>Watch the watch</h4><p>ngStorage internally uses an Angular watch to monitor changes to the <code>$storage</code>/<code>$localStorage</code> objects. That means that a digest cycle is required to persist your new values into the browser local storage.<br>Normally this is not a problem, but, for example, if you launch a new window after saving a value…</p>
+<pre><code class="javascript">$scope.$storage.school = theSchool;
+$log.debug(&quot;launching &quot; + url);
+var myWindow = $window.open(&quot;&quot;, &quot;_self&quot;);
+myWindow.document.write(response.data);
+</code></pre>
+<p>the new values will not reliably be saved into the browser local storage. Allow a digest cycle to occur by using a zero-value <code>$timeout</code> as:</p>
+<pre><code class="javascript">$scope.$storage.school = theSchool;
+$log.debug(&quot;launching and saving the new value&quot; + url);
+$timeout(function(){
+   var myWindow = $window.open(&quot;&quot;, &quot;_self&quot;);
+   myWindow.document.write(response.data);
+});
+</code></pre>
+<p>And your new values will be persisted correctly.</p>
+<h1 id="Todos"><a href="#Todos" class="headerlink" title="Todos"></a>Todos</h1><ul>
+<li>ngdoc Documentation</li>
+<li>Namespace Support</li>
+<li>Unit Tests</li>
+<li>Grunt Tasks</li>
+</ul>
+<p>Any contribution will be appreciated.</p>

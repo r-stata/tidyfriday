@@ -1,0 +1,59 @@
+<p>The command <code>colorscheme</code> returns a set of RGB colors corresponding to precified themes.</p>
+<p>The syntax requires to specify the number of colors and the palette name: </p>
+<pre><code>. colorscheme 4, palette(Blues)
+. return list
+macros
+            r(color1) : &quot;239 243 255&quot;
+            r(color2) : &quot;189 215 231&quot;
+            r(color3) : &quot;107 174 214&quot;
+            r(color4) : &quot;033 113 181&quot;
+            r(colors) : `&quot;&quot;239 243 255&quot; &quot;189 215 231&quot; &quot;107 174 214&quot; &quot;033 113 181&quot;&quot;&#39;
+</code></pre>
+<h3 id="Colorbrewer-palettes"><a href="#Colorbrewer-palettes" class="headerlink" title="Colorbrewer palettes"></a>Colorbrewer palettes</h3><p>There are 3 types of palettes, sequential, diverging, and qualitative.</p>
+<h4 id="Sequential-Palettes"><a href="#Sequential-Palettes" class="headerlink" title="Sequential Palettes"></a>Sequential Palettes</h4><p>Sequential palettes are suited to ordered data that progress from low to high. Lightness steps<br>dominate the look of these schemes, with light colors for low data values to dark colors for high<br>data values. All the sequential palettes are available in variations from 3 different values up to 9 different values.</p>
+<p>The sequential palettes names are: Blues BuGn BuPu GnBu Greens Greys Oranges OrRd PuBu PuBuGn PuRd Purples RdPu Reds YlGn YlGnBu YlOrBr YlOrRd</p>
+<h4 id="Diverging-Palettes"><a href="#Diverging-Palettes" class="headerlink" title="Diverging Palettes"></a>Diverging Palettes</h4><p>Diverging palettes put equal emphasis on mid-range critical values and extremes at both ends<br>of the data range. The critical class or break in the middle of the legend is emphasized with light<br>colors and low and high extremes are emphasized with dark colors that have contrasting hues. All the diverging palettes are available in variations from 3 different values up to 11 different values.</p>
+<p>The diverging palettes are:    BrBG PiYG PRGn PuOr RdBu RdGy RdYlBu RdYlGn Spectral</p>
+<h4 id="Qualitative-Palettes"><a href="#Qualitative-Palettes" class="headerlink" title="Qualitative Palettes"></a>Qualitative Palettes</h4><p>Qualitative palettes do not imply magnitude differences between legend classes, and hues are<br>used to create the primary visual differences between classes. Qualitative schemes are best suited<br>to representing nominal or categorical data. </p>
+<p>The qualitative palettes (with their associated maximum number of colors) are: Accent (8) Dark2 (8) Paired (12) Pastel1 (9) Pastel2 (8) Set1 (9) Set2 (8) Set3 (12)</p>
+<h3 id="Other-palettes"><a href="#Other-palettes" class="headerlink" title="Other palettes"></a>Other palettes</h3><p>The command includes two supplementary palettes:</p>
+<ul>
+<li><p><a href="http://www.sron.nl/~pault/colourschemes.pdf">paultol</a>: qualitative palette up to 12 colors</p>
+</li>
+<li><p><a href="http://docs.ggplot2.org/0.9.3.1/scale_hue.html">default ggplot palette</a> : colour scale with evenly spaced hues. </p>
+</li>
+</ul>
+<h3 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h3><ul>
+<li>Use the option <code>display</code> to plot the palette</li>
+</ul>
+<pre><code>colorscheme 9, palette(Blues) display
+</code></pre>
+<p><img src="img/display.jpg"></p>
+<ul>
+<li>use the returned macro <code>r(color1)</code>, <code>r(color2)</code>, … in a plot</li>
+</ul>
+<pre><code>sysuse nlsw88.dta, clear
+collapse (mean) wage, by(grade race)
+colorscheme 3, palette(Set2)
+twoway ///
+(scatter wage grade if race == 1, mcolor(&quot;`=r(color1)&#39;&quot;) legend(label(1 `&quot;`: label (race) 1&#39;&quot;&#39;))) msize(1.5) ///
+(scatter wage grade if race == 2, mcolor(&quot;`=r(color2)&#39;&quot;) legend(label(2 `&quot;`: label (race) 2&#39;&quot;&#39;))) msize(1.5) ///
+(scatter wage grade if race == 3, mcolor(&quot;`=r(color3)&#39;&quot;) legend(label(3 `&quot;`: label (race) 3&#39;&quot;&#39;))) msize(1.5) ///
+, plotregion(fcolor(white)) graphregion(fcolor(white))
+</code></pre>
+<p><img src="img/set2.jpg"></p>
+<h2 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h2><pre><code>net install colorscheme, from(&quot;https://raw.githubusercontent.com/matthieugomez/colorscheme.ado/master/&quot;)
+</code></pre>
+<p>If you have a version of Stata &lt; 13, you need to install it manually</p>
+<ol>
+<li><p>Click the “Download ZIP” button in the right column to download a zipfile. </p>
+</li>
+<li><p>Extract it into a folder (e.g. ~/SOMEFOLDER)</p>
+</li>
+<li><p>Run</p>
+<pre><code>cap ado uninstall colorscheme
+net install colorscheme, from(&quot;~/SOMEFOLDER&quot;)
+</code></pre>
+</li>
+</ol>
+<h2 id="Copyright"><a href="#Copyright" class="headerlink" title="Copyright"></a>Copyright</h2><p>This product includes color specifications and designs developed by Cynthia Brewer : <a href="http://colorbrewer.org/">http://colorbrewer.org/</a><br>ColorBrewer is Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State<br>University. All rights reserved.</p>
