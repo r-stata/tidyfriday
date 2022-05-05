@@ -4,7 +4,17 @@ var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuR
 					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"],
 					tidyquant: ["Dark", "Green", "Light"],
 					awtools: ["ppalette", "bpalette", "mpalette", "spalette", "a_palette", "names"],
-					ggsci: ["igv", "npg", "aaas", "nejm", "lancet", "jama", "jco", "d3", "locuszoom", "uchicago", "hallmarks", "simpsons", "teal"]};
+					ggsci1: ["nrc_npg","default_aaas","default_nejm","lanonc_lancet","default_jama","default_jco","default_ucscgb","category10_d3","category20_d3","category20b_d3","category20c_d3","default_igv","default_locuszoom","default_uchicago","light_uchicago","dark_uchicago","hallmarks_dark_cosmic","hallmarks_light_cosmic","signature_substitutions_cosmic","springfield_simpsons"],
+					ggsci2: ["planetexpress_futurama","schwifty_rickandmorty","uniform_startrek","legacy_tron","default_gsea","red_material","pink_material","deep_purple_material","indigo_material","blue_material","light_blue_material","teal_material","green_material","light_green_material","lime_material","amber_material","orange_material","deep_orange_material","brown_material","blue_grey_material"],
+					scico1: ["acton","bam","bamako","bamO","batlow","batlowK","batlowW","berlin","bilbao","broc","brocO","buda","bukavu","cork","corkO","davos","devon","fes","grayC","hawaii"],
+					scico2: ["imola","lajolla","lapaz","lisbon","nuuk","oleron","oslo","roma","romaO","tofino","tokyo","turku","vanimo","vik","vikO"],
+					rcartocolor1: ["ag_Sunset","ag_GrnYl","Tropic","Temps","TealRose","Geyser","Fall","Earth","ArmyRose","Vivid","Safe","Prism","Pastel","Bold","Antique","TealGrn","Teal","SunsetDark","Sunset","RedOr"], 
+					rcartocolor2: ["PurpOr","Purp","PinkYl","Peach","OrYel","Mint","Magenta","Emrld","DarkMint","BurgYl","Burg","BrwnYl","BluYl","BluGrn"],
+					yarrr: ["basel","pony","xmen","decision","southpark","eternal","evildead","usualsuspects","ohbrother","appletv","brave","bugs","cars","nemo","rat","up","espresso","ipod","info","info2"],
+					wesanderson: ["BottleRocket1","BottleRocket2","Rushmore1","Rushmore","Royal2","Zissou1","Darjeeling1","Darjeeling2","FantasticFox1","Moonrise3","Cavalcanti1","IsleofDogs1","IsleofDogs2"],
+					beyonce1: ["X1","X2","X3","X5","X6","X11","X12","X18","X23","X28","X33","X35","X37","X38","X39","X40","X41","X43","X44","X46"],
+					beyonce2: ["X47","X48","X49", "X50","X51","X52","X54","X55","X56","X58","X59","X70","X72","X74","X75","X79","X80","X90","X92","X93"],
+					beyonce3: ["X101","X102","X103","X104","X105","X108","X109","X111","X115","X117","X118","X121","X122","X123","X125","X126","X127","X128","X129","X130"]};
 
 var visibleMap,
 	selectedScheme = "Set2",
