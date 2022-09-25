@@ -1,0 +1,1 @@
+define(["../core"],function(n){return n.parseXML=function(e){var r;if(!e||"string"!=typeof e)return null;try{window.DOMParser?r=(new DOMParser).parseFromString(e,"text/xml"):((r=new ActiveXObject("Microsoft.XMLDOM")).async="false",r.loadXML(e))}catch(e){r=void 0}return r&&r.documentElement&&!r.getElementsByTagName("parsererror").length||n.error("Invalid XML: "+e),r},n.parseXML});

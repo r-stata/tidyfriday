@@ -1,0 +1,1 @@
+module.exports=function(t){t.get("/",function(t,e){e.redirect("/test/")})};

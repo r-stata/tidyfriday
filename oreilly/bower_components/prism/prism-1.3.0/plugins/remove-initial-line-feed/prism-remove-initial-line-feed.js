@@ -1,0 +1,1 @@
+"undefined"!=typeof self&&self.Prism&&self.document&&Prism.hooks.add("before-highlight",function(e){var s,o;e.code&&(o=/\s*\bkeep-initial-line-feed\b\s*/,!(s=e.element.parentNode)||"pre"!==s.nodeName.toLowerCase()||o.test(s.className)||o.test(e.element.className)||(e.code=e.code.replace(/^(?:\r?\n|\r)/,"")))});

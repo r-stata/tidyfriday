@@ -1,0 +1,1 @@
+!function(){"use strict";function e(r){return{debug:function(e){return r.debug("Debug Info : "+e),e},errorXHR:function(e){r.error("XHR Failed. "),r.debug(e.data)}}}angular.module("websiteApp").factory("Logger",e),e.$inject=["$log"]}();

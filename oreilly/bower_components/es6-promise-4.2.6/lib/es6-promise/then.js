@@ -1,0 +1,1 @@
+import{invokeCallback,subscribe,FULFILLED,REJECTED,noop,makePromise,PROMISE_ID}from"./-internal";import{asap}from"./asap";export default function then(o,e){const s=this,t=new this.constructor(noop),a=(void 0===t[PROMISE_ID]&&makePromise(t),s)["_state"];if(a){const r=arguments[a-1];asap(()=>invokeCallback(a,t,r,s._result))}else subscribe(s,t,o,e);return t}

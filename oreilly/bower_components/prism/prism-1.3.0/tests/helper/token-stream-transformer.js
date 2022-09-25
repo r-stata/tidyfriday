@@ -1,0 +1,1 @@
+"use strict";module.exports={simplify:function(t){return Array.isArray(t)?t.map(this.simplify.bind(this)).filter(function(t){return!(Array.isArray(t)&&!t.length||"string"==typeof t&&!t.trim().length)}):"object"==typeof t?[t.type,this.simplify(t.content)]:t}};
