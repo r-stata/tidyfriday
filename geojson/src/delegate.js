@@ -1,0 +1,1 @@
+var hash,bowser=require("bowser").browser;(bowser.android||bowser.iphone||bowser.ipad||bowser.touchpad)&&(hash=window.location.hash,window.location.href="/geojson/mobile.html"+hash),bowser.msie&&parseFloat(bowser.version)<10&&(window.location.href="/geojson/unsupported.html");

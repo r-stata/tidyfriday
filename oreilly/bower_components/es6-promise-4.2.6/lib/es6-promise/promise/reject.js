@@ -1,0 +1,1 @@
+import{noop,reject as _reject}from"../-internal";export default function reject(e){var r=new this(noop);return _reject(r,e),r}

@@ -1,0 +1,44 @@
+<h1 id="ES6-Promise-subset-of-rsvp-js"><a href="#ES6-Promise-subset-of-rsvp-js" class="headerlink" title="ES6-Promise (subset of rsvp.js) "></a>ES6-Promise (subset of <a href="https://github.com/tildeio/rsvp.js">rsvp.js</a>) <a href="https://travis-ci.org/stefanpenner/es6-promise"><img src="https://travis-ci.org/stefanpenner/es6-promise.svg?branch=master" alt="Build Status"></a></h1><p>This is a polyfill of the <a href="http://www.ecma-international.org/ecma-262/6.0/#sec-promise-constructor">ES6 Promise</a>. The implementation is a subset of <a href="https://github.com/tildeio/rsvp.js">rsvp.js</a> extracted by @jakearchibald, if you’re wanting extra features and more debugging options, check out the <a href="https://github.com/tildeio/rsvp.js">full library</a>.</p>
+<p>For API details and how to use promises, see the <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">JavaScript Promises HTML5Rocks article</a>.</p>
+<h2 id="Downloads"><a href="#Downloads" class="headerlink" title="Downloads"></a>Downloads</h2><ul>
+<li><a href="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.js">es6-promise 27.86 KB (7.33 KB gzipped)</a></li>
+<li><a href="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.auto.js">es6-promise-auto 27.78 KB (7.3 KB gzipped)</a> - Automatically provides/replaces <code>Promise</code> if missing or broken.</li>
+<li><a href="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.min.js">es6-promise-min 6.17 KB (2.4 KB gzipped)</a></li>
+<li><a href="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.auto.min.js">es6-promise-auto-min 6.19 KB (2.4 KB gzipped)</a> - Minified version of <code>es6-promise-auto</code> above.</li>
+</ul>
+<h2 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h2><p>To use via a CDN include this in your html:</p>
+<pre><code class="html"><span class="comment">&lt;!-- Automatically provides/replaces `Promise` if missing or broken. --&gt;</span>
+<span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+<span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> 
+
+<span class="comment">&lt;!-- Minified version of `es6-promise-auto` below. --&gt;</span>
+<span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+<span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> 
+</code></pre>
+<h2 id="Node-js"><a href="#Node-js" class="headerlink" title="Node.js"></a>Node.js</h2><p>To install:</p>
+<pre><code class="sh">yarn add es6-promise</code></pre>
+<p>or</p>
+<pre><code class="sh">npm install es6-promise</code></pre>
+<p>To use:</p>
+<pre><code class="js"><span class="keyword">var</span> <span class="built_in">Promise</span> = <span class="built_in">require</span>(<span class="string">'es6-promise'</span>).Promise;</code></pre>
+<h2 id="Usage-in-IE-lt-9"><a href="#Usage-in-IE-lt-9" class="headerlink" title="Usage in IE&lt;9"></a>Usage in IE&lt;9</h2><p><code>catch</code> and <code>finally</code> are reserved keywords in IE&lt;9, meaning<br><code>promise.catch(func)</code> or <code>promise.finally(func)</code> throw a syntax error. To work<br>around this, you can use a string to access the property as shown in the<br>following example.</p>
+<p>However most minifiers will automatically fix this for you, making the<br>resulting code safe for old browsers and production:</p>
+<pre><code class="js">promise[<span class="string">'catch'</span>](<span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>{
+  <span class="comment">// ...</span>
+});</code></pre>
+<pre><code class="js">promise[<span class="string">'finally'</span>](<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+  <span class="comment">// ...</span>
+});</code></pre>
+<h2 id="Auto-polyfill"><a href="#Auto-polyfill" class="headerlink" title="Auto-polyfill"></a>Auto-polyfill</h2><p>To polyfill the global environment (either in Node or in the browser via CommonJS) use the following code snippet:</p>
+<pre><code class="js"><span class="built_in">require</span>(<span class="string">'es6-promise'</span>).polyfill();</code></pre>
+<p>Alternatively</p>
+<pre><code class="js"><span class="built_in">require</span>(<span class="string">'es6-promise/auto'</span>);</code></pre>
+<p>Notice that we don’t assign the result of <code>polyfill()</code> to any variable. The <code>polyfill()</code> method will patch the global environment (in this case to the <code>Promise</code> name) when called.</p>
+<h2 id="Building-amp-Testing"><a href="#Building-amp-Testing" class="headerlink" title="Building &amp; Testing"></a>Building &amp; Testing</h2><p>You will need to have PhantomJS installed globally in order to run the tests.</p>
+<p><code>npm install -g phantomjs</code></p>
+<ul>
+<li><code>npm run build</code> to build</li>
+<li><code>npm test</code> to run tests</li>
+<li><code>npm start</code> to run a build watcher, and webserver to test</li>
+<li><code>npm run test:server</code> for a testem test runner and watching builder</li>
+</ul>

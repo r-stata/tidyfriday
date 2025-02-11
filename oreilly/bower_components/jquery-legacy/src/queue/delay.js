@@ -1,0 +1,1 @@
+define(["../core","../queue","../effects"],function(n){return n.fn.delay=function(t,e){return t=n.fx&&n.fx.speeds[t]||t,this.queue(e=e||"fx",function(e,n){var f=setTimeout(e,t);n.stop=function(){clearTimeout(f)}})},n.fn.delay});

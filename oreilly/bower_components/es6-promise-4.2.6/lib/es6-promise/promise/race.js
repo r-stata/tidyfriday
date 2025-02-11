@@ -1,0 +1,1 @@
+import{isArray}from"../utils";export default function race(n){let o=this;return isArray(n)?new o((e,t)=>{var a=n.length;for(let r=0;r<a;r++)o.resolve(n[r]).then(e,t)}):new o((r,e)=>e(new TypeError("You must pass an array to race.")))}

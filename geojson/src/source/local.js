@@ -1,0 +1,1 @@
+try{var fs=require("fs")}catch(t){console.warn(t)}function save(t,e){var n=t.data.get("path"),l=t.data.get("map"),t=JSON.stringify(l,null,2);fs.writeFile(n,t,function(t,a){e(null,{type:"local",path:n,content:l})})}module.exports.save=save;

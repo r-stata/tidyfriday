@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <title>Stata：如何为区县名称添加行政区划代码 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/42578/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <meta name="description" content="在之前的课程「如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗」中我们讲解了如何从 caj 文件中提取表格数据的方法，今天我们再来学习下如何根据区县名称匹配行政区划代码，另外在该过程中还可以检查区县名称的识别错误。最后我们再使用整理得到的数据绘制一幅区县地图。 首先我们使用上次课的代码处理“整理结果3.xlsx”： cd &quot;~&#x2F;Desktop&#x2F;Stata：如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stata：如何为区县名称添加行政区划代码">
+<meta property="og:url" content="https://tidyfriday.cn/posts/42578/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在之前的课程「如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗」中我们讲解了如何从 caj 文件中提取表格数据的方法，今天我们再来学习下如何根据区县名称匹配行政区划代码，另外在该过程中还可以检查区县名称的识别错误。最后我们再使用整理得到的数据绘制一幅区县地图。 首先我们使用上次课的代码处理“整理结果3.xlsx”： cd &quot;~&#x2F;Desktop&#x2F;Stata：如">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20230421232906.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20230421232921.png">
+<meta property="article:published_time" content="2023-04-21T11:14:00.000Z">
+<meta property="article:modified_time" content="2023-04-21T15:41:46.000Z">
+<meta property="article:author" content="RStata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20230421232906.png">
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <a href="/archives/" class="main-nav-link">归档</a><a href="/r-gallery/" class="main-nav-link">R 语言绘图案例</a><a href="/stata-gallery/" class="main-nav-link">Stata 绘图案例</a><a href="/rsdb2/" class="main-nav-link">RStata课程与数据库</a><a href="/templates/" class="main-nav-link">模板库</a><a href="/books/" class="main-nav-link">电子书</a><a href="/about/" class="main-nav-link">关于</a>
+      <div id="search-input-wrap">
+        <div id="search-input-icon">
+          <i class="fa fa-search"></i>
+        </div>
+        <input type="search" id="search-input" placeholder="Search...">
+      </div>
+    </nav>
+    <div>
+      <a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/r-stata" class="main-nav-link"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    <div id="content-wrap">
+  <div class="wrapper">
+    <div class="inner">
+      <article class="article post" itemscope itemtype="http://schema.org/Article">
+  <header class="article-header">
+    
+      <h1 class="article-title" itemprop="name">Stata：如何为区县名称添加行政区划代码</h1>
+    
+    <a href="/posts/42578/" class="article-date"><time datetime="2023-04-21T11:14:00.000Z">2023-04-21</time></a>
+  </header>
+  <div class="article-content" itemprop="articleBody">
+    <p>在之前的课程「如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗」中我们讲解了如何从 caj 文件中提取表格数据的方法，今天我们再来学习下如何根据区县名称匹配行政区划代码，另外在该过程中还可以检查区县名称的识别错误。最后我们再使用整理得到的数据绘制一幅区县地图。</p>
+<p>首先我们使用上次课的代码处理“整理结果3.xlsx”：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/Stata：如何为区县名称添加行政区划代码&quot;</span> </span><br><span class="line"><span class="comment">*- 处理 “整理结果3.xlsx”</span></span><br><span class="line">import excel using <span class="string">&quot;整理结果3.xlsx&quot;</span>, <span class="keyword">clear</span> </span><br><span class="line">carryforward A, <span class="keyword">replace</span> </span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(<span class="keyword">D</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">E</span>) &amp; <span class="built_in">missing</span>(F) <span class="comment">///</span></span><br><span class="line">    &amp; <span class="built_in">missing</span>(<span class="keyword">G</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">H</span>) &amp; <span class="built_in">missing</span>(I) <span class="comment">///</span></span><br><span class="line">    &amp; <span class="built_in">missing</span>(J) &amp; <span class="built_in">missing</span>(K) &amp; <span class="built_in">missing</span>(<span class="keyword">L</span>)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;・&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;，&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;、&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> B == <span class="string">&quot;&quot;</span> | B == <span class="string">&quot;一、基本情况行政区域面积&quot;</span> | B == <span class="string">&quot;一基本情况行政区域面积&quot;</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line">    <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民政0艮务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">            <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">            <span class="string">&quot;提供住宿的民谢艮务机构床位数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line">    <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民呦艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">            <span class="string">&quot;提供住宿的民政^务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">            <span class="string">&quot;提供住宿的民斑艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">            <span class="string">&quot;提供住宿的民班艮务机构&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> C </span><br><span class="line"><span class="keyword">gen</span> z = _n <span class="keyword">if</span> B == <span class="string">&quot;指标&quot;</span></span><br><span class="line"><span class="keyword">order</span> z </span><br><span class="line">carryforward z, <span class="keyword">replace</span></span><br><span class="line">gather <span class="keyword">D</span> - <span class="keyword">L</span> </span><br><span class="line">spread B value </span><br><span class="line"><span class="keyword">order</span> z A 指标 </span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(指标) </span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span> </span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除辅助变量 z</span></span><br><span class="line"><span class="keyword">drop</span> z </span><br><span class="line"></span><br><span class="line"><span class="keyword">ren</span> A 省</span><br><span class="line"><span class="keyword">ren</span> 指标 县</span><br><span class="line"><span class="keyword">order</span> 省 县 行政区域面积 乡 镇 街道办事处 户籍人口 <span class="comment">///</span></span><br><span class="line">    地区生产总值 第一产业增加值 第二产业增加值 第三产业增加值 <span class="comment">///</span></span><br><span class="line">    地方一般公共预算收入 地方一般公共预算支出 住户存款余额 <span class="comment">///</span></span><br><span class="line">    年末金融机构各项贷款余额 设施农业种植占地面积 油料产量 <span class="comment">///</span></span><br><span class="line">    棉花产量 规模以上工业企业 固定电话用户 普通中学在校学生 <span class="comment">///</span></span><br><span class="line">    小学在校学生 医疗卫生机构床位 提供住宿的民政服务机构 <span class="comment">///</span></span><br><span class="line">    提供住宿的民政服务机构床位数</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 紧凑数据</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">save</span> data4, <span class="keyword">replace</span> </span><br></pre></td></tr></table></figure>
+
+<p>由于之前我分享的县域统计年鉴数据都是使用的 2020 年行政区划代码，所以这次我们也同样。</p>
+<p>2020 年行政区划代码可以从地理矢量数据得到（为了方便绘制地图）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 由于之前的县域数据都是使用的 2020 年行政区划代码，所以这次我们依然使用 2020 的：</span></span><br><span class="line">shp2dta using <span class="string">&quot;2020行政区划/县.shp&quot;</span>, database(countydb) coordinates(countycoord) <span class="keyword">replace</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> countydb, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">keep</span> 省 省代码 市 市代码 县 县代码 </span><br><span class="line"><span class="keyword">order</span> 省 省代码 市 市代码 县 县代码 </span><br><span class="line"><span class="comment">*- 查看 省-县 的组合有无重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> tag 省 县, <span class="keyword">gen</span>(tags) </span><br><span class="line"><span class="keyword">gsort</span> -tags </span><br><span class="line"></span><br><span class="line"><span class="comment">*- 这些重复的可能会影响下一步的匹配，所以先删除了</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> tags &gt; 0 </span><br><span class="line"><span class="keyword">drop</span> tags</span><br><span class="line"><span class="keyword">save</span> countycode1, <span class="keyword">replace</span> </span><br></pre></td></tr></table></figure>
+
+<p>首先匹配下看看能成功多少：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data4, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">merge</span> 1:1 省 县 using countycode1 </span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt; -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt; Not matched                         1,116</span></span><br><span class="line"><span class="comment">*&gt;     from master                       171  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;     from using                        945  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt; </span></span><br><span class="line"><span class="comment">*&gt; Matched                             1,917  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt; -----------------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 检查没有匹配成功的</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 1 </span><br></pre></td></tr></table></figure>
+
+<p>可以看到很多是由于空格和杂乱字符导致的匹配失败，所以我们先去除：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data4, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot;:&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"></span><br><span class="line"><span class="keyword">merge</span> 1:1 省 县 using countycode1 </span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 1</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt; -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt; Not matched                           946</span></span><br><span class="line"><span class="comment">*&gt;     from master                        86  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;     from using                        860  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt; </span></span><br><span class="line"><span class="comment">*&gt; Matched                             2,002  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt; -----------------------------------------</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到这个时候匹配不成功的（<code>_merge==1</code>）就不是很多了，下面我们需要结合百度和 countycode1.dta 来逐个检查修正：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20230421232906.png" alt=""></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 然后就要一个个修改了</span></span><br><span class="line"><span class="keyword">replace</span> 省 = <span class="string">&quot;江苏省&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;浦口区&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;勐腊县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;^腊县&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;勐海县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;劭海县&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处省略部分代码，详情可以参考附件中的 main.do </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;湟源县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;潼源县&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;大箐山县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;大箸山县&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后重新匹配试试：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 重新匹配试试</span></span><br><span class="line"><span class="keyword">use</span> data4, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="built_in">subinstr</span>(县, <span class="string">&quot;:&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 省 = <span class="string">&quot;江苏省&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;浦口区&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;勐腊县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;^腊县&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;勐海县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;劭海县&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;双江拉祜族佤族布朗族傣族自治县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;双江拉祜族值族布朗族傣族自治县&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处省略部分代码，详情可以参考附件中的 main.do </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 县 = <span class="string">&quot;大箐山县&quot;</span> <span class="keyword">if</span> 县 == <span class="string">&quot;大箸山县&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">merge</span> 1:1 省 县 using countycode1 </span><br><span class="line"><span class="keyword">order</span> 省 省代码 市 市代码 县 县代码 </span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m </span><br><span class="line"><span class="keyword">destring</span> 县代码, <span class="keyword">replace</span> </span><br><span class="line"><span class="keyword">save</span> data5, <span class="keyword">replace</span> </span><br></pre></td></tr></table></figure>
+
+<p>然后我们再对变量进行重命名（和之前年份的保持一致）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data5, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">gen</span> 年份 = 2021 </span><br><span class="line"><span class="keyword">replace</span> 乡 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(乡)</span><br><span class="line"><span class="keyword">replace</span> 镇 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(镇)</span><br><span class="line"><span class="keyword">gen</span> 乡镇个数_个 = 乡 + 镇</span><br><span class="line"><span class="keyword">ren</span> 乡 乡_个</span><br><span class="line"><span class="keyword">ren</span> 镇 镇_个</span><br><span class="line"><span class="keyword">ren</span> 行政区域面积 行政区域土地面积_平方公里</span><br><span class="line"><span class="keyword">ren</span> 街道办事处 街道办事处个数_个</span><br><span class="line"><span class="keyword">ren</span> 户籍人口 户籍人口_人</span><br><span class="line"><span class="keyword">ren</span> 地区生产总值 国内生产总值_万元</span><br><span class="line"><span class="keyword">ren</span> 第一产业增加值 第一产业增加值_万元</span><br><span class="line"><span class="keyword">ren</span> 第二产业增加值 第二产业增加值_万元</span><br><span class="line"><span class="keyword">ren</span> 第三产业增加值 第三产业增加值_万元</span><br><span class="line"><span class="keyword">ren</span> 地方一般公共预算收入 一般公共预算收入_万元</span><br><span class="line"><span class="keyword">ren</span> 地方一般公共预算支出 一般公共预算支出_万元</span><br><span class="line"><span class="keyword">ren</span> 住户存款余额 住户储蓄存款余额_万元</span><br><span class="line"><span class="keyword">ren</span> 年末金融机构各项贷款余额 年末各项贷款余额_万元</span><br><span class="line"><span class="keyword">ren</span> 设施农业种植占地面积 设施农业占地面积_公顷</span><br><span class="line"><span class="keyword">ren</span> 油料产量 油料产量_吨</span><br><span class="line"><span class="keyword">ren</span> 棉花产量 棉花产量_吨</span><br><span class="line"><span class="keyword">ren</span> 规模以上工业企业 规模以上工业企业个数_个</span><br><span class="line"><span class="keyword">ren</span> 固定电话用户 固定电话用户_户</span><br><span class="line"><span class="keyword">ren</span> 普通中学在校学生 普通中学在校学生_人</span><br><span class="line"><span class="keyword">ren</span> 小学在校学生 小学在校学生数_人</span><br><span class="line"><span class="keyword">ren</span> 医疗卫生机构床位 医疗卫生机构床位_床</span><br><span class="line"><span class="keyword">ren</span> 提供住宿的民政服务机构 提供住宿的社会工作机构_个</span><br><span class="line"><span class="keyword">ren</span> 提供住宿的民政服务机构床位数 提供住宿的社会工作机构床位_床</span><br><span class="line"><span class="keyword">label</span> data <span class="string">&quot;整理：微信公众号 RStata&quot;</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2021年县市社会经济指标.dta&quot;</span>, <span class="keyword">replace</span> </span><br></pre></td></tr></table></figure>
+
+<p>最后如果你想把该数据和之前年份的合并起来，只需要 use 之前年份的数据，然后 <code>append using &quot;2021年县市社会经济指标.dta&quot;</code> 即可。</p>
+<p>最后我们再使用该数据绘制一幅区县地图：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 把 “2021年县市社会经济指标.dta” 文件放到 “使用Stata绘制中国县级地图（版本2020mini）” 文件夹里面：</span></span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;使用Stata绘制中国县级地图（版本2020mini）&quot;</span></span><br><span class="line"><span class="keyword">use</span> chinacounty2020mini_db.dta, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">destring</span> 县代码, <span class="keyword">replace</span> </span><br><span class="line"><span class="keyword">merge</span> 1:1 省 省代码 市 市代码 县 县代码 using 2021年县市社会经济指标.dta</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 国内生产总值_万元 = 国内生产总值_万元/10000</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 市辖区的值使用该城市的平均值代替</span></span><br><span class="line"><span class="keyword">bysort</span> 省 省代码 市 市代码: <span class="keyword">egen</span> <span class="keyword">mean</span> = <span class="keyword">mean</span>(国内生产总值_万元)</span><br><span class="line"><span class="keyword">replace</span> 国内生产总值_万元 = <span class="keyword">mean</span> <span class="keyword">if</span> <span class="built_in">missing</span>(国内生产总值_万元) </span><br><span class="line"></span><br><span class="line"><span class="comment">*- 仍然缺失的使用该省的均值代替</span></span><br><span class="line"><span class="keyword">bysort</span> 省 省代码 : <span class="keyword">egen</span> mean2 = <span class="keyword">mean</span>(国内生产总值_万元)</span><br><span class="line"><span class="keyword">replace</span> 国内生产总值_万元 = mean2 <span class="keyword">if</span> <span class="built_in">missing</span>(国内生产总值_万元) </span><br><span class="line"></span><br><span class="line"><span class="comment">*- 仍然缺失的替换成 -1 </span></span><br><span class="line"><span class="keyword">replace</span> 国内生产总值_万元 = -1 <span class="keyword">if</span> <span class="built_in">missing</span>(国内生产总值_万元) </span><br><span class="line"></span><br><span class="line"><span class="comment">*- 绘图</span></span><br><span class="line"><span class="comment">*- 农林牧渔业人口占比 </span></span><br><span class="line">nicecut 国内生产总值_万元, <span class="keyword">n</span>(8) unit(亿元) </span><br><span class="line">grmap 国内生产总值_万元 using chinacounty2020mini_coord.dta, <span class="comment">/// </span></span><br><span class="line">    id(ID) osize(vvthin ...) ocolor(white ...) <span class="comment">/// </span></span><br><span class="line">    clmethod(custom) clbreaks(`<span class="built_in">r</span>(cutpoints)&#x27;) <span class="comment">/// </span></span><br><span class="line">    fcolor(gray <span class="string">&quot;255 198 196&quot;</span> <span class="string">&quot;244 163 168&quot;</span> <span class="string">&quot;227 129 145&quot;</span> <span class="comment">/// </span></span><br><span class="line">        <span class="string">&quot;204 96 125&quot;</span> <span class="string">&quot;173 70 108&quot;</span> <span class="string">&quot;139 48 88&quot;</span> <span class="string">&quot;103 32 68&quot;</span>) <span class="comment">/// </span></span><br><span class="line">    graphr(margin(medium)) <span class="comment">/// </span></span><br><span class="line">    leg(<span class="keyword">order</span>(`<span class="built_in">r</span>(legorder)&#x27;)) <span class="comment">/// </span></span><br><span class="line">    <span class="keyword">line</span>(data(chinaprov2020mini_line_coord2.dta) <span class="keyword">by</span>(group) <span class="comment">/// </span></span><br><span class="line">        size(vvthin *1 *0.5 *0.5 *0.5) pattern(solid ...) <span class="comment">/// </span></span><br><span class="line">        select(<span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 4, 7)) <span class="comment">///</span></span><br><span class="line">        color(gs20 <span class="comment">/// 省界颜色 </span></span><br><span class="line">              black <span class="comment">/// 国界线颜色 </span></span><br><span class="line">              <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色 </span></span><br><span class="line">              black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">              black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">              )) <span class="comment">/// </span></span><br><span class="line">    polygon(data(polygon2) fcolor(black) <span class="comment">///</span></span><br><span class="line">        osize(vvthin)) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">label</span>(data(chinacounty2020mini_label2) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;2021 年中国各县地区生产总值&quot;</span>) <span class="comment">/// </span></span><br><span class="line">    subti(<span class="string">&quot;数据整理 &amp; 绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">    caption(<span class="string">&quot;数据来源：2022 年中国县域统计年鉴&quot;</span>, size(*0.8))</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;2021年中国各县地区生产总值.png&quot;</span>, <span class="keyword">replace</span> width(2400) </span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20230421232921.png" alt=""></p>
+
+  </div>
+  
+<section id="comments">
+<div id="valine-thread"></div>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#valine-thread' ,
+        notify: true,
+        verify: false,
+        app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+        app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+        placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+        avatar: 'monsterid',
+        avatar_cdn: 'https://gravatar.loli.net/avatar/',
+        pageSize: '2'
+    });
+</script>
+
+</article>
+
+    </div>
+  </div>
+</div>
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2025 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank"><i class="fa fa-weixin"></i></a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <a href="/archives/" class="mobile-nav-link">归档</a><a href="/r-gallery/" class="mobile-nav-link">R 语言绘图案例</a><a href="/stata-gallery/" class="mobile-nav-link">Stata 绘图案例</a><a href="/rsdb2/" class="mobile-nav-link">RStata课程与数据库</a><a href="/templates/" class="mobile-nav-link">模板库</a><a href="/books/" class="mobile-nav-link">电子书</a><a href="/about/" class="mobile-nav-link">关于</a>
+      <li class="mobile-nav-item">
+        <a href="https://github.com/r-stata" class="mobile-nav-link" rel="external" target="_blank">GitHub</a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- Algolia -->
+
+
+</body>
+</html>

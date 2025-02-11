@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0041)https://www.matools.com/image-color?embed -->
+<html class=" js canvas no-touch draganddrop pointerevents filereader"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--<base href="https://www.matools.com/">--><base href=".">
+
+<title>在线传图识色，自动识别图片色彩，提取图片主色调 - 码工具</title>
+<meta name="keywords" content="在线传图识色自动识别主色调,提取图片主色调,在线图片颜色识别,图片主色彩识别,Image Color Detection">
+<meta name="description" content="免费的图片颜色识别工具，可以随鼠标的移动自动识别出光标所在处图片的颜色，并提取出图片的主色调，提供图片颜色识别技术服务。">
+
+<meta http-equiv="Cache-Control" content="no-transform"> 
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,user-scalable=yes">
+<link rel="shortcut icon" href="https://tidyfriday.cn/images/pad.svg" type="image/x-icon">
+<link rel="bookmark" href="https://tidyfriday.cn/images/pad.svg">
+<!-- css -->
+<link rel="stylesheet" href="./colorpicker_files/bootstrap.min.css">
+<link href="./colorpicker_files/main.css" rel="stylesheet" type="text/css">
+
+<link rel="stylesheet" type="text/css" href="./colorpicker_files/imageColor.css">
+</head>
+<body>
+	
+
+
+	<div id="mainContent" class="wrapper">
+		<div class="row"><div class="col-lg-9">
+
+
+
+	<div id="matoolsFloatDiv"><a href="http://www.matools.com/" target="_top"> By MaTools.com </a></div>
+
+		<div id="dragged-images" class="dragged-images">
+			<div class="row">
+				<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+					<label for="imageLoader" class="button">上传图片</label>
+					<input type="file" id="imageLoader" name="imageLoader" class="show-for-sr" accept="image/*">
+		        </div>
+		        <div class="input-group col-xs-8 col-sm-8 col-md-8 col-lg-8">
+					<input type="text" class="form-control" placeholder="http://..." id="webImageUrl">
+					<span class="input-group-btn">
+						<button class="btn btn-primary" type="button" id="webbtn">Go!</button>
+					</span>
+				</div>
+		    </div>
+			<div class="row" style="border:1px solid #ccc;">
+		      <canvas class="col-xs-9 col-sm-9 col-md-9 col-lg-9" id="imageCanvas" width="450" height="300" style="padding:0px;float:left;"></canvas>
+		      <canvas class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="pixCanvas" width="150" height="150" style="padding:0px;background-color: #ddd;float:left;"></canvas>
+		      <canvas class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="barvaCanvas" width="150" height="150" style="padding:0px;background-color: #ccc;float:left;"></canvas>
+		    </div>
+		    <div class="input-group">
+				<span class="input-group-addon">颜色代码:</span>
+				<input type="text" id="pixcolor" class="form-control">
+			</div>
+	    </div>
+	    
+  <!-- Mustache templates -->
+  <script src="./colorpicker_files/hm.js"></script><script src="./colorpicker_files/push.js"></script><script id="image-section-template" type="text/x-mustache">
+    {{#images}}
+    <div class="image-section {{class}}">
+      <div class="image-wrap">
+        <img class="target-image" src="{{file}}" style="display:none;"/>
+      </div>
+      <div class="color-thief-output"></div>
+    </div>
+    {{/images}}
+  </script>	    
+  <script id="color-thief-output-template" type="text/x-mustache">
+    <div class="function get-palette">
+	  <h3>主色调  <small> 单击颜色按钮，拷贝颜色代码到粘贴板</small></h3>
+      <div class="function-output">
+        <div class="swatches">
+          {{#palette}}
+            <div class="swatch box" style="background-color: rgb({{0}}, {{1}}, {{2}})" r="{{0}}" g="{{1}}" b="{{2}}" 
+				onmouseover="javascript:onMouseOver(this);" onmouseout="javascript:onMouseOut(this);"  onclick="javascript:onclickCopy(this);" >
+			<button class="glyphicon glyphicon-remove x" onclick="javascript:onclickClose(this);" >
+			</button>
+			</div>
+          {{/palette}}
+        </div>
+      </div>
+      <div class="function-code">
+		<code class="valColor"></code>
+      </div>
+	  
+	  <div class="divSpacing5px">
+		<input type="radio" id="test1" name="optradio" checked="checked" onchange="rdoHEX(this);" >    <label for="test1">HEX</label>&emsp;&ensp;
+		<input type="radio" id="test2" name="optradio" onchange="rdoRGB(this);">    <label for="test2">RGB</label>&emsp;&ensp;
+		<input type="radio" id="test3" name="optradio" onchange="rdoHSL(this);">    <label for="test3">HSL</label>
+	  </div>
+	  <div style="padding-top:20px;">
+		<code> 
+			<button class="btn btn-primary btn-lg" onclick='onDownloadPaletteClick(this);'>下载颜色版</button> 
+		</code>
+    </div>
+  </script>	
+		</div></div>
+		
+
+
+
+
+	</div>
+	
+
+
+
+ 
+	
+<!-- js -->
+<script type="text/javascript" src="./colorpicker_files/common.js"></script>
+<script type="text/javascript" src="./colorpicker_files/main.yun.js" charset="utf-8"></script>
+
+	<script src="./colorpicker_files/imgMainColor.js"></script>
+	<script src="./colorpicker_files/download.js"></script>
+
+</body></html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <title>Stata 和 R 语言绘图中如何快速的使用调色板？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/18040/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <meta name="description" content="今天给大家推荐一个我每次绘图都在使用的调色应用！  https:&#x2F;&#x2F;tidyfriday.cn&#x2F;colors&#x2F;  建议加入到电脑的收藏夹里面！ 这个应用是根据 ColorBrewer 网站修改之后部署到我的服务器上的，特别适合 R 语言和 Stata 用户使用，另外还增加了不少颜色选择，使用起来非常方便。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stata 和 R 语言绘图中如何快速的使用调色板？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/18040/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家推荐一个我每次绘图都在使用的调色应用！  https:&#x2F;&#x2F;tidyfriday.cn&#x2F;colors&#x2F;  建议加入到电脑的收藏夹里面！ 这个应用是根据 ColorBrewer 网站修改之后部署到我的服务器上的，特别适合 R 语言和 Stata 用户使用，另外还增加了不少颜色选择，使用起来非常方便。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826074817.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826074944.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075009.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075047.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075106.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075124.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075157.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075241.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075256.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075332.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075351.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075428.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075456.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075510.png">
+<meta property="og:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075106.png">
+<meta property="article:published_time" content="2022-08-27T12:29:00.000Z">
+<meta property="article:modified_time" content="2022-08-25T23:58:48.000Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Data">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826074817.png">
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <a href="/archives/" class="main-nav-link">归档</a><a href="/r-gallery/" class="main-nav-link">R 语言绘图案例</a><a href="/stata-gallery/" class="main-nav-link">Stata 绘图案例</a><a href="/rsdb2/" class="main-nav-link">RStata课程与数据库</a><a href="/templates/" class="main-nav-link">模板库</a><a href="/books/" class="main-nav-link">电子书</a><a href="/about/" class="main-nav-link">关于</a>
+      <div id="search-input-wrap">
+        <div id="search-input-icon">
+          <i class="fa fa-search"></i>
+        </div>
+        <input type="search" id="search-input" placeholder="Search...">
+      </div>
+    </nav>
+    <div>
+      <a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/r-stata" class="main-nav-link"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    <div id="content-wrap">
+  <div class="wrapper">
+    <div class="inner">
+      <article class="article post" itemscope itemtype="http://schema.org/Article">
+  <header class="article-header">
+    
+      <h1 class="article-title" itemprop="name">Stata 和 R 语言绘图中如何快速的使用调色板？</h1>
+    
+    <a href="/posts/18040/" class="article-date"><time datetime="2022-08-27T12:29:00.000Z">2022-08-27</time></a>
+  </header>
+  <div class="article-content" itemprop="articleBody">
+    <p>今天给大家推荐一个我每次绘图都在使用的调色应用！</p>
+<blockquote>
+<p><a href="https://tidyfriday.cn/colors/">https://tidyfriday.cn/colors/</a></p>
+</blockquote>
+<p>建议加入到电脑的收藏夹里面！</p>
+<p>这个应用是根据 ColorBrewer 网站修改之后部署到我的服务器上的，特别适合 R 语言和 Stata 用户使用，另外还增加了不少颜色选择，使用起来非常方便。</p>
+<span id="more"></span>
+
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826074817.png" alt></p>
+<h2 id="颜色数量的选择" class="article-heading"><a href="#颜色数量的选择" class="headerlink" title="颜色数量的选择"></a>颜色数量的选择<a class="article-anchor" href="#颜色数量的选择" aria-hidden="true"></a></h2><p>在左上角有个 Number of data classes，可以下拉选择所需要的颜色数量，不同的调色板最大可选择的颜色数量可能是不同的：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826074944.png" alt></p>
+<p>只有少数调色板可以选择 16、34、51 种颜色，例如 scico1 和 scico2 系列的。</p>
+<h2 id="调色板类别的选择" class="article-heading"><a href="#调色板类别的选择" class="headerlink" title="调色板类别的选择"></a>调色板类别的选择<a class="article-anchor" href="#调色板类别的选择" aria-hidden="true"></a></h2><p>比起 ColorBrewer，我增加了很多调色板：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075009.png" alt></p>
+<p>其中只有第一行的 sequential、diverging 和 qualitative 三个是 ColorBrewer 的调色板，其他的都是我增加的，其中 ggsci 和 scico 两个是我最常用的，是两个 R 包的名字，例如 scico 包的调色板有这些：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">scico<span class="operator">::</span>scico_palette_show<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075047.png" alt></p>
+<p>使用这个网页应用可以快速预览这些调色板的配色效果。例如之前的夜间灯光地图使用的就是 lajolla 调色板：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075106.png" alt></p>
+<p>平台上这个色系的预览效果：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075124.png" alt></p>
+<h2 id="使用选定的色系" class="article-heading"><a href="#使用选定的色系" class="headerlink" title="使用选定的色系"></a>使用选定的色系<a class="article-anchor" href="#使用选定的色系" aria-hidden="true"></a></h2><p>这个应用特别针对 Stata 和 R 语言的用户进行了设计。例如对于 Stata 用户，经常需要一系列的 RGB 颜色，可以这样设置：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075157.png" alt></p>
+<blockquote>
+<p>点击 RStata 就可以展开这个窗口了。</p>
+</blockquote>
+<p>Stata 通常使用 RGB 颜色，所以这里需要选择 RGB，然后点击 RStata 拉出结果窗口就可以复制这些颜色值了。</p>
+<p>例如在数据分享 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/14509f96e1f1459a824610d5e9c65f18">中债国债到期收益率期限结构 （截止 2021 年 9 月 20 日）</a> 数据中有这么一幅图：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075241.png" alt></p>
+<p>这幅图需要很多颜色来表示不同的线条，就可以使用这个网页应用进行颜色选择，例如我们选择 tidyquant 里面的 10-class Light 调色板：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075256.png" alt></p>
+<p>这 10 种颜色的值分别是：”44 62 80” “227 26 28” “24 188 156” “204 190 147” “166 206 227” “31 120 180” “178 223 138” “251 154 153” “253 191 111” “255 127 0”，在 Stata 中可以这样使用：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;中债国债到期收益率数据(截止2021年9月20日).dta&quot;</span>, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">line</span> rate1m rate3m rate6m rate1y rate2y <span class="comment">///</span></span><br><span class="line">	rate3y rate5y rate7y rate10y rate20y date, <span class="comment">///</span></span><br><span class="line">	xlabel(#6, ang(20)) xti(<span class="string">&quot;日期&quot;</span>) yti(<span class="string">&quot;国债收益率&quot;</span>) <span class="comment">///</span></span><br><span class="line">	leg(<span class="keyword">order</span>(1 <span class="string">&quot;1 月期&quot;</span> <span class="comment">///</span></span><br><span class="line">		2 <span class="string">&quot;3 月期&quot;</span> <span class="comment">///</span></span><br><span class="line">		3 <span class="string">&quot;6 月期&quot;</span> <span class="comment">///</span></span><br><span class="line">		4 <span class="string">&quot;1 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		5 <span class="string">&quot;2 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		6 <span class="string">&quot;3 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		7 <span class="string">&quot;5 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		8 <span class="string">&quot;7 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		9 <span class="string">&quot;10 年期&quot;</span> <span class="comment">///</span></span><br><span class="line">		10 <span class="string">&quot;20 年期&quot;</span>) pos(1) ring(0) col(3)) <span class="comment">///</span></span><br><span class="line">	lc(<span class="string">&quot;44 62 80&quot;</span> <span class="string">&quot;227 26 28&quot;</span> <span class="string">&quot;24 188 156&quot;</span> <span class="string">&quot;204 190 147&quot;</span> <span class="string">&quot;166 206 227&quot;</span> <span class="string">&quot;31 120 180&quot;</span> <span class="string">&quot;178 223 138&quot;</span> <span class="string">&quot;251 154 153&quot;</span> <span class="string">&quot;253 191 111&quot;</span> <span class="string">&quot;255 127 0&quot;</span>) lp(solid ...) <span class="comment">///</span></span><br><span class="line">	ti(<span class="string">&quot;中债国债到期收益率期限结构&quot;</span>) <span class="comment">///</span></span><br><span class="line">	subti(<span class="string">&quot;爬取 &amp; 整理：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">	caption(<span class="string">&quot;数据来源：中国债券信息网&lt;https://yield.chinabond.com.cn/cbweb-mn&gt;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;中债国债到期收益率期限结构.png&quot;</span>, <span class="keyword">replace</span> width(1200) </span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075332.png" alt></p>
+<p>也就是直接把 10 中颜色的 RGB 值拷贝到 lc() 选项里面就可以了。</p>
+<p>如果你是 R 语言用户，建议使用 HEX 颜色值，这个之后把 RGB 改成 HEX 即可：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075351.png" alt></p>
+<p>R 语言的绘图代码如下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 字体设置</span></span><br><span class="line">library<span class="punctuation">(</span>showtext<span class="punctuation">)</span> </span><br><span class="line">showtext_auto<span class="punctuation">(</span>enable <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span> </span><br><span class="line">font_add<span class="punctuation">(</span><span class="string">&quot;songti&quot;</span><span class="punctuation">,</span> regular <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">)</span></span><br><span class="line">cnfont <span class="operator">&lt;-</span> <span class="string">&quot;songti&quot;</span> </span><br><span class="line">library<span class="punctuation">(</span>hrbrthemes<span class="punctuation">)</span></span><br><span class="line">theme_set<span class="punctuation">(</span> </span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">    theme<span class="punctuation">(</span>axis.text.x <span class="operator">=</span> element_text<span class="punctuation">(</span>angle <span class="operator">=</span> <span class="number">20</span><span class="punctuation">,</span> vjust <span class="operator">=</span> <span class="number">0.4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">0.4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.line.x <span class="operator">=</span> element_line<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.line.y <span class="operator">=</span> element_line<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.ticks.length <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.5</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.ticks.x <span class="operator">=</span> element_line<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.ticks.y <span class="operator">=</span> element_line<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          panel.grid.major <span class="operator">=</span> element_line<span class="punctuation">(</span>linetype <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;中债国债到期收益率数据(截止2021年9月20日).dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df </span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span> </span><br><span class="line">  select<span class="punctuation">(</span>date<span class="punctuation">,</span> rate1m<span class="punctuation">,</span> rate3m<span class="punctuation">,</span> rate6m<span class="punctuation">,</span> </span><br><span class="line">         rate1y<span class="punctuation">,</span> rate2y<span class="punctuation">,</span> rate3y<span class="punctuation">,</span> </span><br><span class="line">         rate5y<span class="punctuation">,</span> rate7y<span class="punctuation">,</span> rate10y<span class="punctuation">,</span> </span><br><span class="line">         rate20y<span class="punctuation">)</span> <span class="operator">%&gt;%</span> </span><br><span class="line">  gather<span class="punctuation">(</span><span class="operator">-</span>date<span class="punctuation">,</span> key <span class="operator">=</span> <span class="string">&quot;key&quot;</span><span class="punctuation">,</span> value <span class="operator">=</span> <span class="string">&quot;value&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> </span><br><span class="line">  mutate<span class="punctuation">(</span>key <span class="operator">=</span> factor<span class="punctuation">(</span>key<span class="punctuation">,</span> </span><br><span class="line">                      levels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;rate1m&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate3m&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate6m&quot;</span><span class="punctuation">,</span> </span><br><span class="line">                                 <span class="string">&quot;rate1y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate2y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate3y&quot;</span><span class="punctuation">,</span> </span><br><span class="line">                                 <span class="string">&quot;rate5y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate7y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rate10y&quot;</span><span class="punctuation">,</span> </span><br><span class="line">                                 <span class="string">&quot;rate20y&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                      labels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;1 月期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;3 月期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;6 月期&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                 <span class="string">&quot;1 年期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;2 年期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;3 年期&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                 <span class="string">&quot;5 年期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;7 年期&quot;</span><span class="punctuation">,</span> <span class="string">&quot;10 年期&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                 <span class="string">&quot;20 年期&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> </span><br><span class="line">  ggplot<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> date<span class="punctuation">,</span> y <span class="operator">=</span> value<span class="punctuation">,</span> color <span class="operator">=</span> key<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  geom_line<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#2c3e50&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#e31a1c&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#18bc9c&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#ccbe93&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#a6cee3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1f78b4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#b2df8a&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#fb9a99&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#fdbf6f&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#ff7f00&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.8</span><span class="punctuation">,</span> <span class="number">0.8</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> guide_legend<span class="punctuation">(</span>nrow <span class="operator">=</span> <span class="number">4</span><span class="punctuation">,</span> byrow <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  scale_x_date<span class="punctuation">(</span>labels <span class="operator">=</span> scales<span class="operator">::</span>date_format<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               breaks <span class="operator">=</span> scales<span class="operator">::</span>date_breaks<span class="punctuation">(</span>width <span class="operator">=</span> <span class="string">&quot;2 years&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  scale_y_continuous<span class="punctuation">(</span>breaks <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span> limits <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> </span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中债国债到期收益率期限结构&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;爬取 &amp; 整理：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：中国债券信息网&lt;https://yield.chinabond.com.cn/cbweb-mn&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">       color <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span> x <span class="operator">=</span> <span class="string">&quot;日期&quot;</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="string">&quot;国债收益率&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;中债国债到期收益率期限结构2.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">6</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075428.png" alt></p>
+<p>也就是直接把 HEX 颜色值直接复制粘贴到 <code>scale_color_manual()</code> 里面即可！是不是也很方便。</p>
+<h2 id="在绘制地图中使用" class="article-heading"><a href="#在绘制地图中使用" class="headerlink" title="在绘制地图中使用"></a>在绘制地图中使用<a class="article-anchor" href="#在绘制地图中使用" aria-hidden="true"></a></h2><p>例如在 Stata 绘制地图中使用，下面的案例展示了如何使用 Stata 绘图展示 2019 年中国各省市地区生产总值：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075456.png" alt></p>
+<p>这里使用的是 ggsci2 中的 10-class teal_material：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075510.png" alt></p>
+<p>完整的 Stata 绘图代码如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using <span class="string">&quot;2020年中国各省市地区生产总值.csv&quot;</span>, <span class="keyword">clear</span> encoding(utf8)</span><br><span class="line"><span class="keyword">gen</span> prov = <span class="built_in">substr</span>(省份, 1, 6)</span><br><span class="line"><span class="keyword">save</span> 2020年中国各省市地区生产总值, <span class="keyword">replace</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> chinaprov2019mini_db.dta, <span class="keyword">clear</span> </span><br><span class="line"><span class="keyword">gen</span> prov = <span class="built_in">substr</span>(省, 1, 6)</span><br><span class="line"><span class="keyword">merge</span> 1:1 prov using 2020年中国各省市地区生产总值</span><br><span class="line"><span class="keyword">replace</span> 地区生产总值 = -1 <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值)</span><br><span class="line">grmap 地区生产总值 using chinaprov2019mini_coord.dta, <span class="comment">///</span></span><br><span class="line">	id(ID) osize(vvthin ...) ocolor(white ...) <span class="comment">///</span></span><br><span class="line">	clmethod(custom) clbreaks(-1 0 20000 40000 60000 80000 120000) <span class="comment">///</span></span><br><span class="line">	fcolor(gray <span class="string">&quot;224 242 241&quot;</span> <span class="string">&quot;178 223 219&quot;</span> <span class="string">&quot;128 203 196&quot;</span> <span class="string">&quot;77 182 172&quot;</span> <span class="string">&quot;38 166 154&quot;</span>) <span class="comment">///</span></span><br><span class="line">	leg(<span class="keyword">order</span>(2 <span class="string">&quot;无数据&quot;</span> 3 <span class="string">&quot;&lt; 2 万亿元&quot;</span> 4 <span class="string">&quot;2～4 万亿元&quot;</span> 5 <span class="string">&quot;4～6 万亿元&quot;</span> 6 <span class="string">&quot;6～8 万亿元&quot;</span> 7 <span class="string">&quot;&gt; 8 万亿元&quot;</span>)) <span class="comment">///</span></span><br><span class="line">	graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">	<span class="keyword">line</span>(data(chinaprov2019mini_line_coord3.dta) <span class="comment">///</span></span><br><span class="line">		<span class="comment">/// 去除秦岭淮河线(4)、胡焕庸线(7)</span></span><br><span class="line">		select(<span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 1, 2, 3, 5, 6)) <span class="comment">///</span></span><br><span class="line">		<span class="keyword">by</span>(group) size(vvthin *1 *0.5 *0.5 *0.5) <span class="comment">///</span></span><br><span class="line">		pattern(solid ...) <span class="comment">///</span></span><br><span class="line">		color(white <span class="comment">/// 省界颜色</span></span><br><span class="line">			  black <span class="comment">/// 国界线颜色</span></span><br><span class="line">			  <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">			  black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">			  black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">			  )) <span class="comment">///</span></span><br><span class="line">	polygon(data(polygon3) fcolor(black) <span class="comment">///</span></span><br><span class="line">		osize(vvthin)) <span class="comment">///</span></span><br><span class="line">	<span class="keyword">label</span>(data(chinaprov2019mini_label3) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">	ti(<span class="string">&quot;2019 年中国各省市地区生产总值&quot;</span>) <span class="comment">///</span></span><br><span class="line">	subti(<span class="string">&quot;绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">	caption(<span class="string">&quot;数据来源：各地统计局&quot;</span>, size(*0.8))</span><br><span class="line"><span class="keyword">gr</span> export pic3.png, <span class="keyword">replace</span> width(1200)</span><br></pre></td></tr></table></figure>
+
+<p>上面代码中的 fcolor() 就是使用这个网页应用生成的。</p>
+<p>R 语言绘制地图的案例上面就有了：</p>
+<p><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/20220826075106.png" alt></p>
+<p>这个图的绘制方法可以学习课程：「<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/a430bddc4100426fb4dfeeec38c994d9">使用 R 语言绘制中国夜间灯光地图</a>」</p>
+<h2 id="下载附件" class="article-heading"><a href="#下载附件" class="headerlink" title="下载附件"></a>下载附件<a class="article-anchor" href="#下载附件" aria-hidden="true"></a></h2><ul>
+<li><a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/e0e1626ab8294910878b5095c8e02f37">Stata 和 R 语言绘图中如何快速的使用调色板？</a></li>
+</ul>
+
+  </div>
+  
+<section id="comments">
+<div id="valine-thread"></div>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#valine-thread' ,
+        notify: true,
+        verify: false,
+        app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+        app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+        placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+        avatar: 'monsterid',
+        avatar_cdn: 'https://gravatar.loli.net/avatar/',
+        pageSize: '2'
+    });
+</script>
+
+</article>
+
+    </div>
+  </div>
+</div>
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2025 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank"><i class="fa fa-weixin"></i></a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <a href="/archives/" class="mobile-nav-link">归档</a><a href="/r-gallery/" class="mobile-nav-link">R 语言绘图案例</a><a href="/stata-gallery/" class="mobile-nav-link">Stata 绘图案例</a><a href="/rsdb2/" class="mobile-nav-link">RStata课程与数据库</a><a href="/templates/" class="mobile-nav-link">模板库</a><a href="/books/" class="mobile-nav-link">电子书</a><a href="/about/" class="mobile-nav-link">关于</a>
+      <li class="mobile-nav-item">
+        <a href="https://github.com/r-stata" class="mobile-nav-link" rel="external" target="_blank">GitHub</a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- Algolia -->
+
+
+</body>
+</html>

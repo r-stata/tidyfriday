@@ -1,0 +1,1 @@
+var message=require("./message");function flash(e,t){"use strict";var s=message(e);return t&&s.select(".content").html(t),setTimeout(function(){s.transition().style("opacity",0).remove()},5e3),s}module.exports=flash;
