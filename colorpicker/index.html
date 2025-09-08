@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片取色器 - 带底部复制按钮</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .color-swatch {
+                @apply w-full h-24 rounded-md shadow transition-all duration-300 hover:shadow-lg;
+            }
+            .color-marker {
+                @apply absolute w-4 h-4 border-2 border-white rounded-full -ml-2 -mt-2 transform -translate-x-1/2 -translate-y-1/2 z-10;
+            }
+            .zoom-preview {
+                @apply absolute w-32 h-32 border-2 border-white rounded-lg shadow-lg hidden z-20 overflow-hidden;
+            }
+            .copy-section {
+                @apply fixed bottom-0 left-0 right-0 bg-white shadow-lg p-3 z-40 border-t border-gray-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans pb-20"> <!-- 底部预留空间 -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <i class="fa fa-eyedropper text-primary mr-2"></i>图片取色器
+            </h1>
+            <p class="text-gray-600 mt-1">点击图片任意位置提取颜色，支持批量复制</p>
+        </header>
+
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+            <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+            <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">上传图片</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer" id="upload-area">
+                    <input type="file" id="image-input" accept="image/*" class="hidden">
+                    <i class="fa fa-image text-5xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-600">点击或拖放图片到此处</p>
+                    <p class="text-xs text-gray-500 mt-1">支持 JPG、PNG、GIF 等格式</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">图片预览 (点击取色)</label>
+                <div class="relative border border-gray-200 rounded-lg overflow-hidden bg-gray-100" style="height: 300px;">
+                    <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                        <i class="fa fa-picture-o text-4xl mb-2"></i>
+                        <p>请上传图片</p>
+                    </div>
+                    
+                    <!-- 主画布用于显示 -->
+                    <canvas id="display-canvas" class="absolute inset-0 w-full h-full cursor-crosshair hidden"></canvas>
+                    
+                    <!-- 取色光标 -->
+                    <div id="color-cursor" class="absolute w-6 h-6 border-2 border-white rounded-full -ml-3 -mt-3 pointer-events-none hidden"></div>
+                    
+                    <!-- 放大预览 -->
+                    <div id="zoom-preview" class="zoom-preview">
+                        <canvas id="zoom-canvas" class="absolute top-0 left-0"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <button id="extract-btn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa fa-magic mr-1"></i>自动提取主色
+                </button>
+                <button id="clear-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa fa-trash mr-1"></i>清除选择
+                </button>
+                <button id="generate-btn" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa fa-paint-brush mr-1"></i>生成调色板
+                </button>
+            </div>
+        </div>
+        
+        <!-- 手动选择的颜色 -->
+        <div id="manual-colors-section" class="bg-white rounded-xl shadow-md p-6 mb-8 hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fa fa-hand-pointer-o text-primary mr-2"></i>已选择的颜色
+                <span id="selection-count" class="text-sm font-normal text-gray-500 ml-2">(0个)</span>
+            </h2>
+            <div id="selected-colors" class="flex flex-wrap gap-3 mb-4">
+                <!-- 选择的颜色将显示在这里 -->
+            </div>
+        </div>
+        
+        <!-- 结果区域 -->
+        <div id="results-section" class="hidden">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fa fa-th text-primary mr-2"></i>调色板
+                </h2>
+                <div id="color-palette" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    <!-- 颜色块将在这里生成 -->
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fa fa-hashtag text-primary mr-2"></i>十六进制格式
+                    </h2>
+                    <div id="hex-values" class="space-y-2 max-h-60 overflow-auto pr-2">
+                        <!-- 十六进制值将在这里生成 -->
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fa fa-sliders text-primary mr-2"></i>RGB格式
+                    </h2>
+                    <div id="rgb-values" class="space-y-2 max-h-60 overflow-auto pr-2">
+                        <!-- RGB值将在这里生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部全局复制按钮区域 -->
+    <div class="copy-section hidden" id="global-copy-section">
+        <div class="container mx-auto px-4 flex flex-wrap gap-3 justify-center">
+            <button id="global-copy-hex" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg shadow text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa fa-copy mr-2"></i>复制所有十六进制颜色（带引号，逗号分隔）
+            </button>
+            <button id="global-copy-rgb" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg shadow text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa fa-copy mr-2"></i>复制所有RGB颜色（带引号，空格分隔）
+            </button>
+        </div>
+    </div>
+    
+    <!-- 通知组件 -->
+    <div id="notification" class="fixed bottom-20 right-4 px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50">
+        <i id="notification-icon" class="fa fa-check-circle mr-2"></i>
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        // DOM元素
+        const uploadArea = document.getElementById('upload-area');
+        const imageInput = document.getElementById('image-input');
+        const emptyState = document.getElementById('empty-state');
+        const displayCanvas = document.getElementById('display-canvas');
+        const colorCursor = document.getElementById('color-cursor');
+        const zoomPreview = document.getElementById('zoom-preview');
+        const zoomCanvas = document.getElementById('zoom-canvas');
+        const extractBtn = document.getElementById('extract-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const generateBtn = document.getElementById('generate-btn');
+        const manualColorsSection = document.getElementById('manual-colors-section');
+        const selectedColors = document.getElementById('selected-colors');
+        const selectionCount = document.getElementById('selection-count');
+        const resultsSection = document.getElementById('results-section');
+        const colorPalette = document.getElementById('color-palette');
+        const hexValues = document.getElementById('hex-values');
+        const rgbValues = document.getElementById('rgb-values');
+        const notification = document.getElementById('notification');
+        const notificationIcon = document.getElementById('notification-icon');
+        const notificationText = document.getElementById('notification-text');
+        const globalCopySection = document.getElementById('global-copy-section');
+        const globalCopyHexBtn = document.getElementById('global-copy-hex');
+        const globalCopyRgbBtn = document.getElementById('global-copy-rgb');
+        
+        // 变量
+        let originalCanvas = document.createElement('canvas');
+        let originalCtx = originalCanvas.getContext('2d');
+        let displayCtx = displayCanvas.getContext('2d');
+        let zoomCtx = zoomCanvas.getContext('2d');
+        let image = null;
+        let selectedColorsList = [];
+        let currentResults = []; // 存储当前显示的结果
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastX, lastY;
+        let imageWidth = 0;
+        let imageHeight = 0;
+        
+        // 初始化
+        function init() {
+            // 设置缩放画布
+            zoomCanvas.width = 128;
+            zoomCanvas.height = 128;
+            
+            // 事件监听
+            uploadArea.addEventListener('click', () => imageInput.click());
+            imageInput.addEventListener('change', handleImageUpload);
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            displayCanvas.addEventListener('mousemove', handleMouseMove);
+            displayCanvas.addEventListener('click', handleCanvasClick);
+            displayCanvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mousemove', handleMouseDrag);
+            window.addEventListener('mouseup', handleMouseUp);
+            displayCanvas.addEventListener('wheel', handleMouseWheel);
+            extractBtn.addEventListener('click', extractColors);
+            clearBtn.addEventListener('click', clearSelections);
+            generateBtn.addEventListener('click', generatePalette);
+            globalCopyHexBtn.addEventListener('click', () => copyAllColors('hex'));
+            globalCopyRgbBtn.addEventListener('click', () => copyAllColors('rgb'));
+            
+            // 确保画布大小适应容器
+            window.addEventListener('resize', resizeCanvas);
+        }
+        
+        // 处理图片上传
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                loadImage(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 处理拖放
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('border-primary', 'bg-primary/5');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('border-primary', 'bg-primary/5');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    loadImage(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 加载图片并初始化画布
+        function loadImage(src) {
+            image = new Image();
+            image.crossOrigin = 'anonymous';
+            image.onload = function() {
+                // 存储原始图片尺寸
+                imageWidth = image.width;
+                imageHeight = image.height;
+                
+                // 设置原始画布尺寸（用于精确取色）
+                originalCanvas.width = imageWidth;
+                originalCanvas.height = imageHeight;
+                originalCtx.drawImage(image, 0, 0);
+                
+                // 显示画布，隐藏空状态
+                emptyState.classList.add('hidden');
+                displayCanvas.classList.remove('hidden');
+                
+                // 调整显示画布大小
+                resizeCanvas();
+                
+                // 启用按钮
+                extractBtn.disabled = false;
+                clearBtn.disabled = false;
+                
+                // 重置选择
+                clearSelections();
+                
+                showNotification('图片加载完成，点击可提取颜色', 'success');
+            };
+            image.src = src;
+        }
+        
+        // 调整画布大小
+        function resizeCanvas() {
+            if (!image) return;
+            
+            const container = displayCanvas.parentElement;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // 设置显示画布大小
+            displayCanvas.width = containerWidth;
+            displayCanvas.height = containerHeight;
+            
+            // 计算初始缩放比例
+            const scaleX = containerWidth / imageWidth;
+            const scaleY = containerHeight / imageHeight;
+            scale = Math.min(scaleX, scaleY, 1);
+            
+            // 居中显示
+            offsetX = (containerWidth - imageWidth * scale) / 2;
+            offsetY = (containerHeight - imageHeight * scale) / 2;
+            
+            // 重绘
+            redrawCanvas();
+        }
+        
+        // 重绘画布
+        function redrawCanvas() {
+            if (!image) return;
+            
+            // 清空画布
+            displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+            
+            // 绘制图片
+            displayCtx.drawImage(
+                image, 
+                0, 0, imageWidth, imageHeight,
+                offsetX, offsetY, imageWidth * scale, imageHeight * scale
+            );
+        }
+        
+        // 处理鼠标移动
+        function handleMouseMove(e) {
+            if (!image) return;
+            
+            const rect = displayCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 更新取色光标
+            colorCursor.style.left = `${x}px`;
+            colorCursor.style.top = `${y}px`;
+            colorCursor.classList.remove('hidden');
+            
+            // 更新放大预览
+            updateZoomPreview(x, y);
+        }
+        
+        // 更新放大预览
+        function updateZoomPreview(x, y) {
+            if (!image) return;
+            
+            // 计算原始图像坐标
+            const originalX = Math.floor((x - offsetX) / scale);
+            const originalY = Math.floor((y - offsetY) / scale);
+            
+            // 检查是否在图像范围内
+            if (originalX < 0 || originalX >= imageWidth || originalY < 0 || originalY >= imageHeight) {
+                zoomPreview.classList.add('hidden');
+                return;
+            }
+            
+            // 获取放大区域的像素
+            const zoomSize = 16; // 要放大的像素范围
+            const zoomedSize = 128; // 预览画布大小
+            const pixelSize = zoomedSize / (zoomSize * 2); // 每个像素在预览中的大小
+            
+            // 从原始画布获取像素数据
+            const imageData = originalCtx.getImageData(
+                Math.max(0, originalX - zoomSize), 
+                Math.max(0, originalY - zoomSize),
+                Math.min(imageWidth, originalX + zoomSize) - Math.max(0, originalX - zoomSize),
+                Math.min(imageHeight, originalY + zoomSize) - Math.max(0, originalY - zoomSize)
+            );
+            
+            // 清空缩放画布
+            zoomCtx.clearRect(0, 0, zoomedSize, zoomedSize);
+            
+            // 绘制放大的像素
+            for (let i = 0; i < imageData.width; i++) {
+                for (let j = 0; j < imageData.height; j++) {
+                    const index = (j * imageData.width + i) * 4;
+                    const r = imageData.data[index];
+                    const g = imageData.data[index + 1];
+                    const b = imageData.data[index + 2];
+                    
+                    zoomCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    zoomCtx.fillRect(
+                        i * pixelSize, 
+                        j * pixelSize, 
+                        pixelSize, 
+                        pixelSize
+                    );
+                }
+            }
+            
+            // 绘制十字准星
+            zoomCtx.strokeStyle = 'white';
+            zoomCtx.lineWidth = 1;
+            zoomCtx.beginPath();
+            zoomCtx.moveTo(zoomedSize / 2, 0);
+            zoomCtx.lineTo(zoomedSize / 2, zoomedSize);
+            zoomCtx.moveTo(0, zoomedSize / 2);
+            zoomCtx.lineTo(zoomedSize, zoomedSize / 2);
+            zoomCtx.stroke();
+            
+            // 定位预览窗口
+            const rect = displayCanvas.getBoundingClientRect();
+            let previewX = x + 10;
+            let previewY = y + 10;
+            
+            // 确保预览窗口不超出画布
+            if (previewX + zoomedSize > rect.width) {
+                previewX = x - zoomedSize - 10;
+            }
+            if (previewY + zoomedSize > rect.height) {
+                previewY = y - zoomedSize - 10;
+            }
+            
+            zoomPreview.style.left = `${previewX}px`;
+            zoomPreview.style.top = `${previewY}px`;
+            zoomPreview.classList.remove('hidden');
+        }
+        
+        // 处理画布点击 - 核心取色功能
+        function handleCanvasClick(e) {
+            if (!image) return;
+            
+            try {
+                const rect = displayCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 计算原始图像坐标
+                const originalX = Math.floor((x - offsetX) / scale);
+                const originalY = Math.floor((y - offsetY) / scale);
+                
+                // 检查是否在图像范围内
+                if (originalX < 0 || originalX >= imageWidth || originalY < 0 || originalY >= imageHeight) {
+                    showNotification('请在图片范围内点击', 'info');
+                    return;
+                }
+                
+                // 直接从原始画布获取像素数据
+                const pixel = originalCtx.getImageData(originalX, originalY, 1, 1).data;
+                const r = pixel[0];
+                const g = pixel[1];
+                const b = pixel[2];
+                
+                // 转换为十六进制
+                const hex = rgbToHex(r, g, b);
+                
+                // 检查是否已选择该颜色
+                const existing = selectedColorsList.find(c => c.hex === hex);
+                if (existing) {
+                    showNotification(`该颜色已选择: ${hex}`, 'info');
+                    return;
+                }
+                
+                // 保存颜色信息
+                const colorInfo = {
+                    hex,
+                    rgb: `${r} ${g} ${b}`, // 空格分隔的格式
+                    r, g, b,
+                    x, y // 保存相对于显示画布的坐标，用于绘制标记
+                };
+                
+                selectedColorsList.push(colorInfo);
+                
+                // 更新UI
+                updateSelectedColors();
+                
+                // 在画布上添加标记
+                addColorMarker(x, y, hex);
+                
+                // 启用生成按钮和显示全局复制区域
+                generateBtn.disabled = false;
+                globalCopySection.classList.remove('hidden');
+                globalCopyHexBtn.disabled = false;
+                globalCopyRgbBtn.disabled = false;
+                
+                showNotification(`已选择颜色: ${hex}`, 'success');
+            } catch (error) {
+                console.error('取色失败:', error);
+                showNotification('取色失败，请重试', 'error');
+            }
+        }
+        
+        // 添加颜色标记
+        function addColorMarker(x, y, color) {
+            const marker = document.createElement('div');
+            marker.className = 'color-marker';
+            marker.style.left = `${x}px`;
+            marker.style.top = `${y}px`;
+            marker.style.backgroundColor = color;
+            marker.style.borderColor = isLightColor(color) ? 'black' : 'white';
+            
+            // 点击标记删除颜色
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeColor(color);
+            });
+            
+            displayCanvas.parentElement.appendChild(marker);
+        }
+        
+        // 更新已选择的颜色列表
+        function updateSelectedColors() {
+            // 显示选择区域
+            manualColorsSection.classList.remove('hidden');
+            selectionCount.textContent = `(${selectedColorsList.length}个)`;
+            
+            // 清空现有内容
+            selectedColors.innerHTML = '';
+            
+            // 添加颜色
+            selectedColorsList.forEach(color => {
+                const colorEl = document.createElement('div');
+                colorEl.className = 'flex items-center';
+                
+                colorEl.innerHTML = `
+                    <div class="w-8 h-8 rounded mr-2" style="background-color: ${color.hex}"></div>
+                    <div class="mr-2">${color.hex}</div>
+                    <button class="text-gray-500 hover:text-red-500" data-hex="${color.hex}">
+                        <i class="fa fa-times"></i>
+                    </button>
+                `;
+                
+                selectedColors.appendChild(colorEl);
+            });
+            
+            // 添加删除事件
+            document.querySelectorAll('#selected-colors button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    removeColor(e.currentTarget.dataset.hex);
+                });
+            });
+        }
+        
+        // 移除颜色
+        function removeColor(hex) {
+            // 从列表中移除
+            selectedColorsList = selectedColorsList.filter(color => color.hex !== hex);
+            
+            // 移除标记
+            document.querySelectorAll('.color-marker').forEach(marker => {
+                if (marker.style.backgroundColor === hex) {
+                    marker.remove();
+                }
+            });
+            
+            // 更新UI
+            updateSelectedColors();
+            
+            // 如果没有选择的颜色，隐藏区域并禁用按钮
+            if (selectedColorsList.length === 0) {
+                manualColorsSection.classList.add('hidden');
+                resultsSection.classList.add('hidden');
+                generateBtn.disabled = true;
+                globalCopySection.classList.add('hidden');
+                globalCopyHexBtn.disabled = true;
+                globalCopyRgbBtn.disabled = true;
+            }
+            
+            showNotification(`已移除颜色: ${hex}`, 'info');
+        }
+        
+        // 处理鼠标按下（拖动开始）
+        function handleMouseDown(e) {
+            if (!image) return;
+            
+            const rect = displayCanvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+            isDragging = true;
+            displayCanvas.style.cursor = 'grabbing';
+        }
+        
+        // 处理鼠标拖动
+        function handleMouseDrag(e) {
+            if (!image || !isDragging) return;
+            
+            const rect = displayCanvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            // 计算移动距离
+            const deltaX = currentX - lastX;
+            const deltaY = currentY - lastY;
+            
+            // 更新偏移量
+            offsetX += deltaX;
+            offsetY += deltaY;
+            
+            // 更新最后位置
+            lastX = currentX;
+            lastY = currentY;
+            
+            // 重绘
+            redrawCanvas();
+        }
+        
+        // 处理鼠标释放（拖动结束）
+        function handleMouseUp() {
+            if (isDragging) {
+                isDragging = false;
+                displayCanvas.style.cursor = 'crosshair';
+            }
+        }
+        
+        // 处理鼠标滚轮（缩放）
+        function handleMouseWheel(e) {
+            if (!image) return;
+            e.preventDefault();
+            
+            const rect = displayCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 计算鼠标在图像上的位置
+            const mouseXImage = (mouseX - offsetX) / scale;
+            const mouseYImage = (mouseY - offsetY) / scale;
+            
+            // 根据滚轮方向缩放
+            const zoomIntensity = 0.1;
+            if (e.deltaY < 0) {
+                // 放大
+                scale *= (1 + zoomIntensity);
+            } else {
+                // 缩小
+                scale /= (1 + zoomIntensity);
+                // 限制最小缩放
+                const minScaleX = displayCanvas.width / imageWidth;
+                const minScaleY = displayCanvas.height / imageHeight;
+                scale = Math.max(scale, Math.min(minScaleX, minScaleY));
+            }
+            
+            // 调整偏移量，使鼠标指向的点保持不变
+            offsetX = mouseX - mouseXImage * scale;
+            offsetY = mouseY - mouseYImage * scale;
+            
+            // 重绘
+            redrawCanvas();
+        }
+        
+        // 提取主色调
+        function extractColors() {
+            if (!image) return;
+            
+            // 显示加载状态
+            extractBtn.disabled = true;
+            extractBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i>提取中...';
+            
+            setTimeout(() => {
+                try {
+                    // 从原始画布获取所有像素数据
+                    const imageData = originalCtx.getImageData(0, 0, imageWidth, imageHeight);
+                    const pixels = imageData.data;
+                    
+                    // 统计颜色频率（每10个像素采样一次以提高性能）
+                    const colorCounts = {};
+                    const sampleRate = 10;
+                    
+                    for (let i = 0; i < pixels.length; i += 4 * sampleRate) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
+                        const a = pixels[i + 3];
+                        
+                        // 跳过透明像素
+                        if (a < 255) continue;
+                        
+                        const hex = rgbToHex(r, g, b);
+                        colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+                    }
+                    
+                    // 按频率排序并取前6种颜色
+                    const sortedColors = Object.entries(colorCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 6)
+                        .map(([hex]) => {
+                            const rgb = hexToRgb(hex);
+                            return {
+                                hex,
+                                rgb: `${rgb.r} ${rgb.g} ${rgb.b}`, // 空格分隔的格式
+                                r: rgb.r,
+                                g: rgb.g,
+                                b: rgb.b
+                            };
+                        });
+                    
+                    // 保存为当前结果
+                    currentResults = sortedColors;
+                    
+                    // 显示结果
+                    displayColors(sortedColors);
+                    
+                    // 显示全局复制区域
+                    globalCopySection.classList.remove('hidden');
+                    globalCopyHexBtn.disabled = false;
+                    globalCopyRgbBtn.disabled = false;
+                    
+                    // 恢复按钮状态
+                    extractBtn.innerHTML = '<i class="fa fa-magic mr-1"></i>自动提取主色';
+                    extractBtn.disabled = false;
+                    
+                    showNotification('已提取主色调', 'success');
+                } catch (error) {
+                    console.error('提取颜色失败:', error);
+                    extractBtn.innerHTML = '<i class="fa fa-magic mr-1"></i>自动提取主色';
+                    extractBtn.disabled = false;
+                    showNotification('提取颜色失败，请重试', 'error');
+                }
+            }, 100);
+        }
+        
+        // 生成手动选择的调色板
+        function generatePalette() {
+            if (selectedColorsList.length === 0) return;
+            
+            // 保存为当前结果
+            currentResults = [...selectedColorsList];
+            
+            displayColors(selectedColorsList);
+            
+            // 显示全局复制区域
+            globalCopySection.classList.remove('hidden');
+            globalCopyHexBtn.disabled = false;
+            globalCopyRgbBtn.disabled = false;
+            
+            showNotification('已生成调色板', 'success');
+        }
+        
+        // 显示颜色结果
+        function displayColors(colors) {
+            // 清空现有内容
+            colorPalette.innerHTML = '';
+            hexValues.innerHTML = '';
+            rgbValues.innerHTML = '';
+            
+            // 添加颜色
+            colors.forEach(color => {
+                // 添加到调色板
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch relative';
+                swatch.style.backgroundColor = color.hex;
+                
+                // 添加颜色值标签
+                const label = document.createElement('div');
+                label.className = 'absolute bottom-0 left-0 right-0 bg-black/50 text-white text-sm p-1 text-center';
+                label.textContent = color.hex;
+                swatch.appendChild(label);
+                
+                colorPalette.appendChild(swatch);
+                
+                // 添加到十六进制列表（带双引号）
+                const hexItem = document.createElement('div');
+                hexItem.className = 'flex items-center justify-between';
+                hexItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: ${color.hex}"></div>
+                        <span>"${color.hex}"</span>
+                    </div>
+                    <button class="copy-btn text-gray-500 hover:text-primary p-1" data-value="${color.hex}">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                `;
+                hexValues.appendChild(hexItem);
+                
+                // 添加到RGB列表（带双引号）
+                const rgbItem = document.createElement('div');
+                rgbItem.className = 'flex items-center justify-between';
+                rgbItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: ${color.hex}"></div>
+                        <span>"${color.rgb}"</span>
+                    </div>
+                    <button class="copy-btn text-gray-500 hover:text-primary p-1" data-value="${color.rgb}">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                `;
+                rgbValues.appendChild(rgbItem);
+            });
+            
+            // 添加复制事件
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const value = e.currentTarget.dataset.value;
+                    copyToClipboard(`"${value}"`);
+                });
+            });
+            
+            // 显示结果区域
+            resultsSection.classList.remove('hidden');
+            // 平滑滚动到结果区域
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // 复制所有颜色 - 使用更可靠的方法
+        function copyAllColors(type) {
+            // 确定要复制的颜色源
+            const colors = currentResults.length > 0 ? currentResults : selectedColorsList;
+            if (colors.length === 0) return;
+            
+            let text = '';
+            if (type === 'hex') {
+                // 格式: "#e64b35", "#4dbbd5", "#00a087"
+                text = colors.map(color => `"${color.hex}"`).join(', ');
+            } else {
+                // 格式: "230 75 53" "77 187 213" "0 160 135"
+                text = colors.map(color => `"${color.rgb}"`).join(' ');
+            }
+            
+            copyToClipboard(text);
+        }
+        
+        // 通用复制函数 - 带备用方法
+        function copyToClipboard(text) {
+            // 首先尝试使用Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification(`已复制: ${text.length > 30 ? text.substring(0, 30) + '...' : text}`, 'success');
+                }).catch(err => {
+                    console.error('Clipboard API 失败:', err);
+                    fallbackCopy(text);
+                });
+            } else {
+                // 直接使用备用方法
+                fallbackCopy(text);
+            }
+        }
+        
+        // 备用复制方法 - 创建文本区域
+        function fallbackCopy(text) {
+            // 创建一个隐藏的文本区域
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            
+            // 选择并复制
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // 移动设备兼容
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification(`已复制: ${text.length > 30 ? text.substring(0, 30) + '...' : text}`, 'success');
+                } else {
+                    throw new Error('复制命令失败');
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                showNotification('复制失败，请手动复制', 'error');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        // 清除所有选择
+        function clearSelections() {
+            // 清空列表
+            selectedColorsList = [];
+            currentResults = [];
+            
+            // 移除所有标记
+            document.querySelectorAll('.color-marker').forEach(marker => marker.remove());
+            
+            // 更新UI
+            updateSelectedColors();
+            manualColorsSection.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            generateBtn.disabled = true;
+            globalCopySection.classList.add('hidden');
+            globalCopyHexBtn.disabled = true;
+            globalCopyRgbBtn.disabled = true;
+            
+            showNotification('已清除所有选择', 'info');
+        }
+        
+        // 辅助函数：RGB转十六进制
+        function rgbToHex(r, g, b) {
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+        }
+        
+        // 辅助函数：十六进制转RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        // 判断颜色亮度（用于确定标记边框颜色）
+        function isLightColor(hex) {
+            const rgb = hexToRgb(hex);
+            // 计算亮度（0-255）
+            const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+            return luminance > 128;
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            
+            if (type === 'success') {
+                notificationIcon.className = 'fa fa-check-circle text-green-500 mr-2';
+                notification.className = 'fixed bottom-20 right-4 px-4 py-2 bg-white rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 flex items-center border-l-4 border-green-500 z-50';
+            } else if (type === 'error') {
+                notificationIcon.className = 'fa fa-exclamation-circle text-red-500 mr-2';
+                notification.className = 'fixed bottom-20 right-4 px-4 py-2 bg-white rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 flex items-center border-l-4 border-red-500 z-50';
+            } else {
+                notificationIcon.className = 'fa fa-info-circle text-blue-500 mr-2';
+                notification.className = 'fixed bottom-20 right-4 px-4 py-2 bg-white rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 flex items-center border-l-4 border-blue-500 z-50';
+            }
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                notification.className = 'fixed bottom-20 right-4 px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50';
+            }, 3000);
+        }
+        
+        // 初始化应用
+        window.onload = init;
+    </script>
+</body>
+<footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            © 2025 图片取色工具 | 微信公众号 RStata 
+        </div>
+    </footer>
+</html>
+    

@@ -1,0 +1,1 @@
+import{noop,resolve as _resolve}from"../-internal";export default function resolve(o){var e;return o&&"object"==typeof o&&o.constructor===this?o:(e=new this(noop),_resolve(e,o),e)}

@@ -1,0 +1,43 @@
+<h1 id="egenipc"><a href="#egenipc" class="headerlink" title="egenipc"></a>egenipc</h1><!-- badges: start -->
+
+<p><a href="https://www.tidyverse.org/lifecycle/#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle:
+experimental"></a></p>
+<!-- badges: end -->
+
+<p>处理专利分类号的一些自编 egen 函数～ 自用命令包，仅供参考。</p>
+<p>欢迎大家关注微信公众号“RStata” 和 “Stata 中文社区” 获取最新资讯和动态！</p>
+<table>
+<thead>
+<tr>
+<th align="center">RStata</th>
+<th align="center">Stata中文社区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20201120143454.png" width="50%"/></td>
+<td align="center"><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20201120143508.png" width="50%"/></td>
+</tr>
+</tbody></table>
+<h2 id="安装方法"><a href="#安装方法" class="headerlink" title="安装方法"></a>安装方法</h2><p>你可以从 GitHub 上安装这个 R 包：</p>
+<pre><code class="stata"><span class="keyword">net</span> install egenipc.pkg, from(<span class="string">"egenipc.pkg 文件所在的文件夹路径"</span>)</code></pre>
+<h2 id="使用介绍"><a href="#使用介绍" class="headerlink" title="使用介绍"></a>使用介绍</h2><ol>
+<li><code>_gipc_pk.ado</code>：用于根据 IPC 分类号计算专利知识宽度，方法参考 「创新追赶战略抑制了中国专利质量么_张杰」，基于大组衡量。用法示例：<code>egen patentknowledge = ipc_pk(IPC), parse(;)</code></li>
+<li><code>_gipc_count.ado</code>：用于统计字符串变量使用特定分隔符切分得到的子字符串数量。使用示例：<code>egen n2 = ipc_count(IPC), parse(;)</code> </li>
+<li><code>_gipc_sub_count.ado</code>：用于统计字符串使用特定字符拆分后，子字符串的子字符串互不相同的数量，例如前 3 位的。使用示例：<code>egen n4 = ipc_sub_count(IPC), parse(;) from(1) to(3)</code> </li>
+<li><code>_gipc_sub.ado</code>：用于提取字符串使用特定字符拆分后得到的子字符串特定范围的子字符串。使用示例：<code>egen subipc = ipc_sub(IPC), parse(;) from(1) to(3)</code></li>
+<li><code>_gipc_sub0.ado</code>：用于统计字符串使用特定字符拆分后，第 n 个子字符串。使用示例：<code>egen IPC_main = ipc_sub0(IPC), parse(;) choose(1)</code></li>
+<li><code>_gipc_sub2_unique.ado</code>：用于将字符串使用特定字符拆分后，再对子字符串使用另一字符拆分，进而提取拆分结果的第 n 部分（去除重复的）。使用示例：<code>egen sub2ipc3 = ipc_sub2_unique(IPC), parse(;) parse2(/) choose(1)</code></li>
+<li><code>_gipc_sub2.ado</code>：用于将字符串使用特定字符拆分后，再对子字符串使用另一字符拆分，进而提取拆分结果的第 n 部分。使用示例：<code>egen sub2ipc = ipc_sub2(IPC), parse(;) parse2(/) choose(1)</code></li>
+<li><code>_gipc_sumstr.ado</code>：用于分组加总连接字符串</li>
+<li><code>_gipc_unique_count.ado</code>：统计互不相同的数量</li>
+<li><code>_gipc_unique_sub.ado</code>：用于提取字符串使用特定字符拆分后得到的子字符串特定范围的子字符串（去除重复的）。使用示例：<code>egen subipc_unique14 = ipc_unique_sub(IPC), parse(;) from(1) to(4)</code> </li>
+<li><code>_gipc_unique.ado</code>：用于将字符串使用特定字符拆分后，提取所有互不相同的结果。使用示例：<code>egen sub2ipc_unique = ipc_unique(sub2ipc), parse(;)</code> </li>
+<li><code>_gipc_sub00.ado</code>：用于统计字符串使用特定字符拆分后，第 1-n 个子字符串。使用示例：<code>egen IPC_main = ipc_sub00(IPC), parse(;) choose(3)</code> </li>
+</ol>
+<hr>
+<h4 align="center">
+License
+</h4>
+<h6 align="center">
+MIT © 微信公众号 RStata
+</h6>

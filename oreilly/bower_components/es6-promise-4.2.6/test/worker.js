@@ -1,0 +1,1 @@
+importScripts("../es6-promise.js"),new ES6Promise.Promise(function(n,o){self.onmessage=function(e){"ping"===e.data?n("pong"):o(new Error("wrong message"))}}).then(function(e){self.postMessage(e)},function(e){setTimeout(function(){throw e})});

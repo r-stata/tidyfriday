@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stata 命令包 | 微信公众号 RStata</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f39b7f',
+                        secondary: '#00a087',
+                        neutral: '#e64b35',
+                        dark: '#3c5488',
+                        light: '#4dbbd5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .code-block {
+                @apply bg-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto relative;
+            }
+            .copy-btn {
+                @apply absolute right-2 top-2 bg-white/80 hover:bg-white text-gray-700 px-2 py-1 rounded text-xs transition-colors;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-dark">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-database text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-primary">RStata 自编 Stata 命令合集</h1>
+            </div>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#" class="font-medium hover:text-primary transition-colors">首页</a>
+                <a href="#browse" class="font-medium hover:text-primary transition-colors">浏览命令</a>
+                <a href="#install-guide" class="font-medium hover:text-primary transition-colors">安装指南</a>
+                <a href="https://rstata.duanshu.com/" target="_blank" class="font-medium hover:text-primary transition-colors">RStata 学院</a>
+            </nav>
+            <button class="md:hidden text-dark text-xl" id="mobile-menu-button">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white shadow-md absolute w-full" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#" class="py-2 font-medium hover:text-primary transition-colors">首页</a>
+                <a href="#browse" class="py-2 font-medium hover:text-primary transition-colors">浏览命令</a>
+                <a href="#install-guide" class="py-2 font-medium hover:text-primary transition-colors">安装指南</a>
+                <a href="https://rstata.duanshu.com/" target="_blank" class="py-2 font-medium hover:text-primary transition-colors">RStata 学院</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="bg-gradient-to-r from-orange-600 to-indigo-700 text-white py-16 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-5xl font-bold mb-6">Stata 命令包集合</h2>
+            <p class="text-lg md:text-xl max-w-2xl mx-auto mb-8 opacity-90">
+                发现并安装有用的 Stata 命令，提升您的数据分析效率
+            </p>
+            <div class="relative max-w-md mx-auto">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="搜索 Stata 命令..." 
+                    class="w-full px-5 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-dark"
+                >
+                <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-search text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 浏览命令区域 -->
+    <section id="browse" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">浏览命令包</h2>
+                <p class="text-neutral max-w-2xl mx-auto">
+                    探索 RStata 编写的 Stata 命令包，点击任意卡片查看详细信息和安装指南
+                </p>
+            </div>
+
+            <!-- 过滤和分类 -->
+            <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
+                <div class="flex flex-wrap gap-2">
+                    <button class="filter-btn active px-4 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors" data-filter="all">全部</button>
+                    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors" data-filter="data-management">数据管理</button>
+                    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors" data-filter="statistics">统计分析</button>
+                    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors" data-filter="graphs">图形绘制</button>
+                    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors" data-filter="other">其他工具</button>
+                </div>
+                <div class="text-sm text-neutral">
+                    共 <span id="package-count">0</span> 个命令包
+                </div>
+            </div>
+
+            <!-- 命令包网格 -->
+            <div id="packages-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- 加载状态 -->
+                <div class="col-span-full text-center py-16">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    <p class="mt-4 text-neutral">正在加载命令包数据...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 安装指南 -->
+    <section id="install-guide" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center">安装指南</h2>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-globe text-primary mr-2"></i>
+                        直接在线安装
+                    </h3>
+                    <p class="mb-4">最简单的安装方式是使用我们提供的在线安装代码，步骤如下：</p>
+                    <ol class="list-decimal pl-5 mb-4 space-y-2">
+                        <li>打开 Stata 软件</li>
+                        <li>复制我们提供的安装代码</li>
+                        <li>在 Stata 命令窗口中粘贴并运行代码</li>
+                        <li>按照提示完成安装</li>
+                    </ol>
+                    <div class="code-block">
+                        net install package_name.pkg, from("https://tidyfriday.cn/stpkg/data/package_name") replace force
+                        <button class="copy-btn" onclick="copyToClipboard(this)">
+                            <i class="fa fa-copy mr-1"></i> 复制
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-download text-primary mr-2"></i>
+                        下载后安装
+                    </h3>
+                    <p class="mb-4">如果您无法在线安装，可以下载安装包后手动安装：</p>
+                    <ol class="list-decimal pl-5 mb-4 space-y-2">
+                        <li>下载 ZIP 压缩包并解压到本地文件夹</li>
+                        <li>打开 Stata 软件</li>
+                        <li>使用以下代码，将路径替换为您的解压文件夹路径</li>
+                        <li>按照提示完成安装</li>
+                    </ol>
+                    <div class="code-block">
+                        net install package_name.pkg, from("package_name.pkg 文件所在的完整文件夹路径") replace force
+                        <button class="copy-btn" onclick="copyToClipboard(this)">
+                            <i class="fa fa-copy mr-1"></i> 复制
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 模态框 -->
+    <div id="package-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 id="modal-title" class="text-xl font-bold"></h3>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="modal-content" class="p-6">
+                <!-- 模态框内容将通过JS动态填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gradient-to-r from-indigo-700 to-orange-600 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fa fa-database text-primary text-xl"></i>
+                        <span class="font-bold text-lg">RStata 自编 Stata 命令合集</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        欢迎使用和反馈，更多内容欢迎关注微信公众号 RStata 获取～
+                    </p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="https://tidyfriday.cn" target="_blank" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-globe text-xl"></i>
+                    </a>
+                    <a href="https://github.com/r-stata/" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-github text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>© 2025 微信公众号 RStata. 保留所有权利。</p>
+                <p class="mt-2">
+                    <a href="https://tidyfriday.cn/stpkg/" class="hover:text-white transition-colors">
+                        https://tidyfriday.cn/stpkg/
+                    </a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 全局变量
+        let packagesData = [];
+        const baseUrl = "https://tidyfriday.cn/stpkg/";
+        
+        // DOM 加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载YAML数据
+            loadPackagesData();
+            
+            // 移动端菜单切换
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 导航栏滚动效果
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('py-2', 'shadow');
+                    navbar.classList.remove('py-4');
+                } else {
+                    navbar.classList.add('py-4');
+                    navbar.classList.remove('py-2', 'shadow');
+                }
+            });
+            
+            // 关闭模态框
+            const closeModal = document.getElementById('close-modal');
+            const packageModal = document.getElementById('package-modal');
+            
+            closeModal.addEventListener('click', function() {
+                packageModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            });
+            
+            // 点击模态框外部关闭
+            packageModal.addEventListener('click', function(e) {
+                if (e.target === packageModal) {
+                    packageModal.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
+            
+            // 搜索功能
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', function() {
+                filterPackages();
+            });
+            
+            // 过滤按钮
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 更新按钮样式
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-primary', 'text-white');
+                        btn.classList.add('bg-gray-200');
+                    });
+                    this.classList.add('active', 'bg-primary', 'text-white');
+                    this.classList.remove('bg-gray-200');
+                    
+                    // 过滤包
+                    filterPackages();
+                });
+            });
+        });
+        
+        // 加载YAML数据
+        function loadPackagesData() {
+            // 从外部YAML文件加载数据
+            fetch('packages._yaml')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应不正常');
+                    }
+                    return response.text();
+                })
+                .then(yamlText => {
+                    try {
+                        packagesData = jsyaml.load(yamlText);
+                        displayPackages(packagesData);
+                        document.getElementById('package-count').textContent = packagesData.length;
+                    } catch (e) {
+                        console.error('解析YAML失败:', e);
+                        showError('加载数据失败，请稍后再试');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载YAML文件失败:', error);
+                    showError('无法加载数据，请检查网络连接');
+                });
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            const grid = document.getElementById('packages-grid');
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-16">
+                    <i class="fa fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
+                    <p class="text-neutral">${message}</p>
+                </div>
+            `;
+        }
+        
+        // 显示命令包
+        function displayPackages(packages) {
+            const grid = document.getElementById('packages-grid');
+            
+            if (packages.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <i class="fa fa-search text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-neutral">没有找到匹配的命令包</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            packages.forEach(pkg => {
+                // 处理图标URL - 如果缺失则使用默认的title.png
+                const iconUrl = pkg.icon_url || `${baseUrl}data/${pkg.name}/title.png`;
+                
+                // 处理下载URL - 如果缺失则使用默认URL
+                const downloadUrl = pkg.download_url || `${baseUrl}data/${pkg.name}/${pkg.name}.zip`;
+                
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl shadow-sm overflow-hidden card-hover package-card ${pkg.category}`;
+                card.innerHTML = `
+                    <div class="mb-6 w-full max-w-md mx-auto overflow-hidden rounded-lg">
+                        <img src="${iconUrl}" alt="${pkg.title}的图标" class="w-full h-auto object-cover" 
+                             onerror="this.src='data/${pkg.name}/title.png'">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">${pkg.title}</h3>
+                        <p class="text-sm text-neutral mb-3 line-clamp-2">${pkg.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${getCategoryName(pkg.category)}</span>
+                            <span class="text-xs text-neutral">v${pkg.version}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // 点击卡片打开模态框
+                card.addEventListener('click', () => openPackageModal(pkg));
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        // 打开命令包详情模态框
+        function openPackageModal(pkg) {
+            // 处理各种URL和代码的默认值
+            const iconUrl = pkg.icon_url || `${baseUrl}data/${pkg.name}/title.png`;
+            const downloadUrl = pkg.download_url || `${baseUrl}data/${pkg.name}/${pkg.name}.zip`;
+            
+            // 处理安装代码 - 如果缺失则生成默认代码
+            let installCode = pkg.install_code;
+            if (!installCode) {
+                installCode = `net install ${pkg.name}.pkg, from("${baseUrl}data/${pkg.name}") replace force`;
+            }
+            
+            // 本地安装代码示例
+            const localInstallCode = `net install ${pkg.name}.pkg, from("${pkg.name}.pkg 文件所在的完整文件夹路径") replace force`;
+            
+            document.getElementById('modal-title').textContent = pkg.title;
+
+            // 格式化日期为YMD格式
+            function formatDate(dateString) {
+                if (!dateString) return "未知日期";
+                // 尝试解析各种日期格式
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString; // 解析失败则返回原始字符串
+                
+                // 格式化为YYYY-MM-DD
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+            
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/3">
+                        <div class="bg-gray-100 rounded-lg overflow-hidden">
+                            <img src="${iconUrl}" alt="${pkg.title}的图标" class="w-full h-auto"
+                                 onerror="this.src='${baseUrl}data/default-icon.png'">
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-semibold mb-2">基本信息</h4>
+                            <ul class="text-sm space-y-2">
+                                <li><span class="text-neutral">名称:</span> ${pkg.name}</li>
+                                <li><span class="text-neutral">版本:</span> v${pkg.version}</li>
+                                <li><span class="text-neutral">类别:</span> ${getCategoryName(pkg.category)}</li>
+                                <li><span class="text-neutral">更新日期:</span> ${formatDate(pkg.date)}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h4 class="font-semibold text-lg mb-2">描述</h4>
+                        <p class="mb-6">${pkg.description}</p>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-2">在线安装代码</h4>
+                            <div class="code-block">
+                                ${installCode}
+                                <button class="copy-btn" onclick="copyToClipboard(this)">
+                                    <i class="fa fa-copy mr-1"></i> 复制
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-2">本地安装代码</h4>
+                            <div class="code-block">
+                                ${localInstallCode}
+                                <button class="copy-btn" onclick="copyToClipboard(this)">
+                                    <i class="fa fa-copy mr-1"></i> 复制
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold mb-2">下载链接</h4>
+                            <div class="code-block">
+                                ${downloadUrl}
+                                <button class="copy-btn" onclick="copyToClipboard(this)">
+                                    <i class="fa fa-copy mr-1"></i> 复制
+                                </button>
+                            </div>
+                            <a href="${downloadUrl}" class="mt-3 inline-flex items-center text-primary hover:underline" target="_blank">
+                                <i class="fa fa-download mr-1"></i> 下载离线安装包
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 显示模态框
+            document.getElementById('package-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        
+        // 过滤命令包
+        function filterPackages() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+            
+            const filtered = packagesData.filter(pkg => {
+                // 搜索词过滤
+                const matchesSearch = 
+                    pkg.name.toLowerCase().includes(searchTerm) || 
+                    pkg.title.toLowerCase().includes(searchTerm) ||
+                    pkg.description.toLowerCase().includes(searchTerm);
+                
+                // 类别过滤
+                const matchesFilter = activeFilter === 'all' || pkg.category === activeFilter;
+                
+                return matchesSearch && matchesFilter;
+            });
+            
+            displayPackages(filtered);
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(button) {
+            // 获取代码块文本
+            const codeBlock = button.parentElement;
+            const textToCopy = codeBlock.firstChild.textContent.trim();
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // 显示复制成功
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fa fa-check mr-1"></i> 已复制';
+                button.classList.add('bg-green-100', 'text-green-800');
+                
+                // 恢复原始文本
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-100', 'text-green-800');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            });
+        }
+        
+        // 获取分类的中文名称
+        function getCategoryName(category) {
+            const categories = {
+                'data-management': '数据管理',
+                'statistics': '统计分析',
+                'graphs': '图形绘制',
+                'other': '其他工具'
+            };
+            return categories[category] || category;
+        }
+    </script>
+</body>
+</html>
+    

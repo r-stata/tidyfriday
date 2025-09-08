@@ -1,0 +1,1 @@
+d3.selection.prototype.trigger=function(e){this.each(function(){var t=document.createEvent("HTMLEvents");t.initEvent(e,!0,!0),this.dispatchEvent(t)})};

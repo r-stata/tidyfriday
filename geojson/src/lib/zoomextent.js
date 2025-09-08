@@ -1,0 +1,1 @@
+module.exports=function(a){var o=a.mapLayer.getBounds();o.isValid()&&a.map.fitBounds(o)};

@@ -1,0 +1,140 @@
+---
+title: "Stata 实用命令｜strtodate：批量转换日期字符串"
+author: "微信公众号 RStata"
+date: "`r Sys.Date()`"
+output: tidyfridoc2::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      dpi = 400,
+                      warning = FALSE,
+                      message = FALSE,
+                      # out.width = "100%",
+                      # out.height = "500px",
+                      fig.align = 'center',
+                      attr.output = ".comment",
+                      comment = "#>")
+```
+
+## 1. 命令简介
+
+`strtodate` 是一个用于 Stata 的实用命令，专门用于将 **`YYYY-MM-DD` 格式的字符串变量** 批量转换为 Stata 可识别的日期变量，并自动替换原变量。该命令简化了数据处理中常见的日期格式转换工作，特别适合处理导入的文本格式日期数据。
+
+### 主要功能：
+- 批量转换多个字符串变量
+- 自动检查变量类型（仅处理字符串变量）
+- 转换后保留原变量名，自动应用美观的日期显示格式
+- 对转换失败的值提供警告信息
+
+## 2. 安装方法
+
+### 2.1 从网络安装
+
+```stata
+net install strtodate.pkg, from("https://tidyfriday.cn/stpkg/data/strtodate") replace force
+```
+
+### 2.2 本地安装
+
+```stata
+net install strtodate.pkg, from("strtodate.pkg 文件所在的完整文件夹路径") replace force
+```
+
+## 3. 语法说明
+
+`strtodate` 命令的语法非常简洁：
+strtodate 变量列表
+- **变量列表**：一个或多个需要转换的字符串变量（以空格分隔），变量值必须为 `YYYY-MM-DD` 格式（如 `2023-08-15`）。
+
+## 4. 使用示例
+
+### 4.1 准备数据
+首先创建一个包含字符串日期的示例数据集：
+
+```stata
+*- 创建示例数据
+clear
+input str10(birthdate startdate)
+"2000-03-15" "2023-01-01"
+"1998-12-05" "2023-02-15"
+"2002-07-22" "2023-03-20"
+"invalid"    "2023-04-30"  // 包含一个无效格式的值
+end
+save sampledata, replace 
+
+*- 查看数据和变量类型
+describe
+*> Contains data
+*>  Observations:             4                  
+*>     Variables:             2                  
+*> -----------------------------------------------------------------------------------------
+*> Variable      Storage   Display    Value
+*>     name         type    format    label      Variable label
+*> -----------------------------------------------------------------------------------------
+*> birthdate       str10   %10s                  
+*> startdate       str10   %10s                  
+*> -----------------------------------------------------------------------------------------
+*> Sorted by: 
+*>      Note: Dataset has changed since last saved.
+
+list 
+*>     +-------------------------+
+*>     |  birthdate    startdate |
+*>     |-------------------------|
+*>  1. | 2000-03-15   2023-01-01 |
+*>  2. | 1998-12-05   2023-02-15 |
+*>  3. | 2002-07-22   2023-03-20 |
+*>  4. |    invalid   2023-04-30 |
+*>     +-------------------------+
+```
+
+### 4.2 转换单个变量
+
+转换 `birthdate` 变量：
+
+```stata
+*- 转换单个变量
+strtodate birthdate
+
+*> (1 missing value generated)
+*> 警告：变量 birthdate 中有 1 个值转换失败（非标准格式）
+*> 已转换变量: birthdate
+*> 
+*> 处理完成！所有变量已转换为日期格式并保持原变量名
+```
+
+### 4.3 批量转换多个变量
+
+同时转换 `birthdate` 和 `startdate` 变量：
+
+```stata
+*- 批量转换多个变量
+use sampledata.dta, clear 
+strtodate birthdate startdate
+*> (1 missing value generated)
+*> 警告：变量 birthdate 中有 1 个值转换失败（非标准格式）
+*> 已转换变量: birthdate
+*> 已转换变量: startdate
+*> 
+*> 处理完成！所有变量已转换为日期格式并保持原变量名
+
+use sampledata.dta, clear 
+strtodate *date
+```
+
+## 5. 常见问题
+
+1. **转换失败的原因**：
+   - 变量不是字符串类型（命令会自动跳过并提示）
+   - 日期格式不符合 `YYYY-MM-DD`（如 `MM/DD/YYYY` 或 `DD-MM-YYYY`）
+   - 字符串中包含空格、特殊符号或无效字符
+
+2. **转换后的日期变量用途**：
+   - 可直接用于计算（如计算年龄、日期差）
+   - 支持时间序列分析（如 `tsset` 命令）
+   - 可通过 `format` 命令修改显示格式（如 `format %tdDDMonCCYY` 显示为 `15Mar2000`）
+
+3. **如何处理其他格式的日期**：
+   - 若日期格式为 `DD-MM-YYYY` 或 `MM-DD-YYYY`，可先手动调整为 `YYYY-MM-DD` 再转换
+   - 或使用 Stata 原生命令 `date()` 并指定格式（如 `date(var, "DMY")`）

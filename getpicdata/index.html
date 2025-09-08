@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表数据提取工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色和字体 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#6366F1',
+                        neutral: '#1F2937',
+                        'neutral-light': '#F3F4F6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .canvas-container {
+                @apply relative border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-md;
+            }
+            .control-panel {
+                @apply bg-neutral-light p-4 rounded-lg shadow-sm;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+            }
+            .btn-accent {
+                @apply bg-accent hover:bg-accent/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+            }
+            .btn-outline {
+                @apply border border-gray-300 hover:border-primary hover:text-primary font-medium py-2 px-4 rounded-lg transition-all duration-200;
+            }
+            .input-field {
+                @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+            }
+            .data-point {
+                @apply absolute cursor-move transition-all duration-150 transform hover:scale-150;
+            }
+            .baseline-marker {
+                @apply absolute cursor-move transition-all duration-150 transform hover:scale-110 z-10;
+            }
+            .data-label {
+                @apply absolute text-xs font-medium whitespace-nowrap pointer-events-none;
+            }
+            .tooltip {
+                @apply invisible absolute bg-neutral text-white text-xs rounded py-1 px-2 z-50 transition-opacity duration-200 opacity-0;
+            }
+            .tooltip-visible {
+                @apply visible opacity-100;
+            }
+            .data-table-container {
+                @apply w-full overflow-y-auto;
+                max-height: 300px; /* 固定表格窗口高度 */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-neutral min-h-screen">
+    <header class="bg-white shadow-md py-4 px-6">
+        <div class="container mx-auto">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral flex items-center">
+                <i class="fa fa-bar-chart mr-3 text-primary"></i>
+                图表数据提取工具
+            </h1>
+            <p class="text-gray-600 mt-1">从图表图片中手动提取数据点并导出为CSV</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- 介绍卡片 -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+            <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+            <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧控制面板 -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- 图片上传区域 -->
+                <div class="control-panel">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-upload mr-2 text-primary"></i>上传图表
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors duration-200" id="drop-area">
+                            <i class="fa fa-file-image-o text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">拖放图片到此处，或点击选择文件</p>
+                            <input type="file" id="image-upload" accept="image/*" class="hidden">
+                            <button type="button" class="mt-3 btn-outline" onclick="document.getElementById('image-upload').click()">
+                                选择图片
+                            </button>
+                        </div>
+                        <div id="image-info" class="hidden">
+                            <p class="text-sm text-gray-600"><span id="image-name"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 坐标范围设置 -->
+                <div class="control-panel" id="coordinates-panel">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-arrows mr-2 text-primary"></i>坐标范围设置
+                    </h2>
+                    <p class="text-sm text-gray-600 mb-3">点击图表设置四个基准点，然后输入对应的值</p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">X最小值 (xmin)</label>
+                            <input type="number" step="any" id="xmin-value" class="input-field" placeholder="例如: 0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">X最大值 (xmax)</label>
+                            <input type="number" step="any" id="xmax-value" class="input-field" placeholder="例如: 100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Y最小值 (ymin)</label>
+                            <input type="number" step="any" id="ymin-value" class="input-field" placeholder="例如: 0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Y最大值 (ymax)</label>
+                            <input type="number" step="any" id="ymax-value" class="input-field" placeholder="例如: 100">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" id="set-baseline-btn" class="btn-primary w-full" disabled>
+                            <i class="fa fa-check mr-1"></i> 确认坐标范围
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 数据点提取控制 -->
+                <div class="control-panel" id="data-points-panel">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-primary"></i>数据点提取
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">当前数据组名称</label>
+                        <input type="text" id="group-name" class="input-field" placeholder="例如: 数据组1">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button type="button" id="add-point-btn" class="btn-outline" disabled>
+                            <i class="fa fa-plus mr-1"></i> 添加数据点
+                        </button>
+                        <button type="button" id="remove-last-btn" class="btn-outline" disabled>
+                            <i class="fa fa-undo mr-1"></i> 移除最后点
+                        </button>
+                    </div>
+                    
+                    <button type="button" id="save-group-btn" class="btn-accent w-full mb-3" disabled>
+                        <i class="fa fa-save mr-1"></i> 保存当前数据组
+                    </button>
+                    
+                    <button type="button" id="clear-all-btn" class="btn-outline w-full">
+                        <i class="fa fa-trash mr-1"></i> 清除所有数据
+                    </button>
+                </div>
+
+                <!-- 数据导出 -->
+                <div class="control-panel" id="export-panel">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-download mr-2 text-primary"></i>数据导出
+                    </h2>
+                    
+                    <button type="button" id="export-csv-btn" class="btn-secondary w-full" disabled>
+                        <i class="fa fa-file-text-o mr-1"></i> 导出CSV文件
+                    </button>
+                    
+                    <div class="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">已保存的数据组</h3>
+                        <ul id="groups-list" class="text-sm text-gray-600 max-h-32 overflow-y-auto">
+                            <li class="text-gray-400 italic">暂无数据组</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧图表和数据显示区域 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 图表显示区域 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold flex items-center">
+                            <i class="fa fa-picture-o mr-2 text-primary"></i>图表预览
+                        </h2>
+                        <div class="text-sm text-gray-500" id="mode-indicator">
+                            请上传图片开始操作
+                        </div>
+                    </div>
+                    
+                    <div class="relative" style="min-height: 400px;">
+                        <div id="chart-container" class="canvas-container w-full h-[400px]">
+                            <div id="placeholder-message" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                <i class="fa fa-area-chart text-5xl mb-3"></i>
+                                <p>上传图表图片后在此处显示</p>
+                                <p class="text-sm mt-1">点击图表设置基准点和数据点</p>
+                            </div>
+                            <img id="chart-image" class="hidden absolute top-0 left-0 max-w-full max-h-full object-contain" alt="图表图片">
+                            <!-- 基准点和数据点将动态添加到这里 -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <div class="flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                            <i class="fa fa-map-marker mr-1"></i>
+                            X最小值 (xmin)
+                        </div>
+                        <div class="flex items-center text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full">
+                            <i class="fa fa-map-marker mr-1"></i>
+                            X最大值 (xmax)
+                        </div>
+                        <div class="flex items-center text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">
+                            <i class="fa fa-map-marker mr-1"></i>
+                            Y最小值 (ymin)
+                        </div>
+                        <div class="flex items-center text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
+                            <i class="fa fa-map-marker mr-1"></i>
+                            Y最大值 (ymax)
+                        </div>
+                        <div id="group-colors-legend" class="flex flex-wrap gap-2 mt-2 w-full">
+                            <!-- 数据组颜色图例将动态添加 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提取的数据点表格 - 使用固定窗口并支持上下滑动 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-table mr-2 text-primary"></i>提取的数据
+                    </h2>
+                    
+                    <!-- 固定长宽的窗口，支持上下滑动 -->
+                    <div class="data-table-container border border-gray-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">组名</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">X值</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Y值</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-points-table" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500 italic">
+                                        未提取任何数据点
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6">
+        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+            <p>微信公众号 RStata &copy; 2025 - 通过手动点击从图表中提取数据</p>
+        </div>
+    </footer>
+
+    <script>
+        // 数据组颜色方案 - 使用不同的鲜明颜色区分
+        const groupColors = [
+            '#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', 
+            '#33FFF3', '#F333FF', '#FF9933', '#9933FF', '#33FF99'
+        ];
+
+        // 应用状态管理
+        const appState = {
+            image: null,
+            imageName: '',
+            baselinePoints: {
+                xmin: null,
+                xmax: null,
+                ymin: null,
+                ymax: null
+            },
+            baselineValues: {
+                xmin: null,
+                xmax: null,
+                ymin: null,
+                ymax: null
+            },
+            currentGroup: {
+                name: '',
+                points: [],
+                color: groupColors[0] // 默认第一个颜色
+            },
+            savedGroups: [],
+            mode: 'idle', // idle, setBaseline, addPoints
+            nextPointId: 1,
+            nextGroupIndex: 0 // 用于跟踪下一个数据组的颜色索引
+        };
+
+        // DOM元素
+        const elements = {
+            imageUpload: document.getElementById('image-upload'),
+            dropArea: document.getElementById('drop-area'),
+            imageInfo: document.getElementById('image-info'),
+            imageName: document.getElementById('image-name'),
+            chartContainer: document.getElementById('chart-container'),
+            chartImage: document.getElementById('chart-image'),
+            placeholderMessage: document.getElementById('placeholder-message'),
+            modeIndicator: document.getElementById('mode-indicator'),
+            xminValue: document.getElementById('xmin-value'),
+            xmaxValue: document.getElementById('xmax-value'),
+            yminValue: document.getElementById('ymin-value'),
+            ymaxValue: document.getElementById('ymax-value'),
+            setBaselineBtn: document.getElementById('set-baseline-btn'),
+            addPointBtn: document.getElementById('add-point-btn'),
+            removeLastBtn: document.getElementById('remove-last-btn'),
+            saveGroupBtn: document.getElementById('save-group-btn'),
+            clearAllBtn: document.getElementById('clear-all-btn'),
+            exportCsvBtn: document.getElementById('export-csv-btn'),
+            groupName: document.getElementById('group-name'),
+            groupsList: document.getElementById('groups-list'),
+            dataPointsTable: document.getElementById('data-points-table'),
+            groupColorsLegend: document.getElementById('group-colors-legend')
+        };
+
+        // 初始化事件监听
+        function initEventListeners() {
+            // 图片上传
+            elements.imageUpload.addEventListener('change', handleImageUpload);
+            
+            // 拖放上传
+            elements.dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                elements.dropArea.classList.add('border-primary');
+            });
+            
+            elements.dropArea.addEventListener('dragleave', () => {
+                elements.dropArea.classList.remove('border-primary');
+            });
+            
+            elements.dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                elements.dropArea.classList.remove('border-primary');
+                
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // 图表容器点击事件
+            elements.chartContainer.addEventListener('click', handleChartClick);
+            
+            // 按钮事件
+            elements.setBaselineBtn.addEventListener('click', setBaselineValues);
+            elements.addPointBtn.addEventListener('click', startAddPointsMode);
+            elements.removeLastBtn.addEventListener('click', removeLastPoint);
+            elements.saveGroupBtn.addEventListener('click', saveCurrentGroup);
+            elements.clearAllBtn.addEventListener('click', clearAllData);
+            elements.exportCsvBtn.addEventListener('click', exportToCsv);
+            
+            // 输入框事件
+            elements.xminValue.addEventListener('input', updateSetBaselineButtonState);
+            elements.xmaxValue.addEventListener('input', updateSetBaselineButtonState);
+            elements.yminValue.addEventListener('input', updateSetBaselineButtonState);
+            elements.ymaxValue.addEventListener('input', updateSetBaselineButtonState);
+            elements.groupName.addEventListener('input', updateSaveGroupButtonState);
+        }
+
+        // 处理图片上传
+        function handleImageUpload(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        }
+
+        // 处理文件
+        function handleFile(file) {
+            if (!file.type.match('image.*')) {
+                alert('请上传图片文件');
+                return;
+            }
+            
+            // 显示图片信息
+            appState.imageName = file.name;
+            elements.imageName.textContent = `已上传: ${appState.imageName}`;
+            elements.imageInfo.classList.remove('hidden');
+            
+            // 读取并显示图片
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                appState.image = e.target.result;
+                elements.chartImage.src = appState.image;
+                elements.chartImage.classList.remove('hidden');
+                elements.placeholderMessage.classList.add('hidden');
+                
+                // 重置状态
+                resetState();
+                
+                // 进入设置基准点模式
+                startSetBaselineMode();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 重置应用状态
+        function resetState() {
+            // 清除所有点
+            clearAllPoints();
+            
+            // 重置状态对象
+            appState.baselinePoints = {
+                xmin: null,
+                xmax: null,
+                ymin: null,
+                ymax: null
+            };
+            appState.baselineValues = {
+                xmin: null,
+                xmax: null,
+                ymin: null,
+                ymax: null
+            };
+            appState.currentGroup = {
+                name: '',
+                points: [],
+                color: groupColors[0]
+            };
+            appState.savedGroups = [];
+            appState.mode = 'idle';
+            appState.nextPointId = 1;
+            appState.nextGroupIndex = 0;
+            
+            // 重置输入框
+            elements.xminValue.value = '';
+            elements.xmaxValue.value = '';
+            elements.yminValue.value = '';
+            elements.ymaxValue.value = '';
+            elements.groupName.value = '';
+            
+            // 清空图例
+            elements.groupColorsLegend.innerHTML = '';
+            
+            // 更新UI状态
+            updateButtonStates();
+            updateGroupsList();
+            updateDataPointsTable();
+        }
+
+        // 开始设置基准点模式
+        function startSetBaselineMode() {
+            appState.mode = 'setBaseline';
+            elements.modeIndicator.textContent = '模式: 设置基准点 (xmin → xmax → ymin → ymax)';
+            elements.modeIndicator.className = 'text-sm text-blue-600';
+            
+            // 禁用其他按钮
+            updateButtonStates();
+        }
+
+        // 开始添加数据点模式
+        function startAddPointsMode() {
+            appState.mode = 'addPoints';
+            elements.modeIndicator.textContent = '模式: 添加数据点 (点击图表添加)';
+            elements.modeIndicator.className = 'text-sm text-green-600';
+            
+            // 如果没有组名，设置一个默认组名
+            if (!appState.currentGroup.name.trim()) {
+                appState.currentGroup.name = `数据组${appState.savedGroups.length + 1}`;
+                elements.groupName.value = appState.currentGroup.name;
+            }
+            
+            updateButtonStates();
+        }
+
+        // 处理图表点击
+        function handleChartClick(e) {
+            if (appState.mode === 'idle' || !appState.image) return;
+            
+            // 获取相对于图表容器的精确坐标
+            const rect = elements.chartContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (appState.mode === 'setBaseline') {
+                addBaselinePoint(x, y);
+            } else if (appState.mode === 'addPoints') {
+                addDataPoint(x, y);
+            }
+        }
+
+        // 添加基准点（使用地图标记样式）
+        function addBaselinePoint(x, y) {
+            // 确定要添加的基准点类型
+            let pointType = null;
+            if (!appState.baselinePoints.xmin) {
+                pointType = 'xmin';
+            } else if (!appState.baselinePoints.xmax) {
+                pointType = 'xmax';
+            } else if (!appState.baselinePoints.ymin) {
+                pointType = 'ymin';
+            } else if (!appState.baselinePoints.ymax) {
+                pointType = 'ymax';
+            }
+            
+            if (!pointType) return;
+            
+            // 保存点的坐标
+            appState.baselinePoints[pointType] = { x, y };
+            
+            // 创建地图标记样式的基准点
+            const marker = document.createElement('div');
+            marker.id = `${pointType}-point`;
+            marker.className = 'baseline-marker text-lg';
+            
+            // 设置不同点的颜色和标记
+            const markerStyles = {
+                xmin: 'text-blue-500',
+                xmax: 'text-red-500',
+                ymin: 'text-green-500',
+                ymax: 'text-purple-500'
+            };
+            
+            marker.classList.add(...markerStyles[pointType].split(' '));
+            marker.innerHTML = '<i class="fa fa-map-marker"></i>';
+            
+            // 精确对齐：标记中心与点击位置完全重合
+            marker.style.left = `${x - 8}px`;
+            marker.style.top = `${y - 16}px`;
+            
+            // 添加标签
+            const label = document.createElement('div');
+            label.className = 'data-label';
+            label.style.left = `${x + 10}px`;
+            label.style.top = `${y - 10}px`;
+            label.textContent = pointType;
+            
+            // 设置不同标签的颜色
+            const labelColors = {
+                xmin: 'text-blue-700',
+                xmax: 'text-red-700',
+                ymin: 'text-green-700',
+                ymax: 'text-purple-700'
+            };
+            
+            label.classList.add(labelColors[pointType]);
+            
+            // 添加到容器
+            elements.chartContainer.appendChild(marker);
+            elements.chartContainer.appendChild(label);
+            
+            // 使点可拖动
+            makeBaselineMarkerDraggable(marker, pointType, label);
+            
+            // 更新模式指示
+            updateBaselineModeIndicator();
+            
+            // 更新按钮状态
+            updateSetBaselineButtonState();
+        }
+
+        // 使基准点标记可拖动
+        function makeBaselineMarkerDraggable(marker, pointType, label) {
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            marker.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            function startDrag(e) {
+                e.stopPropagation(); // 防止触发图表点击事件
+                isDragging = true;
+                
+                // 计算鼠标相对于标记中心的偏移量
+                const rect = marker.getBoundingClientRect();
+                offsetX = e.clientX - (rect.left + rect.width / 2);
+                offsetY = e.clientY - (rect.top + rect.height * 0.75);
+                
+                // 增加视觉反馈
+                marker.classList.add('scale-150', 'z-20');
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                // 获取相对于图表容器的坐标
+                const rect = elements.chartContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left - offsetX;
+                const y = e.clientY - rect.top - offsetY;
+                
+                // 限制在容器内
+                const markerWidth = 16;
+                const markerHeight = 32;
+                const minX = markerWidth / 2;
+                const minY = markerHeight / 2;
+                const maxX = rect.width - markerWidth / 2;
+                const maxY = rect.height - markerHeight / 2;
+                
+                const constrainedX = Math.max(minX, Math.min(x, maxX));
+                const constrainedY = Math.max(minY, Math.min(y, maxY));
+                
+                // 更新位置
+                marker.style.left = `${constrainedX - 8}px`;
+                marker.style.top = `${constrainedY - 16}px`;
+                
+                // 更新标签位置
+                label.style.left = `${constrainedX + 10}px`;
+                label.style.top = `${constrainedY - 10}px`;
+                
+                // 更新保存的坐标
+                appState.baselinePoints[pointType] = { 
+                    x: constrainedX, 
+                    y: constrainedY 
+                };
+            }
+            
+            function endDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                // 移除视觉反馈
+                marker.classList.remove('scale-150', 'z-20');
+            }
+        }
+
+        // 更新基准点模式指示
+        function updateBaselineModeIndicator() {
+            let nextStep = '';
+            if (!appState.baselinePoints.xmin) {
+                nextStep = 'xmin';
+            } else if (!appState.baselinePoints.xmax) {
+                nextStep = 'xmax';
+            } else if (!appState.baselinePoints.ymin) {
+                nextStep = 'ymin';
+            } else if (!appState.baselinePoints.ymax) {
+                nextStep = 'ymax';
+            } else {
+                elements.modeIndicator.textContent = '模式: 所有基准点已设置，请输入值并确认';
+                elements.modeIndicator.className = 'text-sm text-purple-600';
+                return;
+            }
+            
+            elements.modeIndicator.textContent = `模式: 设置基准点 (下一步: ${nextStep})`;
+        }
+
+        // 设置基准值
+        function setBaselineValues() {
+            // 验证输入
+            const xmin = parseFloat(elements.xminValue.value);
+            const xmax = parseFloat(elements.xmaxValue.value);
+            const ymin = parseFloat(elements.yminValue.value);
+            const ymax = parseFloat(elements.ymaxValue.value);
+            
+            if (isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax)) {
+                alert('请输入有效的数值');
+                return;
+            }
+            
+            // 保存基准值
+            appState.baselineValues = { xmin, xmax, ymin, ymax };
+            
+            // 切换到空闲模式，启用添加数据点
+            appState.mode = 'idle';
+            elements.modeIndicator.textContent = '基准范围已设置，可以开始添加数据点';
+            elements.modeIndicator.className = 'text-sm text-gray-600';
+            
+            // 更新按钮状态
+            updateButtonStates();
+            
+            // 提供视觉反馈
+            alert('基准范围已设置成功，可以开始添加数据点了');
+        }
+
+        // 添加数据点（使用小尺寸点，不显示文本标签）
+        function addDataPoint(x, y) {
+            // 计算实际值
+            const actualValues = convertToActualValues(x, y);
+            if (!actualValues) return;
+            
+            // 创建点ID
+            const pointId = `data-point-${appState.nextPointId++}`;
+            
+            // 保存数据点
+            const dataPoint = {
+                id: pointId,
+                x: x,
+                y: y,
+                actualX: actualValues.x,
+                actualY: actualValues.y
+            };
+            
+            appState.currentGroup.points.push(dataPoint);
+            
+            // 创建小尺寸视觉点
+            const point = document.createElement('div');
+            point.id = pointId;
+            point.className = 'data-point w-3 h-3 rounded-full border border-white shadow';
+            point.style.backgroundColor = appState.currentGroup.color;
+            point.style.left = `${x - 1.5}px`;
+            point.style.top = `${y - 1.5}px`;
+            
+            // 添加提示信息
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = `${actualValues.x.toFixed(2)}, ${actualValues.y.toFixed(2)}`;
+            tooltip.style.left = `${x + 6}px`;
+            tooltip.style.top = `${y - 20}px`;
+            
+            // 鼠标悬停显示提示
+            point.addEventListener('mouseenter', () => {
+                tooltip.classList.add('tooltip-visible');
+            });
+            
+            point.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('tooltip-visible');
+            });
+            
+            // 添加到容器
+            elements.chartContainer.appendChild(point);
+            elements.chartContainer.appendChild(tooltip);
+            
+            // 使数据点可拖动
+            makeDataPointDraggable(point, dataPoint, tooltip);
+            
+            // 更新表格
+            updateDataPointsTable();
+            
+            // 更新按钮状态
+            updateButtonStates();
+        }
+
+        // 使数据点可拖动
+        function makeDataPointDraggable(point, dataPoint, tooltip) {
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            point.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            function startDrag(e) {
+                e.stopPropagation();
+                isDragging = true;
+                
+                // 计算鼠标相对于点中心的偏移量
+                const rect = point.getBoundingClientRect();
+                offsetX = e.clientX - (rect.left + rect.width / 2);
+                offsetY = e.clientY - (rect.top + rect.height / 2);
+                
+                // 增加视觉反馈
+                point.classList.add('scale-200', 'z-10');
+                tooltip.classList.remove('tooltip-visible');
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                // 获取相对于图表容器的坐标
+                const rect = elements.chartContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left - offsetX;
+                const y = e.clientY - rect.top - offsetY;
+                
+                // 限制在容器内
+                const pointSize = 3;
+                const minX = pointSize / 2;
+                const minY = pointSize / 2;
+                const maxX = rect.width - pointSize / 2;
+                const maxY = rect.height - pointSize / 2;
+                
+                const constrainedX = Math.max(minX, Math.min(x, maxX));
+                const constrainedY = Math.max(minY, Math.min(y, maxY));
+                
+                // 更新位置
+                point.style.left = `${constrainedX - 1.5}px`;
+                point.style.top = `${constrainedY - 1.5}px`;
+                
+                // 更新提示位置
+                tooltip.style.left = `${constrainedX + 4}px`;
+                tooltip.style.top = `${constrainedY - 18}px`;
+                
+                // 更新点坐标
+                dataPoint.x = constrainedX;
+                dataPoint.y = constrainedY;
+                
+                // 重新计算实际值
+                const actualValues = convertToActualValues(constrainedX, constrainedY);
+                if (actualValues) {
+                    dataPoint.actualX = actualValues.x;
+                    dataPoint.actualY = actualValues.y;
+                    tooltip.textContent = `${actualValues.x.toFixed(2)}, ${actualValues.y.toFixed(2)}`;
+                }
+                
+                // 更新表格
+                updateDataPointsTable();
+            }
+            
+            function endDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                // 移除视觉反馈
+                point.classList.remove('scale-200', 'z-10');
+            }
+        }
+
+        // 将像素坐标转换为实际值
+        function convertToActualValues(x, y) {
+            // 检查基准点是否已设置
+            const { xmin, xmax, ymin, ymax } = appState.baselinePoints;
+            if (!xmin || !xmax || !ymin || !ymax) return null;
+            
+            // 检查基准值是否已设置
+            const { xmin: xminVal, xmax: xmaxVal, ymin: yminVal, ymax: ymaxVal } = appState.baselineValues;
+            if (xminVal === null || xmaxVal === null || yminVal === null || ymaxVal === null) return null;
+            
+            // 计算X轴实际值
+            const xRange = xmaxVal - xminVal;
+            const xPixelRange = xmax.x - xmin.x;
+            let actualX;
+            
+            if (xPixelRange !== 0) {
+                actualX = xminVal + ((x - xmin.x) / xPixelRange) * xRange;
+            } else {
+                actualX = xminVal; // 防止除以零
+            }
+            
+            // 计算Y轴实际值（修正算法）
+            const yRange = ymaxVal - yminVal;
+            const yPixelRange = ymax.y - ymin.y;
+            let actualY;
+            
+            if (yPixelRange !== 0) {
+                actualY = yminVal + ((y - ymin.y) / yPixelRange) * yRange;
+            } else {
+                actualY = yminVal; // 防止除以零
+            }
+            
+            return { x: actualX, y: actualY };
+        }
+
+        // 移除最后一个数据点
+        function removeLastPoint() {
+            if (appState.currentGroup.points.length === 0) return;
+            
+            // 获取最后一个点
+            const lastPoint = appState.currentGroup.points.pop();
+            
+            // 从DOM中移除点和提示
+            const pointElement = document.getElementById(lastPoint.id);
+            if (pointElement) {
+                if (pointElement.nextSibling && pointElement.nextSibling.classList.contains('tooltip')) {
+                    pointElement.nextSibling.remove();
+                }
+                pointElement.remove();
+            }
+            
+            // 更新表格
+            updateDataPointsTable();
+            
+            // 更新按钮状态
+            updateButtonStates();
+        }
+
+        // 保存当前数据组
+        function saveCurrentGroup() {
+            if (appState.currentGroup.points.length === 0) {
+                alert('请先添加数据点');
+                return;
+            }
+            
+            let groupName = appState.currentGroup.name.trim();
+            if (!groupName) {
+                groupName = `数据组${appState.savedGroups.length + 1}`;
+                appState.currentGroup.name = groupName;
+                elements.groupName.value = groupName;
+            }
+            
+            // 检查组名是否已存在
+            const nameExists = appState.savedGroups.some(group => group.name === groupName);
+            if (nameExists) {
+                if (!confirm(`"${groupName}" 已存在，是否覆盖？`)) {
+                    return;
+                } else {
+                    // 移除已存在的同名组及其点
+                    const existingGroupIndex = appState.savedGroups.findIndex(group => group.name === groupName);
+                    if (existingGroupIndex !== -1) {
+                        const existingGroup = appState.savedGroups[existingGroupIndex];
+                        existingGroup.points.forEach(point => {
+                            const pointElement = document.getElementById(point.id);
+                            if (pointElement) {
+                                if (pointElement.nextSibling && pointElement.nextSibling.classList.contains('tooltip')) {
+                                    pointElement.nextSibling.remove();
+                                }
+                                pointElement.remove();
+                            }
+                        });
+                        appState.savedGroups.splice(existingGroupIndex, 1);
+                    }
+                }
+            }
+            
+            // 保存当前组的副本
+            const savedGroup = {
+                name: groupName,
+                points: [...appState.currentGroup.points],
+                color: appState.currentGroup.color
+            };
+            appState.savedGroups.push(savedGroup);
+            
+            // 为新组准备颜色
+            appState.nextGroupIndex = (appState.nextGroupIndex + 1) % groupColors.length;
+            
+            // 清除当前组
+            appState.currentGroup = {
+                name: '',
+                points: [],
+                color: groupColors[appState.nextGroupIndex]
+            };
+            
+            // 清空组名输入框
+            elements.groupName.value = '';
+            
+            // 更新UI
+            updateGroupsList();
+            updateDataPointsTable();
+            updateGroupColorsLegend();
+            updateButtonStates();
+            
+            // 提供视觉反馈
+            alert(`数据组 "${groupName}" 已保存`);
+        }
+
+        // 清除所有数据
+        function clearAllData() {
+            if (!confirm('确定要清除所有数据吗？这将移除所有基准点和数据点。')) {
+                return;
+            }
+            
+            if (appState.image) {
+                resetState();
+                startSetBaselineMode();
+            }
+        }
+
+        // 清除所有点
+        function clearAllPoints() {
+            document.querySelectorAll('.data-point, .tooltip, .baseline-marker, .data-label').forEach(el => el.remove());
+        }
+
+        // 导出为CSV
+        function exportToCsv() {
+            if (appState.savedGroups.length === 0) {
+                alert('没有可导出的数据组');
+                return;
+            }
+            
+            // 构建CSV内容
+            let csvContent = "group,x,y\n";
+            
+            appState.savedGroups.forEach(group => {
+                group.points.forEach(point => {
+                    csvContent += `${group.name},${point.actualX.toFixed(6)},${point.actualY.toFixed(6)}\n`;
+                });
+            });
+            
+            // 创建Blob并下载
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `chart_data_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 更新设置基准点按钮状态
+        function updateSetBaselineButtonState() {
+            // 检查是否所有基准点都已设置且所有输入框都有值
+            const allPointsSet = appState.baselinePoints.xmin && 
+                                appState.baselinePoints.xmax && 
+                                appState.baselinePoints.ymin && 
+                                appState.baselinePoints.ymax;
+            
+            const allValuesSet = elements.xminValue.value.trim() !== '' &&
+                                elements.xmaxValue.value.trim() !== '' &&
+                                elements.yminValue.value.trim() !== '' &&
+                                elements.ymaxValue.value.trim() !== '';
+            
+            elements.setBaselineBtn.disabled = !(allPointsSet && allValuesSet);
+        }
+
+        // 更新保存组按钮状态
+        function updateSaveGroupButtonState() {
+            appState.currentGroup.name = elements.groupName.value.trim();
+            elements.saveGroupBtn.disabled = appState.currentGroup.points.length === 0;
+        }
+
+        // 更新所有按钮状态
+        function updateButtonStates() {
+            // 设置基准点按钮
+            updateSetBaselineButtonState();
+            
+            // 添加点按钮
+            const baselineValuesSet = appState.baselineValues.xmin !== null;
+            elements.addPointBtn.disabled = !baselineValuesSet || appState.mode === 'addPoints';
+            
+            // 移除最后点按钮
+            elements.removeLastBtn.disabled = appState.currentGroup.points.length === 0;
+            
+            // 保存组按钮
+            updateSaveGroupButtonState();
+            
+            // 导出CSV按钮
+            elements.exportCsvBtn.disabled = appState.savedGroups.length === 0;
+        }
+
+        // 更新数据组列表和颜色图例
+        function updateGroupsList() {
+            elements.groupsList.innerHTML = '';
+            
+            if (appState.savedGroups.length === 0) {
+                elements.groupsList.innerHTML = '<li class="text-gray-400 italic">暂无数据组</li>';
+                return;
+            }
+            
+            appState.savedGroups.forEach(group => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center py-1 border-b border-gray-100 last:border-0';
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${group.color};"></span>
+                        <span>${group.name}</span>
+                    </div>
+                    <span class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">${group.points.length} 个点</span>
+                `;
+                elements.groupsList.appendChild(li);
+            });
+            
+            // 更新颜色图例
+            updateGroupColorsLegend();
+        }
+
+        // 更新数据组颜色图例
+        function updateGroupColorsLegend() {
+            elements.groupColorsLegend.innerHTML = '';
+            
+            // 添加当前组的图例
+            if (appState.currentGroup.points.length > 0) {
+                const currentLegend = document.createElement('div');
+                currentLegend.className = 'flex items-center text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded-full';
+                currentLegend.innerHTML = `
+                    <span class="w-3 h-3 rounded-full mr-1" style="background-color: ${appState.currentGroup.color};"></span>
+                    当前组: ${appState.currentGroup.name || '未命名组'}
+                `;
+                elements.groupColorsLegend.appendChild(currentLegend);
+            }
+            
+            // 添加已保存组的图例
+            appState.savedGroups.forEach(group => {
+                const legend = document.createElement('div');
+                legend.className = 'flex items-center text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded-full';
+                legend.innerHTML = `
+                    <span class="w-3 h-3 rounded-full mr-1" style="background-color: ${group.color};"></span>
+                    ${group.name}
+                `;
+                elements.groupColorsLegend.appendChild(legend);
+            });
+        }
+
+        // 更新数据点表格
+        function updateDataPointsTable() {
+            elements.dataPointsTable.innerHTML = '';
+            
+            // 合并当前组和已保存的组的数据点
+            const allPoints = [];
+            
+            // 添加当前组的数据点
+            if (appState.currentGroup.points.length > 0) {
+                appState.currentGroup.points.forEach(point => {
+                    allPoints.push({
+                        ...point,
+                        group: appState.currentGroup.name || '未命名组',
+                        color: appState.currentGroup.color,
+                        isCurrent: true
+                    });
+                });
+            }
+            
+            // 添加已保存组的数据点
+            appState.savedGroups.forEach(group => {
+                group.points.forEach(point => {
+                    allPoints.push({
+                        ...point,
+                        group: group.name,
+                        color: group.color,
+                        isCurrent: false
+                    });
+                });
+            });
+            
+            if (allPoints.length === 0) {
+                elements.dataPointsTable.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-3 py-4 text-center text-gray-500 italic">
+                            未提取任何数据点
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // 添加数据点到表格
+            allPoints.forEach(point => {
+                const tr = document.createElement('tr');
+                tr.className = point.isCurrent ? 'bg-yellow-50' : '';
+                
+                tr.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${point.color};"></span>
+                            ${point.group}
+                        </div>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap">${point.actualX.toFixed(6)}</td>
+                    <td class="px-3 py-2 whitespace-nowrap">${point.actualY.toFixed(6)}</td>
+                    <td class="px-3 py-2 whitespace-nowrap">
+                        ${point.isCurrent ? `
+                            <button type="button" class="text-red-500 hover:text-red-700 text-sm" 
+                                    onclick="removeSpecificPoint('${point.id}')">
+                                <i class="fa fa-times"></i> 删除
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                
+                elements.dataPointsTable.appendChild(tr);
+            });
+        }
+
+        // 移除特定的数据点
+        function removeSpecificPoint(pointId) {
+            // 找到并移除点
+            const pointIndex = appState.currentGroup.points.findIndex(p => p.id === pointId);
+            if (pointIndex !== -1) {
+                appState.currentGroup.points.splice(pointIndex, 1);
+                
+                // 从DOM中移除
+                const pointElement = document.getElementById(pointId);
+                if (pointElement) {
+                    if (pointElement.nextSibling && pointElement.nextSibling.classList.contains('tooltip')) {
+                        pointElement.nextSibling.remove();
+                    }
+                    pointElement.remove();
+                }
+                
+                // 更新UI
+                updateDataPointsTable();
+                updateButtonStates();
+            }
+        }
+
+        // 初始化应用
+        function initApp() {
+            initEventListeners();
+            updateButtonStates();
+        }
+
+        // 当页面加载完成后初始化应用
+        window.addEventListener('load', initApp);
+        
+        // 暴露removeSpecificPoint函数给全局
+        window.removeSpecificPoint = removeSpecificPoint;
+    </script>
+</body>
+</html>
+    

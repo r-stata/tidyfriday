@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>省份地图颜色分析工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色和字体 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        accent: '#6366f1',
+                        neutral: '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .map-container {
+                position: relative;
+                overflow: hidden;
+                cursor: crosshair;
+            }
+            .marker {
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                transform: translate(-50%, -50%);
+                cursor: move;
+                transition: all 0.2s ease;
+                z-index: 10;
+            }
+            .marker::before {
+                content: '\f041'; /* Font Awesome地图标记图标代码 */
+                font-family: 'FontAwesome';
+                color: #ff3e3e;
+                font-size: 20px;
+                text-shadow: 0 0 3px rgba(0,0,0,0.5);
+            }
+            .marker::after {
+                content: attr(data-index);
+                position: absolute;
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.7);
+                color: white;
+                font-size: 12px;
+                padding: 1px 4px;
+                border-radius: 3px;
+            }
+            .marker.dragging {
+                z-index: 20;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            .color-swatch {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                border-radius: 3px;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-gray-800 mb-2">省份地图颜色分析工具</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">上传省份填色地图，按顺序标记34个省市，提取颜色并生成对应数值，最后导出CSV数据</p>
+        </header>
+        <!-- 介绍卡片 -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+            <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+            <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- 左侧控制面板 -->
+            <div class="lg:w-1/3 space-y-6">
+                <!-- 地图上传区域 -->
+                <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-upload text-primary mr-2"></i>上传地图
+                    </h2>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors duration-300">
+                        <input type="file" id="mapUpload" accept="image/*" class="hidden" />
+                        <label for="mapUpload" class="cursor-pointer">
+                            <i class="fa fa-map-o text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 mb-2">点击或拖拽地图图片到此处</p>
+                            <p class="text-sm text-gray-500">支持 JPG、PNG 等格式</p>
+                        </label>
+                    </div>
+                    <div id="uploadInfo" class="mt-4 hidden">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="truncate" id="fileName"></div>
+                            <button id="replaceMap" class="text-primary hover:text-primary/80 text-sm font-medium">
+                                更换
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 标记控制区域 -->
+                <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-map-marker text-primary mr-2"></i>标记控制
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">当前标记省份:</span>
+                            <span id="currentProvince" class="font-medium text-primary">请上传地图开始标记</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="markingProgress" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0/34</span>
+                            <span>34/34</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mb-4">
+                        <button id="prevProvince" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fa fa-arrow-left mr-1"></i> 上一个
+                        </button>
+                        <button id="nextProvince" class="flex-1 bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            下一个 <i class="fa fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                    
+                    <button id="clearMarkers" class="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-trash mr-1"></i> 清除所有标记
+                    </button>
+                </div>
+                
+                <!-- 颜色值范围设置 -->
+                <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-sliders text-primary mr-2"></i>数值范围设置
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 mb-1 text-sm">最浅颜色对应值</label>
+                            <input type="number" id="minValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" value="0" step="any">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-1 text-sm">最深颜色对应值</label>
+                            <input type="number" id="maxValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" value="100" step="any">
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="calculateValues" class="w-full bg-secondary hover:bg-secondary/90 text-white py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fa fa-calculator mr-1"></i> 计算数值
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 导出数据 -->
+                <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-download text-primary mr-2"></i>导出数据
+                    </h2>
+                    
+                    <button id="exportCSV" class="w-full bg-accent hover:bg-accent/90 text-white py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-file-excel-o mr-2"></i> 导出CSV文件
+                    </button>
+                    
+                    <div id="exportInfo" class="mt-4 text-sm text-gray-500 hidden">
+                        <p>CSV文件将包含以下字段：</p>
+                        <ul class="list-disc list-inside mt-1 space-y-0.5">
+                            <li>省份名称</li>
+                            <li>行政区划代码</li>
+                            <li>颜色值（16进制）</li>
+                            <li>颜色值（RGB值）</li>
+                            <li>实际值</li>
+                        </ul>
+                        <p class="mt-2 text-primary text-xs"><i class="fa fa-info-circle mr-1"></i> 所有字符串字段将用双引号括起</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧地图预览区域 -->
+            <div class="lg:w-2/3">
+                <div class="bg-white rounded-xl shadow-md p-6 h-full transition-all duration-300 hover:shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-map text-primary mr-2"></i>地图预览与标记
+                        <span class="ml-2 text-sm font-normal text-gray-500">(拖动标记可调整位置)</span>
+                    </h2>
+                    
+                    <div id="mapPlaceholder" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center bg-gray-50">
+                        <i class="fa fa-map-o text-5xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-500">请上传地图图片后在此处进行标记</p>
+                        <p class="text-gray-400 text-sm mt-2">上传后点击地图添加标记点，标记可拖动调整</p>
+                    </div>
+                    
+                    <div id="mapContainer" class="map-container border rounded-lg hidden">
+                        <img id="mapImage" alt="省份地图" class="max-w-full max-h-[600px] mx-auto" />
+                        <!-- 标记点将动态添加到这里 -->
+                    </div>
+                    
+                    <div id="markerInfo" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                        <h3 class="font-medium text-gray-800 mb-2">标记信息</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-500">当前省份:</span>
+                                <span id="infoProvince" class="font-medium"></span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">坐标:</span>
+                                <span id="infoCoordinates" class="font-medium"></span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">颜色:</span>
+                                <span class="font-medium">
+                                    <span id="infoColorSwatch" class="color-swatch mr-1"></span>
+                                    <span id="infoHex"></span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">颜色(RGB):</span>
+                                <span id="infoRgb" class="font-medium"></span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">透明度:</span>
+                                <span id="infoAlpha" class="font-medium"></span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">亮度值:</span>
+                                <span id="infoLuminance" class="font-medium"></span>
+                            </div>
+                            <div class="md:col-span-2">
+                                <span class="text-gray-500">实际值:</span>
+                                <span id="infoValue" class="font-medium text-primary">- 未计算 -</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h3 class="font-medium text-gray-800 mb-3">已标记省份</h3>
+                        <div id="markedProvinces" class="max-h-40 overflow-y-auto scrollbar-hide space-y-1">
+                            <p class="text-gray-500 text-sm italic text-center py-4">暂无标记省份</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>微信公众号 RStata &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        // 34个省市自治区数据（包含名称和行政区划代码）
+        const provinces = [
+            { name: "北京市", code: "110000" },
+            { name: "天津市", code: "120000" },
+            { name: "河北省", code: "130000" },
+            { name: "山西省", code: "140000" },
+            { name: "内蒙古自治区", code: "150000" },
+            { name: "辽宁省", code: "210000" },
+            { name: "吉林省", code: "220000" },
+            { name: "黑龙江省", code: "230000" },
+            { name: "上海市", code: "310000" },
+            { name: "江苏省", code: "320000" },
+            { name: "浙江省", code: "330000" },
+            { name: "安徽省", code: "340000" },
+            { name: "福建省", code: "350000" },
+            { name: "江西省", code: "360000" },
+            { name: "山东省", code: "370000" },
+            { name: "河南省", code: "410000" },
+            { name: "湖北省", code: "420000" },
+            { name: "湖南省", code: "430000" },
+            { name: "广东省", code: "440000" },
+            { name: "广西壮族自治区", code: "450000" },
+            { name: "海南省", code: "460000" },
+            { name: "重庆市", code: "500000" },
+            { name: "四川省", code: "510000" },
+            { name: "贵州省", code: "520000" },
+            { name: "云南省", code: "530000" },
+            { name: "西藏自治区", code: "540000" },
+            { name: "陕西省", code: "610000" },
+            { name: "甘肃省", code: "620000" },
+            { name: "青海省", code: "630000" },
+            { name: "宁夏回族自治区", code: "640000" },
+            { name: "新疆维吾尔自治区", code: "650000" },
+            { name: "香港特别行政区", code: "810000" },
+            { name: "澳门特别行政区", code: "820000" },
+            { name: "台湾省", code: "710000" }
+        ];
+
+        // 应用状态
+        const appState = {
+            currentProvinceIndex: 0,
+            markers: [],
+            mapImage: null,
+            canvas: null,
+            context: null,
+            minValue: 0,
+            maxValue: 100,
+            colorValuesCalculated: false,
+            // 拖动相关状态
+            draggingMarkerIndex: -1,
+            dragOffsetX: 0,
+            dragOffsetY: 0,
+            // 颜色提取选项
+            colorExtraction: {
+                sampleSize: 3, // 采样区域大小（n x n像素）
+                ignoreTransparent: true, // 忽略透明像素
+                threshold: 0.1 // 颜色差异阈值
+            }
+        };
+
+        // DOM元素
+        const elements = {
+            mapUpload: document.getElementById('mapUpload'),
+            fileName: document.getElementById('fileName'),
+            uploadInfo: document.getElementById('uploadInfo'),
+            replaceMap: document.getElementById('replaceMap'),
+            mapPlaceholder: document.getElementById('mapPlaceholder'),
+            mapContainer: document.getElementById('mapContainer'),
+            mapImage: document.getElementById('mapImage'),
+            currentProvince: document.getElementById('currentProvince'),
+            markingProgress: document.getElementById('markingProgress'),
+            prevProvince: document.getElementById('prevProvince'),
+            nextProvince: document.getElementById('nextProvince'),
+            clearMarkers: document.getElementById('clearMarkers'),
+            minValue: document.getElementById('minValue'),
+            maxValue: document.getElementById('maxValue'),
+            calculateValues: document.getElementById('calculateValues'),
+            exportCSV: document.getElementById('exportCSV'),
+            exportInfo: document.getElementById('exportInfo'),
+            markerInfo: document.getElementById('markerInfo'),
+            infoProvince: document.getElementById('infoProvince'),
+            infoCoordinates: document.getElementById('infoCoordinates'),
+            infoHex: document.getElementById('infoHex'),
+            infoRgb: document.getElementById('infoRgb'),
+            infoAlpha: document.getElementById('infoAlpha'),
+            infoLuminance: document.getElementById('infoLuminance'),
+            infoValue: document.getElementById('infoValue'),
+            infoColorSwatch: document.getElementById('infoColorSwatch'),
+            markedProvinces: document.getElementById('markedProvinces')
+        };
+
+        // 初始化事件监听
+        function initEventListeners() {
+            // 地图上传
+            elements.mapUpload.addEventListener('change', handleMapUpload);
+            elements.replaceMap.addEventListener('click', () => elements.mapUpload.click());
+            
+            // 地图点击事件 - 添加标记
+            elements.mapContainer.addEventListener('click', handleMapClick);
+            
+            // 省份导航
+            elements.prevProvince.addEventListener('click', goToPreviousProvince);
+            elements.nextProvince.addEventListener('click', goToNextProvince);
+            
+            // 清除标记
+            elements.clearMarkers.addEventListener('click', clearAllMarkers);
+            
+            // 计算数值
+            elements.calculateValues.addEventListener('click', calculateColorValues);
+            
+            // 导出CSV
+            elements.exportCSV.addEventListener('click', exportToCSV);
+            
+            // 监听数值范围变化
+            elements.minValue.addEventListener('input', (e) => {
+                appState.minValue = parseFloat(e.target.value) || 0;
+                if (appState.colorValuesCalculated) {
+                    calculateColorValues();
+                }
+            });
+            
+            elements.maxValue.addEventListener('input', (e) => {
+                appState.maxValue = parseFloat(e.target.value) || 100;
+                if (appState.colorValuesCalculated) {
+                    calculateColorValues();
+                }
+            });
+            
+            // 添加拖动相关事件监听
+            elements.mapContainer.addEventListener('mousedown', handleMarkerDragStart);
+            document.addEventListener('mousemove', handleMarkerDrag);
+            document.addEventListener('mouseup', handleMarkerDragEnd);
+            
+            // 触摸屏支持
+            elements.mapContainer.addEventListener('touchstart', handleMarkerDragStartTouch, { passive: false });
+            document.addEventListener('touchmove', handleMarkerDragTouch, { passive: false });
+            document.addEventListener('touchend', handleMarkerDragEndTouch);
+        }
+
+        // 处理地图上传
+        function handleMapUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 显示文件名
+            elements.fileName.textContent = file.name;
+            elements.uploadInfo.classList.remove('hidden');
+            
+            // 读取图片并显示
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                elements.mapImage.src = event.target.result;
+                elements.mapPlaceholder.classList.add('hidden');
+                elements.mapContainer.classList.remove('hidden');
+                
+                // 图片加载完成后初始化Canvas用于颜色提取
+                elements.mapImage.onload = initCanvas;
+                
+                // 重置状态
+                resetState();
+                
+                // 更新UI状态
+                updateUIState();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 初始化Canvas用于颜色提取
+        function initCanvas() {
+            // 创建一个与图片同尺寸的Canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = elements.mapImage.naturalWidth;
+            canvas.height = elements.mapImage.naturalHeight;
+            canvas.style.display = 'none'; // 隐藏Canvas，仅用于颜色提取
+            
+            const context = canvas.getContext('2d');
+            context.drawImage(elements.mapImage, 0, 0);
+            
+            appState.canvas = canvas;
+            appState.context = context;
+            
+            console.log(`Canvas初始化完成，尺寸: ${canvas.width}x${canvas.height}`);
+        }
+
+        // 处理地图点击 - 添加标记
+        function handleMapClick(e) {
+            // 如果正在拖动标记，则忽略点击
+            if (appState.draggingMarkerIndex !== -1) return;
+            
+            if (!appState.canvas) return;
+            
+            // 获取点击位置相对于图片的坐标
+            const rect = elements.mapContainer.getBoundingClientRect();
+            const scaleX = appState.canvas.width / rect.width;
+            const scaleY = appState.canvas.height / rect.height;
+            
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            // 使用区域采样获取颜色，避免单点误差
+            const colorData = getAverageColorInArea(x, y, appState.colorExtraction.sampleSize);
+            
+            if (!colorData) {
+                alert('无法提取有效颜色，请点击地图上的有效区域');
+                return;
+            }
+            
+            const rgb = { r: colorData.r, g: colorData.g, b: colorData.b };
+            const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+            const alpha = colorData.a;
+            
+            // 创建或更新标记
+            const currentIndex = appState.currentProvinceIndex;
+            if (currentIndex < appState.markers.length) {
+                // 更新现有标记
+                appState.markers[currentIndex] = {
+                    province: provinces[currentIndex],
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top,
+                    canvasX: x,
+                    canvasY: y,
+                    rgb,
+                    hex,
+                    alpha,
+                    value: null,
+                    luminance: null
+                };
+                // 移除旧标记元素
+                const oldMarker = document.querySelector(`.marker[data-index="${currentIndex + 1}"]`);
+                if (oldMarker) oldMarker.remove();
+            } else {
+                // 添加新标记
+                appState.markers.push({
+                    province: provinces[currentIndex],
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top,
+                    canvasX: x,
+                    canvasY: y,
+                    rgb,
+                    hex,
+                    alpha,
+                    value: null,
+                    luminance: null
+                });
+            }
+            
+            // 创建并添加标记元素
+            addMarkerElement(currentIndex, e.clientX - rect.left, e.clientY - rect.top);
+            
+            // 更新标记信息面板
+            updateMarkerInfo(currentIndex);
+            
+            // 更新已标记省份列表
+            updateMarkedProvincesList();
+            
+            // 自动跳到下一个省份
+            if (currentIndex < provinces.length - 1) {
+                goToNextProvince();
+            }
+            
+            // 更新进度和UI状态
+            updateProgress();
+            updateUIState();
+        }
+
+        // 获取区域内的平均颜色，避免单点误差
+        function getAverageColorInArea(x, y, sampleSize) {
+            if (!appState.context) return null;
+            
+            // 确保采样区域在画布范围内
+            const halfSize = Math.floor(sampleSize / 2);
+            let validPixels = 0;
+            let totalR = 0, totalG = 0, totalB = 0, totalA = 0;
+            
+            // 采样n x n的区域
+            for (let i = -halfSize; i <= halfSize; i++) {
+                for (let j = -halfSize; j <= halfSize; j++) {
+                    const pixelX = Math.floor(x + i);
+                    const pixelY = Math.floor(y + j);
+                    
+                    // 检查是否在画布范围内
+                    if (pixelX >= 0 && pixelX < appState.canvas.width && 
+                        pixelY >= 0 && pixelY < appState.canvas.height) {
+                        
+                        // 获取单个像素数据
+                        const pixel = appState.context.getImageData(pixelX, pixelY, 1, 1).data;
+                        const [r, g, b, a] = pixel;
+                        
+                        // 如果需要忽略透明像素
+                        if (appState.colorExtraction.ignoreTransparent && a < 255) {
+                            continue;
+                        }
+                        
+                        // 累加颜色值
+                        totalR += r;
+                        totalG += g;
+                        totalB += b;
+                        totalA += a;
+                        validPixels++;
+                    }
+                }
+            }
+            
+            // 如果没有有效像素，返回null
+            if (validPixels === 0) {
+                console.warn('未找到有效像素');
+                return null;
+            }
+            
+            // 计算平均颜色
+            return {
+                r: Math.round(totalR / validPixels),
+                g: Math.round(totalG / validPixels),
+                b: Math.round(totalB / validPixels),
+                a: Math.round(totalA / validPixels)
+            };
+        }
+
+        // 添加标记元素到地图
+        function addMarkerElement(index, x, y) {
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.dataset.index = index + 1;
+            marker.dataset.markerId = index; // 用于识别标记
+            marker.style.left = `${x}px`;
+            marker.style.top = `${y}px`;
+            elements.mapContainer.appendChild(marker);
+        }
+
+        // 拖动相关函数 - 鼠标
+        function handleMarkerDragStart(e) {
+            // 检查是否点击了标记
+            const markerElement = e.target.closest('.marker');
+            if (!markerElement) return;
+            
+            // 获取标记ID
+            const markerId = parseInt(markerElement.dataset.markerId);
+            if (isNaN(markerId) || markerId < 0 || markerId >= appState.markers.length) {
+                return;
+            }
+            
+            // 阻止事件冒泡，避免触发地图点击添加新标记
+            e.stopPropagation();
+            
+            // 计算偏移量
+            const rect = markerElement.getBoundingClientRect();
+            appState.dragOffsetX = e.clientX - rect.left;
+            appState.dragOffsetY = e.clientY - rect.top;
+            
+            // 设置拖动状态
+            appState.draggingMarkerIndex = markerId;
+            markerElement.classList.add('dragging');
+            
+            // 更新当前选中的省份
+            appState.currentProvinceIndex = markerId;
+            updateCurrentProvinceDisplay();
+        }
+
+        function handleMarkerDrag(e) {
+            // 如果不在拖动状态，退出
+            if (appState.draggingMarkerIndex === -1) return;
+            
+            // 阻止默认行为，避免拖动时选中文本
+            e.preventDefault();
+            
+            const markerId = appState.draggingMarkerIndex;
+            const markerElement = document.querySelector(`.marker[data-marker-id="${markerId}"]`);
+            if (!markerElement) return;
+            
+            // 获取地图容器位置
+            const rect = elements.mapContainer.getBoundingClientRect();
+            
+            // 计算新位置（相对于地图容器）
+            let newX = e.clientX - rect.left - appState.dragOffsetX;
+            let newY = e.clientY - rect.top - appState.dragOffsetY;
+            
+            // 限制在地图容器内
+            newX = Math.max(0, Math.min(newX, rect.width));
+            newY = Math.max(0, Math.min(newY, rect.height));
+            
+            // 更新标记元素位置
+            markerElement.style.left = `${newX}px`;
+            markerElement.style.top = `${newY}px`;
+            
+            // 更新标记数据
+            if (markerId < appState.markers.length) {
+                // 计算Canvas上的坐标
+                const scaleX = appState.canvas.width / rect.width;
+                const scaleY = appState.canvas.height / rect.height;
+                const canvasX = newX * scaleX;
+                const canvasY = newY * scaleY;
+                
+                // 更新标记位置
+                appState.markers[markerId].x = newX;
+                appState.markers[markerId].y = newY;
+                appState.markers[markerId].canvasX = canvasX;
+                appState.markers[markerId].canvasY = canvasY;
+                
+                // 如果已经计算过数值，重新提取颜色并重新计算
+                if (appState.colorValuesCalculated) {
+                    const colorData = getAverageColorInArea(canvasX, canvasY, appState.colorExtraction.sampleSize);
+                    if (colorData) {
+                        appState.markers[markerId].rgb = { 
+                            r: colorData.r, 
+                            g: colorData.g, 
+                            b: colorData.b 
+                        };
+                        appState.markers[markerId].hex = rgbToHex(
+                            colorData.r, 
+                            colorData.g, 
+                            colorData.b
+                        );
+                        appState.markers[markerId].alpha = colorData.a;
+                        
+                        // 重新计算亮度和值
+                        recalculateMarkerValue(markerId);
+                    }
+                }
+                
+                // 更新信息面板
+                updateMarkerInfo(markerId);
+                updateMarkedProvincesList();
+            }
+        }
+
+        function handleMarkerDragEnd(e) {
+            // 如果不在拖动状态，退出
+            if (appState.draggingMarkerIndex === -1) return;
+            
+            const markerId = appState.draggingMarkerIndex;
+            const markerElement = document.querySelector(`.marker[data-marker-id="${markerId}"]`);
+            if (markerElement) {
+                markerElement.classList.remove('dragging');
+            }
+            
+            // 重置拖动状态
+            appState.draggingMarkerIndex = -1;
+        }
+
+        // 拖动相关函数 - 触摸屏
+        function handleMarkerDragStartTouch(e) {
+            // 检查是否点击了标记
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            // 模拟鼠标事件的target获取
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const markerElement = targetElement.closest('.marker');
+            if (!markerElement) return;
+            
+            // 获取标记ID
+            const markerId = parseInt(markerElement.dataset.markerId);
+            if (isNaN(markerId) || markerId < 0 || markerId >= appState.markers.length) {
+                return;
+            }
+            
+            // 阻止事件冒泡和默认行为
+            e.stopPropagation();
+            e.preventDefault();
+            
+            // 计算偏移量
+            const rect = markerElement.getBoundingClientRect();
+            appState.dragOffsetX = touch.clientX - rect.left;
+            appState.dragOffsetY = touch.clientY - rect.top;
+            
+            // 设置拖动状态
+            appState.draggingMarkerIndex = markerId;
+            markerElement.classList.add('dragging');
+            
+            // 更新当前选中的省份
+            appState.currentProvinceIndex = markerId;
+            updateCurrentProvinceDisplay();
+        }
+
+        function handleMarkerDragTouch(e) {
+            // 如果不在拖动状态，退出
+            if (appState.draggingMarkerIndex === -1) return;
+            
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            // 阻止默认行为
+            e.preventDefault();
+            
+            const markerId = appState.draggingMarkerIndex;
+            const markerElement = document.querySelector(`.marker[data-marker-id="${markerId}"]`);
+            if (!markerElement) return;
+            
+            // 获取地图容器位置
+            const rect = elements.mapContainer.getBoundingClientRect();
+            
+            // 计算新位置（相对于地图容器）
+            let newX = touch.clientX - rect.left - appState.dragOffsetX;
+            let newY = touch.clientY - rect.top - appState.dragOffsetY;
+            
+            // 限制在地图容器内
+            newX = Math.max(0, Math.min(newX, rect.width));
+            newY = Math.max(0, Math.min(newY, rect.height));
+            
+            // 更新标记元素位置
+            markerElement.style.left = `${newX}px`;
+            markerElement.style.top = `${newY}px`;
+            
+            // 更新标记数据
+            if (markerId < appState.markers.length) {
+                // 计算Canvas上的坐标
+                const scaleX = appState.canvas.width / rect.width;
+                const scaleY = appState.canvas.height / rect.height;
+                const canvasX = newX * scaleX;
+                const canvasY = newY * scaleY;
+                
+                // 更新标记位置
+                appState.markers[markerId].x = newX;
+                appState.markers[markerId].y = newY;
+                appState.markers[markerId].canvasX = canvasX;
+                appState.markers[markerId].canvasY = canvasY;
+                
+                // 如果已经计算过数值，重新提取颜色并重新计算
+                if (appState.colorValuesCalculated) {
+                    const colorData = getAverageColorInArea(canvasX, canvasY, appState.colorExtraction.sampleSize);
+                    if (colorData) {
+                        appState.markers[markerId].rgb = { 
+                            r: colorData.r, 
+                            g: colorData.g, 
+                            b: colorData.b 
+                        };
+                        appState.markers[markerId].hex = rgbToHex(
+                            colorData.r, 
+                            colorData.g, 
+                            colorData.b
+                        );
+                        appState.markers[markerId].alpha = colorData.a;
+                        
+                        // 重新计算亮度和值
+                        recalculateMarkerValue(markerId);
+                    }
+                }
+                
+                // 更新信息面板
+                updateMarkerInfo(markerId);
+                updateMarkedProvincesList();
+            }
+        }
+
+        function handleMarkerDragEndTouch(e) {
+            // 如果不在拖动状态，退出
+            if (appState.draggingMarkerIndex === -1) return;
+            
+            const markerId = appState.draggingMarkerIndex;
+            const markerElement = document.querySelector(`.marker[data-marker-id="${markerId}"]`);
+            if (markerElement) {
+                markerElement.classList.remove('dragging');
+            }
+            
+            // 重置拖动状态
+            appState.draggingMarkerIndex = -1;
+        }
+
+        // 重新计算单个标记的值
+        function recalculateMarkerValue(markerId) {
+            if (markerId >= appState.markers.length) return;
+            
+            const marker = appState.markers[markerId];
+            const minVal = parseFloat(elements.minValue.value) || 0;
+            const maxVal = parseFloat(elements.maxValue.value) || 100;
+            
+            // 重新计算亮度值
+            marker.luminance = Math.round(0.299 * marker.rgb.r + 0.587 * marker.rgb.g + 0.114 * marker.rgb.b);
+            
+            // 找到所有标记的最小和最大亮度值
+            const luminances = appState.markers.map(m => m.luminance);
+            const minLum = Math.min(...luminances);
+            const maxLum = Math.max(...luminances);
+            
+            // 重新计算值
+            if (minLum === maxLum) {
+                marker.value = (minVal + maxVal) / 2;
+            } else {
+                marker.value = minVal + (maxVal - minVal) * (1 - (marker.luminance - minLum) / (maxLum - minLum));
+            }
+        }
+
+        // 更新标记信息面板
+        function updateMarkerInfo(index) {
+            if (index >= appState.markers.length) {
+                elements.markerInfo.classList.add('hidden');
+                return;
+            }
+            
+            const marker = appState.markers[index];
+            elements.infoProvince.textContent = marker.province.name;
+            elements.infoCoordinates.textContent = `(${Math.round(marker.x)}, ${Math.round(marker.y)})`;
+            elements.infoHex.textContent = marker.hex;
+            elements.infoRgb.textContent = `rgb(${marker.rgb.r}, ${marker.rgb.g}, ${marker.rgb.b})`;
+            elements.infoAlpha.textContent = marker.alpha === 255 ? '不透明' : `透明值: ${marker.alpha}`;
+            elements.infoColorSwatch.style.backgroundColor = marker.hex;
+            
+            // 显示亮度值
+            if (marker.luminance !== null) {
+                elements.infoLuminance.textContent = marker.luminance;
+            } else {
+                elements.infoLuminance.textContent = '- 未计算 -';
+            }
+            
+            if (marker.value !== null) {
+                elements.infoValue.textContent = marker.value.toFixed(2);
+            } else {
+                elements.infoValue.innerHTML = '- 未计算 -';
+            }
+            
+            elements.markerInfo.classList.remove('hidden');
+        }
+
+        // 更新已标记省份列表
+        function updateMarkedProvincesList() {
+            if (appState.markers.length === 0) {
+                elements.markedProvinces.innerHTML = '<p class="text-gray-500 text-sm italic text-center py-4">暂无标记省份</p>';
+                return;
+            }
+            
+            elements.markedProvinces.innerHTML = '';
+            
+            appState.markers.forEach((marker, index) => {
+                const item = document.createElement('div');
+                item.className = `flex justify-between items-center p-2 rounded ${appState.currentProvinceIndex === index ? 'bg-primary/10' : 'bg-gray-50'}`;
+                
+                const left = document.createElement('div');
+                left.className = 'flex items-center';
+                
+                const indexSpan = document.createElement('span');
+                indexSpan.className = 'w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full text-xs mr-2';
+                indexSpan.textContent = index + 1;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'text-sm';
+                nameSpan.textContent = marker.province.name;
+                
+                left.appendChild(indexSpan);
+                left.appendChild(nameSpan);
+                
+                const colorSpan = document.createElement('span');
+                colorSpan.className = 'w-4 h-4 rounded-full border border-gray-300';
+                colorSpan.style.backgroundColor = marker.hex;
+                
+                item.appendChild(left);
+                item.appendChild(colorSpan);
+                
+                // 点击列表项跳转到对应省份
+                item.addEventListener('click', () => {
+                    appState.currentProvinceIndex = index;
+                    updateCurrentProvinceDisplay();
+                    updateMarkerInfo(index);
+                });
+                
+                elements.markedProvinces.appendChild(item);
+            });
+        }
+
+        // 导航到上一个省份
+        function goToPreviousProvince() {
+            if (appState.currentProvinceIndex > 0) {
+                appState.currentProvinceIndex--;
+                updateCurrentProvinceDisplay();
+                updateMarkerInfo(appState.currentProvinceIndex);
+                updateUIState();
+            }
+        }
+
+        // 导航到下一个省份
+        function goToNextProvince() {
+            if (appState.currentProvinceIndex < provinces.length - 1) {
+                appState.currentProvinceIndex++;
+                updateCurrentProvinceDisplay();
+                updateMarkerInfo(appState.currentProvinceIndex);
+                updateUIState();
+            }
+        }
+
+        // 更新当前省份显示
+        function updateCurrentProvinceDisplay() {
+            elements.currentProvince.textContent = provinces[appState.currentProvinceIndex].name;
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const progress = (appState.markers.length / provinces.length) * 100;
+            elements.markingProgress.style.width = `${progress}%`;
+        }
+
+        // 清除所有标记
+        function clearAllMarkers() {
+            if (confirm('确定要清除所有标记吗？此操作不可恢复。')) {
+                resetState();
+                updateProgress();
+                updateUIState();
+                updateMarkedProvincesList();
+                elements.markerInfo.classList.add('hidden');
+            }
+        }
+
+        // 重置状态
+        function resetState() {
+            // 清除所有标记元素
+            document.querySelectorAll('.marker').forEach(marker => marker.remove());
+            
+            // 重置状态
+            appState.currentProvinceIndex = 0;
+            appState.markers = [];
+            appState.colorValuesCalculated = false;
+            appState.draggingMarkerIndex = -1;
+            
+            // 更新显示
+            updateCurrentProvinceDisplay();
+        }
+
+        // 计算颜色对应的数值
+        function calculateColorValues() {
+            if (appState.markers.length === 0) {
+                alert('请先标记省份');
+                return;
+            }
+            
+            // 获取用户设置的数值范围
+            const minVal = parseFloat(elements.minValue.value) || 0;
+            const maxVal = parseFloat(elements.maxValue.value) || 100;
+            
+            // 计算每个颜色的亮度值（灰度值）
+            appState.markers.forEach(marker => {
+                // 计算灰度值 (0-255)
+                marker.luminance = Math.round(0.299 * marker.rgb.r + 0.587 * marker.rgb.g + 0.114 * marker.rgb.b);
+                console.log(`${marker.province.name} 亮度值: ${marker.luminance}`);
+            });
+            
+            // 找到最小和最大亮度值
+            const luminances = appState.markers.map(m => m.luminance);
+            const minLum = Math.min(...luminances);
+            const maxLum = Math.max(...luminances);
+            
+            console.log(`亮度范围: ${minLum} - ${maxLum}`);
+            
+            // 计算每个标记的实际值
+            appState.markers.forEach(marker => {
+                if (minLum === maxLum) {
+                    // 如果所有颜色亮度相同，使用平均值
+                    marker.value = (minVal + maxVal) / 2;
+                } else {
+                    // 根据亮度计算值（注意：这里假设亮度越高，值越小，即浅色对应低值，深色对应高值）
+                    marker.value = minVal + (maxVal - minVal) * (1 - (marker.luminance - minLum) / (maxLum - minLum));
+                }
+            });
+            
+            appState.colorValuesCalculated = true;
+            
+            // 更新UI
+            updateMarkerInfo(appState.currentProvinceIndex);
+            updateMarkedProvincesList();
+            updateUIState();
+            
+            alert('数值计算完成！');
+        }
+
+        // 导出为CSV文件，确保字符串用双引号括起
+        function exportToCSV() {
+            if (appState.markers.length === 0) {
+                alert('请先标记省份');
+                return;
+            }
+            
+            if (!appState.colorValuesCalculated) {
+                alert('请先计算数值');
+                return;
+            }
+            
+            // 辅助函数：将值用双引号括起（如果是字符串）
+            const quoteIfString = (value) => {
+                if (typeof value === 'string') {
+                    // 替换字符串中的双引号
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            };
+            
+            // CSV头部
+            let csvContent = [
+                quoteIfString("省份名称"),
+                quoteIfString("行政区划代码"),
+                quoteIfString("颜色值（16进制）"),
+                quoteIfString("颜色值（RGB值）"),
+                quoteIfString("实际值")
+            ].join(',') + "\n";
+            
+            // 添加数据行
+            appState.markers.forEach(marker => {
+                const rgbStr = `rgb(${marker.rgb.r},${marker.rgb.g},${marker.rgb.b})`;
+                const row = [
+                    quoteIfString(marker.province.name),
+                    quoteIfString(marker.province.code),
+                    quoteIfString(marker.hex),
+                    quoteIfString(rgbStr),
+                    marker.value.toFixed(4)
+                ];
+                csvContent += row.join(',') + "\n";
+            });
+            
+            // 创建并下载文件
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', '省份颜色数值数据.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 更新UI状态（按钮启用/禁用等）
+        function updateUIState() {
+            const hasMap = !!appState.canvas;
+            const hasMarkers = appState.markers.length > 0;
+            
+            // 更新按钮状态
+            elements.prevProvince.disabled = !hasMap || appState.currentProvinceIndex === 0;
+            elements.nextProvince.disabled = !hasMap || appState.currentProvinceIndex >= provinces.length - 1;
+            elements.clearMarkers.disabled = !hasMap || appState.markers.length === 0;
+            elements.calculateValues.disabled = !hasMap || appState.markers.length === 0;
+            elements.exportCSV.disabled = !hasMap || !appState.colorValuesCalculated;
+            
+            // 显示导出信息
+            if (hasMap && appState.colorValuesCalculated) {
+                elements.exportInfo.classList.remove('hidden');
+            } else {
+                elements.exportInfo.classList.add('hidden');
+            }
+        }
+
+        // 辅助函数：RGB转HEX
+        function rgbToHex(r, g, b) {
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+        }
+
+        // 初始化应用
+        function initApp() {
+            initEventListeners();
+            updateCurrentProvinceDisplay();
+        }
+
+        // 启动应用
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

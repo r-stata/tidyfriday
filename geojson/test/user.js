@@ -1,0 +1,1 @@
+var User=require("../src/core/user"),tape=require("tape");tape("user",function(t){var e=User({storage:{get:function(){return null}}});t.ok(e,"creates a user object"),e.details(function(e,r){t.equal(e.message,"not logged in"),t.end()})});

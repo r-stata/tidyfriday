@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF转图片 - 正确设置DPI</title>
+    <!-- 引入必要资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f39b7f',
+                        secondary: '#00a087',
+                        danger: '#EF4444',
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .shadow-soft {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-file-pdf-o text-red-500 text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-pink-600 bg-clip-text text-transparent">
+                    PDF 文件转指定 DPI 的 PNG 图片
+                </h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- 介绍卡片 -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+            <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+            <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+        </div>
+        <!-- 错误提示 -->
+        <div id="error-alert" class="bg-red-50 border-l-4 border-danger p-4 rounded-r mb-6 hidden">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fa fa-exclamation-circle text-danger"></i>
+                </div>
+                <div class="ml-3">
+                    <p id="error-message" class="text-sm text-red-700"></p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button id="close-error" class="inline-flex text-red-500 hover:text-red-700">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧：上传和设置区域 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-soft p-6 h-full">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-cogs text-primary mr-2"></i>转换设置
+                    </h3>
+                    
+                    <!-- 文件上传区域 -->
+                    <div class="mb-6">
+                        <label for="pdf-upload" class="block text-sm font-medium text-gray-700 mb-2">选择PDF文件</label>
+                        <div id="drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-all cursor-pointer bg-gray-50">
+                            <input id="pdf-upload" type="file" accept=".pdf" class="hidden" />
+                            <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 mb-1">拖放PDF文件到此处，或</p>
+                            <p class="text-primary font-medium">点击选择文件</p>
+                        </div>
+                        <div id="file-info" class="mt-3 hidden">
+                            <div class="flex items-center p-2 bg-gray-50 rounded">
+                                <i class="fa fa-file-pdf-o text-red-500 mr-2"></i>
+                                <span id="file-name" class="text-sm truncate flex-grow"></span>
+                                <button id="remove-file" class="text-gray-400 hover:text-red-500 transition-all">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DPI设置 -->
+                    <div class="mb-6">
+                        <label for="dpi-setting" class="block text-sm font-medium text-gray-700 mb-2">设置DPI (100-600)</label>
+                        <div class="flex items-center">
+                            <input 
+                                type="range" 
+                                id="dpi-setting" 
+                                min="100" 
+                                max="600" 
+                                value="400" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                            >
+                            <span id="dpi-value" class="ml-3 min-w-[60px] text-center font-medium text-primary">400</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 转换按钮 -->
+                    <button 
+                        id="convert-btn" 
+                        class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <i class="fa fa-magic mr-2"></i>开始转换
+                    </button>
+                    
+                    <!-- 转换进度 -->
+                    <div id="progress-container" class="mt-4 hidden">
+                        <p class="text-sm text-gray-600 mb-1" id="progress-text">准备转换...</p>
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-primary rounded-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <div class="mb-6">
+                        <p class="text-xl font-medium text-primary text-center mb-1" id="progress-text">欢迎关注微信公众号 RStata!</p>
+                        
+                        <img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%89%AB%E7%A0%81_%E6%90%9C%E7%B4%A2%E8%81%94%E5%90%88%E4%BC%A0%E6%92%AD%E6%A0%B7%E5%BC%8F-%E6%A0%87%E5%87%86%E8%89%B2%E7%89%88.png">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：预览和下载区域 -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-soft p-6 h-full flex flex-col">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-eye text-blue-600 mr-2"></i>预览与下载
+                    </h3>
+                    
+                    <!-- 预览区域 -->
+                    <div id="preview-container" class="flex-grow overflow-auto mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="text-center text-gray-500 py-12">
+                            <i class="fa fa-file-image-o text-5xl mb-4 opacity-30"></i>
+                            <p>转换后的图片将在这里显示</p>
+                            <p class="text-sm mt-1">上传PDF文件并转换后查看预览</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 下载选项 -->
+                    <div id="download-options" class="hidden">
+                        <div class="flex flex-wrap gap-3 justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                共 <span id="page-count">0</span> 页 | 尺寸: <span id="image-dimensions">-</span> | DPI: <span id="image-dpi">-</span>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="download-all" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg transition-all flex items-center">
+                                    <i class="fa fa-download mr-2"></i>下载全部
+                                </button>
+                                <button id="download-current" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all flex items-center">
+                                    <i class="fa fa-file-image-o mr-2"></i>下载当前页
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            © 2025 PDF转图片工具 | 微信公众号 RStata 
+        </div>
+    </footer>
+
+    <script>
+        // 全局变量
+        let pdfDoc = null;
+        let convertedImages = [];
+        let currentPage = 0;
+        
+        // DOM元素
+        const dropArea = document.getElementById('drop-area');
+        const pdfUpload = document.getElementById('pdf-upload');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const removeFile = document.getElementById('remove-file');
+        const dpiSetting = document.getElementById('dpi-setting');
+        const dpiValue = document.getElementById('dpi-value');
+        const convertBtn = document.getElementById('convert-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const previewContainer = document.getElementById('preview-container');
+        const downloadOptions = document.getElementById('download-options');
+        const pageCount = document.getElementById('page-count');
+        const imageDimensions = document.getElementById('image-dimensions');
+        const imageDpi = document.getElementById('image-dpi');
+        const downloadAll = document.getElementById('download-all');
+        const downloadCurrent = document.getElementById('download-current');
+        const errorAlert = document.getElementById('error-alert');
+        const errorMessage = document.getElementById('error-message');
+        const closeError = document.getElementById('close-error');
+        
+        // 初始化PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        
+        // 事件监听
+        closeError.addEventListener('click', () => errorAlert.classList.add('hidden'));
+        dpiSetting.addEventListener('input', () => dpiValue.textContent = dpiSetting.value);
+        pdfUpload.addEventListener('change', handleFileSelect);
+        removeFile.addEventListener('click', clearFileSelection);
+        convertBtn.addEventListener('click', convertPdfToImages);
+        downloadAll.addEventListener('click', downloadAllImages);
+        downloadCurrent.addEventListener('click', downloadCurrentImage);
+        
+        // 拖放功能
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('border-primary', 'bg-blue-50');
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('border-primary', 'bg-blue-50');
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('border-primary', 'bg-blue-50');
+            
+            if (e.dataTransfer.files.length) {
+                pdfUpload.files = e.dataTransfer.files;
+                handleFileSelect(e);
+            }
+        });
+        
+        dropArea.addEventListener('click', () => !pdfUpload.files.length && pdfUpload.click());
+        
+        // 处理文件选择
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.type !== 'application/pdf') {
+                showError('请上传PDF格式的文件');
+                pdfUpload.value = '';
+                return;
+            }
+            
+            fileName.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+            
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                try {
+                    const typedArray = new Uint8Array(this.result);
+                    pdfjsLib.getDocument(typedArray).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        pageCount.textContent = pdf.numPages;
+                    }).catch(error => {
+                        console.error('加载PDF失败:', error);
+                        showError('加载PDF文件失败，请尝试其他文件');
+                    });
+                } catch (error) {
+                    console.error('处理文件失败:', error);
+                    showError('处理文件时出错，请重试');
+                }
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+        
+        // 清除文件选择
+        function clearFileSelection() {
+            pdfUpload.value = '';
+            fileInfo.classList.add('hidden');
+            pdfDoc = null;
+            clearPreview();
+        }
+        
+        // 显示错误
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+            setTimeout(() => errorAlert.classList.add('hidden'), 5000);
+        }
+        
+        // 清除预览
+        function clearPreview() {
+            previewContainer.innerHTML = `
+                <div class="text-center text-gray-500 py-12">
+                    <i class="fa fa-file-image-o text-5xl mb-4 opacity-30"></i>
+                    <p>转换后的图片将在这里显示</p>
+                    <p class="text-sm mt-1">上传PDF文件并转换后查看预览</p>
+                </div>
+            `;
+            downloadOptions.classList.add('hidden');
+            convertedImages = [];
+            currentPage = 0;
+        }
+        
+        // 转换PDF到图片
+        function convertPdfToImages() {
+            if (!pdfDoc) return;
+            
+            convertedImages = [];
+            currentPage = 0;
+            previewContainer.innerHTML = '';
+            downloadOptions.classList.add('hidden');
+            
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '准备转换...';
+            convertBtn.disabled = true;
+            
+            const dpi = parseInt(dpiSetting.value);
+            const numPages = pdfDoc.numPages;
+            
+            // 处理每一页
+            (function processPage(pageNum) {
+                if (pageNum > numPages) {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = '转换完成!';
+                    displayPreview(0);
+                    downloadOptions.classList.remove('hidden');
+                    convertBtn.disabled = false;
+                    return;
+                }
+                
+                // 更新进度
+                const progress = Math.round(((pageNum - 1) / numPages) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `正在转换第 ${pageNum} 页 / 共 ${numPages} 页`;
+                
+                pdfDoc.getPage(pageNum).then(page => {
+                    // 计算缩放比例以达到目标DPI
+                    const scale = dpi / 72;
+                    const viewport = page.getViewport({ scale });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    page.render(renderContext).promise.then(() => {
+                        // 将Canvas数据转换为包含正确DPI元数据的PNG
+                        canvas.toBlob(blob => {
+                            blob.arrayBuffer().then(buffer => {
+                                // 处理PNG并添加DPI元数据
+                                const pngWithDpi = addDpiToPng(buffer, dpi);
+                                const blobWithDpi = new Blob([pngWithDpi], { type: 'image/png' });
+                                const dataUrl = URL.createObjectURL(blobWithDpi);
+                                
+                                convertedImages.push({
+                                    dataUrl: dataUrl,
+                                    blob: blobWithDpi,
+                                    width: canvas.width,
+                                    height: canvas.height,
+                                    dpi: dpi,
+                                    pageNum: pageNum
+                                });
+                                
+                                processPage(pageNum + 1);
+                            });
+                        }, 'image/png');
+                    }).catch(error => {
+                        console.error('渲染页面失败:', error);
+                        showError(`转换第 ${pageNum} 页失败`);
+                        convertBtn.disabled = false;
+                    });
+                }).catch(error => {
+                    console.error('获取页面失败:', error);
+                    showError(`获取第 ${pageNum} 页失败`);
+                    convertBtn.disabled = false;
+                });
+            })(1);
+        }
+        
+        // 向PNG添加DPI元数据（关键功能）
+        function addDpiToPng(pngBuffer, dpi) {
+            // PNG格式基础知识：
+            // PNG文件由签名和一系列数据块组成
+            // 我们需要添加pHYs数据块来存储分辨率信息
+            
+            const uint8Array = new Uint8Array(pngBuffer);
+            
+            // PNG文件签名（8字节）
+            const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+            
+            // 检查是否为有效的PNG文件
+            for (let i = 0; i < 8; i++) {
+                if (uint8Array[i] !== pngSignature[i]) {
+                    console.error('不是有效的PNG文件');
+                    return pngBuffer;
+                }
+            }
+            
+            // 计算像素/米 (DPI * 0.0254米/英寸 = 米/英寸，1 / 米/英寸 = 英寸/米，像素/英寸 * 英寸/米 = 像素/米)
+            // 简化公式：像素/米 = DPI * 39.3701 (因为1英寸 = 0.0254米，1 / 0.0254 ≈ 39.3701)
+            const pixelsPerMeter = Math.round(dpi * 39.3701);
+            
+            // 创建pHYs数据块 (物理像素尺寸信息)
+            // 数据块结构: 宽度(4字节) + 高度(4字节) + 单位(1字节, 1=米)
+            const physData = new Uint8Array(9);
+            
+            // 宽度方向像素/米 (4字节，大端序)
+            physData[0] = (pixelsPerMeter >> 24) & 0xFF;
+            physData[1] = (pixelsPerMeter >> 16) & 0xFF;
+            physData[2] = (pixelsPerMeter >> 8) & 0xFF;
+            physData[3] = pixelsPerMeter & 0xFF;
+            
+            // 高度方向像素/米 (4字节，大端序)
+            physData[4] = (pixelsPerMeter >> 24) & 0xFF;
+            physData[5] = (pixelsPerMeter >> 16) & 0xFF;
+            physData[6] = (pixelsPerMeter >> 8) & 0xFF;
+            physData[7] = pixelsPerMeter & 0xFF;
+            
+            // 单位：1表示米
+            physData[8] = 1;
+            
+            // 创建数据块：长度 + 类型 + 数据 + CRC
+            const type = new TextEncoder().encode('pHYs'); // 物理尺寸数据块
+            const crc = calculateCrc([...type, ...physData]);
+            
+            // 数据块长度 (4字节，大端序)
+            const length = new Uint8Array(4);
+            length[0] = (physData.length >> 24) & 0xFF;
+            length[1] = (physData.length >> 16) & 0xFF;
+            length[2] = (physData.length >> 8) & 0xFF;
+            length[3] = physData.length & 0xFF;
+            
+            // CRC (4字节，大端序)
+            const crcBytes = new Uint8Array(4);
+            crcBytes[0] = (crc >> 24) & 0xFF;
+            crcBytes[1] = (crc >> 16) & 0xFF;
+            crcBytes[2] = (crc >> 8) & 0xFF;
+            crcBytes[3] = crc & 0xFF;
+            
+            // 组合pHYs数据块
+            const physChunk = new Uint8Array([
+                ...length,
+                ...type,
+                ...physData,
+                ...crcBytes
+            ]);
+            
+            // 在IHDR数据块之后插入pHYs数据块
+            // 寻找IHDR数据块的结束位置 (签名8字节 + IHDR块13字节数据 + 4字节长度 + 4字节类型 + 4字节CRC = 33字节)
+            const ihdrEnd = 8 + 4 + 4 + 13 + 4; // PNG签名(8) + 长度(4) + 类型(4) + 数据(13) + CRC(4)
+            
+            // 构建新的PNG数据：签名 + IHDR块 + pHYs块 + 剩余数据
+            const newPng = new Uint8Array([
+                ...uint8Array.subarray(0, ihdrEnd),
+                ...physChunk,
+                ...uint8Array.subarray(ihdrEnd)
+            ]);
+            
+            return newPng.buffer;
+        }
+        
+        // 计算CRC校验值（用于PNG数据块）
+        function calculateCrc(bytes) {
+            let crc = 0xFFFFFFFF;
+            const crcTable = [
+                0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
+                0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
+                0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
+                0x136C9856, 0x646BA8C0, 0xFD62F97A, 0x8A65C9EC, 0x14015C4F, 0x63066CD9, 0xFA0F3D63, 0x8D080DF5,
+                0x3B6E20C8, 0x4C69105E, 0xD56041E4, 0xA2677172, 0x3C03E4D1, 0x4B04D447, 0xD20D85FD, 0xA50AB56B,
+                0x35B5A8FA, 0x42B2986C, 0xDBBBC9D6, 0xACBCF940, 0x32D86CE3, 0x45DF5C75, 0xDCD60DCF, 0xABD13D59,
+                0x26D930AC, 0x51DE003A, 0xC8D75180, 0xBFD06116, 0x21B4F4B5, 0x56B3C423, 0xCFBA9599, 0xB8BDA50F,
+                0x2802B89E, 0x5F058808, 0xC60CD9B2, 0xB10BE924, 0x2F6F7C87, 0x58684C11, 0xC1611DAB, 0xB6662D3D,
+                0x76DC4190, 0x01DB7106, 0x98D220BC, 0xEFD5102A, 0x71B18589, 0x06B6B51F, 0x9FBFE4A5, 0xE8B8D433,
+                0x7807C9A2, 0x0F00F934, 0x9609A88E, 0xE10E9818, 0x7F6A0DBB, 0x086D3D2D, 0x91646C97, 0xE6635C01,
+                0x6B6B51F4, 0x1C6C6162, 0x856530D8, 0xF262004E, 0x6C0695ED, 0x1B01A57B, 0x8208F4C1, 0xF50FC457,
+                0x65B0D9C6, 0x12B7E950, 0x8BBEB8EA, 0xFCB9887C, 0x62DD1DDF, 0x15DA2D49, 0x8CD37CF3, 0xFBD44C65,
+                0x4DB26158, 0x3AB551CE, 0xA3BC0074, 0xD4BB30E2, 0x4ADFA541, 0x3DD895D7, 0xA4D1C46D, 0xD3D6F4FB,
+                0x4369E96A, 0x346ED9FC, 0xAD678846, 0xDA60B8D0, 0x44042D73, 0x33031DE5, 0xAA0A4C5F, 0xDD0D7CC9,
+                0x5005713C, 0x270241AA, 0xBE0B1010, 0xC90C2086, 0x5768B525, 0x206F85B3, 0xB966D409, 0xCE61E49F,
+                0x5EDEF90E, 0x29D9C998, 0xB0D09822, 0xC7D7A8B4, 0x59B33D17, 0x2EB40D81, 0xB7BD5C3B, 0xC0BA6CAD,
+                0xEDB88320, 0x9ABFB3B6, 0x03B6E20C, 0x74B1D29A, 0xEAD54739, 0x9DD277AF, 0x04DB2615, 0x73DC1683,
+                0xE3630B12, 0x94643B84, 0x0D6D6A3E, 0x7A6A5AA8, 0xE40ECF0B, 0x9309FF9D, 0x0A00AE27, 0x7D079EB1,
+                0xF00F9344, 0x8708A3D2, 0x1E01F268, 0x6906C2FE, 0xF762575D, 0x806567CB, 0x196C3671, 0x6E6B06E7,
+                0xFED41B76, 0x89D32BE0, 0x10DA7A5A, 0x67DD4ACC, 0xF9B9DF6F, 0x8EBEEFF9, 0x17B7BE43, 0x60B08ED5,
+                0xD6D6A3E8, 0xA1D1937E, 0x38D8C2C4, 0x4FDFF252, 0xD1BB67F1, 0xA6BC5767, 0x3FB506DD, 0x48B2364B,
+                0xD80D2BDA, 0xAF0A1B4C, 0x36034AF6, 0x41047A60, 0xDF60EFC3, 0xA867DF55, 0x316E8EEF, 0x4669BE79,
+                0xCB61B38C, 0xBC66831A, 0x256FD2A0, 0x5268E236, 0xCC0C7795, 0xBB0B4703, 0x220216B9, 0x5505262F,
+                0xC5BA3BBE, 0xB2BD0B28, 0x2BB45A92, 0x5CB36A04, 0xC2D7FFA7, 0xB5D0CF31, 0x2CD99E8B, 0x5BDEAE1D,
+                0x9B64C2B0, 0xEC63F226, 0x756AA39C, 0x026D930A, 0x9C0906A9, 0xEB0E363F, 0x72076785, 0x05005713,
+                0x95BF4A82, 0xE2B87A14, 0x7BB12BAE, 0x0CB61B38, 0x92D28E9B, 0xE5D5BE0D, 0x7CDCEFB7, 0x0BDBDF21,
+                0x86D3D2D4, 0xF1D4E242, 0x68DDB3F8, 0x1FDA836E, 0x81BE16CD, 0xF6B9265B, 0x6FB077E1, 0x18B74777,
+                0x88085AE6, 0xFF0F6A70, 0x66063BCA, 0x11010B5C, 0x8F659EFF, 0xF862AE69, 0x616BFFD3, 0x166CCF45,
+                0xA00AE278, 0xD70DD2EE, 0x4E048354, 0x3903B3C2, 0xA7672661, 0xD06016F7, 0x4969474D, 0x3E6E77DB,
+                0xAED16A4A, 0xD9D65ADC, 0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5, 0x47B2CF7F, 0x30B5FFE9,
+                0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF,
+                0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
+            ];
+
+            for (let i = 0; i < bytes.length; i++) {
+                crc = (crc >>> 8) ^ crcTable[(crc ^ bytes[i]) & 0xFF];
+            }
+
+            return crc ^ 0xFFFFFFFF;
+        }
+        
+        // 显示预览
+        function displayPreview(pageIndex) {
+            if (pageIndex < 0 || pageIndex >= convertedImages.length) return;
+            
+            currentPage = pageIndex;
+            const imageData = convertedImages[pageIndex];
+            
+            imageDimensions.textContent = `${imageData.width} × ${imageData.height} 像素`;
+            imageDpi.textContent = imageData.dpi;
+            
+            previewContainer.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="mb-4 flex flex-wrap justify-between w-full items-center gap-2">
+                        <h4 class="font-medium">第 ${pageIndex + 1} 页 / 共 ${convertedImages.length} 页</h4>
+                        <div class="flex gap-2">
+                            <button class="page-nav-btn px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-all" 
+                                    data-page="${pageIndex - 1}" ${pageIndex === 0 ? 'disabled' : ''}>
+                                <i class="fa fa-chevron-left"></i> 上一页
+                            </button>
+                            <button class="page-nav-btn px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-all" 
+                                    data-page="${pageIndex + 1}" ${pageIndex === convertedImages.length - 1 ? 'disabled' : ''}>
+                                下一页 <i class="fa fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="preview-image-container bg-white p-4 rounded-lg shadow-sm max-w-full">
+                        <img src="${imageData.dataUrl}" alt="PDF第 ${pageIndex + 1} 页预览" class="max-w-full h-auto">
+                    </div>
+                </div>
+            `;
+            
+            document.querySelectorAll('.page-nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    displayPreview(parseInt(e.target.closest('.page-nav-btn').dataset.page));
+                });
+            });
+        }
+        
+        // 下载当前页
+        function downloadCurrentImage() {
+            if (convertedImages.length && currentPage < convertedImages.length) {
+                const imageData = convertedImages[currentPage];
+                const url = URL.createObjectURL(imageData.blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `page-${imageData.pageNum}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+        
+        // 下载所有页
+        function downloadAllImages() {
+            convertedImages.forEach((image, index) => {
+                setTimeout(() => {
+                    const url = URL.createObjectURL(image.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `page-${image.pageNum}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, index * 500);
+            });
+        }
+    </script>
+</body>
+</html>

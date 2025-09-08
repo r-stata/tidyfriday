@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RStata 常用代码和数据文件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- 额外的语言支持 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/r.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/stata.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/html.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .file-tree-item {
+                @apply flex items-center py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors;
+            }
+            .file-tree-item.active {
+                @apply bg-primary/10 text-primary font-medium;
+            }
+            .btn-action {
+                @apply px-3 py-1.5 rounded text-sm font-medium transition-all;
+            }
+            .btn-primary {
+                @apply bg-primary text-white hover:bg-primary/90;
+            }
+            .btn-secondary {
+                @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+            }
+            .search-input {
+                @apply pl-10 pr-4 py-2 w-full rounded-lg bg-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary;
+            }
+            .search-container {
+                @apply relative;
+            }
+            .search-icon {
+                @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-500;
+            }
+            /* 固定宽度的内容预览容器 */
+            .content-preview {
+                width: 100%;
+                max-width: 1200px; /* 固定最大宽度 */
+                margin: 0 auto; /* 居中显示 */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-code text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold">RStata 常用代码和数据文件</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/" class="main-nav-link"><i class="fa fa-taxi"> 加入 RStata 培训班！</i></a>
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- 主内容区 -->
+    <main class="flex-1 container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <!-- 左侧文件树 -->
+        <div class="w-full md:w-64 lg:w-80 flex-shrink-0">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 h-[calc(100vh-120px)] overflow-y-auto">
+
+                <div class="mb-4">
+                    <div class="search-container">
+                        <input type="text" id="file-search" placeholder="搜索文件..." 
+                            class="search-input">
+                        <i class="fa fa-search search-icon"></i>
+                    </div>
+                </div>
+                <!-- 介绍卡片 -->
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+                    <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+                    <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+                </div> 
+                <div id="file-tree" class="space-y-1 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- 右侧文件内容展示区 - 可左右滚动 -->
+        <div class="flex-1 overflow-x-auto">
+            <div class="content-preview bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 h-[calc(100vh-120px)] flex flex-col">
+                <!-- 文件信息和操作栏 -->
+                <div id="file-header" class="pb-4 border-b dark:border-gray-700 mb-4 hidden">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div>
+                            <h2 id="file-title" class="text-xl font-bold"></h2>
+                            <p id="file-path" class="text-sm text-gray-500 dark:text-gray-400"></p>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button id="copy-btn" class="btn-action btn-secondary flex items-center gap-1">
+                                <i class="fa fa-copy"></i> 复制内容
+                            </button>
+                            <button id="copy-link-btn" class="btn-action btn-secondary flex items-center gap-1">
+                                <i class="fa fa-link"></i> 复制链接
+                            </button>
+                            <button id="download-btn" class="btn-action btn-primary flex items-center gap-1">
+                                <i class="fa fa-download"></i> 下载
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容展示区 - 可上下滚动 -->
+                <div id="content-container" class="flex-1 overflow-y-auto">
+                    <!-- 初始提示 -->
+                    <div id="initial-message" class="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <i class="fa fa-folder-open-o text-5xl mb-4"></i>
+                        <p class="text-lg">请从左侧选择一个文件查看</p>
+                    </div>
+
+                    <!-- 代码展示区 -->
+                    <div id="code-content" class="hidden">
+                        <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code id="code-display" class="language-auto font-mono text-sm"></code></pre>
+                    </div>
+
+                    <!-- 数据展示区 -->
+                    <div id="data-content" class="hidden">
+                        <div class="mb-4">
+                            <div class="search-container">
+                                <input type="text" id="data-search" placeholder="搜索数据..." 
+                                    class="search-input">
+                                <i class="fa fa-search search-icon"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr id="data-header"></tr>
+                                </thead>
+                                <tbody id="data-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <div id="pagination" class="flex justify-between items-center mt-4">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                显示 <span id="showing-range"></span> 条，共 <span id="total-records"></span> 条
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="prev-page" class="btn-action btn-secondary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fa fa-chevron-left"></i> 上一页
+                                </button>
+                                <button id="next-page" class="btn-action btn-secondary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    下一页 <i class="fa fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 错误信息 -->
+                    <div id="error-message" class="hidden h-full flex items-center justify-center text-red-500">
+                        <p id="error-text"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white dark:bg-gray-800 py-4 border-t dark:border-gray-700">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>微信公众号 RStata &copy; 2025</p>
+        </div>
+    </footer>
+
+    <!-- 通知提示框 -->
+    <div id="notification" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2">
+        <i id="notification-icon" class="fa"></i>
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        // 全局变量
+        let fileData = null;
+        let currentFile = null;
+        let currentData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        // 服务器基础URL
+        const baseServerUrl = "https://tidyfriday.cn/filedatabase/";
+
+        // DOM 元素
+        const fileTreeEl = document.getElementById('file-tree');
+        const fileHeaderEl = document.getElementById('file-header');
+        const fileTitleEl = document.getElementById('file-title');
+        const filePathEl = document.getElementById('file-path');
+        const codeContentEl = document.getElementById('code-content');
+        const dataContentEl = document.getElementById('data-content');
+        const initialMessageEl = document.getElementById('initial-message');
+        const errorMessageEl = document.getElementById('error-message');
+        const errorTextEl = document.getElementById('error-text');
+        const codeDisplayEl = document.getElementById('code-display');
+        const dataHeaderEl = document.getElementById('data-header');
+        const dataBodyEl = document.getElementById('data-body');
+        const copyBtnEl = document.getElementById('copy-btn');
+        const copyLinkBtnEl = document.getElementById('copy-link-btn');
+        const downloadBtnEl = document.getElementById('download-btn');
+        const fileSearchEl = document.getElementById('file-search');
+        const dataSearchEl = document.getElementById('data-search');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const showingRangeEl = document.getElementById('showing-range');
+        const totalRecordsEl = document.getElementById('total-records');
+        const themeToggleEl = document.getElementById('theme-toggle');
+        const notificationEl = document.getElementById('notification');
+        const notificationIconEl = document.getElementById('notification-icon');
+        const notificationTextEl = document.getElementById('notification-text');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 加载主题设置
+            loadTheme();
+            
+            // 加载文件数据
+            loadFileData();
+            
+            // 事件监听
+            copyBtnEl.addEventListener('click', copyToClipboard);
+            copyLinkBtnEl.addEventListener('click', copyFileLink);
+            downloadBtnEl.addEventListener('click', downloadFile);
+            fileSearchEl.addEventListener('input', filterFiles);
+            dataSearchEl.addEventListener('input', filterData);
+            prevPageBtn.addEventListener('click', goToPrevPage);
+            nextPageBtn.addEventListener('click', goToNextPage);
+            themeToggleEl.addEventListener('click', toggleTheme);
+        });
+
+        // 加载文件数据
+        async function loadFileData() {
+            try {
+                const response = await fetch('file_structure.json');
+                if (!response.ok) throw new Error('无法加载文件数据');
+                
+                fileData = await response.json();
+                renderFileTree(fileData.files, fileTreeEl);
+            } catch (error) {
+                showError(`加载文件数据失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 渲染文件树
+        function renderFileTree(items, parentEl, path = '') {
+            Object.keys(items).forEach(key => {
+                const item = items[key];
+                const itemPath = path ? `${path}/${key}` : key;
+                
+                const itemEl = document.createElement('div');
+                itemEl.className = 'file-tree-item';
+                itemEl.dataset.path = itemPath;
+                itemEl.dataset.type = item.type;
+                
+                const iconEl = document.createElement('i');
+                if (item.type === 'directory') {
+                    iconEl.className = 'fa fa-folder text-yellow-500 mr-2';
+                } else if (item.type === 'code') {
+                    const ext = item.extension.toLowerCase();
+                    switch(ext) {
+                        case 'r': iconEl.className = 'fa fa-code text-blue-500 mr-2'; break;
+                        case 'do':
+                        case 'ado': iconEl.className = 'fa fa-code text-purple-500 mr-2'; break;
+                        case 'py': iconEl.className = 'fa fa-code text-yellow-600 mr-2'; break;
+                        case 'js': iconEl.className = 'fa fa-code text-yellow-400 mr-2'; break;
+                        case 'html': iconEl.className = 'fa fa-code text-orange-500 mr-2'; break;
+                        case 'txt': iconEl.className = 'fa fa-file-text-o mr-2'; break;
+                        default: iconEl.className = 'fa fa-code mr-2';
+                    }
+                } else if (item.type === 'data') {
+                    switch(item.extension.toLowerCase()) {
+                        case 'csv': iconEl.className = 'fa fa-table text-green-500 mr-2'; break;
+                        case 'xlsx': iconEl.className = 'fa fa-table text-green-600 mr-2'; break;
+                        case 'dta': iconEl.className = 'fa fa-table text-purple-600 mr-2'; break;
+                        default: iconEl.className = 'fa fa-database mr-2';
+                    }
+                } else {
+                    iconEl.className = 'fa fa-file-o mr-2';
+                }
+                
+                const nameEl = document.createElement('span');
+                nameEl.textContent = key;
+                nameEl.className = 'truncate flex-1';
+                
+                itemEl.appendChild(iconEl);
+                itemEl.appendChild(nameEl);
+                
+                // 如果是目录，添加展开/折叠功能
+                if (item.type === 'directory') {
+                    const toggleEl = document.createElement('i');
+                    toggleEl.className = 'fa fa-chevron-right text-xs text-gray-500 transition-transform duration-200';
+                    itemEl.appendChild(toggleEl);
+                    
+                    const subdirEl = document.createElement('div');
+                    subdirEl.className = 'pl-6 mt-1 hidden space-y-1';
+                    parentEl.appendChild(itemEl);
+                    parentEl.appendChild(subdirEl);
+                    
+                    itemEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        subdirEl.classList.toggle('hidden');
+                        toggleEl.classList.toggle('rotate-90');
+                        itemEl.classList.toggle('active');
+                    });
+                    
+                    // 递归渲染子目录
+                    renderFileTree(item.items, subdirEl, itemPath);
+                } else {
+                    // 文件点击事件
+                    itemEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // 移除其他项的active类
+                        document.querySelectorAll('.file-tree-item.active').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        // 添加当前项的active类
+                        itemEl.classList.add('active');
+                        // 显示文件内容
+                        showFileContent(item);
+                    });
+                    
+                    parentEl.appendChild(itemEl);
+                }
+            });
+        }
+
+        // 显示文件内容
+        function showFileContent(file) {
+            currentFile = file;
+            initialMessageEl.classList.add('hidden');
+            errorMessageEl.classList.add('hidden');
+            codeContentEl.classList.add('hidden');
+            dataContentEl.classList.add('hidden');
+            fileHeaderEl.classList.remove('hidden');
+            
+            // 更新文件标题和路径
+            const fileName = file.path.split('/').pop();
+            fileTitleEl.textContent = fileName;
+            filePathEl.textContent = `data/${file.path}`;
+            
+            if (file.type === 'code') {
+                // 显示代码内容
+                codeContentEl.classList.remove('hidden');
+                codeDisplayEl.textContent = file.content || '文件内容为空';
+                
+                // 设置代码高亮
+                const ext = file.extension.toLowerCase();
+                let lang = '';
+                switch(ext) {
+                    case 'r': lang = 'r'; break;
+                    case 'do':
+                    case 'ado': lang = 'stata'; break;
+                    case 'py': lang = 'python'; break;
+                    case 'js': lang = 'javascript'; break;
+                    case 'html': lang = 'html'; break;
+                    default: lang = 'plaintext';
+                }
+                
+                codeDisplayEl.className = `language-${lang} font-mono text-sm`;
+                hljs.highlightElement(codeDisplayEl);
+            } else if (file.type === 'data') {
+                // 显示数据内容
+                dataContentEl.classList.remove('hidden');
+                
+                try {
+                    // 解析数据
+                    currentData = JSON.parse(file.content);
+                    if (!Array.isArray(currentData) || currentData.length === 0) {
+                        throw new Error('数据格式不正确或为空');
+                    }
+                    
+                    // 重置分页和过滤
+                    currentPage = 1;
+                    dataSearchEl.value = '';
+                    filteredData = [...currentData];
+                    
+                    // 渲染数据
+                    renderDataTable();
+                    updatePagination();
+                } catch (error) {
+                    dataHeaderEl.innerHTML = '';
+                    dataBodyEl.innerHTML = `<tr><td colspan="100%" class="text-center py-4 text-red-500">${error.message}</td></tr>`;
+                    console.error('解析数据失败:', error);
+                }
+            } else {
+                // 其他类型文件
+                showError('不支持的文件类型');
+            }
+        }
+
+        // 渲染数据表格
+        function renderDataTable() {
+            if (filteredData.length === 0) {
+                dataHeaderEl.innerHTML = '';
+                dataBodyEl.innerHTML = '<tr><td colspan="100%" class="text-center py-4">没有找到匹配的数据</td></tr>';
+                return;
+            }
+            
+            // 渲染表头
+            dataHeaderEl.innerHTML = '';
+            const headers = Object.keys(filteredData[0]);
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider';
+                th.textContent = header;
+                dataHeaderEl.appendChild(th);
+            });
+            
+            // 渲染当前页的数据
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const currentItems = filteredData.slice(startIndex, endIndex);
+            
+            dataBodyEl.innerHTML = '';
+            currentItems.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                tr.className = rowIndex % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50';
+                
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-2 whitespace-nowrap text-sm';
+                    td.textContent = row[header] !== undefined ? row[header] : '';
+                    tr.appendChild(td);
+                });
+                
+                dataBodyEl.appendChild(tr);
+            });
+            
+            // 更新显示范围
+            showingRangeEl.textContent = `${startIndex + 1} - ${endIndex}`;
+            totalRecordsEl.textContent = filteredData.length;
+        }
+
+        // 过滤数据
+        function filterData() {
+            const searchTerm = dataSearchEl.value.toLowerCase().trim();
+            if (!searchTerm) {
+                filteredData = [...currentData];
+            } else {
+                filteredData = currentData.filter(row => {
+                    return Object.values(row).some(value => {
+                        return value.toString().toLowerCase().includes(searchTerm);
+                    });
+                });
+            }
+            
+            currentPage = 1;
+            renderDataTable();
+            updatePagination();
+        }
+
+        // 更新分页按钮状态
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // 上一页
+        function goToPrevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderDataTable();
+                updatePagination();
+                scrollToTopOfData();
+            }
+        }
+
+        // 下一页
+        function goToNextPage() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderDataTable();
+                updatePagination();
+                scrollToTopOfData();
+            }
+        }
+
+        // 滚动到数据顶部
+        function scrollToTopOfData() {
+            dataContentEl.scrollTop = 0;
+        }
+
+        // 过滤文件
+        function filterFiles() {
+            const searchTerm = fileSearchEl.value.toLowerCase().trim();
+            const allItems = document.querySelectorAll('.file-tree-item');
+            
+            allItems.forEach(item => {
+                const itemName = item.querySelector('span').textContent.toLowerCase();
+                const itemPath = item.dataset.path.toLowerCase();
+                
+                if (itemName.includes(searchTerm) || itemPath.includes(searchTerm)) {
+                    item.style.display = '';
+                    
+                    // 显示包含匹配项的所有父目录
+                    let parent = item.parentElement;
+                    while (parent && parent.id !== 'file-tree') {
+                        if (parent.classList.contains('hidden')) {
+                            parent.classList.remove('hidden');
+                            // 展开父目录的箭头
+                            const toggle = parent.previousElementSibling?.querySelector('.fa-chevron-right');
+                            if (toggle) toggle.classList.add('rotate-90');
+                        }
+                        parent = parent.parentElement;
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard() {
+            if (!currentFile) {
+                showNotification('请先选择一个文件', 'error');
+                return;
+            }
+            
+            let textToCopy = '';
+            if (currentFile.type === 'code') {
+                textToCopy = currentFile.content || '';
+            } else if (currentFile.type === 'data') {
+                // 转换为CSV格式
+                try {
+                    const data = JSON.parse(currentFile.content);
+                    if (Array.isArray(data) && data.length > 0) {
+                        const headers = Object.keys(data[0]);
+                        textToCopy = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',') + '\n';
+                        
+                        data.forEach(row => {
+                            const values = headers.map(h => {
+                                const value = row[h] !== undefined ? row[h].toString() : '';
+                                return `"${value.replace(/"/g, '""')}"`;
+                            });
+                            textToCopy += values.join(',') + '\n';
+                        });
+                    }
+                } catch (error) {
+                    textToCopy = currentFile.content || '';
+                    console.error('转换数据为CSV失败:', error);
+                }
+            }
+            
+            // 使用更兼容的复制方法
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showNotification('内容已复制到剪贴板', 'success');
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(textToCopy);
+                });
+            } else {
+                fallbackCopyTextToClipboard(textToCopy);
+            }
+        }
+
+        // 复制文件链接
+        function copyFileLink() {
+            if (!currentFile) {
+                showNotification('请先选择一个文件', 'error');
+                return;
+            }
+            
+            // 构建完整的文件URL
+            const fullUrl = `${baseServerUrl}data/${currentFile.path}`;
+            
+            // 复制链接到剪贴板
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    showNotification('文件链接已复制到剪贴板', 'success');
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(fullUrl);
+                });
+            } else {
+                fallbackCopyTextToClipboard(fullUrl);
+                showNotification('文件链接已复制到剪贴板', 'success');
+            }
+        }
+
+        // 复制功能的兼容方案
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // 确保文本区域不在视图中，但保持可访问性
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? '内容已复制到剪贴板' : '复制失败，请手动复制';
+                const type = successful ? 'success' : 'error';
+                showNotification(msg, type);
+            } catch (err) {
+                console.error('Fallback: 无法复制文本: ', err);
+                showNotification('复制失败，请手动复制', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // 下载文件
+        function downloadFile() {
+            if (!currentFile) {
+                showNotification('请先选择一个文件', 'error');
+                return;
+            }
+            
+            let content = currentFile.content || '';
+            let fileName = currentFile.path.split('/').pop();
+            let mimeType = '';
+            
+            // 对于数据文件，确保下载为CSV格式
+            if (currentFile.type === 'data') {
+                fileName = fileName.replace(/\.(csv|xlsx|dta)$/i, '.csv');
+                mimeType = 'text/csv';
+                
+                // 确保内容是CSV格式
+                try {
+                    const data = JSON.parse(content);
+                    if (Array.isArray(data) && data.length > 0) {
+                        const headers = Object.keys(data[0]);
+                        content = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',') + '\n';
+                        
+                        data.forEach(row => {
+                            const values = headers.map(h => {
+                                const value = row[h] !== undefined ? row[h].toString() : '';
+                                return `"${value.replace(/"/g, '""')}"`;
+                            });
+                            content += values.join(',') + '\n';
+                        });
+                    }
+                } catch (error) {
+                    console.error('转换数据为CSV失败:', error);
+                }
+            } else if (currentFile.type === 'code') {
+                // 设置代码文件的MIME类型
+                switch(currentFile.extension.toLowerCase()) {
+                    case 'r': mimeType = 'text/x-r'; break;
+                    case 'do':
+                    case 'ado': mimeType = 'text/x-stata'; break;
+                    case 'py': mimeType = 'text/x-python'; break;
+                    case 'js': mimeType = 'application/javascript'; break;
+                    case 'html': mimeType = 'text/html'; break;
+                    case 'txt': mimeType = 'text/plain'; break;
+                    default: mimeType = 'text/plain';
+                }
+            } else {
+                mimeType = 'application/octet-stream';
+            }
+            
+            // 创建下载链接
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`文件已下载: ${fileName}`, 'success');
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            initialMessageEl.classList.add('hidden');
+            codeContentEl.classList.add('hidden');
+            dataContentEl.classList.add('hidden');
+            fileHeaderEl.classList.add('hidden');
+            errorMessageEl.classList.remove('hidden');
+            errorTextEl.textContent = message;
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            notificationTextEl.textContent = message;
+            
+            if (type === 'success') {
+                notificationEl.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-2';
+                notificationIconEl.className = 'fa fa-check-circle';
+            } else if (type === 'error') {
+                notificationEl.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg bg-red-500 text-white transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-2';
+                notificationIconEl.className = 'fa fa-exclamation-circle';
+            } else {
+                notificationEl.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg bg-blue-500 text-white transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-2';
+                notificationIconEl.className = 'fa fa-info-circle';
+            }
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notificationEl.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2';
+            }, 3000);
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        // 加载主题设置
+        function loadTheme() {
+            if (localStorage.getItem('theme') === 'dark' || 
+                (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    </script>
+</body>
+</html>
+    

@@ -1,0 +1,1 @@
+CodeMirror.indentRangeFinder=function(n,o){for(var r=n.getOption("tabSize"),e=n.getLine(o.line),i=CodeMirror.countColumn(e,null,r),t=o.line+1,l=n.lineCount();t<l;++t){var u=n.getLine(t);if(CodeMirror.countColumn(u,null,r)<i&&CodeMirror.countColumn(n.getLine(t-1),null,r)>i)return{from:CodeMirror.Pos(o.line,e.length),to:CodeMirror.Pos(t,u.length)}}};

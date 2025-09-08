@@ -1,0 +1,1 @@
+var fs=require("fs"),marked=require("marked");module.exports=function(r){var e=fs.readFileSync("data/help.html")+"<br><hr><br>"+marked(fs.readFileSync("API.md","utf8"));function a(r){r.html("").append("div").attr("class","pad2 prose").html(e)}return a.off=function(){},a};

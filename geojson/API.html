@@ -1,0 +1,38 @@
+<h2 id="Geojson-io-API"><a href="#Geojson-io-API" class="headerlink" title="Geojson.io API"></a>Geojson.io API</h2><p>You can interact with geojson.io programmatically in two ways:</p>
+<ul>
+<li><a href="#url-api">URL parameters</a></li>
+<li><a href="#console-api">Browser console</a></li>
+<li><a href="#protips">Protips</a></li>
+</ul>
+<h2 id="URL-API"><a href="#URL-API" class="headerlink" title="URL API"></a>URL API</h2><p>You can do a few interesting things with just URLs and geojson.io. Here are the<br>current URL formats.</p>
+<h3 id="map"><a href="#map" class="headerlink" title="map"></a><code>map</code></h3><p>Open the map at a specific location. The argument is numbers separated by <code>/</code><br>in the form <code>zoom/latitude/longitude</code>.</p>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example:"></a>Example:</h4><p><a href="http://geojson.io/#map=2/20.0/0.0">http://geojson.io/#map=2/20.0/0.0</a></p>
+<h3 id="data-data-application-json"><a href="#data-data-application-json" class="headerlink" title="data=data:application/json,"></a><code>data=data:application/json,</code></h3><p>Open the map and load a chunk of <a href="http://geojson.org/">GeoJSON</a> data from a<br>URL segment directly onto the map. The GeoJSON data should be encoded<br>as per <code>encodeURIComponent(JSON.stringify(geojson_data))</code>.</p>
+<h4 id="Example-1"><a href="#Example-1" class="headerlink" title="Example:"></a>Example:</h4><p><a href="http://geojson.io/#data=data:application/json,%7B%22type%22%3A%22LineString%22%2C%22coordinates%22%3A%5B%5B0%2C0%5D%2C%5B10%2C10%5D%5D%7D">http://geojson.io/#data=data:application/json,%7B%22type%22%3A%22LineString%22%2C%22coordinates%22%3A%5B%5B0%2C0%5D%2C%5B10%2C10%5D%5D%7D</a></p>
+<h3 id="data-data-text-x-url"><a href="#data-data-text-x-url" class="headerlink" title="data=data:text/x-url,"></a><code>data=data:text/x-url,</code></h3><p>Load GeoJSON data from a URL on the internet onto the map. The URL must<br>refer directly to a resource that is:</p>
+<ul>
+<li>Freely accessible (not behind a password)</li>
+<li>Supports <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a></li>
+<li>Is valid GeoJSON</li>
+</ul>
+<p>The URL should be encoded as per <code>encodeURIComponent(url)</code>.</p>
+<h4 id="Example-2"><a href="#Example-2" class="headerlink" title="Example:"></a>Example:</h4><p><a href="http://geojson.io/#data=data:text/x-url,http%3A%2F%2Fapi.tiles.mapbox.com%2Fv3%2Ftmcw.map-gdv4cswo%2Fmarkers.geojson">http://geojson.io/#data=data:text/x-url,http%3A%2F%2Fapi.tiles.mapbox.com%2Fv3%2Ftmcw.map-gdv4cswo%2Fmarkers.geojson</a></p>
+<h3 id="id-gist"><a href="#id-gist" class="headerlink" title="id=gist:"></a><code>id=gist:</code></h3><p>Load GeoJSON data from a <a href="https://gist.github.com/">GitHub Gist</a>, given an argument<br>in the form of <code>login/gistid</code>. The Gist can be public or private, and must<br>contain a file with a <code>.geojson</code> extension that is valid GeoJSON.</p>
+<h4 id="Example-3"><a href="#Example-3" class="headerlink" title="Example:"></a>Example:</h4><p><a href="http://geojson.io/#id=gist:tmcw/e9a29ad54dbaa83dee08&amp;map=8/39.198/-76.981">http://geojson.io/#id=gist:tmcw/e9a29ad54dbaa83dee08&amp;map=8/39.198/-76.981</a></p>
+<h3 id="id-github"><a href="#id-github" class="headerlink" title="id=github:"></a><code>id=github:</code></h3><p>Load a file from a GitHub repository. You must have access to the file, and<br>it must be valid GeoJSON.</p>
+<p>The url is in the form:</p>
+<pre><code>login/repository/blob/branch/filepath</code></pre><h4 id="Example-4"><a href="#Example-4" class="headerlink" title="Example:"></a>Example:</h4><p><a href="http://geojson.io/#id=github:benbalter/dc-wifi-social/blob/master/bars.geojson&amp;map=14/38.9140/-77.0302">http://geojson.io/#id=github:benbalter/dc-wifi-social/blob/master/bars.geojson&amp;map=14/38.9140/-77.0302</a></p>
+<h2 id="Console-API"><a href="#Console-API" class="headerlink" title="Console API"></a>Console API</h2><p><a href="http://debugbrowser.com/">Pop open your browser console</a> and see the beautiful<br>examples: geojson.io has started to expose a subset of its inner workings for<br>you to mess around with:</p>
+<h3 id="window-api-map"><a href="#window-api-map" class="headerlink" title="window.api.map"></a><code>window.api.map</code></h3><p>The <a href="http://leafletjs.com/">Leaflet</a> map that you see and use on the site. See<br>the <a href="http://leafletjs.com/reference.html">Leaflet API</a> for all the things you<br>can do with it.</p>
+<p>For instance, you could add another map layer:</p>
+<pre><code class="js"><span class="built_in">window</span>.api.map.addLayer(L.tileLayer(<span class="string">'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg'</span>))</code></pre>
+<h3 id="window-api-data"><a href="#window-api-data" class="headerlink" title="window.api.data"></a><code>window.api.data</code></h3><p>The data model. See the <a href="https://github.com/mapbox/geojson.io/blob/gh-pages/src/core/data.js#L48-L90">code to get an idea of how it works</a> -<br>you’ll want to use stuff like <code>data.set({ map: { .. your geojson map information .. })</code><br>and <code>data.get(&#39;map&#39;)</code> and <code>data.mergeFeatures([arrayoffeatures])</code> to do your<br>dirty business.</p>
+<h2 id="window-api-mapLayer"><a href="#window-api-mapLayer" class="headerlink" title="window.api.mapLayer"></a><code>window.api.mapLayer</code></h2><p>This is the Leaflet featureGroup that gets filled with features as you draw<br>them. You can operate on this directly to do advanced stuff like<br>selecting a feature with its id:</p>
+<pre><code class="js"><span class="keyword">var</span> layers = [];
+<span class="built_in">window</span>.api.mapLayer.eachLayer(<span class="function"><span class="params">l</span> =&gt;</span> { layers.push(l); });
+layers.find(<span class="function"><span class="params">l</span> =&gt;</span> l.feature.id == <span class="string">'a'</span>).openPopup();</code></pre>
+<p>That example uses <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions">arrow functions</a><br>which are supported in Chrome &amp; Firefox.</p>
+<h2 id="window-api-drawControl"><a href="#window-api-drawControl" class="headerlink" title="window.api.drawControl"></a><code>window.api.drawControl</code></h2><p>Exposes the <a href="https://github.com/Leaflet/Leaflet.draw">Leaflet.Draw</a> control<br>instance in the console.</p>
+<h2 id="window-api-on-event-fn"><a href="#window-api-on-event-fn" class="headerlink" title="window.api.on(event, fn)"></a><code>window.api.on(event, fn)</code></h2><p>Exposes d3 events, including <code>change</code>.</p>
+<h2 id="Protips"><a href="#Protips" class="headerlink" title="Protips"></a>Protips</h2><p>To include <code>turf</code> from <a href="https://github.com/turfjs/turf">turf</a> so you can manipulate features<br>with its GIS features, run this in the CLI, which will download the script and evaluate it.</p>
+<pre><code class="js">fetch(<span class="string">'https://npmcdn.com/@turf/turf@3.1.1/turf.js'</span>).then(<span class="function"><span class="params">t</span> =&gt;</span> t.text()).then(<span class="built_in">eval</span>)</code></pre>

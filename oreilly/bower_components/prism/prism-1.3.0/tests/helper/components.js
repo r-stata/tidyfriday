@@ -1,0 +1,1 @@
+"use strict";var fs=require("fs"),vm=require("vm"),fileContent=fs.readFileSync(__dirname+"/../../components.js","utf8"),context={};vm.runInNewContext(fileContent,context),module.exports=context.components;

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坐标转换工具</title>
+    <!-- 引入Tailwind CSS国内镜像 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome国内镜像 -->
+    <link href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入Leaflet CSS国内镜像 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/leaflet/1.9.4/leaflet.css" />
+    <!-- 引入Leaflet JS国内镜像 -->
+    <script src="https://cdn.staticfile.org/leaflet/1.9.4/leaflet.js"></script>
+    <!-- 引入Proj4js国内镜像 -->
+    <script src="https://cdn.staticfile.org/proj4js/2.9.0/proj4.js"></script>
+    <!-- 引入PapaParse用于CSV解析 -->
+    <script src="https://cdn.staticfile.org/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        accent: '#6366f1',
+                        neutral: '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .transition-custom {
+                transition: all 0.3s ease;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+    <!-- 页面头部 -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-primary flex items-center">
+                <i class="fa-solid fa-location-dot mr-3"></i>
+                坐标转换工具
+            </h1>
+            <p class="text-neutral mt-1">上传包含经纬度的CSV文件，转换为指定坐标系并可视化展示</p>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 介绍卡片 -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-soft">
+            <h2 class="text-xl font-semibold mb-2 text-dark">欢迎关注微信公众号 RStata!</h2>
+            <p class="text-gray-600">微信搜索公众号 <b>RStata</b> 或者访问 RStata 学院：<a href="https://rstata.duanshu.com/">https://rstata.duanshu.com/</a></p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧控制面板 -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- 文件上传区域 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-file-import text-primary mr-2"></i>
+                        文件上传
+                    </h2>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-custom cursor-pointer" id="dropArea">
+                        <i class="fa-solid fa-cloud-upload text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2">拖放CSV文件到此处，或</p>
+                        <label class="inline-block bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-custom cursor-pointer">
+                            <i class="fa-solid fa-file-text mr-1"></i> 选择文件
+                            <input type="file" id="fileInput" accept=".csv" class="hidden">
+                        </label>
+                        <p class="text-xs text-gray-500 mt-3">CSV文件应包含id, lon, lat三列数据</p>
+                    </div>
+                    <div id="fileInfo" class="mt-4 hidden">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-file-csv text-green-600 mr-2"></i>
+                                <span id="fileName" class="truncate"></span>
+                            </div>
+                            <button id="removeFile" class="text-red-500 hover:text-red-700 transition-custom">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 坐标系设置 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-map-signs text-primary mr-2"></i>
+                        坐标系设置
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">源坐标系 (默认WGS84)</label>
+                            <div class="relative">
+                                <select id="sourceCrs" class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-custom appearance-none">
+                                    <option value="+proj=longlat +datum=WGS84 +no_defs">WGS84 (EPSG:4326)</option>
+                                    <option value="+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs">+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs</option>
+                                    <option value="+proj=longlat +datum=Beijing54">北京54</option>
+                                    <option value="+proj=longlat +datum=Xian80">西安80</option>
+                                    <option value="+proj=longlat +datum=CGCS2000">CGCS2000 (EPSG:4490)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">目标坐标系</label>
+                            <div class="relative">
+                                <select id="targetCrs" class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-custom appearance-none">
+                                    <option value="+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs">+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs</option>
+                                    <option value="+proj=longlat +datum=WGS84 +no_defs">WGS84 (EPSG:4326)</option>
+                                    <option value="+proj=longlat +datum=Beijing54">北京54</option>
+                                    <option value="+proj=longlat +datum=Xian80">西安80</option>
+                                    <option value="+proj=longlat +datum=CGCS2000">CGCS2000 (EPSG:4490)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">或输入自定义Proj4字符串</label>
+                            <textarea id="customProj4" placeholder="例如: +proj=utm +zone=50 +datum=WGS84" class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-custom"></textarea>
+                        </div>
+                        
+                        <button id="convertBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition-custom flex items-center justify-center">
+                            <i class="fa-solid fa-exchange-alt mr-2"></i>
+                            执行坐标转换
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 下载区域 -->
+                <div class="bg-white rounded-xl p-6 card-shadow hidden" id="downloadSection">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-download text-primary mr-2"></i>
+                        下载结果
+                    </h2>
+                    <button id="downloadBtn" class="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition-custom flex items-center justify-center">
+                        <i class="fa-solid fa-file-csv mr-2"></i>
+                        下载转换后的CSV文件
+                    </button>
+                </div>
+            </div>
+
+            <!-- 右侧展示区域 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 表格预览 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-table text-primary mr-2"></i>
+                        数据预览
+                    </h2>
+                    <div id="tableContainer" class="overflow-x-auto max-h-[300px]">
+                        <div class="text-center text-gray-500 py-12">
+                            <i class="fa-solid fa-file-spreadsheet text-4xl mb-3 opacity-30"></i>
+                            <p>上传文件并转换后将显示数据表格</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地图预览 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-map text-primary mr-2"></i>
+                        地图预览
+                    </h2>
+                    <div class="relative">
+                        <div id="map" class="w-full h-[500px] rounded-lg border border-gray-200"></div>
+                        <div class="absolute top-4 right-4 z-10 bg-white rounded-md shadow-md p-2 flex space-x-2">
+                            <button id="showOriginal" class="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-custom">
+                                原始坐标
+                            </button>
+                            <button id="showConverted" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-custom">
+                                转换后坐标
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <p class="text-center text-gray-500 text-sm">
+                微信公众号 RStata &copy; 2025 | 使用 Leaflet 和 Proj4js 开发
+            </p>
+        </div>
+    </footer>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50"></div>
+
+    <script>
+        // 全局变量
+        let originalData = null;
+        let convertedData = null;
+        let map = null;
+        let originalMarkers = [];
+        let convertedMarkers = [];
+        let showingOriginal = true;
+
+        // DOM 元素
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const removeFile = document.getElementById('removeFile');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const tableContainer = document.getElementById('tableContainer');
+        const sourceCrs = document.getElementById('sourceCrs');
+        const targetCrs = document.getElementById('targetCrs');
+        const customProj4 = document.getElementById('customProj4');
+        const showOriginal = document.getElementById('showOriginal');
+        const showConverted = document.getElementById('showConverted');
+        const notification = document.getElementById('notification');
+
+        // 初始化地图
+        function initMap() {
+            if (map) return;
+            
+            map = L.map('map').setView([35.8617, 104.1954], 4); // 中国中心点
+            
+            // 使用OSM底图（国内镜像）
+            L.tileLayer('http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                attribution: '&copy; 微信公众号 RStata',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = 'fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 flex items-center z-50';
+            
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+                notification.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i>${message}`;
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500', 'text-white');
+                notification.innerHTML = `<i class="fa-solid fa-exclamation-circle mr-2"></i>${message}`;
+            } else if (type === 'info') {
+                notification.classList.add('bg-blue-500', 'text-white');
+                notification.innerHTML = `<i class="fa-solid fa-info-circle mr-2"></i>${message}`;
+            }
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 处理文件上传
+        function handleFileUpload(file) {
+            if (!file) {
+                showNotification('请选择一个CSV文件', 'error');
+                return;
+            }
+            
+            if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                showNotification('请上传CSV格式的文件', 'error');
+                return;
+            }
+            
+            // 显示文件信息
+            fileName.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+            
+            // 解析CSV文件
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    // 验证CSV结构
+                    const requiredColumns = ['id', 'lon', 'lat'];
+                    const columns = Object.keys(results.data[0] || {});
+                    const hasRequiredColumns = requiredColumns.every(col => columns.includes(col));
+                    
+                    if (!hasRequiredColumns) {
+                        showNotification('CSV文件必须包含id, lon, lat三列数据', 'error');
+                        originalData = null;
+                        return;
+                    }
+                    
+                    originalData = results.data;
+                    showNotification(`成功加载 ${originalData.length} 条数据`);
+                    
+                    // 预览原始数据
+                    renderTable(originalData, false);
+                    
+                    // 在地图上显示原始数据
+                    renderMarkers(originalData, false);
+                    
+                    // 启用转换按钮
+                    convertBtn.disabled = false;
+                },
+                error: function(error) {
+                    showNotification(`解析文件时出错: ${error.message}`, 'error');
+                    originalData = null;
+                }
+            });
+        }
+
+        // 渲染表格
+        function renderTable(data, isConverted) {
+            if (!data || data.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <i class="fa-solid fa-file-spreadsheet text-4xl mb-3 opacity-30"></i>
+                        <p>没有数据可显示</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHtml = `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">经度</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">纬度</th>
+                            ${isConverted ? '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">坐标系</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+            `;
+            
+            // 只显示前20条数据
+            const displayData = data.slice(0, 20);
+            
+            displayData.forEach(item => {
+                tableHtml += `
+                    <tr class="hover:bg-gray-50 transition-custom">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.lon.toFixed(6)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.lat.toFixed(6)}</td>
+                        ${isConverted ? `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${getCrsName(getTargetCrs())}</td>` : ''}
+                    </tr>
+                `;
+            });
+            
+            if (data.length > 20) {
+                tableHtml += `
+                    <tr>
+                        <td colspan="${isConverted ? 4 : 3}" class="px-6 py-3 text-center text-sm text-gray-500">
+                            仅显示前20条，共 ${data.length} 条数据
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            
+            tableContainer.innerHTML = tableHtml;
+        }
+
+        // 创建自定义地图标记图标
+        function createMarkerIcon(color) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px ${color};"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+        }
+
+        // 渲染标记点 - 使用自定义地图标记
+        function renderMarkers(data, isConverted, clearOnly = false) {
+            initMap();
+            
+            // 清除所有标记
+            if (isConverted) {
+                convertedMarkers.forEach(marker => map.removeLayer(marker));
+                convertedMarkers = [];
+            } else {
+                originalMarkers.forEach(marker => map.removeLayer(marker));
+                originalMarkers = [];
+            }
+            
+            if (clearOnly || !data || data.length === 0) return;
+            
+            // 定义标记颜色 - 原始坐标用蓝色，转换后用红色
+            const markerColor = isConverted ? '#ef4444' : '#3b82f6';
+            const markerIcon = createMarkerIcon(markerColor);
+            
+            // 添加新标记
+            data.forEach(item => {
+                // 检查经纬度是否有效
+                if (isNaN(item.lon) || isNaN(item.lat)) {
+                    console.warn(`无效的坐标数据: ID=${item.id}, lon=${item.lon}, lat=${item.lat}`);
+                    return;
+                }
+                
+                // 创建标记并绑定弹出信息
+                const marker = L.marker([item.lat, item.lon], { icon: markerIcon })
+                    .bindPopup(`<b>ID: ${item.id}</b><br>经度: ${item.lon.toFixed(6)}<br>纬度: ${item.lat.toFixed(6)}`);
+                
+                if (isConverted) {
+                    convertedMarkers.push(marker);
+                    if (!showingOriginal) {
+                        marker.addTo(map);
+                    }
+                } else {
+                    originalMarkers.push(marker);
+                    if (showingOriginal) {
+                        marker.addTo(map);
+                    }
+                }
+            });
+            
+            // 调整地图视野以显示所有标记
+            if (data.length > 0) {
+                const validPoints = data.filter(item => !isNaN(item.lon) && !isNaN(item.lat));
+                if (validPoints.length > 0) {
+                    const bounds = L.latLngBounds(validPoints.map(item => [item.lat, item.lon]));
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    showNotification('没有有效的坐标点可在地图上显示', 'warning');
+                }
+            }
+        }
+
+        // 获取目标坐标系
+        function getTargetCrs() {
+            return customProj4.value.trim() || targetCrs.value;
+        }
+
+        // 获取坐标系名称
+        function getCrsName(proj4str) {
+            const crsNames = {
+                "+proj=longlat +datum=WGS84 +no_defs": "WGS84 (EPSG:4326)",
+                "+proj=longlat +datum=Beijing54": "北京54",
+                "+proj=longlat +datum=Xian80": "西安80",
+                "+proj=longlat +datum=CGCS2000": "CGCS2000 (EPSG:4490)"
+            };
+            
+            return crsNames[proj4str] || "自定义坐标系";
+        }
+
+        // 执行坐标转换
+        function convertCoordinates() {
+            // 修复按钮点击问题：确保在任何情况下都能执行转换
+            if (!originalData || originalData.length === 0) {
+                showNotification('请先上传有效的CSV文件', 'error');
+                return;
+            }
+            
+            const sourceProj = sourceCrs.value;
+            const targetProj = getTargetCrs();
+            
+            if (!targetProj) {
+                showNotification('请选择或输入目标坐标系', 'error');
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 转换中...';
+                showNotification('正在进行坐标转换，请稍候...', 'info');
+                
+                // 执行转换
+                convertedData = originalData.map(item => {
+                    // 验证数据有效性
+                    if (isNaN(item.lon) || isNaN(item.lat)) {
+                        showNotification(`ID为 ${item.id} 的数据包含无效坐标，已跳过`, 'error');
+                        return null;
+                    }
+                    
+                    // 进行坐标转换
+                    const [x, y] = proj4(sourceProj, targetProj, [item.lon, item.lat]);
+                    return {
+                        id: item.id,
+                        lon: x,
+                        lat: y
+                    };
+                }).filter(item => item !== null); // 过滤无效数据
+                
+                // 显示转换结果
+                renderTable(convertedData, true);
+                renderMarkers(convertedData, true);
+                
+                // 显示下载区域
+                downloadSection.classList.remove('hidden');
+                
+                // 更新UI状态
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = '<i class="fa-solid fa-exchange-alt mr-2"></i> 执行坐标转换';
+                
+                if (convertedData.length > 0) {
+                    showNotification(`成功转换 ${convertedData.length} 条坐标数据`);
+                } else {
+                    showNotification('没有可转换的有效坐标数据', 'error');
+                }
+            } catch (error) {
+                // 错误处理
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = '<i class="fa-solid fa-exchange-alt mr-2"></i> 执行坐标转换';
+                showNotification(`坐标转换失败: ${error.message}`, 'error');
+                console.error('坐标转换错误:', error);
+            }
+        }
+
+        // 下载CSV文件
+        function downloadCSV() {
+            if (!convertedData || convertedData.length === 0) {
+                showNotification('没有可下载的转换数据', 'error');
+                return;
+            }
+            
+            // 转换为CSV格式
+            const csvContent = Papa.unparse(convertedData);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `converted_coordinates_${new Date().getTime()}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('CSV文件已成功下载');
+        }
+
+        // 切换显示原始坐标或转换后坐标
+        function toggleCoordinates(showOrig) {
+            showingOriginal = showOrig;
+            
+            // 更新按钮样式
+            if (showOrig) {
+                showOriginal.classList.remove('bg-gray-200', 'text-gray-700');
+                showOriginal.classList.add('bg-primary', 'text-white');
+                showConverted.classList.remove('bg-primary', 'text-white');
+                showConverted.classList.add('bg-gray-200', 'text-gray-700');
+            } else {
+                showConverted.classList.remove('bg-gray-200', 'text-gray-700');
+                showConverted.classList.add('bg-primary', 'text-white');
+                showOriginal.classList.remove('bg-primary', 'text-white');
+                showOriginal.classList.add('bg-gray-200', 'text-gray-700');
+            }
+            
+            // 更新地图标记
+            originalMarkers.forEach(marker => {
+                if (showOrig) {
+                    map.addLayer(marker);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+            
+            convertedMarkers.forEach(marker => {
+                if (!showOrig && convertedData) {
+                    map.addLayer(marker);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+        }
+
+        // 事件监听
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('border-primary', 'bg-blue-50');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('border-primary', 'bg-blue-50');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('border-primary', 'bg-blue-50');
+            
+            if (e.dataTransfer.files.length) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                handleFileUpload(fileInput.files[0]);
+            }
+        });
+
+        removeFile.addEventListener('click', () => {
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            originalData = null;
+            convertedData = null;
+            renderTable(null);
+            renderMarkers(null, false, true);
+            renderMarkers(null, true, true);
+            downloadSection.classList.add('hidden');
+            convertBtn.disabled = false; // 始终允许点击按钮，由按钮处理函数判断状态
+            showNotification('文件已移除');
+        });
+
+        // 修复转换按钮点击问题：直接绑定点击事件，不依赖初始状态
+        convertBtn.addEventListener('click', convertCoordinates);
+        downloadBtn.addEventListener('click', downloadCSV);
+        
+        showOriginal.addEventListener('click', () => toggleCoordinates(true));
+        showConverted.addEventListener('click', () => toggleCoordinates(false));
+        
+        // 当自定义proj4字符串有值时，禁用目标坐标系选择
+        customProj4.addEventListener('input', () => {
+            targetCrs.disabled = customProj4.value.trim() !== '';
+        });
+
+        // 初始化
+        window.addEventListener('load', () => {
+            initMap();
+            // 初始状态下允许点击按钮，由按钮处理函数判断是否有数据
+            convertBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
+    

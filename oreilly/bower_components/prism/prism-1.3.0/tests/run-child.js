@@ -1,0 +1,1 @@
+"use strict";var TestCase=require("./helper/test-case"),argv=require("yargs").argv;argv.language&&process.on("message",function(e){if(e.filePath)try{TestCase.runTestCase(argv.language,e.filePath),process.send({success:!0})}catch(e){process.send({error:e})}});

@@ -1,0 +1,231 @@
+<p>knitsmd: Knit Markdown documents which contains Stata codes </p>
+<!-- badges: start -->
+
+<p><a href="https://www.tidyverse.org/lifecycle/#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle:
+experimental"></a></p>
+<!-- badges: end -->
+
+<p>自用 Stata 命令，不一定能在大家的电脑上运行，不过代码还是很值得参考的！</p>
+<p>里面调用了我编写的另外一个 R 包，使用前需要安装：</p>
+<pre><code class="r">devtools::install_github(<span class="string">"r-stata/rstatacreator"</span>)</code></pre>
+<p>欢迎大家关注微信公众号“RStata” 和 “Stata 中文社区” 获取最新资讯和动态！</p>
+<table>
+<thead>
+<tr>
+<th align="center">RStata</th>
+<th align="center">Stata中文社区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20201120143454.png" width="50%"/></td>
+<td align="center"><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20201120143508.png" width="50%"/></td>
+</tr>
+</tbody></table>
+<p>这篇文档用以测试在 Markdown 文件中插入 Stata<br>代码，然后进行编译。编译过程中会自动执行代码、保存代码输出结果、保存图片，然后再把结果和图片插入到文档中。不过在这个过程中也要遵循一些基本规则。</p>
+<h2 id="整体-Stata-代码"><a href="#整体-Stata-代码" class="headerlink" title="整体 Stata 代码"></a>整体 Stata 代码</h2><p>Stata 中通常使用 <code>///</code> 符号进行代码换行，不过也有一些例外，例如编写<br>program，这种情况需要使用 <code>{stata asis}</code> 来声明代码块，例如：</p>
+<pre><code class="stata"><span class="keyword">cap</span> <span class="keyword">program</span> <span class="keyword">drop</span> myexp_lf 
+<span class="keyword">program</span> myexp_lf
+  <span class="keyword">version</span> 14
+  <span class="keyword">args</span> lnfj lambda 
+  <span class="keyword">quietly</span> <span class="keyword">replace</span> <span class="symbol">`lnfj'</span> = <span class="built_in">log</span>(<span class="symbol">`lambda'</span>) - <span class="symbol">`lambda'</span> * <span class="variable">$ML_y1</span>
+end</code></pre>
+<p>input 输入数据的时候也经常会遇到这个问题：</p>
+<pre><code class="stata"><span class="keyword">clear</span>
+<span class="keyword">input</span> y
+2.1
+2.2
+3.1
+1.6
+2.5
+0.5
+end</code></pre>
+<p>整篇文档的代码会被作为一个整体运行，所以不同代码块里面的代码是可以连贯运行的：</p>
+<pre><code class="stata"><span class="keyword">ml</span> model lf myexp_lf (y = ) 
+<span class="keyword">ml</span> maximize, nolog 
+<span class="comment">*&gt; initial:       log likelihood =     -&lt;inf&gt;  (could not be evaluated)</span>
+<span class="comment">*&gt; feasible:      log likelihood = -10.158883</span>
+<span class="comment">*&gt; rescale:       log likelihood = -10.158883</span>
+<span class="comment">*&gt;                                                              Number of obs = 6</span>
+<span class="comment">*&gt;                                                              Wald chi2(0)  = .</span>
+<span class="comment">*&gt; Log likelihood = -10.158883                                  Prob &gt; chi2   = .</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="comment">*&gt;            y | Coefficient  Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span class="comment">*&gt; -------------+----------------------------------------------------------------</span>
+<span class="comment">*&gt;        _cons |         .5   .2041241     2.45   0.014      .099924     .900076</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span></code></pre>
+<p>当代码块被声明为 <code>{stata asis}</code><br>的时候，这部分代码会直接保存到结果文档中，因此不能把含有结果输出的代码放到这个代码块里面，否则你讲不会得到任何结果输出。</p>
+<pre><code class="stata"><span class="keyword">clear</span> 
+<span class="keyword">input</span> x1 x2 y
+1  0  0
+1  1  1
+0  0  0
+0  1  0
+end</code></pre>
+<p>于是，我们单独放置回归代码，这样才能确保输出结果也保存到结果文档中：</p>
+<pre><code class="stata"><span class="keyword">reg</span> y x1 x2 
+<span class="comment">*&gt;       Source |       SS           df       MS      Number of obs   =         4</span>
+<span class="comment">*&gt; -------------+----------------------------------   F(2, 1)         =      1.00</span>
+<span class="comment">*&gt;        Model |          .5         2         .25   Prob &gt; F        =    0.5774</span>
+<span class="comment">*&gt;     Residual |         .25         1         .25   R-squared       =    0.6667</span>
+<span class="comment">*&gt; -------------+----------------------------------   Adj R-squared   =    0.0000</span>
+<span class="comment">*&gt;        Total |         .75         3         .25   Root MSE        =        .5</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="comment">*&gt;            y | Coefficient  Std. err.      t    P&gt;|t|     [95% conf. interval]</span>
+<span class="comment">*&gt; -------------+----------------------------------------------------------------</span>
+<span class="comment">*&gt;           x1 |         .5         .5     1.00   0.500    -5.853102    6.853102</span>
+<span class="comment">*&gt;           x2 |         .5         .5     1.00   0.500    -5.853102    6.853102</span>
+<span class="comment">*&gt;        _cons |       -.25   .4330127    -0.58   0.667    -5.751948    5.251948</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span></code></pre>
+<h2 id="普通代码（有文本结果输出）"><a href="#普通代码（有文本结果输出）" class="headerlink" title="普通代码（有文本结果输出）"></a>普通代码（有文本结果输出）</h2><p>普通代码块使用 <code>{stata}</code> 直接声明即可。</p>
+<p>下面是一段需要执行的代码：</p>
+<pre><code class="stata"><span class="keyword">sysuse</span> auto, <span class="keyword">clear</span> 
+<span class="comment">*&gt; (1978 automobile data)</span>
+<span class="keyword">list</span> price weight rep78 <span class="keyword">in</span> 1/10
+<span class="comment">*&gt;      +-------------------------+</span>
+<span class="comment">*&gt;      |  price   weight   rep78 |</span>
+<span class="comment">*&gt;      |-------------------------|</span>
+<span class="comment">*&gt;   1. |  4,099    2,930       3 |</span>
+<span class="comment">*&gt;   2. |  4,749    3,350       3 |</span>
+<span class="comment">*&gt;   3. |  3,799    2,640       . |</span>
+<span class="comment">*&gt;   4. |  4,816    3,250       3 |</span>
+<span class="comment">*&gt;   5. |  7,827    4,080       4 |</span>
+<span class="comment">*&gt;      |-------------------------|</span>
+<span class="comment">*&gt;   6. |  5,788    3,670       3 |</span>
+<span class="comment">*&gt;   7. |  4,453    2,230       . |</span>
+<span class="comment">*&gt;   8. |  5,189    3,280       3 |</span>
+<span class="comment">*&gt;   9. | 10,372    3,880       3 |</span>
+<span class="comment">*&gt;  10. |  4,082    3,400       3 |</span>
+<span class="comment">*&gt;      +-------------------------+</span></code></pre>
+<p>不想要执行的代码需要使用 <code>stata</code> 声明：</p>
+<pre><code class="stata">这是一段不想要被执行的代码，毕竟直接执行会报错！</code></pre>
+<h2 id="绘图代码（有图表输出）"><a href="#绘图代码（有图表输出）" class="headerlink" title="绘图代码（有图表输出）"></a>绘图代码（有图表输出）</h2><p>不管是否有图表生成，每个代码块在编译的时候都会被尝试保存图片，因此不要把多个图表生成代码放到一个代码块里面，否则也是会产生错误的结果。</p>
+<p>如果该代码块有图表生成，程序会自动把结果插入到结果文档中：</p>
+<pre><code class="stata"><span class="keyword">sysuse</span> auto, <span class="keyword">clear</span> 
+<span class="comment">*&gt; (1978 automobile data)</span>
+<span class="keyword">tw</span> <span class="comment">/// </span>
+<span class="keyword">sc</span> price weight || <span class="comment">/// </span>
+<span class="keyword">lfit</span> price weight, <span class="comment">/// </span>
+    ti(<span class="string">"标题测试"</span>) <span class="comment">/// </span>
+    yti(<span class="string">"y 轴标题"</span>, <span class="comment">/// </span>
+        size(*2))</code></pre>
+<p><img src="picture_blocks/tempsmddocpic7.png" alt=""></p>
+<p>不使用 <code>///</code> 进行代码换行也是可以的：</p>
+<pre><code class="stata"><span class="keyword">sysuse</span> auto, <span class="keyword">clear</span> 
+<span class="comment">*&gt; (1978 automobile data)</span>
+<span class="keyword">tw</span> <span class="keyword">sc</span> price weight || <span class="keyword">lfit</span> price weight</code></pre>
+<p><img src="picture_blocks/tempsmddocpic8.png" alt=""></p>
+<p>再例如使用 coefplot 命令绘图：</p>
+<pre><code class="stata"><span class="keyword">sysuse</span> auto
+<span class="comment">*&gt; (1978 automobile data)</span>
+<span class="keyword">regress</span> price mpg headroom trunk <span class="comment">/// </span>
+    length turn <span class="keyword">if</span> foreign == 0
+<span class="comment">*&gt;       Source |       SS           df       MS      Number of obs   =        52</span>
+<span class="comment">*&gt; -------------+----------------------------------   F(5, 46)        =      3.90</span>
+<span class="comment">*&gt;        Model |   145742460         5    29148492   Prob &gt; F        =    0.0049</span>
+<span class="comment">*&gt;     Residual |   343452340        46  7466355.23   R-squared       =    0.2979</span>
+<span class="comment">*&gt; -------------+----------------------------------   Adj R-squared   =    0.2216</span>
+<span class="comment">*&gt;        Total |   489194801        51  9592054.92   Root MSE        =    2732.5</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="comment">*&gt;        price | Coefficient  Std. err.      t    P&gt;|t|     [95% conf. interval]</span>
+<span class="comment">*&gt; -------------+----------------------------------------------------------------</span>
+<span class="comment">*&gt;          mpg |  -218.4576   162.8462    -1.34   0.186    -546.2499    109.3347</span>
+<span class="comment">*&gt;     headroom |  -710.5966   579.0558    -1.23   0.226    -1876.176    454.9823</span>
+<span class="comment">*&gt;        trunk |   46.94429   175.9435     0.27   0.791    -307.2117    401.1003</span>
+<span class="comment">*&gt;       length |   46.53995   53.68823     0.87   0.391    -61.52884    154.6087</span>
+<span class="comment">*&gt;         turn |  -27.75574   183.0077    -0.15   0.880    -396.1312    340.6197</span>
+<span class="comment">*&gt;        _cons |   3974.614   11204.48     0.35   0.724    -18578.83    26528.06</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="keyword">estimates</span> store domestic 
+<span class="keyword">regress</span> price mpg headroom trunk length turn <span class="keyword">if</span> foreign==1
+<span class="comment">*&gt;       Source |       SS           df       MS      Number of obs   =        22</span>
+<span class="comment">*&gt; -------------+----------------------------------   F(5, 16)        =      8.62</span>
+<span class="comment">*&gt;        Model |   105293573         5  21058714.7   Prob &gt; F        =    0.0004</span>
+<span class="comment">*&gt;     Residual |  39069639.5        16  2441852.47   R-squared       =    0.7294</span>
+<span class="comment">*&gt; -------------+----------------------------------   Adj R-squared   =    0.6448</span>
+<span class="comment">*&gt;        Total |   144363213        21   6874438.7   Root MSE        =    1562.6</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="comment">*&gt;        price | Coefficient  Std. err.      t    P&gt;|t|     [95% conf. interval]</span>
+<span class="comment">*&gt; -------------+----------------------------------------------------------------</span>
+<span class="comment">*&gt;          mpg |  -60.04633   72.57605    -0.83   0.420    -213.9007    93.80802</span>
+<span class="comment">*&gt;     headroom |   463.4583   742.3428     0.62   0.541    -1110.238    2037.155</span>
+<span class="comment">*&gt;        trunk |   138.7539   122.5353     1.13   0.274    -121.0094    398.5172</span>
+<span class="comment">*&gt;       length |   138.4445   36.53955     3.79   0.002     60.98406    215.9048</span>
+<span class="comment">*&gt;         turn |  -67.18482   346.4303    -0.19   0.849    -801.5843    667.2147</span>
+<span class="comment">*&gt;        _cons |   -15877.4   11820.27    -1.34   0.198    -40935.26    9180.448</span>
+<span class="comment">*&gt; ------------------------------------------------------------------------------</span>
+<span class="keyword">estimates</span> store foreign
+coefplot domestic foreign, xline(0)</code></pre>
+<p><img src="picture_blocks/tempsmddocpic9.png" alt=""></p>
+<p>由于一些特殊的原因，代码换行后的缩进建议使用四个空格而非制表符，否则会得到不美观的输出结果。</p>
+<h2 id="超长结果输出测试"><a href="#超长结果输出测试" class="headerlink" title="超长结果输出测试"></a>超长结果输出测试</h2><p>下面是一段超长的代码输出测试：</p>
+<pre><code class="stata"><span class="keyword">di</span> <span class="string">"这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码"</span>
+<span class="comment">*&gt; 这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码这是一段无比无比无比长的代码</span></code></pre>
+<p>也可以得到比较美观的结果。</p>
+<h2 id="数学公式"><a href="#数学公式" class="headerlink" title="数学公式"></a>数学公式</h2><p>行内公式使用方法，比如这个化学公式：$a^2 + b^2 = c^2$(<code>\(a^2 + b^2 = c^2\)</code>)，也可以用美元符号：$a^2 + b^2 = c^2$(<code>$a^2 + b^2 = c^2$</code>)</p>
+<p>块公式使用方法如下：</p>
+<p>$$H(D_2) = -\left(\frac{2}{4}\log_2 \frac{2}{4} + \frac{2}{4}\log_2 \frac{2}{4}\right) = 1$$</p>
+<p>矩阵：</p>
+<p>$$<br>  \begin{pmatrix}<br>  1 &amp; a_1 &amp; a_1^2 &amp; \cdots &amp; a_1^n \<br>  1 &amp; a_2 &amp; a_2^2 &amp; \cdots &amp; a_2^n \<br>  \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots \<br>  1 &amp; a_m &amp; a_m^2 &amp; \cdots &amp; a_m^n \<br>  \end{pmatrix}<br>$$</p>
+<p>块公式用 <code>$$ ... $$</code> 也是可以的。</p>
+<h2 id="R-语言代码"><a href="#R-语言代码" class="headerlink" title="R 语言代码"></a>R 语言代码</h2><p>由于该程序是使用 RMarkdown 进行编译的，所以 R 语言的代码也可以用于其中：</p>
+<pre><code class="r"><span class="comment"># 设置字体</span>
+<span class="keyword">library</span>(showtext)
+showtext_auto(enable = <span class="literal">TRUE</span>)
+font_add(<span class="string">"cnfont"</span>, bold = <span class="string">"~/Library/Fonts/LXGWWenKai-Medium.ttf"</span>,
+         regular = <span class="string">"~/Library/Fonts/LXGWWenKai-Regular.ttf"</span>,
+         italic = <span class="string">"~/Library/Fonts/LXGWWenKai-Light.ttf"</span>)
+font_add(<span class="string">"enfont"</span>, regular = <span class="string">"/Users/ac/Documents/font/CascadiaCode-Regular-VTT.ttf"</span>)
+
+<span class="keyword">library</span>(rvest)
+<span class="keyword">library</span>(tidyverse)
+<span class="comment"># lubridate 是处理日期的一个 R 包</span>
+<span class="keyword">library</span>(lubridate)
+<span class="keyword">library</span>(hrbrthemes)
+
+<span class="comment"># 需要耐心地等待一会儿</span>
+pkg &lt;- <span class="string">"https://mirrors.tuna.tsinghua.edu.cn/CRAN/web/packages/available_packages_by_date.html"</span> %&gt;%
+  read_html() %&gt;%
+  html_table() %&gt;%
+  .[[<span class="number">1</span>]] %&gt;%
+  as_tibble() %&gt;%
+  mutate(
+    Date = ymd(Date),
+    Year = year(Date),
+    Month = month(Date)
+  )
+
+<span class="keyword">library</span>(ggchicklet)
+pkg %&gt;% 
+  subset(Year &gt; year(today()) - <span class="number">8</span>) %&gt;% 
+  group_by(Year, Month) %&gt;%
+  count() %&gt;%
+  ggplot(aes(x = factor(Year), y = n)) +
+  geom_chicklet(aes(fill = factor(Month)),
+                width = <span class="number">0.75</span>,
+                radius = grid::unit(<span class="number">3</span>, <span class="string">"pt"</span>)) + 
+  coord_flip() +
+  scale_fill_manual(name = <span class="string">"Month"</span>,
+                    values = c(<span class="string">"#4E79A7FF"</span>, <span class="string">"#A0CBE8FF"</span>,
+                               <span class="string">"#F28E2BFF"</span>, <span class="string">"#FFBE7DFF"</span>,
+                               <span class="string">"#59A14FFF"</span>, <span class="string">"#8CD17DFF"</span>,
+                               <span class="string">"#B6992DFF"</span>, <span class="string">"#F1CE63FF"</span>,
+                               <span class="string">"#499894FF"</span>, <span class="string">"#86BCB6FF"</span>, 
+                               <span class="string">"#E15759FF"</span>, <span class="string">"#FF9D9AFF"</span>),
+                    breaks = <span class="number">1</span>:<span class="number">12</span>,
+                    labels = month.name) +
+  theme_ipsum(base_family = <span class="string">"cnfont"</span>) + 
+  theme(axis.text.x = element_text(color = <span class="string">"gray60"</span>,
+                                   size = <span class="number">10</span>)) +
+  theme(legend.position = <span class="string">"right"</span>,
+        legend.title = element_blank(),
+        legend.box.background = element_blank(),
+        legend.background = element_blank(),
+        panel.background = element_blank()) +
+  guides(fill = guide_legend(ncol = <span class="number">1</span>)) +
+  labs(
+    title = <span class="string">"Number of R packages on CRAN"</span>,
+    subtitle = <span class="string">"绘制：微信公众号 RStata"</span>,
+    caption = <span class="string">"Data Source: \nhttps://mirrors.tuna.tsinghua.edu.cn/CRAN/"</span>,
+    x = <span class="string">""</span>,
+    y = <span class="string">""</span>) </code></pre>
+<img src="main_files/figure-gfm/unnamed-chunk-1-1.png" style="display: block; margin: auto;" />
