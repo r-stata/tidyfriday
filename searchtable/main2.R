@@ -35,7 +35,7 @@ headers = c(
 
 params = list(
   `page` = "1",
-  `count` = "1100",
+  `count` = "100",
   `status` = "2"
 )
 
@@ -66,88 +66,14 @@ df %>%
   select(-price) %>% 
   filter(status != 0) %>% 
   select(-status) %>% 
-  arrange(class) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   set_names("标题", "链接", "类别") -> df 
 
 df
-  
-df %>% 
-  writexl::write_xlsx("RStata 课程&数据列表（截止2025年11月17日）raw.xlsx")
 
 df %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）raw.csv")
-
-df
-
-df %>% 
-  arrange(标题) %>% 
   mutate(标题 = str_remove_all(标题, "名师讲堂｜"),
          标题 = str_replace_all(标题, "~", "～")) %>% 
   transmute(类别, text = paste0("[", 标题, "](", 链接, ")")) %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）.csv")
-
-df %>% 
-  mutate(标题 = str_remove_all(标题, "名师讲堂｜"),
-         标题 = str_replace_all(标题, "~", "～")) %>% 
-  select(-类别) %>% 
-  mutate(PC端链接 = str_replace_all(链接, "https://rstata.duanshu.com/#/course/", "https://rstata-pc.duanshu.com/course/detail/"),
-         手机端链接 = paste0("<a target=\"_blank\" href=\"", 链接, "\">手机端链接</a>"),
-         PC端链接 = paste0("<a target=\"_blank\" href=\"", PC端链接, "\">PC端链接</a>")) %>% 
-  DT::datatable(width = "100%", height = "400px",
-                rownames = FALSE, # 去除表头
-                filter = "top", # 在顶部添加过滤控件
-                escape = F,
-                extensions = 'Buttons',  # 启用 Buttons 扩展
-                caption = htmltools::tags$caption(
-                  style = "caption-side: top; text-align: center; font-size: 24px;",
-                  "RStata 课程与图表数据库索引"  # 设置标题文本
-                ),
-                options = list(
-                  columnDefs = list(
-                    list(visible = FALSE, targets = c(1))  # 隐藏第2列和第4列（索引从0开始）
-                  ),
-                  autoWidth = TRUE,
-                  pageLength = 10, # 每页显示的数量
-                  initComplete = htmlwidgets::JS(
-                    "function(settings, json) {",
-                    "$(this.api().table().container()).css({'font-family': 'SourceHanSerifSC-Medium'});",
-                    "}"),
-                  dom = 'Bfrtip',       # 定义控件布局（B 表示按钮）
-                  buttons = list(
-                    list(extend = 'csv', filename = 'RStata 课程与图表数据库索引',
-                         text = '下载 CSV',
-                         exportOptions = list(
-                           columns = c(0, 1)  # 只导出第1、2列
-                         )),
-                    list(extend = 'excel', 
-                         filename = 'RStata 课程与图表数据库索引',
-                         text = '下载 Excel',
-                         exportOptions = list(
-                           columns = c(0, 1),  # 只导出第1、2列
-                           title = 'RStata 课程与图表数据库索引',
-                           header = FALSE
-                         ))
-                  )
-                )
-  ) %>% 
-  htmlwidgets::saveWidget("index.html", title = "RStata 课程与图表数据库索引") 
-
-# 读取原始 HTML 文件
-html_content <- readLines("index.html")
-
-# 在 </head> 前插入 favicon
-modified_content <- sub(
-  "</head>",
-  '<link rel="icon" href="https://tidyfriday.cn/images/pad.svg">\n</head>',
-  html_content
-)
-
-# 保存修改后的文件
-writeLines(modified_content, "index.html")
-
-
-read_csv("RStata 课程与图表数据库索引.csv") %>% 
-  transmute(text = paste0("[", 标题, "](", 链接, ")")) %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）.csv")
+  write_csv("RStata 课程&数据列表new.csv")
