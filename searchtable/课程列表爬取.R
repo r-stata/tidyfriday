@@ -74,10 +74,10 @@ df %>%
 df
   
 df %>% 
-  writexl::write_xlsx("RStata 课程&数据列表（截止2025年11月17日）raw.xlsx")
+  writexl::write_xlsx("RStata 课程&数据列表raw.xlsx")
 
 df %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）raw.csv")
+  write_csv("RStata 课程&数据列表raw.csv")
 
 df
 
@@ -86,7 +86,7 @@ df %>%
   mutate(标题 = str_remove_all(标题, "名师讲堂｜"),
          标题 = str_replace_all(标题, "~", "～")) %>% 
   transmute(类别, text = paste0("[", 标题, "](", 链接, ")")) %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）.csv")
+  write_csv("RStata 课程&数据列表.csv")
 
 df %>% 
   mutate(标题 = str_remove_all(标题, "名师讲堂｜"),
@@ -150,4 +150,4 @@ writeLines(modified_content, "index.html")
 
 read_csv("RStata 课程与图表数据库索引.csv") %>% 
   transmute(text = paste0("[", 标题, "](", 链接, ")")) %>% 
-  write_csv("RStata 课程&数据列表（截止2025年11月17日）.csv")
+  write_csv("RStata 课程&数据列表.csv")
