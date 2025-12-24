@@ -140,7 +140,7 @@ html_content <- readLines("index.html")
 # 在 </head> 前插入 favicon
 modified_content <- sub(
   "</head>",
-  '<link rel="icon" href="https://tidyfriday.cn/images/pad.svg">\n</head>',
+  '<link rel="icon" href="https://rstata.top/images/pad.svg">\n</head>',
   html_content
 )
 
