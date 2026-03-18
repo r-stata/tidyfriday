@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发票明细 - 阜阳经研数据技术有限公司</title>
+    <style>
+        /* 全局样式重置 - 统一设置宋体 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "SimSun", "宋体", serif; /* 优先宋体，兼容不同系统 */
+        }
+
+        /* A4纸张样式设置 */
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        .invoice-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 打印样式优化 */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                font-family: "SimSun", "宋体", serif;
+            }
+            .invoice-container {
+                width: 100%;
+                height: 100%;
+                padding: 20mm;
+                margin: 0;
+                box-shadow: none;
+                font-family: "SimSun", "宋体", serif;
+            }
+            /* 打印时隐藏所有操作按钮和提示 */
+            .print-btn, .edit-tips, .table-controls-float, .refresh-total-btn {
+                display: none !important;
+            }
+            /* 打印时移除编辑框的边框 */
+            .editable {
+                border: none !important;
+                padding: 0 !important;
+            }
+        }
+
+        /* 浮动按钮容器 - 放在打印按钮旁边 */
+        .table-controls-float {
+            position: fixed;
+            top: 20px;
+            right: 200px; /* 打印按钮宽度+间距 */
+            display: flex;
+            gap: 8px;
+            z-index: 999;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 通用按钮样式 */
+        .float-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 标题区域样式 - 包含logo和公司名称 */
+        .header-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* Logo样式 */
+        .logo-container {
+            width: 80px;  /* 适中宽度 */
+            height: 60px; /* 适中高度 */
+        }
+
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: none; /* 占位虚线 */
+        }
+
+        /* 标题文本样式 */
+        .title-text {
+            flex: 1;
+            font-family: "SimSun", "宋体", serif;
+        }
+        .company-header {
+            text-align: left;
+            font-size: 24px;
+            font-weight: 800;
+            color: rgb(31,120,180);
+            margin-bottom: 5px;
+            font-family: "SimSun", "宋体", serif;
+        }
+        .invoice-subtitle {
+            text-align: left;
+            font-size: 18px;
+            font-weight: 700;
+            color: rgb(31,120,180);
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 开票方/收票方信息 左右分栏样式 */
+        .info-wrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 25px;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        .info-section {
+            flex: 1;
+            font-size: 12px;
+            line-height: 1.8;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        .info-section h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #222;
+            border-bottom: none;
+            padding-bottom: 1px;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 开票方/收票方信息竖直对齐 - 关键样式 */
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 4px;
+            font-family: "SimSun", "宋体", serif;
+        }
+        .info-label {
+            width: 100px;
+            flex-shrink: 0;
+            font-weight: 600;
+            font-family: "SimSun", "宋体", serif;
+        }
+        .info-value {
+            flex: 1;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 可编辑文本样式 */
+        .editable {
+            display: inline-block;
+            min-width: 120px;
+            padding: 1px 5px;
+            border: 1px dashed #ccc;
+            border-radius: 3px;
+            cursor: text;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        .editable:focus {
+            outline: 1px solid #007bff;
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        /* 表格样式 - 三线式表格（仅保留上、表头下、表底三条横线） */
+        .service-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+            font-family: "SimSun", "宋体", serif;
+            border: none; /* 移除表格默认边框 */
+        }
+        /* 加深表头背景色和阴影效果 */
+        .service-table th {
+            background-color: #e0e0e0 !important; /* 加深灰色背景 */
+            font-weight: bold;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* 内阴影加深 */
+            font-family: "SimSun", "宋体", serif;
+        }
+        /* 三线表核心样式 - 只保留三条横线 */
+        .service-table th, .service-table td {
+            padding: 5px;
+            text-align: left;
+            font-family: "SimSun", "宋体", serif;
+            border: none; /* 移除所有单元格边框 */
+        }
+
+        /* 1. 表格顶部边框（第一条线） */
+        .service-table thead tr:first-child th {
+            border-top: 2px solid #333; /* 顶部粗线 */
+        }
+
+        /* 2. 表头底部边框（第二条线 - 表头与内容分隔线） */
+        .service-table thead th {
+            border-bottom: 1px solid #333; /* 表头下方细线 */
+            background-color: #e0e0e0; /* 表头背景色 */
+            font-weight: bold;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* 表头内阴影 */
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 3. 表格底部边框（第三条线） */
+        .service-table tbody tr:last-child td {
+            border-bottom: 2px solid #333; /* 表底粗线 */
+        }
+
+        /* 可编辑表格单元格 */
+        .service-table td[contenteditable="true"] {
+            cursor: text;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 总计样式 */
+        .total-section {
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding-right: 20px;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 底部信息样式 - 包含印章 */
+        .footer-section {
+            margin-top: 40px;
+            font-size: 12px;
+            line-height: 1.8;
+            text-align: right;
+            position: relative;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 印章样式 - 宽度4cm */
+        .seal-container {
+            width: 4cm;
+            height: 4cm;
+            position: absolute;
+            right: 0;
+            bottom: -30px;
+            margin-left: 10px;
+        }
+
+        .seal-img {
+            width: 120%;
+            height: 120%;
+            object-fit: contain;
+            opacity: 0.85;
+            border: none; /* 占位虚线 */
+        }
+
+        /* 打印按钮样式 */
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            z-index: 999;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 编辑提示 */
+        .edit-tips {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 8px 15px;
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 999;
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 按钮颜色区分 */
+        .add-row-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .delete-row-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .recalculate-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .refresh-total-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .fetch-data-btn {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        /* 按钮hover效果 */
+        .float-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* 服务说明文本 */
+        p {
+            font-family: "SimSun", "宋体", serif;
+        }
+
+        /* 加载提示样式 */
+        .loading-tips {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 999;
+            font-family: "SimSun", "宋体", serif;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 编辑提示 -->
+    <div class="edit-tips">提示：点击带虚线边框的文本可直接编辑内容</div>
+    
+    <!-- 加载提示 -->
+    <div class="loading-tips" id="loading-tips">正在获取数据，请稍候...</div>
+    
+    <!-- 浮动操作按钮组 - 放在打印按钮旁边 -->
+    <div class="table-controls-float">
+        <button class="float-btn add-row-btn" onclick="addTableRow()">添加行</button>
+        <button class="float-btn delete-row-btn" onclick="deleteTableRow()">删除最后一行</button>
+        <button class="float-btn recalculate-btn" onclick="recalculateAmounts()">重新计算金额</button>
+        <button class="float-btn refresh-total-btn" onclick="calculateTotal()">刷新总计</button>
+        <button class="float-btn fetch-data-btn" onclick="fetchDataAndFillTable()">获取数据</button>
+    </div>
+    
+    <!-- 打印按钮 -->
+    <button class="print-btn" onclick="window.print()">打印发票 (PDF)</button>
+
+    <!-- 发票主体容器 -->
+    <div class="invoice-container">
+        <!-- 标题区域 - 包含logo和公司名称 -->
+        <div class="header-container">
+            <div class="title-text">
+                <br>
+                <br>
+                <div class="company-header editable" contenteditable="true">阜阳经研数据技术有限公司</div>
+                <br>
+                <br>
+                <div class="invoice-subtitle">发票明细</div>
+            </div>
+            <!-- Logo图片容器 -->
+            <div class="logo-container">
+                <img src="https://tidyfriday.cn/images/pad.svg" alt="Logo" class="logo-img" title="pad.svg">
+            </div>
+        </div>
+
+        <!-- 开票方/收票方信息 左右分栏容器 -->
+        <div class="info-wrapper">
+            <!-- 开票方信息 - 重构为竖直对齐结构 -->
+            <div class="info-section">
+                <h3>开票方：</h3>
+                <div class="info-item">
+                    <span class="info-label">纳税人识别号：</span>
+                    <span class="info-value editable" contenteditable="true">91341200MAK01DMP98</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">联系电话：</span>
+                    <span class="info-value editable" contenteditable="true">19335222810</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">邮箱：</span>
+                    <span class="info-value editable" contenteditable="true">jingyandata@163.com</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">地址：</span>
+                    <span class="info-value editable" contenteditable="true">安徽省阜阳市开发区</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"></span>
+                    <span class="info-value editable" contenteditable="true">阜阳经研数据技术有限公司</span>
+                </div>
+            </div>
+
+            <!-- 收票方信息 - 重构为竖直对齐结构 -->
+            <div class="info-section">
+                <h3>收票方：</h3>
+                <div class="info-item">
+                    <span class="info-label">抬头：</span>
+                    <span class="info-value editable" contenteditable="true">xx学校</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">日期：</span>
+                    <span id="current-date" class="info-value editable" contenteditable="true"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">服务概括：</span>
+                    <span class="info-value editable" contenteditable="true">数据采集</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 服务说明 -->
+        <p style="font-size: 12px; margin: 15px 0;">我司为收票人提供了如下服务：</p>
+
+        <!-- 服务明细表格 (可编辑) -->
+        <table class="service-table">
+            <thead>
+                <tr>
+                    <th>数据条目</th>
+                    <th>数量</th>
+                    <th>单价</th>
+                    <th>总价</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-table-body">
+                <!-- 初始行由JS自动生成 -->
+            </tbody>
+        </table>
+
+        <!-- 总计金额 - 默认999 -->
+        <div class="total-section">
+            总计金额：¥<span id="total-amount" class="editable" contenteditable="true">999</span> 元
+        </div>
+
+        <!-- 底部信息样式 - 包含印章 -->
+        <div class="footer-section">
+            <p><span class="editable" contenteditable="true">谢谢您选择我们。很高兴能与您合作这个项目</span></p>
+            <br>
+            <br>
+            <p><span class="editable" contenteditable="true">阜阳经研数据技术有限公司</span></p>
+            <p id="footer-date" class="editable" contenteditable="true"></p>
+            <!-- 印章图片容器 - 宽度4cm -->
+            <div class="seal-container">
+                <img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E7%BB%8F%E7%A0%94-%E5%8F%91%E7%A5%A8%E7%AB%A0_output.png" alt="公司印章" class="seal-img" title="点击替换印章图片">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取当前日期并格式化为 YYYY年MM月DD日
+        function getCurrentDate() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}年${month}月${day}日`;
+        }
+
+        // 初始化表格行 - 根据总金额999平均分并随机调整
+        function initTableRows() {
+            const totalAmount = parseInt(document.getElementById('total-amount').textContent) || 999;
+            randomizeAmounts(totalAmount);
+        }
+
+        // 随机分配总金额到各行（保持整数，总和等于总金额）
+        function randomizeAmounts(totalAmount) {
+            const tableBody = document.getElementById('invoice-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            const rowCount = rows.length > 0 ? rows.length : 3;
+            
+            // 清空原有内容（如果是初始化）
+            if (rows.length === 0) {
+                tableBody.innerHTML = '';
+            }
+
+            // 生成随机金额（保证总和等于总金额）
+            let amounts = [];
+            let remaining = totalAmount;
+            
+            // 为前n-1行生成随机金额
+            for (let i = 0; i < rowCount - 10; i++) {
+                const max = remaining - (rowCount - i - 10); // 保证剩余行至少有10元
+                const min = 10;
+                const amount = Math.floor(Math.random() * (max - min + 10)) + min;
+                amounts.push(amount);
+                remaining -= amount;
+            }
+            // 最后一行分配剩余金额
+            amounts.push(remaining);
+
+            const items = [
+                "1996～2024 年上市公司专利碎片化指数面板数据",
+                "2013～2024 年上市公司与政府采购数据匹配结果",
+                "1985～2024 年各省市区县不同土地覆盖类型的土地面积",
+                "1992～2024 年各省市区县乡镇类 DMSP-OLS 夜间灯光基尼系数、泰尔指数及阿特金森指数面板数据",
+                "1985～2024 年各省市区县、各IPC部、大类、小类、各类型专利申请与授权量",
+                "1998～2023 年各地级市地方生产总值及政府竞争程度指标面板数据",
+                "1985～2024 年各省份、城市间技术互补指数面板数据"
+            ];
+
+            // 更新或创建表格行
+            amounts.forEach((amount, index) => {
+                let row;
+                if (rows[index]) {
+                    row = rows[index];
+                } else {
+                    row = document.createElement('tr');
+                    tableBody.appendChild(row);
+                }
+                
+                row.innerHTML = `
+                    <td contenteditable="true">${items[index] || `新增数据条目${index+1}`}</td>
+                    <td contenteditable="true">1</td>
+                    <td contenteditable="true">${amount}</td>
+                    <td class="row-total">${amount}</td>
+                `;
+                
+                // 为新行添加编辑事件监听
+                const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+                editableCells.forEach(cell => {
+                    cell.addEventListener('blur', calculateTotal);
+                });
+            });
+        }
+
+        // 添加表格行
+        function addTableRow() {
+            const tableBody = document.getElementById('invoice-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            const totalAmount = parseInt(document.getElementById('total-amount').textContent) || 999;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td contenteditable="true">新增数据条目${rows.length + 1}</td>
+                <td contenteditable="true">1</td>
+                <td contenteditable="true">0</td>
+                <td class="row-total">0</td>
+            `;
+            tableBody.appendChild(row);
+            
+            // 为新行添加编辑事件监听
+            const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+            editableCells.forEach(cell => {
+                cell.addEventListener('blur', calculateTotal);
+            });
+            
+            // 重新随机分配金额
+            recalculateAmounts();
+        }
+
+        // 删除表格最后一行
+        function deleteTableRow() {
+            const tableBody = document.getElementById('invoice-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            
+            // 至少保留1行
+            if (rows.length <= 1) {
+                alert('至少需要保留一行数据！');
+                return;
+            }
+            
+            tableBody.removeChild(rows[rows.length - 1]);
+            // 重新随机分配金额
+            recalculateAmounts();
+        }
+
+        // 重新计算金额（随机分配）
+        function recalculateAmounts() {
+            const totalAmount = parseInt(document.getElementById('total-amount').textContent) || 999;
+            randomizeAmounts(totalAmount);
+            calculateTotal(); // 更新总计显示
+        }
+
+        // 计算单行总价和总计金额
+        function calculateTotal() {
+            const tableBody = document.getElementById('invoice-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            let total = 0;
+
+            // 遍历每行计算单行总价
+            rows.forEach(row => {
+                const quantity = parseInt(row.cells[1].textContent) || 0;
+                const price = parseInt(row.cells[2].textContent) || 0;
+                const rowTotal = quantity * price;
+                row.cells[3].textContent = rowTotal;
+                total += rowTotal;
+            });
+
+            // 更新总计金额（取整数）
+            document.getElementById('total-amount').textContent = Math.floor(total);
+        }
+
+        // 监听总计金额变化，自动重新分配金额
+        function watchTotalAmount() {
+            const totalElement = document.getElementById('total-amount');
+            let lastValue = totalElement.textContent;
+            
+            // 监听内容变化
+            const observer = new MutationObserver(() => {
+                if (totalElement.textContent !== lastValue) {
+                    lastValue = totalElement.textContent;
+                    const newTotal = parseInt(totalElement.textContent) || 999;
+                    recalculateAmounts(newTotal);
+                }
+            });
+            
+            observer.observe(totalElement, {
+                characterData: true,
+                childList: true,
+                subtree: true
+            });
+        }
+
+        // 随机分配总金额到各行（保持正整数，取值范围 0.5~1.5 倍平均金额，总和等于总金额）
+        function randomizeAmounts(totalAmount) {
+            const tableBody = document.getElementById('invoice-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            const rowCount = rows.length > 0 ? rows.length : 3;
+            
+            // 清空原有内容（如果是初始化）
+            if (rows.length === 0) {
+                tableBody.innerHTML = '';
+            }
+
+            // 计算平均金额
+            const avgAmount = totalAmount / rowCount;
+            // 计算取值范围：0.5~1.5 倍平均金额（转为整数）
+            const minPerRow = Math.max(1, Math.floor(0.5 * avgAmount)); // 最小为1（正整数）
+            const maxPerRow = Math.ceil(1.5 * avgAmount);
+            
+            // 生成符合范围的随机金额（保证总和等于总金额）
+            let amounts = [];
+            let remaining = totalAmount;
+            
+            // 为前n-1行生成符合范围的随机金额
+            for (let i = 0; i < rowCount - 1; i++) {
+                // 动态调整当前行的最大取值，确保剩余行能满足取值范围
+                const remainingRows = rowCount - i - 1;
+                const currentMax = Math.min(
+                    maxPerRow, 
+                    remaining - remainingRows * minPerRow // 保证剩余行至少能取到最小值
+                );
+                const currentMin = Math.max(
+                    minPerRow, 
+                    remaining - remainingRows * maxPerRow // 保证剩余行最多能取到最大值
+                );
+                
+                // 生成当前行的金额（正整数）
+                const amount = Math.floor(Math.random() * (currentMax - currentMin + 1)) + currentMin;
+                amounts.push(amount);
+                remaining -= amount;
+            }
+            // 最后一行分配剩余金额（确保总和正确）
+            amounts.push(remaining);
+
+            const items = [
+                "学生信息数据采集",
+                "校园设施数据采集",
+                "教学资源数据整理",
+                "数据质量检测",
+                "数据分析报告",
+                "数据可视化制作"
+            ];
+
+            // 更新或创建表格行
+            amounts.forEach((amount, index) => {
+                let row;
+                if (rows[index]) {
+                    row = rows[index];
+                } else {
+                    row = document.createElement('tr');
+                    tableBody.appendChild(row);
+                }
+                
+                row.innerHTML = `
+                    <td contenteditable="true">${items[index] || `新增数据条目${index+1}`}</td>
+                    <td contenteditable="true">1</td>
+                    <td contenteditable="true">${amount}</td>
+                    <td class="row-total">${amount}</td>
+                `;
+                
+                // 为新行添加编辑事件监听
+                const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+                editableCells.forEach(cell => {
+                    cell.addEventListener('blur', calculateTotal);
+                });
+            });
+        }
+
+        // 从指定URL获取CSV数据并填充表格（使用第二列作为数据名称，添加筛选和替换）
+        async function fetchDataAndFillTable() {
+            const loadingTips = document.getElementById('loading-tips');
+            const tableBody = document.getElementById('invoice-table-body');
+            const totalAmount = parseInt(document.getElementById('total-amount').textContent) || 999;
+            
+            // 显示加载提示
+            loadingTips.style.display = 'block';
+            
+            try {
+                // 发起请求获取CSV数据
+                const response = await fetch('https://tidyfriday.cn/searchtable/RStata 课程&数据列表raw.csv');
+                
+                if (!response.ok) {
+                    throw new Error(`请求失败：${response.status} ${response.statusText}`);
+                }
+                
+                // 读取CSV文本内容
+                const csvText = await response.text();
+                
+                // 解析CSV数据
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                const headers = lines[0].split(',').map(header => header.trim());
+                const allDataRows = lines.slice(1).filter(row => row.trim() !== '');
+                
+                if (allDataRows.length === 0) {
+                    throw new Error('未获取到有效数据');
+                }
+
+                // ===== 核心筛选逻辑 =====
+                // 1. 先解析所有行数据，提取类别和标题列
+                const parsedRows = allDataRows.map(row => {
+                    const cells = row.split(',').map(cell => cell.trim());
+                    return {
+                        original: row,
+                        cells: cells,
+                        category: cells[2] || '', // 假设类别是第一列
+                        title: cells[0] || ''     // 假设标题是第二列
+                    };
+                });
+
+                // 2. 应用筛选条件
+                const filteredRows = parsedRows.filter(row => {
+                    // 条件1: 类别 == "数据资料"
+                    const condition1 = row.category === "数据资料";
+                    
+                    // 条件2: 标题不包含"旧版本"
+                    const condition2 = !row.title.includes("旧版本");
+                    
+                    // 条件3: 标题包含 数据|结果|度|省市区县|乡镇 中的任意一个
+                    const keywordRegex = /数据|结果|度|省市区县|乡镇/;
+                    const condition3 = keywordRegex.test(row.title);
+                    
+                    // 所有条件都满足才保留
+                    return condition1 && condition2 && condition3;
+                });
+
+                // 如果筛选后无数据，抛出错误
+                if (filteredRows.length === 0) {
+                    throw new Error('筛选后未找到符合条件的数据');
+                }
+
+                // 3. 字符替换：将 "~" 替换成 "～"
+                const processedRows = filteredRows.map(row => {
+                    // 对标题进行字符替换
+                    const processedTitle = row.title.replace(/~/g, '～');
+                    return {
+                        ...row,
+                        processedTitle: processedTitle
+                    };
+                });
+                
+                // 清空原有表格内容
+                tableBody.innerHTML = '';
+                
+                // 生成随机金额（保证总和等于总金额）
+                const rowCount = Math.min(processedRows.length, 10); // 最多显示10行
+                
+                // 生成符合范围的随机金额（保证总和等于总金额）
+                const avgAmount = totalAmount / rowCount;
+                const minPerRow = Math.max(1, Math.floor(0.5 * avgAmount));
+                const maxPerRow = Math.ceil(1.5 * avgAmount);
+                
+                let amounts = [];
+                let remaining = totalAmount;
+                
+                for (let i = 0; i < rowCount - 1; i++) {
+                    const remainingRows = rowCount - i - 1;
+                    const currentMax = Math.min(maxPerRow, remaining - remainingRows * minPerRow);
+                    const currentMin = Math.max(minPerRow, remaining - remainingRows * maxPerRow);
+                    
+                    const amount = Math.floor(Math.random() * (currentMax - currentMin + 1)) + currentMin;
+                    amounts.push(amount);
+                    remaining -= amount;
+                }
+                amounts.push(remaining);
+                
+                // 填充表格数据（使用处理后的标题）
+                for (let i = 0; i < rowCount; i++) {
+                    const rowData = processedRows[i];
+                    // 使用处理后的标题（替换~为～），兼容空值
+                    const itemName = rowData.processedTitle.trim() !== '' 
+                        ? rowData.processedTitle 
+                        : `数据条目${i+1}`;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td contenteditable="true">${itemName}</td>
+                        <td contenteditable="true">1</td>
+                        <td contenteditable="true">${amounts[i]}</td>
+                        <td class="row-total">${amounts[i]}</td>
+                    `;
+                    tableBody.appendChild(row);
+                    
+                    // 为新行添加编辑事件监听
+                    const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+                    editableCells.forEach(cell => {
+                        cell.addEventListener('blur', calculateTotal);
+                    });
+                }
+                
+                // 更新总计金额
+                calculateTotal();
+                
+                alert(`成功筛选并填充 ${rowCount} 行数据（总计筛选出 ${filteredRows.length} 行符合条件的数据）！`);
+                
+            } catch (error) {
+                console.error('获取/筛选数据失败：', error);
+                alert(`获取/筛选数据失败：${error.message}\n将使用默认数据填充`);
+                // 失败时使用默认数据
+                randomizeAmounts(totalAmount);
+            } finally {
+                // 隐藏加载提示
+                loadingTips.style.display = 'none';
+            }
+        }
+
+        // 初始化页面
+        window.onload = function() {
+            // 设置日期
+            const currentDate = getCurrentDate();
+            document.getElementById('current-date').textContent = currentDate;
+            document.getElementById('footer-date').textContent = currentDate;
+
+            // 初始化表格数据
+            initTableRows();
+
+            // 监听总计金额编辑事件
+            document.getElementById('total-amount').addEventListener('blur', function() {
+                // 确保总计金额为整数
+                const value = parseInt(this.textContent) || 0;
+                this.textContent = Math.floor(value);
+                // 重新分配金额
+                recalculateAmounts(value);
+            });
+
+            // 监听总计金额变化
+            watchTotalAmount();
+
+            // 为Logo和印章添加点击替换功能
+            const logoImg = document.querySelector('.logo-img');
+            const sealImg = document.querySelector('.seal-img');
+            
+            logoImg.addEventListener('click', function() {
+                const newSrc = prompt('请输入Logo图片的URL地址：', this.src);
+                if (newSrc) this.src = newSrc;
+            });
+            
+            sealImg.addEventListener('click', function() {
+                const newSrc = prompt('请输入印章图片的URL地址：', this.src);
+                if (newSrc) this.src = newSrc;
+            });
+        }
+    </script>
+</body>
+</html>

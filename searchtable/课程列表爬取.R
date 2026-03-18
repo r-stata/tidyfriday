@@ -2,16 +2,18 @@ library(tidyverse)
 library(httr)
 
 cookies = c(
-  `csrftoken` = "TCXl9eLlKj4Hqohb3W6AUmZB7UhOTBKw1eDa29p2InmOMN6EnQm5jvEqBwv4DSeX",
-  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1767595107,1768538983,1769509901",
-  `auid` = "c21feebee3bc4a0db2abb5cf817d407b",
-  `_clck` = "1hicyki^2^g37^0^2048",
-  `user_info` = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
-  `tfstk` = "gnnqmWMINlcSxOOnLvqwY1ze7pZx5lRQicN_IADghSVmhZgzQvGa5ii_h4PZZbPmcowbS5cQwr9xCECNb7cTGZa_GGJ-GAIs_ApYI5ci_5gXPHMxHlEMO5-BAxh-Flang-qgZd2L3-v7ohyupoqMOBtSHUs9IlDXGnyTrYV8QRbcmf2lqRFuntVms74uKJ10jlcMU72Ld1bGj5xkqJPuslqisYvzC720jlciELyt_MUz83y3oKcMe1wWrp40txVPjMWLhrvshNsFYb24ucDYaRyZ4-z4OPvE3pmEKxmLQcph75kKojw-_HRzqmlqmzrwbgEjL4c4zqRN4z3opc4ryB7Kpxcq-ymD4LZiofr0acpOXS0jIcaZmBX_imhj4ynOgQNsRYi0zXA54fUZo2qmbB-l4e5TEnt-Xq5G7r28UW9yUJwziEoHvAkFWNUo18PBHxQOWr47UW9yUNQTro2zOKHA.",
-  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyZjJhYmE0NmJjYTc0NzgzOTAxMWZkOGZiYjU1ZTFhMSIsImV4cCI6MTc2OTk2MDM3NH0.Dkxk9n0tzwU0nkkf1GNrg4MSAzsBy12odLK0i_CjRnw",
-  `_clsk` = "1ds8lnn^1769938775392^7^1^i.clarity.ms/collect",
-  `ds-csrf-token` = "eyJpdiI6IiswZ21Rc0RXaHFJdzVqeHlqWGhKdnc9PSIsInZhbHVlIjoibEI2TjRUcWhzMCtHZFNsZ0dVaG1pdkRFeGFpZU9xWGRPOW44cFNsTEJ6VjdKSmZHelVXUFRnaGRld1wvdko4WjhXSFI0M1pYUmxjU2RRa3BxcktBY1ZBPT0iLCJtYWMiOiIxM2U3MDk1ZDYwNGY5NGQ5YjY0MDJlNzg4ZDhmM2FlNmM3OWFjNTQ5Y2QzNDM0NGQxMDI1MjNmNTk2MjI3YTdjIn0=",
-  `deprecated_duanshu_session` = "eyJpdiI6IlBwU1dWNVY2V2ZCcDZscnF1QlhyRkE9PSIsInZhbHVlIjoiOWZza25VMHV0d1ZFaWNhUzdPbno1N0NGcWlWd2l1ZGZXV2NrcnVnZnJUWm9vaXI3NUNZK2h4b2FTdUxOYzQ0VStWTUVCU3N3bUxzMUZxbVJcLzBuTGx3PT0iLCJtYWMiOiI5YzVhMWUzZDNiODExZjcyZTdiNDJkOTBjZGMxOGQzZWU3NzQ3MjllYWE5ZmQ4OGRhZGQ3MzIyZWQyNmQxMDEyIn0="
+  `csrftoken` = "8IdeJQbF3OaILZNro8PhUoqBDL2vJrJiQKLqCVFujztKwabStNmkwhcQgVnKrtow",
+  `MEIQIA_TRACK_ID` = "38QqSWuNR8StiOQ8xADnXlGBwbz",
+  `MEIQIA_VISIT_ID` = "38QqSahAD2rycjFBsVqmJzDaKpo",
+  `Hm_lvt_64c33900b1f45b302e16a732efb245b6` = "1768742141,1769435482",
+  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1771429531,1771708635,1771712767,1771944602",
+  `_clck` = "1f9xjlx^2^g3y^0^2199",
+  `tfstk` = "gg2nHV9zZVTjNr8NnUkC1ah82J5tUvMS1zp-yY3P_Vus9HEPPLkuSuaJ9u7Qr80a5QFKw0BkEokENW3-J4DuVrjOktBYAkMSaZQAHbDnoikv8D8-TluZe0fb-amUAkMWfXt5vVrCEaqTd0kzzAlZADkr4YRFjfox4YJEapRw7VirUYuETCrZvm8rYBlFjlus4YuzzYSiQVirU4zrUXpGoqDrIR7cAJh-puYpDDGnukuMnlwxYBuRh2pyURm3jwqnSDm3IDcnkbqRd5y00kyjq8s2Z4qbTyn_rtbiQJ43LfDlEdMLm5znsWbkIfNac8lg1ZAbckz3gjyFIGHzTzDES8sWF2PL48huLZ--8JaLIjwW-N38MleEsr79IzGuTSkUEZXN40dwg8ZkFcS8QQOSTciikQX9QsnYy90ljGAfXXosAEIGjQt-TciikGjMG6lEfDTA.",
+  `auid` = "5810ac17016a44568689774b29e4457c",
+  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIxNGRmZjk4MDE0MTU0N2VmODYzMDFhYzU0NTUyOWE3NiIsImV4cCI6MTc3MjI5MzA0MH0.rUXgtlG3aVDNaagHei7eL8zDTOccJIFnUZKoprJq8Ac",
+  `ds-csrf-token` = "eyJpdiI6IngyTDBoTlVYcUx5aWcrT0taSENMbXc9PSIsInZhbHVlIjoiUXlkZ2lzaTRuRW1WdlwvcThkN3NGQmk3ZzJxb21jVVRoTk5HRDhGeERSeEtZVXI4XC9iOWhZSmVvT2xsOVFwNGRCQ2tEWU00cXBleW55dzFFSlFzK21pQT09IiwibWFjIjoiZTZhNjgxMzYyNWRkZmQ5YzliYTRmNmE0ZjBmNDliZDc5NjM0MGQ2OTI1ZWZiZWFkZDA4ODhmMmZjZjY3ZjE3MiJ9",
+  `deprecated_duanshu_session` = "eyJpdiI6ImxaMFNKZjBjWTBkejBlZkVFd0hpOEE9PSIsInZhbHVlIjoiTUlRUEZaZ3YxdHB4NzVyV21xQUJDSWpTVU5sOG9nZlwvS2dcLzdoVkExYmM5YUZ4OGtnektQK2tibGl5YXNKdFB5UUNLazhVVVprQ0NTQVBGRUY5MkpZdz09IiwibWFjIjoiOWU1OTIwMWY3OTFmYjczYmQxM2RmZWVlYWIyNmMzNWJhODJhYTNjZjY1MDJhY2Y5MjY3NzdhZDJmMzc3NjkwYiJ9",
+  `_clsk` = "centz^1772271442361^13^1^v.clarity.ms/collect"
 )
 
 headers = c(
@@ -33,7 +35,7 @@ headers = c(
 
 params = list(
   `page` = "1",
-  `count` = "1100",
+  `count` = "1200",
   `status` = "2"
 )
 
@@ -189,3 +191,6 @@ dfb %>%
 dfb %>% 
   write_csv("classdata.csv")
 
+df %>% 
+  select(标题) %>% 
+  write_csv("可以年度更新的课程和数据.csv") 
