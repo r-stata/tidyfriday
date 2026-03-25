@@ -2,18 +2,16 @@ library(tidyverse)
 library(httr)
 
 cookies = c(
-  `csrftoken` = "8IdeJQbF3OaILZNro8PhUoqBDL2vJrJiQKLqCVFujztKwabStNmkwhcQgVnKrtow",
-  `MEIQIA_TRACK_ID` = "38QqSWuNR8StiOQ8xADnXlGBwbz",
-  `MEIQIA_VISIT_ID` = "38QqSahAD2rycjFBsVqmJzDaKpo",
-  `Hm_lvt_64c33900b1f45b302e16a732efb245b6` = "1768742141,1769435482",
-  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1771429531,1771708635,1771712767,1771944602",
-  `_clck` = "1f9xjlx^2^g3y^0^2199",
-  `tfstk` = "gg2nHV9zZVTjNr8NnUkC1ah82J5tUvMS1zp-yY3P_Vus9HEPPLkuSuaJ9u7Qr80a5QFKw0BkEokENW3-J4DuVrjOktBYAkMSaZQAHbDnoikv8D8-TluZe0fb-amUAkMWfXt5vVrCEaqTd0kzzAlZADkr4YRFjfox4YJEapRw7VirUYuETCrZvm8rYBlFjlus4YuzzYSiQVirU4zrUXpGoqDrIR7cAJh-puYpDDGnukuMnlwxYBuRh2pyURm3jwqnSDm3IDcnkbqRd5y00kyjq8s2Z4qbTyn_rtbiQJ43LfDlEdMLm5znsWbkIfNac8lg1ZAbckz3gjyFIGHzTzDES8sWF2PL48huLZ--8JaLIjwW-N38MleEsr79IzGuTSkUEZXN40dwg8ZkFcS8QQOSTciikQX9QsnYy90ljGAfXXosAEIGjQt-TciikGjMG6lEfDTA.",
-  `auid` = "5810ac17016a44568689774b29e4457c",
-  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIxNGRmZjk4MDE0MTU0N2VmODYzMDFhYzU0NTUyOWE3NiIsImV4cCI6MTc3MjI5MzA0MH0.rUXgtlG3aVDNaagHei7eL8zDTOccJIFnUZKoprJq8Ac",
-  `ds-csrf-token` = "eyJpdiI6IngyTDBoTlVYcUx5aWcrT0taSENMbXc9PSIsInZhbHVlIjoiUXlkZ2lzaTRuRW1WdlwvcThkN3NGQmk3ZzJxb21jVVRoTk5HRDhGeERSeEtZVXI4XC9iOWhZSmVvT2xsOVFwNGRCQ2tEWU00cXBleW55dzFFSlFzK21pQT09IiwibWFjIjoiZTZhNjgxMzYyNWRkZmQ5YzliYTRmNmE0ZjBmNDliZDc5NjM0MGQ2OTI1ZWZiZWFkZDA4ODhmMmZjZjY3ZjE3MiJ9",
-  `deprecated_duanshu_session` = "eyJpdiI6ImxaMFNKZjBjWTBkejBlZkVFd0hpOEE9PSIsInZhbHVlIjoiTUlRUEZaZ3YxdHB4NzVyV21xQUJDSWpTVU5sOG9nZlwvS2dcLzdoVkExYmM5YUZ4OGtnektQK2tibGl5YXNKdFB5UUNLazhVVVprQ0NTQVBGRUY5MkpZdz09IiwibWFjIjoiOWU1OTIwMWY3OTFmYjczYmQxM2RmZWVlYWIyNmMzNWJhODJhYTNjZjY1MDJhY2Y5MjY3NzdhZDJmMzc3NjkwYiJ9",
-  `_clsk` = "centz^1772271442361^13^1^v.clarity.ms/collect"
+  `csrftoken` = "LxWdbT3R7BZVYDgLURA27vB35bzUytXCIuHdFe5hE0EgEto1pPCbi05l4NfHhjc6",
+  `_clck` = "ugm1eg^2^g4n^0^2267",
+  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1774235618,1774238183,1774341581,1774405847",
+  `auid` = "6bbc9f2b02d742c981e101122900f351",
+  `user_info` = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
+  `tfstk` = "gPGSeqXzLDhV1rLJvg8VlUauyoPBpERwVwaKS2CPJ7F-OBEjXT8o8u7C9oi348P-8DaK4DDrZU0UJ6gQwJDzYurQO2m6uhRw_40utJKwbCk2hpZz_gBdeMSYHWzB6tTKF40utZ2l-UrxrB1de3zL9DFYHzz39yFLpENYSyVdwJCRHiE0JWFL26QADyUR9gELpEgYmyNLvDFplSE0JWEKvWhZLpUCFugWJGsBuRQkX4qf96hbkHqiPN5Ulb47ylg-N6CpWzw7X4EvVJeclJi7FjR5jzMx50zSxCfuwJM-B7hBfQNxSxo8lDK1doHsZXwZNh6g2bqnf7HXD_NLaAh_9W91rrlSkf2IZ31YVm0xQ7c9m6ituVlunXt1DkDzSSUSheBY2JIPP1r1b3BClRfQll8Xl9Xnv1XfvnQs6Y28ozgklEs7K8U0l5YXl9X3er47UETfVJf..",
+  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI4NzBjZTE4OGYyY2I0ZWFlYjFkMmYyMGY2Yzg0MTQzYSIsImV4cCI6MTc3NDQ2NDMwNH0.mWPKzgO7kKudpchH0eEFfYigMyiQnag2RU3UfxqeTqw",
+  `_clsk` = "10i4lf9^1774442705587^6^1^e.clarity.ms/collect",
+  `ds-csrf-token` = "eyJpdiI6IkFpdUY5Mmh0a2k4XC9mZ0pJQUpXV1VnPT0iLCJ2YWx1ZSI6IitLWFk2Q1JXaGlmVzJSc0d4VDNRVlpTcFBLXC9JT0IraXhlUTNOTndHUGhUSGZoaFwvY1dmbEduZWoxVWZTOXpVdjdZeGRLcWl6RkhkOEJTK1M1NmdiV3c9PSIsIm1hYyI6ImNmZTRlZjMzMzNhZjMzYjQyODAzMDE1ZmY1MDJhNTEzMzJkZTZiZjE2ZTlkYjQzZmI2YjliNmRlOWNjNjQ4NDgifQ==",
+  `deprecated_duanshu_session` = "eyJpdiI6IlJJZ2traVd6MzVFK0IybG1EdUIrZ2c9PSIsInZhbHVlIjoiN3NiWlN5cGdGWE4yYkxGQlloXC8wOUs4TVJJK1Byck9sZkU3dnFaNVpRRHh5cTY5WHFaRVJWbFVRVzVyVjkzTDFXTEdINFlcL0xXM1ZxMjYrWDNIS0xIUT09IiwibWFjIjoiMTkxZTQ5YWNjZGVmNDcxZTZjOWE3YWQ5ZGFiYmFiMWI4YjgxZjI5ZjQ4ZWYyNDMzMmFjMWZiM2I5Nzg3M2ZiMiJ9"
 )
 
 headers = c(
@@ -22,13 +20,13 @@ headers = c(
   `origin` = "https://my.duanshu.com",
   `priority` = "u=1, i",
   `referer` = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+  `sec-ch-ua` = '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )

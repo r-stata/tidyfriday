@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经纬度坐标转换工具（Leaflet+天地图）</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 工具库 -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .convert-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .select-box {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        /* 地图容器 */
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        .info {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">经纬度坐标转换工具（WGS84/GCJ02/BD09/AEA）</h1>
+        <h2 class="title">制作：微信公众号 RStata <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/" class="main-nav-link"> 加入 RStata 培训班！</a></h1>
+        
+        <div class="upload-section">
+            <p>请上传 CSV 文件（必须包含：数据ID、经度、纬度 三列）</p>
+            <input type="file" id="csvFile" accept=".csv" class="btn">
+            <button class="btn" id="clearBtn">清空数据</button>
+        </div>
+        <div class="info">
+            <p>坐标系：WGS84=GPS原始坐标 | GCJ02=国测局坐标 | BD09=百度坐标 | AEA=阿尔伯斯等面积投影</p>
+            <p>地图：Leaflet + 天地图矢量底图</p>
+        </div>
+
+        <div class="convert-section">
+            <div>
+                <label>源坐标系：</label>
+                <select id="sourceCrs" class="select-box">
+                    <option value="WGS84">WGS84</option>
+                    <option value="GCJ02">GCJ02</option>
+                    <option value="BD09">BD09</option>
+                </select>
+            </div>
+            <div>
+                <label>目标坐标系：</label>
+                <select id="targetCrs" class="select-box">
+                    <option value="WGS84">WGS84</option>
+                    <option value="GCJ02">GCJ02</option>
+                    <option value="BD09">BD09</option>
+                    <option value="AEA">阿尔伯斯投影(AEA)</option>
+                </select>
+            </div>
+            <button class="btn" id="convertBtn">执行坐标转换</button>
+            <button class="btn" id="downloadBtn">下载转换后数据</button>
+        </div>
+
+        <!-- Leaflet 地图容器 -->
+        <div id="map"></div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>数据ID</th>
+                        <th>原始经度</th>
+                        <th>原始纬度</th>
+                        <th>转换后经度/X</th>
+                        <th>转换后纬度/Y</th>
+                        <th>坐标系</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ===================== 全局变量 =====================
+        let map;
+        let originalData = [];
+        let convertedData = [];
+        let markerLayer;
+
+        // ===================== 阿尔伯斯投影定义（你指定的） =====================
+        const AEA = "+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs";
+        const WGS84 = "+proj=longlat +datum=WGS84 +no_defs";
+        proj4.defs("WGS84", WGS84);
+        proj4.defs("AEA", AEA);
+
+        // ===================== 初始化 Leaflet 地图 =====================
+        function initMap() {
+            map = L.map('map').setView([35, 105], 4);
+            const tiandituUrl = "http://t1.tianditu.com/DataServer?T=vec_w&X={x}&Y={y}&L={z}&tk=93724b915d1898d946ca7dc7b765dda5";
+            L.tileLayer(tiandituUrl, { attribution: '微信公众号 RStata', maxZoom: 18 }).addTo(map);
+            markerLayer = L.layerGroup().addTo(map);
+        }
+
+        // ===================== 坐标转换算法 =====================
+        const CoordinateTransform = {
+            a: 6378245.0, ee: 0.006693421622965943,
+            outOfChina(lat, lon) {
+                return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
+            },
+            transformLat(x,y){let ret=-100+2*x+3*y+0.2*y*y+0.1*x*y+0.2*Math.sqrt(Math.abs(x));ret+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;ret+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;ret+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y/30*Math.PI))*2/3;return ret;},
+            transformLon(x,y){let ret=300+x+2*y+0.1*x*x+0.1*x*y+0.1*Math.sqrt(Math.abs(x));ret+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;ret+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;ret+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return ret;},
+            wgs84ToGcj02(lat, lon) {
+                if (this.outOfChina(lat, lon)) return [lat, lon];
+                let dLat = this.transformLat(lon-105, lat-35);
+                let dLon = this.transformLon(lon-105, lat-35);
+                let rad = lat/180*Math.PI;
+                let m = Math.sin(rad); m=1-this.ee*m*m;
+                let sm = Math.sqrt(m);
+                dLat = (dLat*180)/((this.a*(1-this.ee))/(m*sm)*Math.PI);
+                dLon = (dLon*180)/(this.a/sm*Math.cos(rad)*Math.PI);
+                return [lat+dLat, lon+dLon];
+            },
+            gcj02ToWgs84(lat, lon) {
+                if (this.outOfChina(lat, lon)) return [lat, lon];
+                let dLat = this.transformLat(lon-105, lat-35);
+                let dLon = this.transformLon(lon-105, lat-35);
+                let rad = lat/180*Math.PI;
+                let m = Math.sin(rad); m=1-this.ee*m*m;
+                let sm = Math.sqrt(m);
+                dLat = (dLat*180)/((this.a*(1-this.ee))/(m*sm)*Math.PI);
+                dLon = (dLon*180)/(this.a/sm*Math.cos(rad)*Math.PI);
+                return [lat*2-(lat+dLat), lon*2-(lon+dLon)];
+            },
+            gcj02ToBd09(lat, lon) {
+                let z=Math.hypot(lon,lat)+0.00002*Math.sin(lat*Math.PI);
+                let t=Math.atan2(lat,lon)+0.000003*Math.cos(lon*Math.PI);
+                return [z*Math.sin(t)+0.006, z*Math.cos(t)+0.0065];
+            },
+            bd09ToGcj02(lat, lon) {
+                let x=lon-0.0065, y=lat-0.006;
+                let z=Math.hypot(x,y)-0.00002*Math.sin(y*Math.PI);
+                let t=Math.atan2(y,x)-0.000003*Math.cos(x*Math.PI);
+                return [z*Math.sin(t), z*Math.cos(t)];
+            },
+            wgs84ToBd09(lat, lon){let g=this.wgs84ToGcj02(lat,lon);return this.gcj02ToBd09(g[0],g[1]);},
+            bd09ToWgs84(lat, lon){let g=this.bd09ToGcj02(lat,lon);return this.gcj02ToWgs84(g[0],g[1]);}
+        };
+
+        // 统一转换入口
+        function convertCoordinate(lat, lon, source, target) {
+            let wgsLat, wgsLon;
+            if (source === "WGS84") [wgsLat, wgsLon] = [lat, lon];
+            else if (source === "GCJ02") [wgsLat, wgsLon] = CoordinateTransform.gcj02ToWgs84(lat, lon);
+            else if (source === "BD09") [wgsLat, wgsLon] = CoordinateTransform.bd09ToWgs84(lat, lon);
+
+            if (target === "AEA") {
+                return proj4("WGS84", "AEA", [wgsLon, wgsLat]);
+            }
+
+            let fLat = wgsLat, fLon = wgsLon;
+            if (target === "GCJ02") [fLat, fLon] = CoordinateTransform.wgs84ToGcj02(wgsLat, wgsLon);
+            if (target === "BD09") [fLat, fLon] = CoordinateTransform.wgs84ToBd09(wgsLat, wgsLon);
+            return [fLon, fLat];
+        }
+
+        // ===================== 功能逻辑 =====================
+        // 上传CSV
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            Papa.parse(file, {
+                header: true,
+                complete: function(results) {
+                    originalData = results.data.filter(row =>
+                        row.数据ID && row.经度 && row.纬度 && !isNaN(parseFloat(row.经度)) && !isNaN(parseFloat(row.纬度))
+                    );
+                    if (originalData.length === 0) {
+                        alert("未找到有效数据！");
+                        return;
+                    }
+                    alert(`成功加载 ${originalData.length} 条数据`);
+                    renderTable(originalData.map(row => ({
+                        id: row.数据ID, lon: row.经度, lat: row.纬度, newLon: "-", newLat: "-", crs: "未转换"
+                    })));
+                    clearMarkers();
+                }
+            });
+        });
+
+        // 转换数据
+        document.getElementById('convertBtn').addEventListener('click', function() {
+            if (originalData.length === 0) { alert("请先上传文件！"); return; }
+            const source = document.getElementById('sourceCrs').value;
+            const target = document.getElementById('targetCrs').value;
+
+            convertedData = originalData.map(row => {
+                const lon = parseFloat(row.经度);
+                const lat = parseFloat(row.纬度);
+                const [newLon, newLat] = convertCoordinate(lat, lon, source, target);
+                return {
+                    id: row.数据ID,
+                    lon: lon.toFixed(6),
+                    lat: lat.toFixed(6),
+                    newLon: newLon.toFixed(6),
+                    newLat: newLat.toFixed(6),
+                    crs: target
+                };
+            });
+            renderTable(convertedData);
+            
+            if(target === "AEA"){
+                clearMarkers();
+                alert("已转换为平面投影坐标，无法在地图预览");
+            }else{
+                renderMarkers(convertedData);
+            }
+        });
+
+        // 渲染表格
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.lon}</td>
+                    <td>${item.lat}</td>
+                    <td>${item.newLon}</td>
+                    <td>${item.newLat}</td>
+                    <td>${item.crs}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 渲染地图点位
+        function renderMarkers(data) {
+            clearMarkers();
+            data.forEach(item => {
+                const lat = parseFloat(item.newLat);
+                const lon = parseFloat(item.newLon);
+                const marker = L.circleMarker([lat, lon], {
+                    radius: 5, fillColor: "#e74c3c", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1
+                });
+                marker.bindPopup(`ID: ${item.id}<br>经度: ${item.newLon}<br>纬度: ${item.newLat}<br>坐标系: ${item.crs}`);
+                markerLayer.addLayer(marker);
+            });
+        }
+
+        // 清空点位
+        function clearMarkers() {
+            markerLayer.clearLayers();
+        }
+
+        // 下载数据
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (convertedData.length === 0) { alert("请先转换"); return; }
+            const csv = Papa.unparse(convertedData);
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+            saveAs(blob, `坐标转换结果_${Date.now()}.csv`);
+        });
+
+        // 清空数据
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            originalData = []; convertedData = [];
+            document.getElementById('tableBody').innerHTML = '';
+            clearMarkers();
+            alert("已清空");
+        });
+
+        // 启动
+        initMap();
+    </script>
+</body>
+</html>
