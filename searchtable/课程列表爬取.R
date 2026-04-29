@@ -2,16 +2,14 @@ library(tidyverse)
 library(httr)
 
 cookies = c(
-  `csrftoken` = "LxWdbT3R7BZVYDgLURA27vB35bzUytXCIuHdFe5hE0EgEto1pPCbi05l4NfHhjc6",
-  `_clck` = "ugm1eg^2^g4n^0^2267",
-  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1774235618,1774238183,1774341581,1774405847",
-  `auid` = "6bbc9f2b02d742c981e101122900f351",
-  `user_info` = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
-  `tfstk` = "gPGSeqXzLDhV1rLJvg8VlUauyoPBpERwVwaKS2CPJ7F-OBEjXT8o8u7C9oi348P-8DaK4DDrZU0UJ6gQwJDzYurQO2m6uhRw_40utJKwbCk2hpZz_gBdeMSYHWzB6tTKF40utZ2l-UrxrB1de3zL9DFYHzz39yFLpENYSyVdwJCRHiE0JWFL26QADyUR9gELpEgYmyNLvDFplSE0JWEKvWhZLpUCFugWJGsBuRQkX4qf96hbkHqiPN5Ulb47ylg-N6CpWzw7X4EvVJeclJi7FjR5jzMx50zSxCfuwJM-B7hBfQNxSxo8lDK1doHsZXwZNh6g2bqnf7HXD_NLaAh_9W91rrlSkf2IZ31YVm0xQ7c9m6ituVlunXt1DkDzSSUSheBY2JIPP1r1b3BClRfQll8Xl9Xnv1XfvnQs6Y28ozgklEs7K8U0l5YXl9X3er47UETfVJf..",
-  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI4NzBjZTE4OGYyY2I0ZWFlYjFkMmYyMGY2Yzg0MTQzYSIsImV4cCI6MTc3NDQ2NDMwNH0.mWPKzgO7kKudpchH0eEFfYigMyiQnag2RU3UfxqeTqw",
-  `_clsk` = "10i4lf9^1774442705587^6^1^e.clarity.ms/collect",
-  `ds-csrf-token` = "eyJpdiI6IkFpdUY5Mmh0a2k4XC9mZ0pJQUpXV1VnPT0iLCJ2YWx1ZSI6IitLWFk2Q1JXaGlmVzJSc0d4VDNRVlpTcFBLXC9JT0IraXhlUTNOTndHUGhUSGZoaFwvY1dmbEduZWoxVWZTOXpVdjdZeGRLcWl6RkhkOEJTK1M1NmdiV3c9PSIsIm1hYyI6ImNmZTRlZjMzMzNhZjMzYjQyODAzMDE1ZmY1MDJhNTEzMzJkZTZiZjE2ZTlkYjQzZmI2YjliNmRlOWNjNjQ4NDgifQ==",
-  `deprecated_duanshu_session` = "eyJpdiI6IlJJZ2traVd6MzVFK0IybG1EdUIrZ2c9PSIsInZhbHVlIjoiN3NiWlN5cGdGWE4yYkxGQlloXC8wOUs4TVJJK1Byck9sZkU3dnFaNVpRRHh5cTY5WHFaRVJWbFVRVzVyVjkzTDFXTEdINFlcL0xXM1ZxMjYrWDNIS0xIUT09IiwibWFjIjoiMTkxZTQ5YWNjZGVmNDcxZTZjOWE3YWQ5ZGFiYmFiMWI4YjgxZjI5ZjQ4ZWYyNDMzMmFjMWZiM2I5Nzg3M2ZiMiJ9"
+  `csrftoken` = "2rbFhO9aBhcEYBUjz2K5kVexMcH2sED8OjT0hpemMw7nolwSrAqsF80qbk1n9BnD",
+  `_clck` = "14y9qrz^2^g5m^0^2290",
+  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1777301646,1777351533,1777459960,1777476901",
+  `auid` = "77dd22d551274390b9aab03c8077f0d0",
+  `_clsk` = "1a42ttr^1777479386442^4^1^b.clarity.ms/collect",
+  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJkNmVjZGM0NzUxOWY0NTNjOTg2OTZkMzMwNTVmNDA4YyIsImV4cCI6MTc3NzUwMTEzNn0.xEW4uZnubjWaDzXoo-QSQpZ7cw6llRLYfXLGCPUNhhs",
+  `ds-csrf-token` = "eyJpdiI6ImEwR1o3bDJYeVBmakVJNHZqdVdvdHc9PSIsInZhbHVlIjoicmk1T2RtSE9Iem1xdGdmTGlqZW43dXFOY1h3T2RKTkVMcG4xRTNCYU5KWUtcL1I0b1Z2MzdpQ0V1NFFQTytqRm4rUUxicCtrbGpHaEF6XC81aks1WWtcL0E9PSIsIm1hYyI6IjRiN2QyYzExZDU4MWVlODZkYjg0ZjBhMzFmMmNhYTNhZTIwNDMzZjM0NDdmZDhlZTRkYzIzOWFiZmUwNjk5ZjMifQ==",
+  `deprecated_duanshu_session` = "eyJpdiI6IitxelZcL01kUHRscWxuSHlcLzltdVwvY2c9PSIsInZhbHVlIjoiSlwvNWpRcnczXC82REpsN05cL2NcL3c4SW9icGwxbFo2SURMXC80aGF6TzNFY3kyam5scEM2RUZXUERxQURFWjF4b3FmYWl2dmJIbHlTcURDcjBzNk5YME5KUT09IiwibWFjIjoiOWJmODgwOGFhMzYxZGMxY2YzOWI3ZjQyNGRjOGI2NGM5YTBjMTRhMGY4YTQ3Yzg2YThiODhiYmY4ZmI5ZmQwMyJ9"
 )
 
 headers = c(
@@ -20,20 +18,20 @@ headers = c(
   `origin` = "https://my.duanshu.com",
   `priority` = "u=1, i",
   `referer` = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
+  `sec-ch-ua` = '"Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
 
 params = list(
   `page` = "1",
-  `count` = "1200",
+  `count` = "1300",
   `status` = "2"
 )
 
@@ -47,6 +45,20 @@ lst$response$data %>%
   unnest() -> df
 
 df 
+
+lst$response$data %>% 
+  transpose() %>% 
+  as_tibble() %>% 
+  select(title, status, price, hashid, create_time) %>% 
+  unnest() %>% 
+  mutate(create_time = ymd_hms(create_time)) %>% 
+  filter(create_time >= ymd("2026-02-01")) %>% 
+  mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
+  rename(链接 = hashid) %>% 
+  select(-create_time, -status, -price) %>% 
+  set_names("标题", "链接") %>% 
+  transmute(text = paste0("[", 标题, "](", 链接, ")")) %>% 
+  write_csv("new.csv")
 
 df %>% 
   mutate(class = case_when(
@@ -192,3 +204,5 @@ dfb %>%
 df %>% 
   select(标题) %>% 
   write_csv("可以年度更新的课程和数据.csv") 
+
+df
