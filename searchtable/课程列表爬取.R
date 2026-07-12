@@ -3,13 +3,13 @@ library(httr)
 
 cookies = c(
   `csrftoken` = "2rbFhO9aBhcEYBUjz2K5kVexMcH2sED8OjT0hpemMw7nolwSrAqsF80qbk1n9BnD",
-  `_clck` = "14y9qrz^2^g5m^0^2290",
-  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1777301646,1777351533,1777459960,1777476901",
-  `auid` = "77dd22d551274390b9aab03c8077f0d0",
-  `_clsk` = "1a42ttr^1777479386442^4^1^b.clarity.ms/collect",
-  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJkNmVjZGM0NzUxOWY0NTNjOTg2OTZkMzMwNTVmNDA4YyIsImV4cCI6MTc3NzUwMTEzNn0.xEW4uZnubjWaDzXoo-QSQpZ7cw6llRLYfXLGCPUNhhs",
-  `ds-csrf-token` = "eyJpdiI6ImEwR1o3bDJYeVBmakVJNHZqdVdvdHc9PSIsInZhbHVlIjoicmk1T2RtSE9Iem1xdGdmTGlqZW43dXFOY1h3T2RKTkVMcG4xRTNCYU5KWUtcL1I0b1Z2MzdpQ0V1NFFQTytqRm4rUUxicCtrbGpHaEF6XC81aks1WWtcL0E9PSIsIm1hYyI6IjRiN2QyYzExZDU4MWVlODZkYjg0ZjBhMzFmMmNhYTNhZTIwNDMzZjM0NDdmZDhlZTRkYzIzOWFiZmUwNjk5ZjMifQ==",
-  `deprecated_duanshu_session` = "eyJpdiI6IitxelZcL01kUHRscWxuSHlcLzltdVwvY2c9PSIsInZhbHVlIjoiSlwvNWpRcnczXC82REpsN05cL2NcL3c4SW9icGwxbFo2SURMXC80aGF6TzNFY3kyam5scEM2RUZXUERxQURFWjF4b3FmYWl2dmJIbHlTcURDcjBzNk5YME5KUT09IiwibWFjIjoiOWJmODgwOGFhMzYxZGMxY2YzOWI3ZjQyNGRjOGI2NGM5YTBjMTRhMGY4YTQ3Yzg2YThiODhiYmY4ZmI5ZmQwMyJ9"
+  `_clck` = "14y9qrz^2^g7o^0^2290",
+  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1783580753,1783841030,1783853654,1783861957",
+  `auid` = "be5649089f7545aab45d8b03fd89a6c1",
+  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyOTM2ODMxYzJiYjk0MTVhYmQ5YWUyY2EyMTE2MTY2YyIsImV4cCI6MTc4Mzg4NzE0Nn0.ZvhcHxighe28BsjwxAStJ_xO6f167Sb-Qpr58X3tX5k",
+  `ds-csrf-token` = "eyJpdiI6Iis5ZW0weHZmR1c3anYrMkhydWFZRlE9PSIsInZhbHVlIjoiWWpTSmdCV2ZPTEo5U1dFZTB6eUw0cHRtY1BRN0cwdkIwdnA2aHZBSmVuWVhHRG81R1ZBUnY2QjliXC9OZWQ3XC9QdUcwNVR6bUZENUFHT3ZxY0RXTmhkQT09IiwibWFjIjoiZjJkYmViMTBhYWRkOTA4MDdiZjg3NGEzMjBjMmYyOGZmYzRlYzE2YmZjNmM3N2Q0NGJkODE5MzJhMWQ3YmNlNSJ9",
+  `deprecated_duanshu_session` = "eyJpdiI6Ik5oM1FoVTlxTUkzc3paWWlaNW1xQkE9PSIsInZhbHVlIjoieFViR2xOUGVtd1RXUWp1emd4ZHFIN0lYQUY4QlVCbDc5aHQ1eDJvaUhxRWE1WklUVVwvdCtqUUozM0trYkgxc1RJMXMrV1dCR3krcm9PVCt0aEJrMVJBPT0iLCJtYWMiOiI2ZTFkYmNiZDJmODg0NTE4MDMzMzFiMGMyMTUyYWRiZDQ1MzI0NzJjODJkYzcyNTNiMWMxYzBmNWFkMDJjYjEwIn0=",
+  `_clsk` = "yt8bc3^1783871513720^40^1^j.clarity.ms/collect"
 )
 
 headers = c(
@@ -18,20 +18,20 @@ headers = c(
   `origin` = "https://my.duanshu.com",
   `priority` = "u=1, i",
   `referer` = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"',
+  `sec-ch-ua` = '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
 
 params = list(
   `page` = "1",
-  `count` = "1300",
+  `count` = "1400",
   `status` = "2"
 )
 
@@ -52,7 +52,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-02-01")) %>% 
+  filter(create_time >= ymd("2026-04-30")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 
