@@ -1,3 +1,52 @@
-<h1 id="ColorBrewer"><a href="#ColorBrewer" class="headerlink" title="ColorBrewer"></a>ColorBrewer</h1><p><a href="http://colorbrewer2.org/">http://colorbrewer2.org/</a></p>
-<p>Web tool for guidance in choosing choropleth map color schemes, based on the research of <a href="http://www.personal.psu.edu/cab38/">Dr. Cynthia Brewer</a>. Built and maintained by <a href="http://axismaps.com">Axis Maps</a>.</p>
-<p>Questions, problems, or other feedback? <a href="https://github.com/axismaps/colorbrewer/issues">File an issue!</a></p>
+<h1 id="Color-Palettes-·-调色板选择"><a href="#Color-Palettes-·-调色板选择" class="headerlink" title="Color Palettes · 调色板选择"></a>Color Palettes · 调色板选择</h1><p>基于 <a href="https://colorbrewer2.org">ColorBrewer</a> 魔改的配色选择工具，并集成了 R 语言<br><a href="https://github.com/EmilHvitfeldt/paletteer"><code>paletteer</code></a> 包中的<strong>全部</strong>调色板。<br>支持来源切换、分组筛选、名称搜索、分页浏览，以及 HEX / RGB / CMYK 三种颜色格式与<br>ASE / GPL / JSON / CSS 多种导出。</p>
+<h2 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h2><ul>
+<li><strong>数据来源</strong>：ColorBrewer 官方配色、自用（个人）调色板、R <code>paletteer</code> 全量调色板、<code>colorspace</code> 包的命名 HCL 调色板（<code>paletteer</code> 未收录），以及整理自 <a href="https://chinese-colors.heyfe.org/">chinese-colors.heyfe.org</a> 的<strong>中国传统色</strong>（按色相归为 10 个家族调色板，共 525 色）。打开时默认选中 <code>awtools::a_palette</code>。</li>
+<li><strong>分组 / 包筛选</strong>：按 ColorBrewer 类型、自用分类、或 R 包名分组，支持关键词过滤。</li>
+<li><strong>搜索</strong>：按调色板名称实时过滤。</li>
+<li><strong>分页</strong>：单页 24 个，应对 paletteer 的 2800+ 调色板。</li>
+<li><strong>双预览</strong>：右侧上方为 ColorBrewer 风格的美国郡县地图（choropleth），下方为柱状图 / 色块预览。地图按当前调色板着色（颜色数 &gt; 12 或 = 2 时自动重采样到地图支持的 3–12 层）。</li>
+<li><strong>多格式预览</strong>：HEX / RGB / CMYK 一键切换，点击颜色值即可复制。</li>
+<li><strong>导出</strong>：复制 HEX / JSON / CSS，下载 Adobe ASE、GIMP GPL；另支持<ul>
+<li><strong>复制 R 语言用</strong>：<code>c(&quot;#rrggbb&quot;, &quot;#rrggbb&quot;, ...)</code></li>
+<li><strong>复制 Stata 用</strong>：<code>&quot;r g b&quot; &quot;r g b&quot; ...</code>（空格分隔的 RGB 值，带引号）</li>
+</ul>
+</li>
+<li><strong>零运行时依赖</strong>：纯原生 JS，数据以 JS 全局变量内嵌，可直接 <code>file://</code> 打开，无需构建或服务器。</li>
+</ul>
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>colors/
+├── index.html              # 站点入口
+├── assets/
+│   ├── css/style.css       # 样式
+│   ├── js/app.js           # 前端逻辑（原生 JS，无依赖）
+│   └── data/               # 生成的数据层（JS 全局变量）
+│       ├── colorbrewer.js  # window.COLORBREWER_DATA  (45)
+│       ├── custom.js       # window.CUSTOM_DATA        (274)
+│       ├── paletteer.js    # window.PALETTEER_DATA      (2868)
+│       ├── colorspace.js    # window.COLORSPACE_DATA     (97, 来自 colorspace 包)
+│       ├── chinese.js       # window.CHINESE_DATA        (525 色 / 10 个家族调色板)
+│       └── map.js          # window.MAP_SVG             (内联的美国郡县地图)
+├── scripts/
+│   ├── build-paletteer.R   # 从 R 提取 paletteer 全量调色板 -&gt; paletteer.raw.js
+│   ├── build-colorspace.R  # 从 R colorspace 包提取命名 HCL 调色板 -&gt; colorspace.raw.js
+│   ├── build-chinese.py    # 从 chinese-colors.heyfe.org 抓取中国传统色 -&gt; chinese.js
+│   ├── build-data.js       # 归一化 + 采样，生成上面的 data/*.js
+│   ├── build-map.js        # 把 legacy/map/map.svg 内联为 data/map.js
+│   └── serve.js            # 零依赖静态服务器（可选）
+└── legacy/                 # 原始魔改版本（归档，保留旧版链接）</code></pre><h2 id="本地运行"><a href="#本地运行" class="headerlink" title="本地运行"></a>本地运行</h2><p>直接双击 <code>index.html</code> 即可（数据内嵌，无需服务器）。</p>
+<p>如需通过 HTTP 访问：</p>
+<pre><code class="bash">npm run serve      <span class="comment"># 或 npm start，默认 http://localhost:4173</span></code></pre>
+<h2 id="数据构建（可选，仅更新调色板时需要）"><a href="#数据构建（可选，仅更新调色板时需要）" class="headerlink" title="数据构建（可选，仅更新调色板时需要）"></a>数据构建（可选，仅更新调色板时需要）</h2><pre><code class="bash">npm run build:paletteer   <span class="comment"># 运行 R 脚本，重新抓取 paletteer 全量调色板</span>
+npm run build:colorspace  <span class="comment"># 运行 R 脚本，提取 colorspace 包的命名 HCL 调色板</span>
+npm run build:chinese     <span class="comment"># 抓取 chinese-colors.heyfe.org 的传统色，生成 chinese.js</span>
+npm run build:data        <span class="comment"># 归一化 + 采样，重新生成 data/*.js</span>
+npm run build:map         <span class="comment"># 把 legacy/map/map.svg 内联为 data/map.js（地图预览用）</span></code></pre>
+<blockquote>
+<p>需要本机安装 R 及 <code>paletteer</code>、<code>colorspace</code>、<code>jsonlite</code> 包（前两者）。<br><code>build-paletteer.R</code> / <code>build-colorspace.R</code> 必须在项目根目录运行（相对路径输出到 <code>assets/data/</code>）。<br><code>build-chinese.py</code> 需要 Python 3 及网络访问（可用 <code>--use-cache</code> 复用本地缓存）。</p>
+</blockquote>
+<h2 id="数据与许可证"><a href="#数据与许可证" class="headerlink" title="数据与许可证"></a>数据与许可证</h2><ul>
+<li><strong>ColorBrewer</strong> 调色板数据来自 Cynthia Brewer、Mark Harrower 与宾州州立大学，<br>以 <a href="./LICENSE">Apache License 2.0</a> 许可（见 <code>LICENSE</code>）。</li>
+<li><strong>R <code>paletteer</code></strong> 聚合了数十个上游 R 包的调色板，各包有各自的许可证<br>（多为 MIT / GPL）。颜色取值作为事实数据被提取；使用前请参考对应上游包的许可证。</li>
+<li><strong>自用调色板</strong>为本项目原始整理内容。</li>
+<li><strong>中国传统色</strong>整理自 <a href="https://chinese-colors.heyfe.org/">chinese-colors.heyfe.org</a>，按色相归为 10 个家族调色板（中国红、嫣红粉、橘橙棕、鹅黄、青绿、碧青、群青蓝、黛紫、墨黑灰、月白灰）。</li>
+</ul>
+<p>© 由 RStata 整理部署。</p>
