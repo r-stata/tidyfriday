@@ -1,38 +1,42 @@
 library(tidyverse)
 library(httr)
 
+library(httr)
+
 cookies = c(
-  `csrftoken` = "2rbFhO9aBhcEYBUjz2K5kVexMcH2sED8OjT0hpemMw7nolwSrAqsF80qbk1n9BnD",
-  `_clck` = "14y9qrz^2^g7o^0^2290",
-  `Hm_lvt_8659756219f35439f2eecb18bd255656` = "1783580753,1783841030,1783853654,1783861957",
-  `auid` = "be5649089f7545aab45d8b03fd89a6c1",
-  `ds_auth` = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyOTM2ODMxYzJiYjk0MTVhYmQ5YWUyY2EyMTE2MTY2YyIsImV4cCI6MTc4Mzg4NzE0Nn0.ZvhcHxighe28BsjwxAStJ_xO6f167Sb-Qpr58X3tX5k",
-  `ds-csrf-token` = "eyJpdiI6Iis5ZW0weHZmR1c3anYrMkhydWFZRlE9PSIsInZhbHVlIjoiWWpTSmdCV2ZPTEo5U1dFZTB6eUw0cHRtY1BRN0cwdkIwdnA2aHZBSmVuWVhHRG81R1ZBUnY2QjliXC9OZWQ3XC9QdUcwNVR6bUZENUFHT3ZxY0RXTmhkQT09IiwibWFjIjoiZjJkYmViMTBhYWRkOTA4MDdiZjg3NGEzMjBjMmYyOGZmYzRlYzE2YmZjNmM3N2Q0NGJkODE5MzJhMWQ3YmNlNSJ9",
-  `deprecated_duanshu_session` = "eyJpdiI6Ik5oM1FoVTlxTUkzc3paWWlaNW1xQkE9PSIsInZhbHVlIjoieFViR2xOUGVtd1RXUWp1emd4ZHFIN0lYQUY4QlVCbDc5aHQ1eDJvaUhxRWE1WklUVVwvdCtqUUozM0trYkgxc1RJMXMrV1dCR3krcm9PVCt0aEJrMVJBPT0iLCJtYWMiOiI2ZTFkYmNiZDJmODg0NTE4MDMzMzFiMGMyMTUyYWRiZDQ1MzI0NzJjODJkYzcyNTNiMWMxYzBmNWFkMDJjYjEwIn0=",
-  `_clsk` = "yt8bc3^1783871513720^40^1^j.clarity.ms/collect"
+  csrftoken = "2rbFhO9aBhcEYBUjz2K5kVexMcH2sED8OjT0hpemMw7nolwSrAqsF80qbk1n9BnD",
+  MEIQIA_TRACK_ID = "3HRPo4YJSgbR0BLdRY3g34PuJWj",
+  MEIQIA_VISIT_ID = "3HRPo3Y1DN4xA12O10BZKw72sU6",
+  Hm_lvt_64c33900b1f45b302e16a732efb245b6 = "1785827315,1787655507",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1787990863,1788071665,1788152616,1788264070",
+  `_clck` = "14y9qrz^2^g96^0^2290",
+  auid = "40489834843247b0ab049868cb222886",
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyODFlODNhOGQyMDQ0ZjZjYTNlMDg4ZmU0Mjg3ZDk0NCIsImV4cCI6MTc4ODU0NTQ4NH0.FvST-prM9WSMH-rFcdiBvqJRA7uhT4_cmVkg8CEKNXo",
+  `ds-csrf-token` = "eyJpdiI6IkN0bXhkVTlvd2h3bFBObm4xRk1NK3c9PSIsInZhbHVlIjoiN2ZcL0FZSkh3Z2lcL1gxNDlWMFFhVkxFenNlcFlnYWhhWDRubXArU0piaVE5dUZIdVg3STFTbmlUTzJmUWpwUkFcLzhcL1IzdUU0Q1JpdDFnT2xJQzVpNHNRPT0iLCJtYWMiOiJiNzRjZDY1ZGE1MWEyMTQyOTVlYjgyZDk4ZDA2NWE0NTk2YjQ3YzQxNzk3OTVkYTZkYTQ1NDk4MWI1NTQ1MTZjIn0=",
+  deprecated_duanshu_session = "eyJpdiI6Ik1obWhXdFwvQ2xQaVdnK043Y2xTdG9BPT0iLCJ2YWx1ZSI6IjhVQUhDd2V6SnBraTBwSWQyc0pjbzZGSnRJMlZ6dENXMkFUQm1RbFQwamljcnBIRTVjTSs4VDVuSUpIelBQZGV4bGtcL3dxY2JkWU5YMGk0YnczOGlDZz09IiwibWFjIjoiMDU2MzVlNjYyYTczMWViMjEzN2RiYzU2MWI3ZWJlZWM5ZGQ5OTBjZDJiMzMyOGY0ODMzZDdhOWE3MDg0NmRiYiJ9",
+  `_clsk` = "wmg6fs^1788523891431^7^1^b.clarity.ms/collect"
 )
 
 headers = c(
-  `accept` = "application/json, text/plain, */*",
+  accept = "application/json, text/plain, */*",
   `accept-language` = "zh-CN,zh;q=0.9,en;q=0.8",
-  `origin` = "https://my.duanshu.com",
-  `priority` = "u=1, i",
-  `referer` = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
+  origin = "https://my.duanshu.com",
+  priority = "u=1, i",
+  referer = "https://my.duanshu.com/",
+  `sec-ch-ua` = '"Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
 
 params = list(
-  `page` = "1",
-  `count` = "1400",
-  `status` = "2"
+  page = "1",
+  count = "1500"
 )
 
 res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies))
@@ -52,7 +56,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-04-30")) %>% 
+  filter(create_time >= ymd("2026-07-13")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 

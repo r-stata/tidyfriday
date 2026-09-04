@@ -1,1 +1,0 @@
-define(function(){return function(e,n){return{get:function(){var t=e();if(null!=t){if(!t)return(this.get=n).apply(this,arguments);delete this.get}}}}});

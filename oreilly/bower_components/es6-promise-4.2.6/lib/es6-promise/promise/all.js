@@ -1,1 +1,0 @@
-import Enumerator from"../enumerator";export default function all(r){return new Enumerator(this,r).promise}
