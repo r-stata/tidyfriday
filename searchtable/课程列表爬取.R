@@ -1,20 +1,20 @@
 library(tidyverse)
 library(httr)
 
-library(httr)
-
 cookies = c(
   csrftoken = "2rbFhO9aBhcEYBUjz2K5kVexMcH2sED8OjT0hpemMw7nolwSrAqsF80qbk1n9BnD",
   MEIQIA_TRACK_ID = "3HRPo4YJSgbR0BLdRY3g34PuJWj",
   MEIQIA_VISIT_ID = "3HRPo3Y1DN4xA12O10BZKw72sU6",
   Hm_lvt_64c33900b1f45b302e16a732efb245b6 = "1785827315,1787655507",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1787990863,1788071665,1788152616,1788264070",
-  `_clck` = "14y9qrz^2^g96^0^2290",
-  auid = "40489834843247b0ab049868cb222886",
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyODFlODNhOGQyMDQ0ZjZjYTNlMDg4ZmU0Mjg3ZDk0NCIsImV4cCI6MTc4ODU0NTQ4NH0.FvST-prM9WSMH-rFcdiBvqJRA7uhT4_cmVkg8CEKNXo",
-  `ds-csrf-token` = "eyJpdiI6IkN0bXhkVTlvd2h3bFBObm4xRk1NK3c9PSIsInZhbHVlIjoiN2ZcL0FZSkh3Z2lcL1gxNDlWMFFhVkxFenNlcFlnYWhhWDRubXArU0piaVE5dUZIdVg3STFTbmlUTzJmUWpwUkFcLzhcL1IzdUU0Q1JpdDFnT2xJQzVpNHNRPT0iLCJtYWMiOiJiNzRjZDY1ZGE1MWEyMTQyOTVlYjgyZDk4ZDA2NWE0NTk2YjQ3YzQxNzk3OTVkYTZkYTQ1NDk4MWI1NTQ1MTZjIn0=",
-  deprecated_duanshu_session = "eyJpdiI6Ik1obWhXdFwvQ2xQaVdnK043Y2xTdG9BPT0iLCJ2YWx1ZSI6IjhVQUhDd2V6SnBraTBwSWQyc0pjbzZGSnRJMlZ6dENXMkFUQm1RbFQwamljcnBIRTVjTSs4VDVuSUpIelBQZGV4bGtcL3dxY2JkWU5YMGk0YnczOGlDZz09IiwibWFjIjoiMDU2MzVlNjYyYTczMWViMjEzN2RiYzU2MWI3ZWJlZWM5ZGQ5OTBjZDJiMzMyOGY0ODMzZDdhOWE3MDg0NmRiYiJ9",
-  `_clsk` = "wmg6fs^1788523891431^7^1^b.clarity.ms/collect"
+  `_clck` = "14y9qrz^2^g9c^0^2290",
+  auid = "efcad2587cfd4c508ec07e5d17d7dbf9",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1788950137,1788964383,1788968061,1789027204",
+  Hm_lpvt_8659756219f35439f2eecb18bd255656 = "1789027204",
+  HMACCOUNT = "F81D0CABAE40DC53",
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI2MWUzMDc2ODRhMWQ0ZmUwYjkwMGMzZjhjNjVjYmU0MCIsImV4cCI6MTc4OTA0OTYzMH0.-q-stmD-42FHexexTRer5s8Rl3ITwiAU5mmGkz33ik0",
+  `_clsk` = "uvnq9k^1789028031505^17^1^b.clarity.ms/collect",
+  `ds-csrf-token` = "eyJpdiI6InZZMk9hMzFIM20ycVh3NktTN01PYWc9PSIsInZhbHVlIjoiNnZwSHM4VEtpY1wvbWVnbTcxSFptWnBmdGJ3R0lpME40RndDYzJ5Sk9VTUlGRTZQMlhSdnBOZWFudzJqNW5JbDBoVE1hYXJRVVM2REJvRlNncjZOS2Z3PT0iLCJtYWMiOiI5MGM4YjIwYmVmMWE5MWEwODcwNGZlNDZlOGYzMTYwNWNkOWU1OTQ1ZjFjYmVjMzliOWFhNjhmM2VlMDUwNzY4In0=",
+  deprecated_duanshu_session = "eyJpdiI6IkZjelBSRU4xYkg1bHdON2IxRnNkK1E9PSIsInZhbHVlIjoickYwU3ZiZDlIcWdPSldqYVhUcWM1NUxOK3Vqa3UxY2dxZ1wvcFY1QWpBRE91dm9WWnZNMXFPSEtMUGhxSkp5S0RMM05ZOXlDVnJBb09mUmpGbjFNMERRPT0iLCJtYWMiOiI4ZTJkYWYxNzE4NjJmODExN2NkYjRiYWJlMTEzNDUwMGVmZTRiYTExNzdkMmYyZjA0ZjMzZGVhNzc0NGQ5YjU1In0="
 )
 
 headers = c(
@@ -23,13 +23,13 @@ headers = c(
   origin = "https://my.duanshu.com",
   priority = "u=1, i",
   referer = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"',
+  `sec-ch-ua` = '"Google Chrome";v="153", "Not_A Brand";v="8", "Chromium";v="153"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
@@ -56,7 +56,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-07-13")) %>% 
+  filter(create_time >= ymd("2026-09-04")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 
@@ -146,10 +146,10 @@ df %>%
                   )
                 )
   ) %>% 
-  htmlwidgets::saveWidget("index.html", title = "RStata 课程与图表数据库索引") 
+  htmlwidgets::saveWidget("index-old.html", title = "RStata 课程与图表数据库索引") 
 
 # 读取原始 HTML 文件
-html_content <- readLines("index.html")
+html_content <- readLines("index-old.html")
 
 # 在 </head> 前插入 favicon
 modified_content <- sub(
@@ -159,7 +159,321 @@ modified_content <- sub(
 )
 
 # 保存修改后的文件
-writeLines(modified_content, "index.html")
+writeLines(modified_content, "index-old.html")
+
+# ============ 生成功能更丰富、页面更精美的 index.html ============
+# 采用自包含单页（数据内嵌为 JSON，离线可用），不再依赖 DT / CDN
+library(jsonlite)
+
+# 准备展示数据：保留「类别」用于筛选，并生成 PC 端链接
+df_show <- df %>% 
+  mutate(标题 = str_remove_all(标题, "名师讲堂｜"),
+         标题 = str_replace_all(标题, "~", "～")) %>% 
+  mutate(PC端链接 = str_replace_all(链接, 
+          "https://rstata.duanshu.com/#/course/", 
+          "https://rstata-pc.duanshu.com/course/detail/")) %>% 
+  select(标题, 链接, 类别, PC端链接)
+
+# 转为 JSON 内嵌到 HTML
+data_json <- jsonlite::toJSON(
+  df_show, auto_unbox = TRUE, dataframe = "rows", na = "null"
+)
+
+# ---- HTML 模板（数据占位符为 ___DATA___）----
+html_template <- '<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RStata 课程与图表数据库索引</title>
+<link rel="icon" href="https://tidyfriday.cn/images/pad.svg" />
+<style>
+:root{
+  --navy:#15233f; --navy2:#21365c; --accent:#3b6fe0;
+  --bg:#eef1f6; --card:#ffffff; --text:#1f2733; --muted:#6b7686; --line:#e3e8f0;
+  --c-course:#3b6fe0; --c-lecture:#e0a52e; --c-data:#27b06f;
+  --shadow:0 6px 22px rgba(21,35,63,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+header.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:38px 24px 30px}
+.hero-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero img.logo{width:54px;height:54px;border-radius:14px;background:#fff;padding:6px;box-shadow:var(--shadow)}
+.hero h1{margin:0;font-size:26px;font-weight:700;letter-spacing:.5px}
+.hero p{margin:4px 0 0;color:#c4d0e6;font-size:14px}
+main{max-width:1180px;margin:-22px auto 40px;padding:0 24px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.stat .num{font-size:30px;font-weight:800;line-height:1}
+.stat .lbl{margin-top:6px;color:var(--muted);font-size:13px}
+.stat.total .num{color:var(--accent)} .stat.c1 .num{color:var(--c-course)}
+.stat.c2 .num{color:var(--c-lecture)} .stat.c3 .num{color:var(--c-data)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#fff;color:var(--text);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:14px;transition:.18s;font-weight:600}
+.tab:hover{border-color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{position:relative}
+.search input{border:1px solid var(--line);border-radius:10px;padding:9px 14px 9px 34px;width:230px;font-size:14px;outline:none;transition:.18s;background:#fbfcfe}
+.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,111,224,.15)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
+.viewtoggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewtoggle button{border:none;background:#fff;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--muted)}
+.viewtoggle button.active{background:var(--accent);color:#fff}
+.btn-dl{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.18s}
+.btn-dl:hover{background:var(--accent);color:#fff}
+.resultcount{color:var(--muted);font-size:13px;margin:14px 2px 10px}
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:#f5f7fb;text-align:left;padding:13px 16px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:#f7f9fd}
+.badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+.badge.课程{background:var(--c-course)} .badge.名师讲堂{background:var(--c-lecture)} .badge.数据资料{background:var(--c-data)}
+.title-cell{font-weight:600;max-width:560px}
+.links a{display:inline-block;margin-right:8px;padding:6px 13px;border-radius:9px;font-size:13px;text-decoration:none;font-weight:600}
+.links a.m{background:rgba(59,111,224,.1);color:var(--accent)} .links a.p{background:rgba(39,176,111,.12);color:var(--c-data)}
+.links a:hover{filter:brightness(.96);text-decoration:underline}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;transition:.18s}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(21,35,63,.16)}
+.card .top{display:flex;justify-content:space-between;align-items:center}
+.card .ctitle{font-weight:700;font-size:15px;line-height:1.5}
+.card .cactions{display:flex;gap:8px;margin-top:auto}
+.card .cactions a{flex:1;text-align:center;padding:9px 0;border-radius:10px;font-size:13px;text-decoration:none;font-weight:600}
+.card .cactions a.m{background:rgba(59,111,224,.1);color:var(--accent)} .card .cactions a.p{background:rgba(39,176,111,.12);color:var(--c-data)}
+.card .copy{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:10px;padding:9px 0;cursor:pointer;font-size:13px;flex:1}
+.empty{text-align:center;color:var(--muted);padding:50px 0}
+.pager{display:flex;justify-content:center;align-items:center;gap:10px;margin:20px 0 8px;flex-wrap:wrap}
+.pager .pg{border:1px solid var(--line);background:#fff;color:var(--text);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.18s}
+.pager .pg:hover:not([disabled]){border-color:var(--accent);color:var(--accent)}
+.pager .pg[disabled]{opacity:.45;cursor:not-allowed}
+.pager .pginfo{color:var(--muted);font-size:13px;margin:0 4px}
+.pager .pginfo b{color:var(--text)}
+.pgsize{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.pgsize select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;outline:none;background:#fbfcfe;cursor:pointer;transition:.18s}
+.pgsize select:focus{border-color:var(--accent)}
+footer{max-width:1180px;margin:0 auto;padding:24px;text-align:center;color:var(--muted);font-size:13px}
+@media(max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .search input{width:160px} .hero h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <img class="logo" src="https://tidyfriday.cn/images/pad.svg" alt="RStata" />
+    <div>
+      <h1>RStata 课程与图表数据库索引</h1>
+      <p>一站式检索 RStata 数据中心全部课程、名师讲堂与数据资料</p>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="stats" id="stats"></section>
+  <section class="toolbar">
+    <div class="tabs" id="tabs"></div>
+    <div class="controls">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7686" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search" placeholder="搜索课程名称或链接…" />
+      </div>
+      <label class="pgsize">每页
+        <select id="pageSize">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all">全部</option>
+        </select>
+      </label>
+      <div class="viewtoggle">
+        <button data-view="table" class="active">表格</button>
+        <button data-view="card">卡片</button>
+      </div>
+      <button class="btn-dl" id="download">下载 CSV</button>
+    </div>
+  </section>
+  <div class="resultcount" id="resultcount"></div>
+  <div class="table-wrap" id="tableView">
+    <table>
+      <thead><tr><th>类别</th><th>名称</th><th>访问</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="emptyRow" class="empty" style="display:none">没有匹配的资源</div>
+  </div>
+  <div class="cards" id="cardView"></div>
+  <div class="pager" id="pager"></div>
+</main>
+<footer>RStata 数据中心 · 数据来源：rstata.duanshu.com ｜ 本页由课程列表爬取.R 自动生成</footer>
+<script>
+const DATA = ___DATA___;
+
+function el(tag, cls, txt){
+  var e=document.createElement(tag);
+  if(cls) e.setAttribute("class", cls);
+  if(txt!=null) e.textContent=txt;
+  return e;
+}
+function makeLink(url, cls, txt){
+  var a=el("a", cls, txt);
+  a.setAttribute("href", url);
+  a.setAttribute("target", "_blank");
+  return a;
+}
+function makeStat(num, lbl, cls){
+  var card=el("div", "stat " + cls);
+  card.appendChild(el("div", "num", String(num)));
+  card.appendChild(el("div", "lbl", lbl));
+  return card;
+}
+function filtered(){
+  var q=state.q.trim().toLowerCase();
+  return DATA.filter(function(d){
+    if(state.cat!=="全部" && d["类别"]!==state.cat) return false;
+    if(q && !(String(d["标题"]).toLowerCase().includes(q) || String(d["链接"]||"").toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+function renderStats(){
+  var c={"课程":0,"名师讲堂":0,"数据资料":0};
+  DATA.forEach(function(d){ if(c[d["类别"]]!=null) c[d["类别"]]++; });
+  var box=document.getElementById("stats"); box.innerHTML="";
+  box.appendChild(makeStat(DATA.length, "全部资源", "total"));
+  box.appendChild(makeStat(c["课程"], "课程", "c1"));
+  box.appendChild(makeStat(c["名师讲堂"], "名师讲堂", "c2"));
+  box.appendChild(makeStat(c["数据资料"], "数据资料", "c3"));
+}
+function renderTabs(){
+  var tabs=["全部","课程","名师讲堂","数据资料"];
+  var box=document.getElementById("tabs"); box.innerHTML="";
+  tabs.forEach(function(t){
+    var d=el("div", "tab" + (state.cat===t ? " active" : ""), t);
+    d.setAttribute("data-cat", t);
+    d.addEventListener("click", function(){ state.cat=t; state.page=1; renderTabs(); renderAll(); });
+    box.appendChild(d);
+  });
+}
+function renderTable(rows){
+  var tb=document.getElementById("tbody"); tb.innerHTML="";
+  var er=document.getElementById("emptyRow");
+  if(!rows.length){ er.style.display=""; return; }
+  er.style.display="none";
+  rows.forEach(function(d){
+    var tr=el("tr");
+    var td1=el("td"); td1.appendChild(el("span","badge "+d["类别"], d["类别"])); tr.appendChild(td1);
+    tr.appendChild(el("td","title-cell", d["标题"]));
+    var td3=el("td","links");
+    td3.appendChild(makeLink(d["链接"],"m","手机端"));
+    td3.appendChild(makeLink(d["PC端链接"],"p","PC端"));
+    tr.appendChild(td3);
+    tb.appendChild(tr);
+  });
+}
+function renderCards(rows){
+  var box=document.getElementById("cardView"); box.innerHTML="";
+  if(!rows.length){ box.appendChild(el("div","empty","没有匹配的资源")); return; }
+  rows.forEach(function(d){
+    var card=el("div","card");
+    var top=el("div","top"); top.appendChild(el("span","badge "+d["类别"], d["类别"])); card.appendChild(top);
+    card.appendChild(el("div","ctitle", d["标题"]));
+    var actions=el("div","cactions");
+    actions.appendChild(makeLink(d["链接"],"m","手机端打开"));
+    actions.appendChild(makeLink(d["PC端链接"],"p","PC端打开"));
+    card.appendChild(actions);
+    var copy=el("button","copy","复制链接");
+    copy.setAttribute("data-link", d["链接"]);
+    copy.addEventListener("click", function(){
+      navigator.clipboard.writeText(d["链接"]).then(function(){
+        var t=copy.textContent; copy.textContent="已复制 ✓"; setTimeout(function(){ copy.textContent=t; }, 1200);
+      });
+    });
+    card.appendChild(copy);
+    box.appendChild(card);
+  });
+}
+function totalPages(total){
+  if(state.pageSize==="all") return 1;
+  return Math.max(1, Math.ceil(total/state.pageSize));
+}
+function pageRows(rows){
+  if(state.pageSize==="all") return rows;
+  var ps=state.pageSize, pages=totalPages(rows.length);
+  if(state.page>pages) state.page=pages;
+  if(state.page<1) state.page=1;
+  var start=(state.page-1)*ps;
+  return rows.slice(start, start+ps);
+}
+function renderPager(total){
+  var box=document.getElementById("pager"); box.innerHTML="";
+  var pages=totalPages(total);
+  if(state.page>pages) state.page=pages;
+  if(state.page<1) state.page=1;
+  function mk(label, dis, go){
+    var b=el("button","pg",label);
+    if(dis) b.setAttribute("disabled","");
+    else b.addEventListener("click", function(){ state.page=go; renderAll(); });
+    return b;
+  }
+  box.appendChild(mk("« 首页", state.page<=1, 1));
+  box.appendChild(mk("‹ 上一页", state.page<=1, state.page-1));
+  box.appendChild(el("span","pginfo","第 " + state.page + " / " + pages + " 页"));
+  box.appendChild(mk("下一页 ›", state.page>=pages, state.page+1));
+  box.appendChild(mk("末页 »", state.page>=pages, pages));
+}
+function renderAll(){
+  var all=filtered();
+  var rows=pageRows(all);
+  if(state.view==="table"){
+    document.getElementById("tableView").style.display="";
+    document.getElementById("cardView").style.display="none";
+    renderTable(rows);
+  } else {
+    document.getElementById("tableView").style.display="none";
+    document.getElementById("cardView").style.display="";
+    renderCards(rows);
+  }
+  var tp=totalPages(all.length);
+  document.getElementById("resultcount").textContent="共 " + all.length + " 项，第 " + state.page + " / " + tp + " 页，本页显示 " + rows.length + " 条";
+  renderPager(all.length);
+}
+var state={cat:"全部",q:"",view:"table",page:1,pageSize:20};
+document.getElementById("search").addEventListener("input", function(e){ state.q=e.target.value; state.page=1; renderAll(); });
+document.querySelectorAll(".viewtoggle button").forEach(function(b){ b.onclick=function(){
+  state.view=b.dataset.view;
+  state.page=1;
+  document.querySelectorAll(".viewtoggle button").forEach(function(x){ x.classList.remove("active"); });
+  b.classList.add("active"); renderAll();
+}; });
+document.getElementById("pageSize").addEventListener("change", function(e){
+  var v=e.target.value; state.pageSize=(v==="all"?"all":parseInt(v,10)); state.page=1; renderAll();
+});
+document.getElementById("download").addEventListener("click", function(){
+  var rows=filtered();
+  var q=String.fromCharCode(34), nl=String.fromCharCode(10);
+  var head=["标题","链接","类别","PC端链接"];
+  var out=[head.join(",")];
+  rows.forEach(function(d){
+    out.push([d["标题"],d["链接"],d["类别"],d["PC端链接"]].map(function(v){
+      return q + String(v==null?"":v).replace(new RegExp(q,"g"), q+q) + q;
+    }).join(","));
+  });
+  var csv=out.join(nl);
+  var blob=new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="RStata_课程与图表数据库索引.csv"; a.click();
+});
+renderStats(); renderTabs(); renderAll();
+</script>
+</body>
+</html>'
+
+# 注入数据并写出 index.html
+html_out <- gsub("___DATA___", data_json, html_template, fixed = TRUE)
+writeLines(html_out, "index.html")
 
 # read_csv("RStata 课程与图表数据库索引.csv") %>% 
 #   transmute(text = paste0("[", 标题, "](", 链接, ")")) %>% 
