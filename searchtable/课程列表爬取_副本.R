@@ -41,9 +41,7 @@ lst$response$data %>%
   transpose() %>% 
   as_tibble() %>%
   select(title, status, price, hashid) %>% 
-  unnest() -> df
-
-df 
+  unnest() -> df 
 
 lst$response$data %>% 
   transpose() %>% 
