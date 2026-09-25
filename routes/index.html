@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>水蛋一家人的旅程</title>
+<meta name="description" content="记录一家人走过的路与拍下的照片：足迹地图、照片墙、时间线与旅行统计。">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🧭</span>
+    <div class="brand-text">
+      <h1 id="siteTitle">水蛋一家人的旅程</h1>
+      <p id="siteSubtitle">正在加载…</p>
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="视图切换">
+    <button class="tab is-active" role="tab" data-view="map" aria-selected="true">地图</button>
+    <button class="tab" role="tab" data-view="photos" aria-selected="false">照片</button>
+    <button class="tab" role="tab" data-view="timeline" aria-selected="false">足迹</button>
+    <button class="tab" role="tab" data-view="stats" aria-selected="false">统计</button>
+  </nav>
+
+  <a class="btn btn-edit" href="admin.html" title="添加新的足迹、照片或行程">＋ 添加足迹</a>
+</header>
+
+<main id="main">
+
+  <!-- 加载 / 出错提示 -->
+  <div id="loading" class="state-box">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>正在载入旅程数据…</p>
+  </div>
+
+  <div id="loadError" class="state-box" hidden>
+    <h2>没能读到 data.js</h2>
+    <p>页面要的数据放在 <code>data.js</code>，它应该和 <code>index.html</code> 在同一目录。</p>
+    <p>如果还没有这个文件，跑一下转换脚本就会生成：</p>
+    <pre>python3 tools/migrate.py</pre>
+  </div>
+
+  <!-- ================= 地图 ================= -->
+  <section id="view-map" class="view" hidden>
+    <div id="map"></div>
+
+    <aside class="panel" id="mapPanel">
+      <div class="panel-head">
+        <h3>图层与筛选</h3>
+        <button type="button" id="panelToggle" class="panel-toggle" aria-expanded="true">收起</button>
+      </div>
+      <div class="panel-body" id="panelBody">
+        <div class="panel-group">
+          <h4>人物</h4>
+          <div class="chips" id="filterPeople"></div>
+        </div>
+        <div class="panel-group">
+          <h4>行程年份</h4>
+          <div class="chips" id="filterYears"></div>
+        </div>
+        <div class="panel-group">
+          <h4>底图</h4>
+          <div class="chips" id="filterBase"></div>
+        </div>
+        <div class="panel-group">
+          <button type="button" class="btn btn-ghost btn-block" id="fitAll">显示全部足迹</button>
+        </div>
+        <p class="panel-hint">点击地图上的头像，可以查看当时的照片和故事。</p>
+      </div>
+    </aside>
+
+    <div class="map-count" id="mapCount"></div>
+  </section>
+
+  <!-- ================= 照片墙 ================= -->
+  <section id="view-photos" class="view" hidden>
+    <div class="wrap">
+      <div class="view-head">
+        <h2>照片墙</h2>
+        <p class="view-desc" id="photoCount"></p>
+      </div>
+      <div class="filterbar">
+        <div class="chips" id="galleryPeople"></div>
+        <div class="chips" id="galleryYears"></div>
+      </div>
+      <div class="gallery" id="galleryGrid"></div>
+      <p class="empty" id="galleryEmpty" hidden>没有符合条件的照片。</p>
+    </div>
+  </section>
+
+  <!-- ================= 足迹时间线 ================= -->
+  <section id="view-timeline" class="view" hidden>
+    <div class="wrap">
+      <div class="view-head">
+        <h2>足迹时间线</h2>
+        <p class="view-desc">按时间倒序回顾每一次出发与抵达。</p>
+      </div>
+      <div class="filterbar">
+        <div class="chips" id="timelinePeople"></div>
+        <label class="search">
+          <input type="search" id="timelineSearch" placeholder="搜索地点、标题或备注…">
+        </label>
+      </div>
+      <div class="timeline" id="timelineList"></div>
+      <p class="empty" id="timelineEmpty" hidden>没有符合条件的足迹。</p>
+    </div>
+  </section>
+
+  <!-- ================= 统计 ================= -->
+  <section id="view-stats" class="view" hidden>
+    <div class="wrap">
+      <div class="view-head">
+        <h2>旅程汇总</h2>
+        <p class="view-desc" id="statsRange"></p>
+      </div>
+
+      <div class="stat-cards" id="statCards"></div>
+
+      <div class="chart-grid">
+        <div class="card">
+          <h3>每年走过的里程</h3>
+          <div class="chart" id="chartDistance"></div>
+        </div>
+        <div class="card">
+          <h3>每年留下的足迹</h3>
+          <div class="chart" id="chartPlaces"></div>
+        </div>
+        <div class="card">
+          <h3>足迹归属</h3>
+          <div class="chart chart-donut" id="chartPeople"></div>
+        </div>
+        <div class="card">
+          <h3>最远的几次行程</h3>
+          <ol class="ranklist" id="topRoutes"></ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>抵达的边界</h3>
+        <div class="extremes" id="extremes"></div>
+      </div>
+
+      <div class="card">
+        <h3>到访过的城市</h3>
+        <div class="chips chips-static" id="cityChips"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 灯箱 -->
+<div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="照片查看">
+  <button class="lb-close" id="lbClose" aria-label="关闭">×</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="上一张">‹</button>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="下一张">›</button>
+  <div class="lb-rotate">
+    <button class="lb-rot" id="lbRotL" aria-label="向左旋转">↺</button>
+    <button class="lb-rot" id="lbRotR" aria-label="向右旋转">↻</button>
+  </div>
+  <figure class="lb-figure">
+    <img id="lbImg" alt="">
+    <figcaption id="lbCap"></figcaption>
+  </figure>
+</div>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="assets/js/geo.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

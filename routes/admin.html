@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑旅程数据</title>
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">✏️</span>
+    <div class="brand-text">
+      <h1>编辑旅程数据</h1>
+      <p id="adminStatus">载入中…</p>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <span class="dirty-dot" id="dirtyDot" hidden title="有未保存的修改"></span>
+    <button type="button" class="btn btn-ghost" id="btnImport">导入数据</button>
+    <button type="button" class="btn btn-ghost" id="btnReset">放弃修改</button>
+    <button type="button" class="btn btn-edit" id="btnExport">保存为 data.js</button>
+    <a class="btn btn-ghost" href="index.html">← 返回地图</a>
+  </div>
+  <input type="file" id="importFile" accept=".js,.json,application/json,text/javascript" hidden>
+</header>
+
+<main class="admin">
+
+  <nav class="admin-tabs">
+    <button type="button" class="atab is-active" data-t="place">足迹点</button>
+    <button type="button" class="atab" data-t="route">行程路线</button>
+  </nav>
+
+  <div class="admin-body">
+    <!-- ============================ 表单 ============================ -->
+    <section class="form-pane">
+
+      <!-- ---------- 足迹点 ---------- -->
+      <div id="pane-place">
+        <h2 id="placeFormTitle">新增足迹点</h2>
+
+        <label class="field">
+          <span>标题 <b>*</b></span>
+          <input type="text" id="fTitle" placeholder="例如：新锐宝宝第一次看海">
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>人物</span>
+            <select id="fPerson"></select>
+          </label>
+          <label class="field">
+            <span>日期</span>
+            <input type="date" id="fDate">
+          </label>
+        </div>
+
+        <label class="field">
+          <span>地点名称</span>
+          <input type="text" id="fPlaceName" placeholder="例如：威海市国际海水浴场">
+        </label>
+
+        <div class="field">
+          <span>坐标（在右侧地图上点击即可选取）</span>
+          <div class="field-row">
+            <input type="number" step="0.000001" id="fLng" placeholder="经度">
+            <input type="number" step="0.000001" id="fLat" placeholder="纬度">
+          </div>
+        </div>
+
+        <label class="field">
+          <span>照片（每行一个；可以是网络地址，也可以是仓库里的 photos/xxx.jpg）</span>
+          <textarea id="fPhotos" rows="4" placeholder="https://…/xxx.jpg&#10;photos/20250918_01.jpg"></textarea>
+        </label>
+        <div class="field-row">
+          <input type="file" id="photoFiles" accept="image/*" multiple hidden>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnPickPhotos">选择本地照片…</button>
+          <span class="hint">选择后会自动填成 <code>photos/文件名</code>，把照片放进仓库的 photos/ 目录即可显示。</span>
+        </div>
+
+        <label class="field">
+          <span>附加字段（每行一条「键：值」，可留空）</span>
+          <textarea id="fFields" rows="2" placeholder="体重：3.7kg&#10;身高：50cm"></textarea>
+        </label>
+
+        <label class="field">
+          <span>备注</span>
+          <textarea id="fNote" rows="2"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-edit" id="btnSavePlace">保存足迹</button>
+          <button type="button" class="btn btn-ghost" id="btnClearPlace">清空表单</button>
+        </div>
+      </div>
+
+      <!-- ---------- 行程 ---------- -->
+      <div id="pane-route" hidden>
+        <h2 id="routeFormTitle">新增行程</h2>
+
+        <label class="field">
+          <span>标题 <b>*</b></span>
+          <input type="text" id="rTitle" placeholder="例如：新疆大环线">
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>年份</span>
+            <input type="number" id="rYear" min="1900" max="2100" placeholder="2025">
+          </label>
+          <label class="field">
+            <span>出发日期</span>
+            <input type="date" id="rDate">
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>起点</span>
+            <input type="text" id="rFrom" placeholder="阜阳">
+          </label>
+          <label class="field">
+            <span>终点</span>
+            <input type="text" id="rTo" placeholder="乌鲁木齐">
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>颜色</span>
+            <input type="color" id="rColor" value="#e31a1c">
+          </label>
+          <label class="field">
+            <span>线宽</span>
+            <input type="number" id="rWeight" min="1" max="12" value="4">
+          </label>
+        </div>
+
+        <div class="field">
+          <span>路线（在右侧地图上依次点击途经点）</span>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnDraw">开始绘制</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnUndoPt">撤销一点</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnClearDraw">清除</button>
+          </div>
+          <p class="hint" id="drawHint">尚未绘制。</p>
+        </div>
+
+        <label class="field">
+          <span>备注</span>
+          <textarea id="rNote" rows="2"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-edit" id="btnSaveRoute">保存行程</button>
+          <button type="button" class="btn btn-ghost" id="btnClearRoute">清空表单</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ 地图 ============================ -->
+    <section class="map-pane">
+      <div class="map-tools">
+        <input type="text" id="searchInput" placeholder="搜索地点，如：杭州西湖">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnSearch">搜索</button>
+        <span class="hint" id="searchHint"></span>
+      </div>
+      <div id="adminMap"></div>
+      <p class="map-tip" id="mapTip">提示：点击地图即可选取坐标。</p>
+    </section>
+  </div>
+
+  <!-- ============================ 列表 ============================ -->
+  <section class="list-pane">
+    <div class="list-head">
+      <h2 id="listTitle">已有足迹</h2>
+      <input type="search" id="listSearch" placeholder="筛选…">
+    </div>
+    <div id="listBody" class="list-body"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="assets/js/geo.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>

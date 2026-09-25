@@ -1,45 +1,1695 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 
 <head>
-    <title>Loving timer</title>
-    <script type="text/javascript" src="static/jquery.min.js"></script>
-    <script type="text/javascript" src="static/TimeCircles.js"></script>
-    <link rel="stylesheet" href="static/bootstrap.min.css">
-    <link rel="stylesheet" href="static/TimeCircles.css" />
-    <link rel=icon type=image/png href="https://czxb.github.io/xiaoxiao/xiaoxiao.png">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="恋爱计时器 · 记录我们在一起的每一秒">
+    <title>Loving Timer · 我们的爱情计时器</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff6b9d' d='M16 28C6 21.5 3 17 3 12.2 3 8.6 5.8 6 9.1 6c2.3 0 4.3 1.2 5.6 3 1.3-1.8 3.3-3 5.6-3C23.4 6 26 8.6 26 12.2 26 17 23 21.5 16 28z'/%3E%3C/svg%3E">
     <style>
-        body {
-            -webkit-font-smoothing: antialiased;
-            font-family: Helvetica Neue, Helvetica, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
-            background-color: #8dd3c7;
+        /* ============ 主题变量 ============ */
+        :root {
+            --r-lg: 26px;
+            --r-md: 18px;
+            --r-sm: 12px;
+
+            /* 四套字体：中文正文 + 拉丁数字分开配栈 */
+            --f-modern: "PingFang SC", "HarmonyOS Sans SC", "Source Han Sans SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+            --f-modern-num: "SF Pro Display", "SF Pro Text", "Helvetica Neue", Inter, "Segoe UI", system-ui, sans-serif;
+            --f-round: "Yuanti SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+            --f-round-num: "Avenir Next", Avenir, Quicksand, "SF Pro Rounded", "Helvetica Neue", sans-serif;
+            --f-serif: "Songti SC", "Source Han Serif SC", "Noto Serif SC", STSong, SimSun, serif;
+            --f-serif-num: Didot, "Hoefler Text", "Times New Roman", Georgia, serif;
+            --f-hand: "Xingkai SC", "Kaiti SC", STKaiti, KaiTi, "TW-Kai", "Songti SC", serif;
+            --f-hand-num: "Hoefler Text", "Palatino Linotype", Didot, Georgia, serif;
         }
 
-        .container {
-            width: 800px;
-            height: 340px;
+        body[data-font="modern"] {
+            --font-body: var(--f-modern);
+            --font-num: var(--f-modern-num);
+            --num-w: 700;
+            --title-w: 700;
+        }
+
+        body[data-font="round"] {
+            --font-body: var(--f-round);
+            --font-num: var(--f-round-num);
+            --num-w: 700;
+            --title-w: 700;
+        }
+
+        body[data-font="serif"] {
+            --font-body: var(--f-serif);
+            --font-num: var(--f-serif-num);
+            --num-w: 500;
+            --title-w: 600;
+        }
+
+        body[data-font="hand"] {
+            --font-body: var(--f-hand);
+            --font-num: var(--f-hand-num);
+            --num-w: 600;
+            --title-w: 600;
+        }
+
+        body[data-font="serif"] {
+            letter-spacing: .03em;
+        }
+
+        body[data-font="hand"] {
+            letter-spacing: .06em;
+        }
+
+        /* 手写档：引号与数字带一点手写衬线的味道 */
+        body[data-font="hand"] .quote .txt {
+            font-size: 16.5px;
+        }
+
+        body[data-theme="dawn"] {
+            --bg1: #ffe8e6;
+            --bg2: #ffd8ea;
+            --bg3: #e6ecff;
+            --ink: #4b3a52;
+            --muted: #8d7f96;
+            --card: rgba(255, 255, 255, .62);
+            --card2: rgba(255, 255, 255, .42);
+            --line: rgba(255, 255, 255, .85);
+            --accent: #ff6b9d;
+            --accent2: #ff9a76;
+            --glow: rgba(255, 107, 157, .35);
+            --shadow: 0 20px 50px rgba(184, 116, 150, .18);
+        }
+
+        body[data-theme="night"] {
+            --bg1: #1b1b2f;
+            --bg2: #2d1b3d;
+            --bg3: #16244a;
+            --ink: #eae6f5;
+            --muted: #a79fc0;
+            --card: rgba(255, 255, 255, .07);
+            --card2: rgba(255, 255, 255, .04);
+            --line: rgba(255, 255, 255, .12);
+            --accent: #ff8bb0;
+            --accent2: #8fb8ff;
+            --glow: rgba(255, 139, 176, .30);
+            --shadow: 0 20px 50px rgba(0, 0, 0, .45);
+        }
+
+        body[data-theme="mint"] {
+            --bg1: #dff6ef;
+            --bg2: #cdeef0;
+            --bg3: #e3f0ff;
+            --ink: #2f4f4a;
+            --muted: #6f8f8a;
+            --card: rgba(255, 255, 255, .66);
+            --card2: rgba(255, 255, 255, .44);
+            --line: rgba(255, 255, 255, .9);
+            --accent: #2fb39a;
+            --accent2: #63b8e8;
+            --glow: rgba(47, 179, 154, .3);
+            --shadow: 0 20px 50px rgba(60, 140, 130, .18);
+        }
+
+        body[data-theme="sunset"] {
+            --bg1: #ffe3c9;
+            --bg2: #ffc6b0;
+            --bg3: #ffd9e2;
+            --ink: #5a3a33;
+            --muted: #96766d;
+            --card: rgba(255, 255, 255, .64);
+            --card2: rgba(255, 255, 255, .42);
+            --line: rgba(255, 255, 255, .85);
+            --accent: #ff7043;
+            --accent2: #ff5f9e;
+            --glow: rgba(255, 112, 67, .3);
+            --shadow: 0 20px 50px rgba(190, 110, 80, .2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 18px 40px;
+            font-family: var(--font-body, var(--f-modern));
+            color: var(--ink);
+            line-height: 1.65;
+            text-rendering: optimizeLegibility;
+            font-synthesis-weight: none;
+            background: linear-gradient(140deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 100%);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+            transition: background .6s ease, color .6s ease;
+            overflow-x: hidden;
+        }
+
+        /* 背景光晕 */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: .55;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            width: 460px;
+            height: 460px;
+            left: -120px;
+            top: -140px;
+            background: var(--accent);
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            width: 520px;
+            height: 520px;
+            right: -160px;
+            bottom: -180px;
+            background: var(--accent2);
+            animation: drift 22s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes drift {
+            from {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+
+            to {
+                transform: translate3d(60px, 40px, 0) scale(1.15);
+            }
+        }
+
+        /* 漂浮爱心 */
+        #hearts {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .heart {
+            position: absolute;
+            bottom: -60px;
+            font-size: 18px;
+            color: var(--accent);
+            opacity: 0;
+            animation: floatUp linear infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(.7);
+                opacity: 0;
+            }
+
+            12% {
+                opacity: .75;
+            }
+
+            85% {
+                opacity: .45;
+            }
+
+            100% {
+                transform: translateY(-115vh) rotate(220deg) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        /* ============ 布局 ============ */
+        .wrap {
+            position: relative;
+            z-index: 2;
+            max-width: 980px;
+            margin: 0 auto;
+            padding-top: 34px;
+        }
+
+        header.top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand .beat {
+            font-size: 22px;
+            animation: beat 1.4s ease-in-out infinite;
+            filter: drop-shadow(0 4px 10px var(--glow));
+        }
+
+        @keyframes beat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            18% {
+                transform: scale(1.22);
+            }
+
+            36% {
+                transform: scale(1);
+            }
+
+            54% {
+                transform: scale(1.14);
+            }
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: var(--title-w, 700);
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .brand .sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .tools {
+            display: flex;
+            gap: 8px;
+            flex: none;
+        }
+
+        button.ghost {
+            border: 1px solid var(--line);
+            background: var(--card);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        button.ghost:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+        }
+
+        button.ghost:active {
+            transform: translateY(0) scale(.97);
+        }
+
+        /* 玻璃卡片 */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px) saturate(1.4);
+            -webkit-backdrop-filter: blur(18px) saturate(1.4);
+            padding: 26px;
+        }
+
+        /* 主卡 */
+        .hero {
+            text-align: center;
+            padding: 32px 26px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
             position: absolute;
             left: 50%;
-            top: 50%;
-            margin-left: -400px;
-            margin-top: -170px;
+            top: -70%;
+            width: 520px;
+            height: 520px;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
+            pointer-events: none;
         }
 
-        h2 {
+        .names {
+            font-size: 26px;
+            font-weight: var(--title-w, 700);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .names .x {
+            color: var(--accent);
+            animation: beat 1.4s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .since {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .since b {
+            color: var(--ink);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 切换标签 */
+        .tabs {
+            display: inline-flex;
+            gap: 4px;
+            margin: 20px auto 0;
+            padding: 4px;
+            border-radius: 999px;
+            background: var(--card2);
+            border: 1px solid var(--line);
+        }
+
+        .tabs button {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all .2s ease;
+            font-family: inherit;
+        }
+
+        .tabs button.on {
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 6px 18px var(--glow);
+            font-weight: 600;
+        }
+
+        /* 数字块 */
+        .digits {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 24px 0 6px;
+        }
+
+        .unit {
+            position: relative;
+            background: var(--card2);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 16px 6px 12px;
+            overflow: hidden;
+        }
+
+        .unit .num {
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: clamp(30px, 7vw, 46px);
+            font-weight: var(--num-w, 700);
+            line-height: 1.05;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+            letter-spacing: -.5px;
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .unit .num.tick {
+            animation: pop .35s cubic-bezier(.2, 1.6, .4, 1);
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.82);
+                opacity: .55;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .unit .lab {
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-top: 8px;
+            letter-spacing: 2.5px;
+            opacity: .85;
+        }
+
+        .unit .ms {
+            position: absolute;
+            right: 8px;
+            top: 6px;
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: 10px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            opacity: .7;
+        }
+
+        .human {
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--ink);
+            opacity: .9;
+        }
+
+        .human span {
+            color: var(--accent);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+        }
+
+        /* 进度条 */
+        .prog {
+            margin-top: 22px;
+            text-align: left;
+        }
+
+        .prog .pl {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 999px;
+            background: var(--card2);
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            box-shadow: 0 0 16px var(--glow);
+            transition: width .8s cubic-bezier(.3, 1, .4, 1);
+        }
+
+        /* 网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .grid .card {
+            padding: 20px 22px;
+        }
+
+        .card h3 {
+            margin: 0 0 14px;
+            font-size: 14px;
+            letter-spacing: .5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--ink);
+        }
+
+        .card h3 .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            box-shadow: 0 0 10px var(--glow);
+        }
+
+        .card h3 .more {
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--muted);
+        }
+
+        /* 纪念日 */
+        .annv .big {
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: 32px;
+            font-weight: var(--num-w, 700);
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .annv .big small {
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .annv .desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+            line-height: 1.7;
+        }
+
+        /* 数据小事 */
+        .facts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .fact {
+            background: var(--card2);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 12px 14px;
+        }
+
+        .fact b {
+            display: block;
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: 22px;
+            font-weight: var(--num-w, 700);
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+            color: var(--accent);
+        }
+
+        .fact span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* 里程碑 */
+        .ms-list {
+            max-height: 232px;
+            overflow-y: auto;
+            margin: -4px -6px 0;
+            padding: 4px 6px;
+        }
+
+        .ms-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ms-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 9px;
+            opacity: .5;
+        }
+
+        .ms {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 4px;
+            border-bottom: 1px dashed var(--line);
+            font-size: 13px;
+        }
+
+        .ms:last-child {
+            border-bottom: 0;
+        }
+
+        .ms .ic {
+            width: 26px;
+            height: 26px;
+            flex: none;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 13px;
+            background: var(--card2);
+            border: 1px solid var(--line);
+        }
+
+        .ms.done .ic {
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .ms.done {
+            color: var(--muted);
+        }
+
+        .ms.next {
+            background: var(--card2);
+            border-radius: var(--r-sm);
+            border-bottom-color: transparent;
+        }
+
+        .ms .t {
+            font-weight: 600;
+        }
+
+        .ms .d {
+            margin-left: auto;
+            font-family: var(--font-num, var(--f-modern-num));
+            font-size: 12px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+            white-space: nowrap;
+        }
+
+        .ms.next .d {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* 情话 */
+        .quote .txt {
+            font-size: 15.5px;
+            line-height: 2;
+            letter-spacing: .04em;
+            min-height: 84px;
+            display: flex;
+            align-items: center;
+        }
+
+        .quote .from {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        footer {
             text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 26px;
+            opacity: .85;
+            line-height: 1.9;
+        }
+
+        /* ============ 设置面板 ============ */
+        .mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 12, 20, .42);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 20px;
+        }
+
+        .mask.on {
+            display: flex;
+            animation: fade .25s ease;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .panel {
+            width: 100%;
+            max-width: 420px;
+            max-height: 86vh;
+            overflow-y: auto;
+            animation: rise .32s cubic-bezier(.2, 1, .3, 1);
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(24px) scale(.97);
+                opacity: 0;
+            }
+
+            to {
+                transform: none;
+                opacity: 1;
+            }
+        }
+
+        .panel h2 {
+            margin: 0 0 18px;
+            font-size: 17px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: var(--card2);
+            color: var(--ink);
+            border-radius: var(--r-sm);
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--glow);
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .themes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .themes button {
+            border: 2px solid transparent;
+            border-radius: var(--r-sm);
+            height: 44px;
+            cursor: pointer;
+            padding: 0;
+            position: relative;
+            transition: transform .18s ease;
+        }
+
+        .themes button:hover {
+            transform: translateY(-2px);
+        }
+
+        .themes button.on {
+            border-color: var(--ink);
+        }
+
+        .themes button i {
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+        }
+
+        .fonts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .fonts button {
+            border: 1px solid var(--line);
+            background: var(--card2);
+            color: var(--ink);
+            border-radius: var(--r-sm);
+            padding: 9px 4px 7px;
+            cursor: pointer;
+            display: grid;
+            gap: 1px;
+            place-items: center;
+            transition: transform .18s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .fonts button:hover {
+            transform: translateY(-2px);
+        }
+
+        .fonts button.on {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--glow);
+        }
+
+        .fonts button em {
+            font-style: normal;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .fonts button span {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .fonts button[data-f="modern"] {
+            font-family: var(--f-modern);
+        }
+
+        .fonts button[data-f="round"] {
+            font-family: var(--f-round);
+        }
+
+        .fonts button[data-f="serif"] {
+            font-family: var(--f-serif);
+        }
+
+        .fonts button[data-f="hand"] {
+            font-family: var(--f-hand);
+        }
+
+        .sw {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .sw input {
+            width: 40px;
+            height: 22px;
+            appearance: none;
+            -webkit-appearance: none;
+            border-radius: 999px;
+            background: var(--card2);
+            border: 1px solid var(--line);
+            position: relative;
+            cursor: pointer;
+            transition: background .2s ease;
+            flex: none;
+        }
+
+        .sw input::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            top: 2px;
+            left: 2px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+            transition: transform .2s ease;
+        }
+
+        .sw input:checked {
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            border-color: transparent;
+        }
+
+        .sw input:checked::after {
+            transform: translateX(18px);
+        }
+
+        .acts {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .acts button {
+            flex: 1;
+            border: 0;
+            border-radius: var(--r-sm);
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform .18s ease, opacity .18s ease;
+        }
+
+        .acts button:active {
+            transform: scale(.98);
+        }
+
+        .acts .pri {
+            background: linear-gradient(120deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 8px 22px var(--glow);
+        }
+
+        .acts .sec {
+            background: var(--card2);
+            color: var(--ink);
+            border: 1px solid var(--line);
+        }
+
+        /* toast */
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translate(-50%, 20px);
+            background: rgba(30, 20, 30, .88);
+            color: #fff;
+            font-size: 13px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all .3s ease;
+            z-index: 99;
+            backdrop-filter: blur(8px);
+        }
+
+        #toast.on {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .digits {
+                gap: 8px;
+            }
+
+            .unit {
+                padding: 12px 4px 10px;
+            }
+
+            .names {
+                font-size: 21px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="content">
-            <h2>👫 From Oct. 27, 2019 to the future</h2>
-            <div id="DateCountdown" data-date="2019-10-27 23:00:00"></div>
+<body data-theme="dawn" data-font="round">
+    <div id="hearts"></div>
+
+    <div class="wrap">
+        <header class="top">
+            <div class="brand">
+                <span class="beat">❤️</span>
+                <div>
+                    <h1 id="pageTitle">我们的爱情计时器</h1>
+                    <div class="sub" id="brandSub">Loving Timer · 每一秒都在爱你</div>
+                </div>
+            </div>
+            <div class="tools">
+                <button class="ghost" id="btnCopy">复制文案</button>
+                <button class="ghost" id="btnSet">⚙ 设置</button>
+            </div>
+        </header>
+
+        <!-- 主计时 -->
+        <section class="card hero">
+            <div class="names"><span id="nameB">我</span><span class="x">♥</span><span id="nameA">你</span></div>
+            <div class="since">始于 <b id="sinceTxt">2019年10月27日 23:00</b> · 已经走过 <b id="totDays">0</b> 天</div>
+
+            <div class="tabs">
+                <button class="on" data-tab="together">💞 我们已经在一起</button>
+                <button data-tab="anniversary">🎂 距离下次纪念日</button>
+            </div>
+
+            <div class="digits">
+                <div class="unit">
+                    <div class="num" id="d1">0</div>
+                    <div class="lab" id="l1">DAYS</div>
+                </div>
+                <div class="unit">
+                    <div class="num" id="d2">0</div>
+                    <div class="lab">HOURS</div>
+                </div>
+                <div class="unit">
+                    <div class="num" id="d3">0</div>
+                    <div class="lab">MINUTES</div>
+                </div>
+                <div class="unit">
+                    <div class="num" id="d4">0</div>
+                    <div class="lab">SECONDS</div>
+                    <div class="ms" id="msTxt">00</div>
+                </div>
+            </div>
+
+            <div class="human" id="humanTxt">—</div>
+
+            <div class="prog">
+                <div class="pl"><span id="progLabel">距离下一个周年纪念日</span><span id="progPct">0%</span></div>
+                <div class="bar"><i id="progBar" style="width:0%"></i></div>
+            </div>
+        </section>
+
+        <div class="grid">
+            <!-- 纪念日 -->
+            <section class="card annv">
+                <h3><span class="dot"></span>下一个纪念日<span class="more" id="annvMore"></span></h3>
+                <div class="big"><span id="annvDays">0</span><small>天</small> <span id="annvHm">00:00:00</span></div>
+                <div class="desc" id="annvDesc">—</div>
+            </section>
+
+            <!-- 数字里的我们 -->
+            <section class="card">
+                <h3><span class="dot"></span>数字里的我们</h3>
+                <div class="facts">
+                    <div class="fact"><b id="fHours">0</b><span>共同度过的小时</span></div>
+                    <div class="fact"><b id="fWeeks">0</b><span>一起度过的周末</span></div>
+                    <div class="fact"><b id="fSunset">0</b><span>一起看过的日落</span></div>
+                    <div class="fact"><b id="fBeat">0</b><span>为你跳动的心跳（亿次）</span></div>
+                </div>
+            </section>
+
+            <!-- 里程碑 -->
+            <section class="card">
+                <h3><span class="dot"></span>爱情里程碑<span class="more">已达成 <b
+                            id="msDone">0</b> / <b id="msAll">0</b></span></h3>
+                <div class="ms-list" id="msList"></div>
+            </section>
+
+            <!-- 每日情话 -->
+            <section class="card quote">
+                <h3><span class="dot"></span>今日情话<button class="ghost"
+                        style="margin-left:auto;padding:5px 12px;font-size:12px" id="btnQuote">换一句</button></h3>
+                <div class="txt" id="quoteTxt">—</div>
+                <div class="from" id="quoteFrom"></div>
+            </section>
+        </div>
+
+        <footer>
+            设置与日期保存在你自己的浏览器里，不会上传 · 点击右上角 ⚙ 可以改成你们的故事<br>
+            Made with ❤️ · <span id="yearNow"></span>
+        </footer>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="mask" id="mask">
+        <div class="card panel">
+            <h2>⚙ 自定义我们的故事</h2>
+            <div class="field">
+                <label>在一起的开始时间</label>
+                <input type="datetime-local" id="cfgStart">
+            </div>
+            <div class="row2">
+                <div class="field">
+                    <label>TA 的名字</label>
+                    <input type="text" id="cfgA" maxlength="12" placeholder="你">
+                </div>
+                <div class="field">
+                    <label>你的名字</label>
+                    <input type="text" id="cfgB" maxlength="12" placeholder="我">
+                </div>
+            </div>
+            <div class="field">
+                <label>纪念日名称（如：恋爱纪念日 / 结婚纪念日）</label>
+                <input type="text" id="cfgAnn" maxlength="16" placeholder="恋爱纪念日">
+            </div>
+            <div class="field">
+                <label>配色主题</label>
+                <div class="themes" id="themes">
+                    <button data-t="mint"><i style="background:linear-gradient(135deg,#dff6ef,#cdeef0,#e3f0ff)"></i></button>
+                    <button data-t="dawn"><i style="background:linear-gradient(135deg,#ffe8e6,#ffd8ea,#e6ecff)"></i></button>
+                    <button data-t="night"><i style="background:linear-gradient(135deg,#1b1b2f,#2d1b3d,#16244a)"></i></button>
+                    <button data-t="sunset"><i style="background:linear-gradient(135deg,#ffe3c9,#ffc6b0,#ffd9e2)"></i></button>
+                </div>
+            </div>
+            <div class="field">
+                <label>字体风格</label>
+                <div class="fonts" id="fonts">
+                    <button data-f="modern"><em>我们</em><span>现代</span></button>
+                    <button data-f="round"><em>我们</em><span>圆润</span></button>
+                    <button data-f="serif"><em>我们</em><span>优雅</span></button>
+                    <button data-f="hand"><em>我们</em><span>手写</span></button>
+                </div>
+            </div>
+            <div class="field sw">
+                <input type="checkbox" id="cfgHearts"><label for="cfgHearts" style="margin:0">背景漂浮爱心动画</label>
+            </div>
+            <div class="acts">
+                <button class="sec" id="btnReset">恢复默认</button>
+                <button class="pri" id="btnSave">保存</button>
+            </div>
         </div>
     </div>
+
+    <div id="toast"></div>
+
     <script>
-        $("#DateCountdown").TimeCircles();
+        (function () {
+            "use strict";
+
+            /* ---------------- 配置 ---------------- */
+            var KEY = "lovingTimer.v1";
+            var DEFAULTS = {
+                start: "2019-10-27T23:00",
+                a: "你",
+                b: "我",
+                ann: "恋爱纪念日",
+                theme: "dawn",
+                font: "round",
+                hearts: true
+            };
+
+            function loadCfg() {
+                try {
+                    var raw = localStorage.getItem(KEY);
+                    if (!raw) return Object.assign({}, DEFAULTS);
+                    return Object.assign({}, DEFAULTS, JSON.parse(raw));
+                } catch (e) {
+                    return Object.assign({}, DEFAULTS);
+                }
+            }
+
+            function saveCfg(c) {
+                try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) { }
+            }
+
+            var cfg = loadCfg();
+            var tab = "together";
+
+            /* ---------------- 工具 ---------------- */
+            var $ = function (id) { return document.getElementById(id); };
+            var DAY = 86400000;
+
+            function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+            function parseStart(s) {
+                var m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(s || "");
+                if (!m) return new Date(DEFAULTS.start.replace("T", " ") + ":00");
+                return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0, 0);
+            }
+
+            function fmtCN(d, withTime) {
+                var s = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
+                if (withTime) s += " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+                return s;
+            }
+
+            function splitMs(ms) {
+                if (ms < 0) ms = 0;
+                var total = Math.floor(ms / 1000);
+                return {
+                    d: Math.floor(total / 86400),
+                    h: Math.floor(total % 86400 / 3600),
+                    m: Math.floor(total % 3600 / 60),
+                    s: total % 60
+                };
+            }
+
+            // 已走过 x 年 x 个月 x 天
+            function humanSpan(from, to) {
+                var y = to.getFullYear() - from.getFullYear();
+                var mo = to.getMonth() - from.getMonth();
+                var d = to.getDate() - from.getDate();
+                if (d < 0) {
+                    mo -= 1;
+                    var prev = new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+                    d += prev;
+                }
+                if (mo < 0) { y -= 1; mo += 12; }
+                return { y: y, m: mo, d: d };
+            }
+
+            var start = parseStart(cfg.start);
+
+            /* ---------------- 纪念日 ---------------- */
+            // 第 n 个周年
+            function nthAnniversary(n) {
+                return new Date(start.getFullYear() + n, start.getMonth(), start.getDate(),
+                    start.getHours(), start.getMinutes(), 0, 0);
+            }
+
+            function nextAnniversary(now) {
+                var n = now.getFullYear() - start.getFullYear();
+                var d = nthAnniversary(n);
+                if (d <= now) { n += 1; d = nthAnniversary(n); }
+                return { index: n, date: d };
+            }
+
+            // 每月纪念日（同一天）
+            function nextMonthly(now) {
+                var d = new Date(now.getFullYear(), now.getMonth(), start.getDate(),
+                    start.getHours(), start.getMinutes(), 0, 0);
+                if (d <= now) d = new Date(now.getFullYear(), now.getMonth() + 1, start.getDate(),
+                    start.getHours(), start.getMinutes(), 0, 0);
+                return d;
+            }
+
+            /* ---------------- 里程碑 ---------------- */
+            var DAY_MS = [100, 200, 300, 500, 666, 1000, 1314, 1500, 2000, 2500, 3000, 3650, 5000, 10000];
+
+            function buildMilestones() {
+                var list = [];
+                DAY_MS.forEach(function (n) {
+                    list.push({ label: "在一起 " + n + " 天", date: new Date(start.getTime() + n * DAY) });
+                });
+                for (var i = 1; i <= 12; i++) {
+                    var nm = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"][i - 1];
+                    list.push({ label: nm + "周年", date: nthAnniversary(i) });
+                }
+                list.sort(function (a, b) { return a.date - b.date; });
+                return list;
+            }
+
+            var milestones = buildMilestones();
+
+            /* ---------------- 情话 ---------------- */
+            var QUOTES = [
+                ["我想变得有趣，变得特别，变成你眼里的一点光。", "《爱你就像爱生命》"],
+                ["你是我温暖的手套，冰冷的啤酒，带着阳光味道的衬衫，日复一日的梦想。", "《恋爱的犀牛》"],
+                ["从前的日色变得慢，车、马、邮件都慢，一生只够爱一个人。", "木心"],
+                ["见到你，我觉得多少适应了这个世界。", "村上春树"],
+                ["我不要天上的星星，我要尘世的幸福。", "冯唐"],
+                ["今夜我不关心人类，我只想你。", "海子"],
+                ["月亮照回湖心，野鹤奔向闲云，我步入你。", "仓央嘉措"],
+                ["你微微地笑着，不同我说什么话，而我觉得，为了这个，我已等待得很久了。", "泰戈尔"],
+                ["最好的爱情是，我们在一起，各自成为更好的人。", "「一起成长」"],
+                ["世界上有两种人，一种是你，一种是其他人。", "「偏爱」"],
+                ["我所有的运气，都用来遇见你了。", "「幸运」"],
+                ["想把你藏在心里，又想把你介绍给全世界。", "「炫耀」"],
+                ["和你在一起的每一天，都值得被认真记录。", "「计时器」"],
+                ["不是除了你我就没人要，而是除了你我谁都不想要。", "「唯一」"],
+                ["慢慢来，反正来日方长，我们有一辈子可以浪费。", "「来日方长」"],
+                ["你的名字，是我见过最短的情诗。", "「名字」"],
+                ["所有温柔都给你，所有偏心都给你。", "「偏心」"],
+                ["谢谢你出现在我的生命里，让普通的日子也有了光。", "「光」"]
+            ];
+
+            function dayIndex(now) {
+                var s = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                return Math.floor(s / DAY);
+            }
+
+            var qOff = 0;
+
+            function renderQuote() {
+                var i = (dayIndex(new Date()) + qOff) % QUOTES.length;
+                if (i < 0) i += QUOTES.length;
+                $("quoteTxt").textContent = "「" + QUOTES[i][0] + "」";
+                $("quoteFrom").textContent = "— " + QUOTES[i][1];
+            }
+
+            /* ---------------- 主题与爱心 ---------------- */
+            function applyTheme() {
+                document.body.setAttribute("data-theme", cfg.theme);
+                document.body.setAttribute("data-font", cfg.font || "modern");
+                var btns = document.querySelectorAll("#themes button");
+                for (var i = 0; i < btns.length; i++) {
+                    btns[i].classList.toggle("on", btns[i].getAttribute("data-t") === cfg.theme);
+                }
+                var fbs = document.querySelectorAll("#fonts button");
+                for (var j = 0; j < fbs.length; j++) {
+                    fbs[j].classList.toggle("on", fbs[j].getAttribute("data-f") === (cfg.font || "round"));
+                }
+            }
+
+            function buildHearts() {
+                var box = $("hearts");
+                box.innerHTML = "";
+                if (!cfg.hearts) return;
+                var n = window.innerWidth < 720 ? 12 : 20;
+                var chars = ["❤", "💗", "💕", "✨", "🌸"];
+                for (var i = 0; i < n; i++) {
+                    var el = document.createElement("span");
+                    el.className = "heart";
+                    el.textContent = chars[i % chars.length];
+                    el.style.left = (Math.random() * 100) + "%";
+                    el.style.fontSize = (12 + Math.random() * 20) + "px";
+                    el.style.animationDuration = (13 + Math.random() * 14) + "s";
+                    el.style.animationDelay = (-Math.random() * 24) + "s";
+                    box.appendChild(el);
+                }
+            }
+
+            /* ---------------- 渲染主数字 ---------------- */
+            var last = ["", "", "", ""];
+
+            function setNum(i, v) {
+                if (last[i] === v) return;
+                last[i] = v;
+                var el = $("d" + i);
+                el.textContent = v;
+                el.classList.remove("tick");
+                void el.offsetWidth;
+                el.classList.add("tick");
+            }
+
+            function renderMain(now) {
+                var ms, p, span;
+
+                // 开始时间在未来：先倒数
+                if (tab === "together" && now < start) {
+                    var u0 = splitMs(start - now);
+                    setNum(1, String(u0.d));
+                    setNum(2, pad(u0.h));
+                    setNum(3, pad(u0.m));
+                    setNum(4, pad(u0.s));
+                    $("l1").textContent = "DAYS";
+                    $("msTxt").textContent = pad(Math.floor(now % 1000 / 10));
+                    $("totDays").textContent = "0";
+                    $("humanTxt").innerHTML = "距离这个日子开始还有 <span>" + u0.d + "</span> 天，好期待呀";
+                    $("progLabel").textContent = "还没开始呢";
+                    $("progPct").textContent = "0%";
+                    $("progBar").style.width = "0%";
+                    return;
+                }
+
+                if (tab === "together") {
+                    ms = now - start;
+                    var u = splitMs(ms);
+                    setNum(1, String(u.d));
+                    setNum(2, pad(u.h));
+                    setNum(3, pad(u.m));
+                    setNum(4, pad(u.s));
+                    $("l1").textContent = "DAYS";
+                    $("msTxt").textContent = pad(Math.floor(now % 1000 / 10));
+
+                    span = humanSpan(start, now);
+                    $("humanTxt").innerHTML = "也就是 <span>" + span.y + "</span> 年 <span>" + span.m +
+                        "</span> 个月 <span>" + span.d + "</span> 天，感谢你一直在我身边";
+                    $("totDays").textContent = u.d;
+
+                    // 进度：到下一个周年的进度
+                    var na = nextAnniversary(now);
+                    var prev = nthAnniversary(na.index - 1);
+                    p = (now - prev) / (na.date - prev);
+                    $("progLabel").textContent = "距离第 " + na.index + " 个" + cfg.ann + "的进度";
+                } else {
+                    var na2 = nextAnniversary(now);
+                    ms = na2.date - now;
+                    var u2 = splitMs(ms);
+                    setNum(1, String(u2.d));
+                    setNum(2, pad(u2.h));
+                    setNum(3, pad(u2.m));
+                    setNum(4, pad(u2.s));
+                    $("l1").textContent = "DAYS";
+                    $("msTxt").textContent = pad(Math.floor(now % 1000 / 10));
+
+                    $("humanTxt").innerHTML = "第 <span>" + na2.index + "</span> 个" + cfg.ann + "将在 <span>" +
+                        fmtCN(na2.date, true) + "</span> 到来，准备好礼物了吗";
+
+                    var prev2 = nthAnniversary(na2.index - 1);
+                    p = (now - prev2) / (na2.date - prev2);
+                    $("progLabel").textContent = "距离第 " + na2.index + " 个" + cfg.ann + "的进度";
+                }
+
+                p = Math.max(0, Math.min(1, p));
+                $("progPct").textContent = (p * 100).toFixed(2) + "%";
+                $("progBar").style.width = (p * 100).toFixed(2) + "%";
+            }
+
+            /* ---------------- 渲染纪念日卡片 ---------------- */
+            function renderAnniversary(now) {
+                var na = nextAnniversary(now);
+                var mo = nextMonthly(now);
+                var target = mo < na.date ? mo : na.date;
+
+                var u = splitMs(target - now);
+                $("annvDays").textContent = u.d;
+                $("annvHm").textContent = pad(u.h) + ":" + pad(u.m) + ":" + pad(u.s);
+
+                if (target.getTime() === na.date.getTime()) {
+                    $("annvMore").textContent = "第 " + na.index + " 个";
+                    $("annvDesc").innerHTML = "第 <b>" + na.index + "</b> 个" + cfg.ann + " · " +
+                        fmtCN(na.date, true) + " · 星期" + "日一二三四五六".charAt(na.date.getDay()) +
+                        "<br>那天是你们在一起的第 <b>" + Math.round((na.date - start) / DAY) + "</b> 天";
+                } else {
+                    $("annvMore").textContent = "每月";
+                    $("annvDesc").innerHTML = "每月 <b>" + start.getDate() + "</b> 号的纪念日 · " +
+                        fmtCN(mo, true) + " · 星期" + "日一二三四五六".charAt(mo.getDay()) +
+                        "<br>下一个年度纪念日是第 <b>" + na.index + "</b> 个，在 " + fmtCN(na.date, false);
+                }
+            }
+
+            /* ---------------- 渲染数字里的我们 ---------------- */
+            function renderFacts(ms) {
+                if (ms < 0) ms = 0;
+                var days = ms / DAY;
+                var hours = Math.floor(ms / 3600000);
+                $("fHours").textContent = hours.toLocaleString("en-US");
+                $("fWeeks").textContent = Math.floor(days / 7).toLocaleString("en-US");
+                $("fSunset").textContent = Math.floor(days).toLocaleString("en-US");
+                // 按每分钟 70 次心跳估算
+                $("fBeat").textContent = (hours * 60 * 70 / 1e8).toFixed(2);
+            }
+
+            /* ---------------- 渲染里程碑 ---------------- */
+            function renderMilestones(now) {
+                var box = $("msList");
+                var html = "";
+                var done = 0;
+                var shown = 0;
+                var upcoming = [];
+
+                for (var i = 0; i < milestones.length; i++) {
+                    var m = milestones[i];
+                    if (m.date <= now) { done++; continue; }
+                    upcoming.push(m);
+                }
+
+                // 已达成：最后 4 个
+                var doneList = [];
+                for (var j = 0; j < milestones.length; j++) {
+                    if (milestones[j].date <= now) doneList.push(milestones[j]);
+                }
+                var tail = doneList.slice(Math.max(0, doneList.length - 4));
+
+                tail.forEach(function (m) {
+                    html += '<div class="ms done"><span class="ic">✓</span><span class="t">' + m.label +
+                        '</span><span class="d">' + fmtCN(m.date, false) + '</span></div>';
+                });
+
+                upcoming.slice(0, 5).forEach(function (m, k) {
+                    var dd = Math.ceil((m.date - now) / DAY);
+                    html += '<div class="ms' + (k === 0 ? " next" : "") + '"><span class="ic">🎁</span><span class="t">' +
+                        m.label + '</span><span class="d">' + (k === 0 ? "还有 " + dd + " 天" : fmtCN(m.date, false)) + '</span></div>';
+                    shown++;
+                });
+
+                box.innerHTML = html || '<div class="ms"><span class="t">暂无里程碑</span></div>';
+                $("msDone").textContent = done;
+                $("msAll").textContent = milestones.length;
+            }
+
+            /* ---------------- 主循环 ---------------- */
+            var lastSecRender = -1;
+
+            function tick() {
+                var now = new Date();
+                var ms = now - start;
+                renderMain(now);
+
+                var sec = now.getSeconds();
+                if (sec !== lastSecRender) {
+                    lastSecRender = sec;
+                    renderAnniversary(now);
+                    renderFacts(ms);
+                }
+            }
+
+            function fullRender() {
+                last = ["", "", "", ""];
+                start = parseStart(cfg.start);
+                milestones = buildMilestones();
+                var now = new Date();
+                renderMain(now);
+                renderAnniversary(now);
+                renderFacts(now - start);
+                renderMilestones(now);
+                renderQuote();
+            }
+
+            /* ---------------- 静态文案 ---------------- */
+            function renderStatic() {
+                $("nameA").textContent = cfg.a || "你";
+                $("nameB").textContent = cfg.b || "我";
+                $("sinceTxt").textContent = fmtCN(start, true);
+                $("pageTitle").textContent = (cfg.b || "我") + " ♥ " + (cfg.a || "你") + " 的计时器";
+                document.title = "Loving Timer · " + (cfg.b || "我") + " ♥ " + (cfg.a || "你");
+                $("yearNow").textContent = new Date().getFullYear();
+            }
+
+            /* ---------------- toast ---------------- */
+            var toastTimer = null;
+            function toast(msg) {
+                var t = $("toast");
+                t.textContent = msg;
+                t.classList.add("on");
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () { t.classList.remove("on"); }, 1900);
+            }
+
+            /* ---------------- 事件 ---------------- */
+            // Tab 切换
+            var tabs = document.querySelectorAll(".tabs button");
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].addEventListener("click", function () {
+                    for (var k = 0; k < tabs.length; k++) tabs[k].classList.remove("on");
+                    this.classList.add("on");
+                    tab = this.getAttribute("data-tab");
+                    last = ["", "", "", ""];
+                    tick();
+                });
+            }
+
+            // 换一句
+            $("btnQuote").addEventListener("click", function () { qOff++; renderQuote(); });
+
+            // 复制文案
+            $("btnCopy").addEventListener("click", function () {
+                var now = new Date();
+                var u = splitMs(now - start);
+                var span = humanSpan(start, now);
+                var txt = "我们从 " + fmtCN(start, true) + " 在一起，到今天已经走过 " + u.d + " 天（" +
+                    span.y + " 年 " + span.m + " 个月 " + span.d + " 天），" +
+                    "一共 " + Math.floor((now - start) / 3600000).toLocaleString("en-US") + " 个小时。每一天都因为有你而闪闪发光 ❤️";
+
+                var ok = function () { toast("文案已复制，去发给 TA 吧 ❤️"); };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(txt).then(ok, function () { fallbackCopy(txt, ok); });
+                } else {
+                    fallbackCopy(txt, ok);
+                }
+            });
+
+            function fallbackCopy(txt, cb) {
+                var ta = document.createElement("textarea");
+                ta.value = txt;
+                ta.style.position = "fixed";
+                ta.style.opacity = "0";
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand("copy"); cb(); } catch (e) { toast("复制失败，请手动选择文字"); }
+                document.body.removeChild(ta);
+            }
+
+            // 设置面板
+            function openPanel() {
+                $("cfgStart").value = cfg.start;
+                $("cfgA").value = cfg.a;
+                $("cfgB").value = cfg.b;
+                $("cfgAnn").value = cfg.ann;
+                $("cfgHearts").checked = !!cfg.hearts;
+                applyTheme();
+                $("mask").classList.add("on");
+            }
+
+            function closePanel() { $("mask").classList.remove("on"); }
+
+            $("btnSet").addEventListener("click", openPanel);
+            $("mask").addEventListener("click", function (e) { if (e.target === this) closePanel(); });
+            document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
+
+            var themeBtns = document.querySelectorAll("#themes button");
+            for (var t = 0; t < themeBtns.length; t++) {
+                themeBtns[t].addEventListener("click", function () {
+                    cfg.theme = this.getAttribute("data-t");
+                    applyTheme();
+                });
+            }
+
+            var fontBtns = document.querySelectorAll("#fonts button");
+            for (var f = 0; f < fontBtns.length; f++) {
+                fontBtns[f].addEventListener("click", function () {
+                    cfg.font = this.getAttribute("data-f");
+                    applyTheme();
+                });
+            }
+
+            $("btnSave").addEventListener("click", function () {
+                var v = $("cfgStart").value;
+                if (v) cfg.start = v;
+                cfg.a = ($("cfgA").value || "").trim() || "你";
+                cfg.b = ($("cfgB").value || "").trim() || "我";
+                cfg.ann = ($("cfgAnn").value || "").trim() || "恋爱纪念日";
+                cfg.hearts = $("cfgHearts").checked;
+                saveCfg(cfg);
+                buildHearts();
+                renderStatic();
+                fullRender();
+                closePanel();
+                toast("已保存 ❤️");
+            });
+
+            $("btnReset").addEventListener("click", function () {
+                cfg = Object.assign({}, DEFAULTS);
+                saveCfg(cfg);
+                applyTheme();
+                buildHearts();
+                renderStatic();
+                fullRender();
+                closePanel();
+                toast("已恢复默认设置");
+            });
+
+            // 双击标题区域也能打开设置
+            document.querySelector(".names").addEventListener("dblclick", openPanel);
+
+            /* ---------------- 启动 ---------------- */
+            applyTheme();
+            buildHearts();
+            renderStatic();
+            fullRender();
+            tick();
+            setInterval(tick, 60);
+            setInterval(renderMilestonesNow, 60000);
+
+            function renderMilestonesNow() { renderMilestones(new Date()); }
+
+            window.addEventListener("resize", function () {
+                clearTimeout(window.__hz);
+                window.__hz = setTimeout(buildHearts, 300);
+            });
+        })();
     </script>
 </body>
 

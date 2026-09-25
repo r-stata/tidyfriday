@@ -1,0 +1,106 @@
+<h1 id="水蛋一家人的旅程"><a href="#水蛋一家人的旅程" class="headerlink" title="水蛋一家人的旅程"></a>水蛋一家人的旅程</h1><p>记录一家人走过的路和拍下的照片。一个不依赖构建工具的静态站点：数据放在 <code>data.js</code>，<br>页面用原生 JS + Leaflet 渲染，改数据不用再跑 R 脚本。</p>
+<h2 id="打开方式"><a href="#打开方式" class="headerlink" title="打开方式"></a>打开方式</h2><ul>
+<li><strong>直接双击 <code>index.html</code> 就能看</strong>（数据走 <code>&lt;script src=&quot;data.js&quot;&gt;</code>，不受 <code>file://</code> 限制）。</li>
+<li>想用服务器也可以：<code>python3 -m http.server 8000</code>，然后开 <a href="http://localhost:8000/">http://localhost:8000/</a>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>地址</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>index.html</code></td>
+<td>地图 / 照片墙 / 足迹时间线 / 统计汇总</td>
+</tr>
+<tr>
+<td><code>admin.html</code></td>
+<td>添加和编辑数据</td>
+</tr>
+</tbody></table>
+<h2 id="四个视图"><a href="#四个视图" class="headerlink" title="四个视图"></a>四个视图</h2><table>
+<thead>
+<tr>
+<th>视图</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地图</td>
+<td>足迹点按人物用不同头像标记，行程按年份分层；点标记看照片和故事</td>
+</tr>
+<tr>
+<td>照片</td>
+<td>瀑布流照片墙，可按人物、年份筛选，点开可放大翻页</td>
+</tr>
+<tr>
+<td>足迹</td>
+<td>按年份倒序的时间线，支持关键词搜索</td>
+</tr>
+<tr>
+<td>统计</td>
+<td>累计里程、足迹数、照片数、到访城市、年度里程/足迹柱状图、人物分布、最远行程、抵达边界</td>
+</tr>
+</tbody></table>
+<h2 id="怎么添加足迹和照片"><a href="#怎么添加足迹和照片" class="headerlink" title="怎么添加足迹和照片"></a>怎么添加足迹和照片</h2><p>打开 <code>admin.html</code>：</p>
+<ol>
+<li><strong>加足迹点</strong>：在地图上点一下 → 自动填好经纬度 → 填标题、人物、日期、地点<br>→ 照片框里每行贴一个地址 → 保存。<ul>
+<li>也可以先用搜索框查地点（如「杭州西湖」）自动定位。</li>
+<li>照片既可以是网络地址，也可以是仓库里的相对路径 <code>photos/xxx.jpg</code>；<br>点「选择本地照片…」会自动填成 <code>photos/文件名</code>，把照片丢进 <code>photos/</code> 目录就行。</li>
+<li>一个足迹可以配多张照片（旧版只能一张）。</li>
+</ul>
+</li>
+<li><strong>加行程</strong>：切到「行程路线」→ 点「开始绘制」→ 在地图上依次点途经点 → 结束绘制<br>→ 填标题、年份、起终点 → 保存。里程会按大圆距离自动算出来。</li>
+<li><strong>保存</strong>：点右上角「保存为 data.js」。<br>Chrome / Edge 会弹出保存对话框，直接选仓库里的 <code>data.js</code> 覆盖即可；<br>其他浏览器会下载一个 <code>data.js</code>，手动放回仓库根目录。</li>
+</ol>
+<p>编辑过程中的改动会先存进浏览器本地草稿，中途关掉页面也不会丢；<br>没导出前右上角会亮一个小圆点。点「放弃修改」可以丢掉草稿重新载入。</p>
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>index.html              主页面
+admin.html              编辑后台
+data.js                 全部数据（唯一数据来源，window.JOURNEY_DATA = {...}）
+assets/
+  css/app.css           主样式
+  css/admin.css         后台样式
+  js/geo.js             坐标系换算与距离计算（两个页面共用）
+  js/app.js             主页面逻辑
+  js/admin.js           后台逻辑
+  img/icon-*.png        人物头像标记
+  vendor/leaflet/       本地内置 Leaflet，离线也能用
+photos/                 照片放这里，填 photos/文件名 引用
+tools/migrate.py        从旧版 xlsx + rds 迁移出 data.js</code></pre><h2 id="data-js-结构"><a href="#data-js-结构" class="headerlink" title="data.js 结构"></a>data.js 结构</h2><pre><code class="jsonc">window.JOURNEY_DATA = {
+  &quot;meta&quot;:   { &quot;title&quot;: &quot;…&quot;, &quot;subtitle&quot;: &quot;…&quot;, &quot;updated&quot;: &quot;2026-09-25&quot; },
+  &quot;people&quot;: [ { &quot;id&quot;: &quot;xinrui&quot;, &quot;name&quot;: &quot;新锐&quot;, &quot;color&quot;: &quot;#18BC9C&quot;, &quot;icon&quot;: &quot;assets/img/icon-xinrui.png&quot; } ],
+  &quot;places&quot;: [ { &quot;id&quot;: &quot;p001&quot;, &quot;title&quot;: &quot;…&quot;, &quot;person&quot;: &quot;xinrui&quot;,
+                &quot;lng&quot;: 122.11, &quot;lat&quot;: 37.50, &quot;date&quot;: &quot;2021-06-18&quot;,
+                &quot;place&quot;: &quot;威海市妇幼保健院&quot;, &quot;city&quot;: &quot;威海市&quot;,
+                &quot;note&quot;: &quot;&quot;, &quot;photos&quot;: [&quot;https://…/a.jpg&quot;], &quot;fields&quot;: { &quot;体重&quot;: &quot;3.7kg&quot; } } ],
+  &quot;routes&quot;: [ { &quot;id&quot;: &quot;r001&quot;, &quot;title&quot;: &quot;…&quot;, &quot;year&quot;: 2021, &quot;color&quot;: &quot;#18BC9C&quot;,
+                &quot;weight&quot;: 8, &quot;date&quot;: &quot;2021-08-31&quot;, &quot;from&quot;: &quot;威海&quot;, &quot;to&quot;: &quot;阜阳&quot;,
+                &quot;lines&quot;: [ [[lng,lat], [lng,lat], …] ], &quot;distance&quot;: 989.6 } ]
+};</code></pre>
+<p>坐标是 <strong>WGS84</strong>。高德底图用的是 GCJ-02，叠加时页面会自动换算，<br>所以点在图上的位置是对的（旧版少了这一步，每个点都偏几百米）。</p>
+<blockquote>
+<p>⚠️ <strong>两个坑，改代码时务必注意</strong></p>
+<ol>
+<li><strong>坐标顺序</strong>：JSON 里的坐标一律是 GeoJSON 顺序 <code>[lng, lat]</code>，<br>而 Leaflet 的 <code>L.marker</code> / <code>L.polyline</code> / <code>L.latLngBounds</code> 要的是 <code>[lat, lng]</code>。<br>两者搞反的症状是：标记飞出地球、折线立成竖线、<code>fitBounds</code> 把视图中心算到北极。<br>所以喂给 Leaflet 的坐标<strong>一律走 <code>Geo.toLatLng(lng, lat, gcj)</code></strong>，不要手写数组。</li>
+<li><strong>容器尺寸</strong>：Leaflet 在 <code>display:none</code> 的容器上会量到 <code>0×0</code>，<br><code>fitBounds</code> 因此算不出缩放、只能回落到 <code>minZoom</code>，结果所有足迹挤成一小团。<br>所以必须<strong>先 <code>showView(&#39;map&#39;)</code> 再 <code>initMap()</code></strong>，并在窗口 resize 时 <code>invalidateSize()</code>。</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="3">
+<li><strong>地图合并同地标记</strong>：地图上<strong>同一个经纬度 + 同一个 type（人物）</strong>的多张照片只画<br><strong>一个</strong>标记，点开弹窗里用缩略图网格列出该处全部照片（点缩略图可放大看全部）。<br>照片墙、时间线、统计里<strong>仍然显示全部</strong>足迹与照片，不受影响。这样照片多时地图也不会卡。</li>
+</ol>
+</blockquote>
+<h2 id="从旧版数据重新迁移"><a href="#从旧版数据重新迁移" class="headerlink" title="从旧版数据重新迁移"></a>从旧版数据重新迁移</h2><p>旧版的 <code>data.xlsx</code> + <code>routedata.xlsx</code> + <code>route/*.rds</code> 都还在，需要重跑时：</p>
+<pre><code class="bash">python3 -m venv .venv &amp;&amp; .venv/bin/pip install pandas openpyxl rdata
+.venv/bin/python3 tools/migrate.py            <span class="comment"># 生成 data.js</span>
+.venv/bin/python3 tools/migrate.py --json     <span class="comment"># 另外再导出一份 data.json 给其它工具用</span></code></pre>
+<p>会把 popup 里的 HTML 表格解析成结构化字段、日期归一成 <code>YYYY-MM-DD</code>、<br>按大圆距离算出每条行程的里程，并对折线做抽稀（约 80 米精度）以控制文件体积。<br><code>route/</code> 目录里没被 <code>routedata.xlsx</code> 登记的 3 条路线也会一并收进来（年份留空待补）。</p>
+<blockquote>
+<p>旧版 R 脚本仍然保留，但输出已改到 <code>legacy_leaflet.html</code>，不会再覆盖 <code>index.html</code>。</p>
+</blockquote>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>静态文件，推到 GitHub 上开 Pages 即可（根目录为仓库根）。<br>照片放仓库会让体积变大，量大的话建议继续用图床，填完整 URL 就行。</p>
+<p>想把「服务器真正需要的文件」单独抽出来，用 <code>tools/deploy.py</code> 一键收集到 <code>public/</code>：</p>
+<pre><code class="bash">python3 tools/deploy.py            <span class="comment"># 收集 index.html / admin.html / assets / data.js → public/</span>
+python3 tools/deploy.py --build    <span class="comment"># 先重新生成 data.js，再收集</span></code></pre>
+<p><code>public/</code> 是构建产物，每次运行都会清空重建，别在里面手改。可直接上传到任意静态服务器<br>（GitHub Pages 把 public/ 内容设为 Pages 源；Vercel/Netlify 构命令填 <code>python3 tools/deploy.py</code>、发布目录填 <code>public</code>）。</p>
