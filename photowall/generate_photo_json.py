@@ -32,6 +32,7 @@ import os
 import re
 import sys
 import time
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -114,6 +115,11 @@ def title_from_filename(name: str) -> str:
     cleaned = re.sub(r"[_\-]+", " ", cleaned).strip()
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
     return cleaned or stem
+
+
+def to_url(prefix: str, rel: str) -> str:
+    """拼出可直接使用的 URL：中文、空格、#、? 等一律 percent-encode"""
+    return prefix + urllib.parse.quote(rel, safe="/")
 
 
 def slugify(name: str) -> str:
@@ -250,7 +256,7 @@ def process_one(args):
         "id": slugify(name),
         "file": name,
         "imgSrc": name,  # 兼容旧版 photo.json
-        "src": opts["url_prefix"] + name.replace(" ", "%20"),
+        "src": to_url(opts["url_prefix"], name),
         "thumb": None,
         "title": title_from_filename(name),
         "width": None,
@@ -336,7 +342,7 @@ def process_one(args):
         out_name = slugify(name) + ".jpg"
         made = make_thumb(path, os.path.join(out_dir, out_name), opts["thumb_width"], opts["thumb_quality"])
         if made:
-            item["thumb"] = "%s%s/%s" % (opts["url_prefix"], opts["thumb_dir"], made)
+            item["thumb"] = to_url(opts["url_prefix"], opts["thumb_dir"] + "/" + made)
     return item
 
 
@@ -410,6 +416,7 @@ def build_meta(photos, opts):
         "generator": "generate_photo_json.py",
         "generatedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "urlPrefix": opts["url_prefix"],
+        "urlEncoded": True,          # src / thumb 已做 percent-encode，前端不要再编码
         "photoDir": os.path.basename(os.path.normpath(opts["photo_dir"])),
         "count": len(photos),
         "thumbDir": opts["thumb_dir"] if opts["thumbs"] else None,
@@ -434,8 +441,9 @@ def main():
     ap.add_argument("-o", "--output", default=os.path.join(here, "photo.json"), help="输出的 json 路径")
     ap.add_argument("--url-prefix", default=None, help="图片 URL 前缀（默认相对 photo.json 所在目录推算）")
     ap.add_argument("--title", default="水蛋的家 · 照片墙", help="写入 meta.title")
-    ap.add_argument("--thumbs", action="store_true", help="生成缩略图（会写入 <照片目录>/_thumbs/）")
-    ap.add_argument("--thumb-dir", default="_thumbs", help="缩略图文件夹名，默认 _thumbs")
+    ap.add_argument("--thumbs", action="store_true", help="生成缩略图（会写入 <照片目录>/thumbs/）")
+    ap.add_argument("--thumb-dir", default="thumbs",
+                    help="缩略图文件夹名，默认 thumbs（不要以下划线开头，Hexo 会跳过 _ 开头的目录）")
     ap.add_argument("--thumb-width", type=int, default=480, help="缩略图宽度，默认 480")
     ap.add_argument("--thumb-quality", type=int, default=82, help="缩略图质量，默认 82")
     ap.add_argument("--lqip", action="store_true", help="内嵌 24px 模糊占位图（json 会变大）")
@@ -471,7 +479,7 @@ def main():
         "url_prefix": url_prefix,
         "photo_dir": photo_dir,
         "thumbs": args.thumbs,
-        "thumb_dir": args.thumb_dir.strip("/") or "_thumbs",
+        "thumb_dir": args.thumb_dir.strip("/") or "thumbs",
         "thumb_width": args.thumb_width,
         "thumb_quality": args.thumb_quality,
         "lqip": args.lqip and HAS_PIL,
@@ -504,7 +512,7 @@ def main():
         st = os.stat(path)
         if old and old.get("bytes") == st.st_size and old.get("modified") == datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M:%S"):
             p = dict(old)
-            p["src"] = url_prefix + name.replace(" ", "%20")
+            p["src"] = to_url(url_prefix, name)
             if opts["thumbs"] and not p.get("thumb"):
                 todo.append(path)
             else:

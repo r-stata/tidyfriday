@@ -356,6 +356,7 @@ input[type=range]{width:92px;accent-color:var(--accent)}
       <button class="lb-btn" id="lbPlay" title="幻灯片 (空格)"></button>
       <button class="lb-btn" id="lbFull" title="全屏 (F)"></button>
       <a class="lb-btn" id="lbDl" title="下载原图" download></a>
+      <button class="lb-btn" id="lbLink" title="复制这张照片的链接 (C)"></button>
       <button class="lb-btn" id="lbInfo" title="照片信息 (I)"></button>
       <button class="lb-btn" id="lbClose" title="关闭 (Esc)"></button>
     </div>
@@ -364,7 +365,7 @@ input[type=range]{width:92px;accent-color:var(--accent)}
     <img id="lbImg" alt="" draggable="false">
     <button class="lb-nav prev" id="lbPrev" aria-label="上一张"></button>
     <button class="lb-nav next" id="lbNext" aria-label="下一张"></button>
-    <div class="lb-hint" id="lbHint">← → 切换 · 滚轮缩放 · 拖拽移动 · 双击放大 · Esc 关闭</div>
+    <div class="lb-hint" id="lbHint">← → 切换 · 滚轮缩放 · 拖拽移动 · 双击放大 · C 复制链接 · Esc 关闭</div>
     <div class="lb-info" id="lbInfoPanel"></div>
   </div>
   <div class="lb-strip" id="lbStrip"></div>
@@ -411,6 +412,7 @@ var ICON = {
   expand:'<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>',
   up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
   grid:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/>',
+  link:'<path d="M10.6 13.4a4.5 4.5 0 0 0 6.4 0l2.6-2.6a4.5 4.5 0 0 0-6.4-6.4l-1.1 1.1"/><path d="M13.4 10.6a4.5 4.5 0 0 0-6.4 0l-2.6 2.6a4.5 4.5 0 0 0 6.4 6.4l1.1-1.1"/>',
   photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 16l-5-5-6 6-2-2-3 3"/>'
 };
 function icon(n){ return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICON[n]||'')+'</svg>'; }
@@ -427,7 +429,7 @@ var S = {
   q:'', year:'all', month:0, orient:'all', sort:'date-desc',
   mode:'grid', min:230
 };
-var groups = [], gi = 0, pageBusy = false;
+var groups = [], gi = 0, pageBusy = false, thumbFails = 0;
 
 /* ---------------------------- 主题 ---------------------------- */
 (function initTheme(){
@@ -444,6 +446,7 @@ function paintThemeBtn(){
 
 /* ---------------------------- 载入数据 ---------------------------- */
 var LEGACY_PREFIX = 'static/photo/';
+function safeUrl(s){ return encodeURI(s).replace(/#/g, '%23').replace(/\?/g, '%3F'); }
 function normalize(raw){
   if (Array.isArray(raw)) {                       // 旧格式：[{imgSrc:"x.jpg"}]
     return { meta:{}, photos: raw.map(function(p){
@@ -463,6 +466,13 @@ function load(){
       DATA = normalize(raw);
       ALL = DATA.photos.filter(function(p){ return p && p.src; });
       ALL.forEach(function(p){ if(!p.id) p.id = p.file; });
+      // 旧版 photo.json 里的中文/空格没有编码，这里补一次（新版已在脚本里编码）
+      if (!(DATA.meta && DATA.meta.urlEncoded)) {
+        ALL.forEach(function(p){
+          if (p.src) p.src = safeUrl(p.src);
+          if (p.thumb) p.thumb = safeUrl(p.thumb);
+        });
+      }
       boot();
     })
     .catch(function(err){ showError(err); });
@@ -496,13 +506,22 @@ function boot(){
   bindUI();
   apply(true);
 
-  // 深链：#p=文件名
+  // 深链：#p=文件名 —— 只在「带着链接进来」时打开一次，
+  // 随后立刻把 hash 从地址栏抹掉，避免刷新 / hexo 热更新后又自动弹回这张照片
   var hm = /[#&]p=([^&]+)/.exec(location.hash || '');
-  if (hm) {
-    var target = decodeURIComponent(hm[1]);
-    var k = view.findIndex(function(p){ return p.file === target || p.id === target; });
-    if (k >= 0) setTimeout(function(){ openLb(k); }, 120);
+  if (hm) openFromHash(hm[1], true);
+}
+
+function openFromHash(rawHash, consume){
+  var target;
+  try { target = decodeURIComponent(rawHash); } catch(e){ target = rawHash; }
+  if (consume) {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
   }
+  var k = view.findIndex(function(p){ return p.file === target || p.id === target; });
+  if (k >= 0) { setTimeout(function(){ openLb(k); }, 120); return true; }
+  setTimeout(function(){ toast('链接里的照片不在当前筛选结果中：' + target, 3600); }, 200);
+  return false;
 }
 
 function bindUI(){
@@ -701,7 +720,9 @@ function card(p){
   el.className = 'card';
   el.tabIndex = 0;
   el.setAttribute('role','button');
-  el.dataset.ar = p.ratio || 1;
+  var ar = p.ratio || 1;
+  el.dataset.ar = ar;                       // 供 layoutGrid 计算 grid-row span
+  el.style.setProperty('--ar', ar);         // 供 CSS aspect-ratio 预留高度
   el.dataset.i = p._i;
   el.title = (p.title || p.file) + (p.date ? ' · ' + p.date : '');
 
@@ -720,10 +741,21 @@ function card(p){
   img.alt = p.title || p.file;
   img.setAttribute('loading', 'lazy');
   img.setAttribute('decoding', 'async');
-  img.src = srcThumb(p);          // 有缩略图时用缩略图，滚动更快
+  var thumbSrc = srcThumb(p);
+  var usingThumb = !!p.thumb && thumbSrc !== p.src;
+  img.src = thumbSrc;             // 有缩略图时用缩略图，滚动更快
   if (p.width) { img.width = p.width; img.height = p.height; }
   img.addEventListener('load', function(){ el.classList.add('loaded'); });
-  img.addEventListener('error', function(){ el.classList.add('loaded'); sk.style.display='none'; });
+  img.addEventListener('error', function(){
+    // 缩略图缺失时回退到原图；若大面积缺失（比如部署时漏传缩略图目录）则整体停用缩略图
+    if (usingThumb && !img.dataset.fb) {
+      img.dataset.fb = '1';
+      if (++thumbFails > 8) ALL.forEach(function(x){ x.thumb = null; });
+      img.src = p.src;
+      return;
+    }
+    el.classList.add('loaded'); sk.style.display = 'none';
+  });
   if (img.complete && img.naturalWidth) el.classList.add('loaded');
   frame.appendChild(img);
 
@@ -788,6 +820,7 @@ function layoutAll(){ groups.forEach(function(g){ layoutGrid(g.grid); }); }
 
 /* ---------------------------- 灯箱 ---------------------------- */
 var lb = { i:-1, s:1, tx:0, ty:0, playing:false, timer:null, drag:null };
+var HINT_TEXT = '← → 切换 · 滚轮缩放 · 拖拽移动 · 双击放大 · C 复制链接 · Esc 关闭';
 
 function bindLightbox(){
   $('lbClose').innerHTML = icon('close');
@@ -797,6 +830,7 @@ function bindLightbox(){
   $('lbZoomOut').innerHTML = icon('minus');
   $('lbFit').innerHTML = icon('fit');
   $('lbDl').innerHTML = icon('download');
+  $('lbLink').innerHTML = icon('link');
   $('lbInfo').innerHTML = icon('info');
   $('lbPlay').innerHTML = icon('play');
 
@@ -817,6 +851,7 @@ function bindLightbox(){
     else if (el.requestFullscreen) el.requestFullscreen();
   });
   $('lbPlay').addEventListener('click', togglePlay);
+  $('lbLink').addEventListener('click', copyLink);
 
   var stage = $('lbStage');
   stage.addEventListener('wheel', function(e){
@@ -880,6 +915,7 @@ function onKey(e){
     case ' ': e.preventDefault(); togglePlay(); break;
     case 'f': case 'F': $('lbFull').click(); break;
     case 'i': case 'I': $('lbInfo').click(); break;
+    case 'c': case 'C': copyLink(); break;
     case 'Home': openLb(0); break;
     case 'End': openLb(view.length - 1); break;
   }
@@ -909,10 +945,8 @@ function openLb(i){
   fillInfo(p);
   buildStrip();
   preload(i);
-  try { history.replaceState(null, '', '#p=' + encodeURIComponent(p.file)); } catch(e){}
-  $('lbHint').classList.remove('hide');
-  clearTimeout(lb.hintT);
-  lb.hintT = setTimeout(function(){ $('lbHint').classList.add('hide'); }, 3200);
+  // 注意：这里不再自动往地址栏写 #p=文件名，否则刷新 / 热更新后每次都会自动打开这张照片
+  toast(HINT_TEXT);
 }
 
 function closeLb(){
@@ -922,7 +956,34 @@ function closeLb(){
   $('lbInfoPanel').classList.remove('on');
   $('lbInfo').classList.remove('on');
   stopPlay();
-  try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+  try { if (/[#&]p=/.test(location.hash || '')) history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+}
+
+/* 复制当前照片的深链（仅在这个动作里才改写地址栏） */
+function copyLink(){
+  var p = view[lb.i];
+  if (!p) return;
+  var url = location.origin + location.pathname + location.search + '#p=' + encodeURIComponent(p.file || p.id || '');
+  try { history.replaceState(null, '', '#p=' + encodeURIComponent(p.file || p.id || '')); } catch(e){}
+  var ok = function(){ toast('链接已复制：' + (p.file || '')); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(ok, function(){ toast(url); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok(); } catch(e){ toast(url); }
+    document.body.removeChild(ta);
+  }
+}
+
+function toast(msg, ms){
+  var h = $('lbHint');
+  if (!h) return;
+  h.textContent = msg;
+  h.classList.remove('hide');
+  clearTimeout(lb.hintT);
+  lb.hintT = setTimeout(function(){ h.classList.add('hide'); }, ms || 2600);
 }
 
 function go(d){
@@ -1110,13 +1171,10 @@ function paintFoot(){
     var m = localStorage.getItem('pw-min');
     if (m) { S.min = +m; $('densRange').value = m; document.documentElement.style.setProperty('--min', m + 'px'); }
   } catch(e){}
+  // 手动粘贴前进/后退产生的 hash 变化才响应；我们自己不再写 hash，所以刷新不会触发
   window.addEventListener('hashchange', function(){
     var hm = /[#&]p=([^&]+)/.exec(location.hash || '');
-    if (hm && !$('lb').classList.contains('open')) {
-      var target = decodeURIComponent(hm[1]);
-      var k = view.findIndex(function(p){ return p.file === target; });
-      if (k >= 0) openLb(k);
-    }
+    if (hm && !$('lb').classList.contains('open')) openFromHash(hm[1], false);
   });
   load();
 })();
