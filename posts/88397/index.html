@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言计算地区间技术互补指数 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/88397/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在附件文献「地区间技术互补与创新驱动型经济增长_郑江淮」中提到了地区间技术互补指数的指标：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言计算地区间技术互补指数">
+<meta property="og:url" content="https://tidyfriday.cn/posts/88397/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在附件文献「地区间技术互补与创新驱动型经济增长_郑江淮」中提到了地区间技术互补指数的指标：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/88397.png">
+<meta property="article:published_time" content="2025-09-22T22:54:55.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.401Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/88397.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言计算地区间技术互补指数">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言计算地区间技术互补指数","description":"在附件文献「地区间技术互补与创新驱动型经济增长_郑江淮」中提到了地区间技术互补指数的指标：","url":"https://tidyfriday.cn/posts/88397/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/88397/"},"image":["https://tidyfriday.cn/og/88397.png"],"datePublished":"2025-09-22T22:54:55.000Z","dateModified":"2026-09-26T14:18:50.401Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言计算地区间技术互补指数","item":"https://tidyfriday.cn/posts/88397/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言计算地区间技术互补指数</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言计算地区间技术互补指数</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-09-22T22:54:55.000Z" itemprop="datePublished">2025-09-22</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2063 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在附件文献「地区间技术互补与创新驱动型经济增长_郑江淮」中提到了地区间技术互补指数的指标：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/22/22/02b79j1bdbe1b168g4/common/content/1758552654748_371722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/22/22/02b79j1bdbe1b168g4/common/content/1758552655998_199121.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/22/22/02b79j1bdbe1b168g4/common/content/1758552656492_552815.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>今天的课程中我们将一起使用 R 语言复现这个指标。</p>
+<p>使用的专利数据就是之前给大家分享的这个：</p>
+<blockquote>
+<p>1985～2024 年专利申请与授权数据（版本 3，含申请人所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988">https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988</a></p>
+</blockquote>
+<p>在附件中我提供了 2001 年的专利数据作为示例。</p>
+<p>首先处理专利数据，主要是去除重复专利、筛选发明专利、拆分 IPC 等：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 处理专利数据：patent_data，包含 year, city, ipc 列</span></span><br><span class="line"><span class="comment"># 读取专利数据，以 2001 年为例</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2001.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 146,970 × 49</span><br><span class="line">#&gt;    newipzlid   年份 申请日     标题    摘要  申请人 公开公告号 公开公告日 申请号</span><br><span class="line">#&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;date&gt;     &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;</span><br><span class="line">#&gt;  1 2001101496  2001 2001-05-30 模拟实战射击… &quot;&quot;    &quot;&quot;     CN0110104… 2002-05-30 CN011…</span><br><span class="line">#&gt;  2 2001037217  2001 2001-03-12 一种碲镉汞晶… &quot;&quot;    &quot;&quot;     CN0110096… 2004-04-14 CN011…</span><br><span class="line">#&gt;  3 2001082750  2001 2001-10-15 小型无刷直流… &quot;一种小… &quot;上海元山… CN2504411Y 2002-08-07 CN012…</span><br><span class="line">#&gt;  4 2001012438  2001 2001-04-25 扑克(千叶红… &quot;1.省… &quot;上海宇琛… CN3210531D 2001-11-21 CN013…</span><br><span class="line">#&gt;  5 2001005665  2001 2001-03-14 扑克(回形针… &quot;1.平… &quot;上海宇琛… CN3205260D 2001-10-17 CN013…</span><br><span class="line">#&gt;  6 2001073966  2001 2001-12-25 箱式变电站(… &quot;右视图… &quot;上海瑞华… CN3254449D 2002-09-11 CN013…</span><br><span class="line">#&gt;  7 2001033740  2001 2001-05-09 内压缩式倍速… &quot;本发明… &quot;凌岗&quot; CN1170063C 2004-10-06 CN011…</span><br><span class="line">#&gt;  8 2001043836  2001 2001-07-27 用位相反转的… &quot;一种用… &quot;中国科学… CN2554765Y 2003-06-04 CN012…</span><br><span class="line">#&gt;  9 2001034900  2001 2001-11-15 医药用氧化铁… &quot;本发明… &quot;上海氧化… CN1162477C 2004-08-18 CN011…</span><br><span class="line">#&gt; 10 2001042879  2001 2001-12-14 基因芯片分子… &quot;本发明… &quot;宋克&quot; CN1424405A 2003-06-18 CN011…</span><br><span class="line">#&gt; # ℹ 146,960 more rows</span><br><span class="line">#&gt; # ℹ 40 more variables: 专利类型 &lt;chr&gt;, 公开国别 &lt;chr&gt;, 首项权利要求 &lt;chr&gt;,</span><br><span class="line">#&gt; #   独立权利要求 &lt;chr&gt;, 文献页数 &lt;chr&gt;, IPC主分类 &lt;chr&gt;, IPC &lt;chr&gt;,</span><br><span class="line">#&gt; #   洛迦诺分类号 &lt;chr&gt;, 当前权利人 &lt;chr&gt;, 申请人类型 &lt;chr&gt;,</span><br><span class="line">#&gt; #   申请人国家_地区 &lt;chr&gt;, 申请人地址 &lt;chr&gt;, 当前专利权人地址 &lt;chr&gt;,</span><br><span class="line">#&gt; #   工商注册地址 &lt;chr&gt;, 工商公司类型 &lt;chr&gt;, 工商成立日期 &lt;chr&gt;,</span><br><span class="line">#&gt; #   工商统一社会信用代码 &lt;chr&gt;, 工商注册号 &lt;chr&gt;, 工商上市代码 &lt;chr&gt;, …</span><br></pre></td></tr></table></figure>
+
+<p>由于专利数据中同时包含了专利的申请和授权公告，所以有重复的，在统计数量前需要进行去重。通常公开公告号的结尾字母用以区分公告类别，例如 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。因此可以通过去除公开公告号结尾的字母进行去重，另外申请号也存在重复的，也需要进行去重。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 去除重复专利</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>公开公告号 <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>申请号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保留需要的变量</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>专利类型<span class="punctuation">,</span> <span class="string">&quot;发明&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> <span class="comment"># 只保留发明专利</span></span><br><span class="line">  select<span class="punctuation">(</span>year <span class="operator">=</span> 年份<span class="punctuation">,</span> city <span class="operator">=</span> 市<span class="punctuation">,</span> ipc <span class="operator">=</span> IPC<span class="punctuation">,</span> newipzlid<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>city<span class="punctuation">)</span><span class="punctuation">,</span> city <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>ipc<span class="punctuation">)</span><span class="punctuation">,</span> ipc <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 27,425 × 4</span><br><span class="line">#&gt;     year city   ipc                           newipzlid</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;                         &lt;chr&gt;</span><br><span class="line">#&gt;  1  2001 上海市 F04C18/14                     2001033740</span><br><span class="line">#&gt;  2  2001 上海市 C09C1/24                      2001034900</span><br><span class="line">#&gt;  3  2001 上海市 C12Q1/68; B01L3/00; C40B40/06 2001042879</span><br><span class="line">#&gt;  4  2001 上海市 G21K7/00; G03H5/00; G02B21/00 2001011181</span><br><span class="line">#&gt;  5  2001 上海市 H01S3/08; H01S3/11; H01S3/04  2001038650</span><br><span class="line">#&gt;  6  2001 上海市 G02B6/34                      2001127808</span><br><span class="line">#&gt;  7  2001 上海市 H05G2/00; H01S4/00            2001080181</span><br><span class="line">#&gt;  8  2001 上海市 A61B3/12; A61B6/00            2001034395</span><br><span class="line">#&gt;  9  2001 上海市 G02B6/35                      2001029535</span><br><span class="line">#&gt; 10  2001 上海市 G01B11/24; G01B9/021          2001001280</span><br><span class="line">#&gt; # ℹ 27,415 more rows</span><br></pre></td></tr></table></figure>
+
+<p>IPC 分类号使用分号分隔，可以使用 tidytext::unnest_tokens() 函数进行拆分和转置：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 拆分 IPC 并提取小类</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  tidytext<span class="operator">::</span>unnest_tokens<span class="punctuation">(</span><span class="string">&quot;ipc&quot;</span><span class="punctuation">,</span> <span class="string">&quot;ipc&quot;</span><span class="punctuation">,</span> token <span class="operator">=</span> stringr<span class="operator">::</span>str_split<span class="punctuation">,</span></span><br><span class="line">                          pattern <span class="operator">=</span> <span class="string">&quot;; &quot;</span><span class="punctuation">,</span> to_lower <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ipc <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>ipc<span class="punctuation">,</span> <span class="string">&quot;[\\s.]&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         ipc <span class="operator">=</span> str_sub<span class="punctuation">(</span>ipc<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> patent_data</span><br><span class="line"></span><br><span class="line">patent_data</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 88,407 × 4</span><br><span class="line">#&gt;     year city   ipc   newipzlid</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;</span><br><span class="line">#&gt;  1  2001 上海市 F04C  2001033740</span><br><span class="line">#&gt;  2  2001 上海市 C09C  2001034900</span><br><span class="line">#&gt;  3  2001 上海市 C12Q  2001042879</span><br><span class="line">#&gt;  4  2001 上海市 B01L  2001042879</span><br><span class="line">#&gt;  5  2001 上海市 C40B  2001042879</span><br><span class="line">#&gt;  6  2001 上海市 G21K  2001011181</span><br><span class="line">#&gt;  7  2001 上海市 G03H  2001011181</span><br><span class="line">#&gt;  8  2001 上海市 G02B  2001011181</span><br><span class="line">#&gt;  9  2001 上海市 H01S  2001038650</span><br><span class="line">#&gt; 10  2001 上海市 H01S  2001038650</span><br><span class="line">#&gt; # ℹ 88,397 more rows</span><br></pre></td></tr></table></figure>
+
+<p>下面就可以开始一步步的计算了。</p>
+<h3 id="步骤1：计算每个城市-年份-IPC的专利数量" class="article-heading"><a href="#步骤1：计算每个城市-年份-IPC的专利数量" class="headerlink" title="步骤1：计算每个城市-年份-IPC的专利数量"></a>步骤1：计算每个城市-年份-IPC的专利数量<a class="article-anchor" href="#步骤1：计算每个城市-年份-IPC的专利数量" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_data <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>year<span class="punctuation">,</span> city<span class="punctuation">,</span> ipc<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;patent_count&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> patent_count</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤2：计算每个城市每年所有-IPC-的专利总数" class="article-heading"><a href="#步骤2：计算每个城市每年所有-IPC-的专利总数" class="headerlink" title="步骤2：计算每个城市每年所有 IPC 的专利总数"></a>步骤2：计算每个城市每年所有 IPC 的专利总数<a class="article-anchor" href="#步骤2：计算每个城市每年所有-IPC-的专利总数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_count <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>year<span class="punctuation">,</span> city<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>total_city <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>patent_count<span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city_year_total</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤3：计算每年每个IPC的全国专利总数" class="article-heading"><a href="#步骤3：计算每年每个IPC的全国专利总数" class="headerlink" title="步骤3：计算每年每个IPC的全国专利总数"></a>步骤3：计算每年每个IPC的全国专利总数<a class="article-anchor" href="#步骤3：计算每年每个IPC的全国专利总数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_count <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>year<span class="punctuation">,</span> ipc<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>total_ipc <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>patent_count<span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipc_year_total</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤4：计算-RPCA（显性专利比较优势指数）" class="article-heading"><a href="#步骤4：计算-RPCA（显性专利比较优势指数）" class="headerlink" title="步骤4：计算 RPCA（显性专利比较优势指数）"></a>步骤4：计算 RPCA（显性专利比较优势指数）<a class="article-anchor" href="#步骤4：计算-RPCA（显性专利比较优势指数）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_count <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>city_year_total<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;city&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>ipc_year_total<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;ipc&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    share_city <span class="operator">=</span> patent_count <span class="operator">/</span> total_city<span class="punctuation">,</span></span><br><span class="line">    share_national <span class="operator">=</span> total_ipc <span class="operator">/</span> <span class="built_in">sum</span><span class="punctuation">(</span>patent_count<span class="punctuation">)</span><span class="punctuation">,</span> <span class="comment"># 注意：这里每年全国总专利数可能需调整</span></span><br><span class="line">    RPCA <span class="operator">=</span> share_city <span class="operator">/</span> share_national</span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>x_id <span class="operator">=</span> if_else<span class="punctuation">(</span>RPCA <span class="operator">&gt;</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rpc_data</span><br><span class="line"></span><br><span class="line">rpc_data</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 11,158 × 10</span><br><span class="line">#&gt;     year city  ipc   patent_count total_city total_ipc share_city share_national</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;        &lt;int&gt;      &lt;int&gt;     &lt;int&gt;      &lt;dbl&gt;          &lt;dbl&gt;</span><br><span class="line">#&gt;  1  2001 七台河市… A61K             5         14      9936     0.357        0.112</span><br><span class="line">#&gt;  2  2001 七台河市… A61P             4         14      9825     0.286        0.111</span><br><span class="line">#&gt;  3  2001 七台河市… C07C             4         14      1846     0.286        0.0209</span><br><span class="line">#&gt;  4  2001 七台河市… G09B             1         14       140     0.0714       0.00158</span><br><span class="line">#&gt;  5  2001 三明市…… A01N             2         35       879     0.0571       0.00994</span><br><span class="line">#&gt;  6  2001 三明市…… A23L             2         35      2819     0.0571       0.0319</span><br><span class="line">#&gt;  7  2001 三明市…… A61K             2         35      9936     0.0571       0.112</span><br><span class="line">#&gt;  8  2001 三明市…… A61P             6         35      9825     0.171        0.111</span><br><span class="line">#&gt;  9  2001 三明市…… B21C             1         35        73     0.0286       0.000826</span><br><span class="line">#&gt; 10  2001 三明市…… B27N             1         35        29     0.0286       0.000328</span><br><span class="line">#&gt; # ℹ 11,148 more rows</span><br><span class="line">#&gt; # ℹ 2 more variables: RPCA &lt;dbl&gt;, x_id &lt;dbl&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤5：构建技术关联矩阵-Φ（基于所有年份的共现）" class="article-heading"><a href="#步骤5：构建技术关联矩阵-Φ（基于所有年份的共现）" class="headerlink" title="步骤5：构建技术关联矩阵 Φ（基于所有年份的共现）"></a>步骤5：构建技术关联矩阵 Φ（基于所有年份的共现）<a class="article-anchor" href="#步骤5：构建技术关联矩阵-Φ（基于所有年份的共现）" aria-label="本节链接" title="复制本节链接"></a></h3><p>注意这里是需要把所有年份的发明专利数据放在一起处理，不过这里只提供了 2001 年的样本，所以还是以 2001 年的数据为例进行演示。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_data <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> ipc<span class="punctuation">)</span> <span class="operator">%&gt;%</span>  <span class="comment"># 每个专利只算一次共现（去重）</span></span><br><span class="line">  group_by<span class="punctuation">(</span>newipzlid<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>n<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span>  <span class="comment"># 至少有两个IPC的专利才参与共现计算</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    ipc_list <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>ipc<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ipc_pairs <span class="operator">=</span> map<span class="punctuation">(</span>ipc_list<span class="punctuation">,</span> <span class="operator">~</span>expand.grid<span class="punctuation">(</span>.x<span class="punctuation">,</span> .x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>ipc_pairs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>Var1 <span class="operator">!=</span> Var2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>ipc1 <span class="operator">=</span> Var1<span class="punctuation">,</span> ipc2 <span class="operator">=</span> Var2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>ipc1<span class="punctuation">,</span> ipc2<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;C_ij&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipc_pairs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算每个 IPC 的专利总数（用于归一化）</span></span><br><span class="line">patent_data <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> ipc<span class="punctuation">)</span> <span class="operator">%&gt;%</span>  <span class="comment"># 每个专利只计一次</span></span><br><span class="line">  count<span class="punctuation">(</span>ipc<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;total_patents&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipc_total_patents</span><br><span class="line">ipc_total_patents</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 603 × 2</span><br><span class="line">#&gt;    ipc   total_patents</span><br><span class="line">#&gt;    &lt;chr&gt;         &lt;int&gt;</span><br><span class="line">#&gt;  1 A01B             16</span><br><span class="line">#&gt;  2 A01C             51</span><br><span class="line">#&gt;  3 A01D             10</span><br><span class="line">#&gt;  4 A01F              6</span><br><span class="line">#&gt;  5 A01G            246</span><br><span class="line">#&gt;  6 A01H            117</span><br><span class="line">#&gt;  7 A01K             90</span><br><span class="line">#&gt;  8 A01M             11</span><br><span class="line">#&gt;  9 A01N            481</span><br><span class="line">#&gt; 10 A01P             71</span><br><span class="line">#&gt; # ℹ 593 more rows</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 构建技术关联矩阵 Φ</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤6：构建每个城市每年的技术优势向量-M-mat" class="article-heading"><a href="#步骤6：构建每个城市每年的技术优势向量-M-mat" class="headerlink" title="步骤6：构建每个城市每年的技术优势向量 M_mat"></a>步骤6：构建每个城市每年的技术优势向量 M_mat<a class="article-anchor" href="#步骤6：构建每个城市每年的技术优势向量-M-mat" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rpc_data <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>year<span class="punctuation">,</span> city<span class="punctuation">,</span> ipc<span class="punctuation">,</span> x_id<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>ipc <span class="operator">%in%</span> unique<span class="punctuation">(</span>phi_mat<span class="operator">$</span>ipc1<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  spread<span class="punctuation">(</span>ipc<span class="punctuation">,</span> x_id<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="number">0</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> M_mat</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤7：计算两个城市-c-和-d-之间的技术互补指数-comp-cd" class="article-heading"><a href="#步骤7：计算两个城市-c-和-d-之间的技术互补指数-comp-cd" class="headerlink" title="步骤7：计算两个城市 c 和 d 之间的技术互补指数 comp_cd"></a>步骤7：计算两个城市 c 和 d 之间的技术互补指数 comp_cd<a class="article-anchor" href="#步骤7：计算两个城市-c-和-d-之间的技术互补指数-comp-cd" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 假设我们选择年份 2001，城市 c 和 d</span></span><br><span class="line">year_select <span class="operator">&lt;-</span> 2001</span><br><span class="line">city_c <span class="operator">&lt;-</span> <span class="string">&quot;北京市&quot;</span></span><br><span class="line">city_d <span class="operator">&lt;-</span> <span class="string">&quot;上海市&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取两个城市的技术优势向量</span></span><br><span class="line">M_mat <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>year <span class="operator">==</span> year_select<span class="punctuation">,</span> city <span class="operator">==</span> city_c<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>year<span class="punctuation">,</span> <span class="operator">-</span>city<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  setNames<span class="punctuation">(</span>colnames<span class="punctuation">(</span>M_mat<span class="punctuation">)</span><span class="punctuation">[</span><span class="operator">-</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> M_c_vec</span><br><span class="line"></span><br><span class="line">M_mat <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>year <span class="operator">==</span> year_select<span class="punctuation">,</span> city <span class="operator">==</span> city_d<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>year<span class="punctuation">,</span> <span class="operator">-</span>city<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  setNames<span class="punctuation">(</span>colnames<span class="punctuation">(</span>M_mat<span class="punctuation">)</span><span class="punctuation">[</span><span class="operator">-</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> M_d_vec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算共有技术优势 A_cd</span></span><br><span class="line">A_cd <span class="operator">&lt;-</span> pmin<span class="punctuation">(</span>M_c_vec<span class="punctuation">,</span> M_d_vec<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算特有技术优势向量</span></span><br><span class="line">M_c_tilde <span class="operator">&lt;-</span> M_c_vec <span class="operator">-</span> A_cd</span><br><span class="line">M_d_tilde <span class="operator">&lt;-</span> M_d_vec <span class="operator">-</span> A_cd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取对应的 phi 子矩阵（仅包含两个城市涉及的技术）</span></span><br><span class="line">techs <span class="operator">&lt;-</span> <span class="built_in">names</span><span class="punctuation">(</span>M_c_vec<span class="punctuation">)</span></span><br><span class="line">phi_sub <span class="operator">&lt;-</span> phi_mat_wide<span class="punctuation">[</span>techs<span class="punctuation">,</span> techs<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算分子：M_c_tilde %*% Phi %*% M_d_tilde</span></span><br><span class="line">numerator <span class="operator">&lt;-</span> t<span class="punctuation">(</span>M_c_tilde<span class="punctuation">)</span> <span class="operator">%*%</span> phi_sub <span class="operator">%*%</span> M_d_tilde</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算分母：sqrt(|M_c_tilde| * |M_d_tilde|)</span></span><br><span class="line">denominator <span class="operator">&lt;-</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="built_in">sum</span><span class="punctuation">(</span>M_c_tilde<span class="punctuation">)</span> <span class="operator">*</span> <span class="built_in">sum</span><span class="punctuation">(</span>M_d_tilde<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算技术互补指数 comp_cd</span></span><br><span class="line">comp_cd <span class="operator">&lt;-</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>numerator <span class="operator">/</span> denominator<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>comp_cd<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] 0.05376701</span><br></pre></td></tr></table></figure>
+
+<p>由此就可以编写一个计算两个城市间技术互补指数的函数了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>获取所有城市对并计算技术互补指数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">unique<span class="punctuation">(</span>M_mat<span class="operator">$</span>city<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  crossing<span class="punctuation">(</span>unique<span class="punctuation">(</span>M_mat<span class="operator">$</span>city<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;city1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;city2&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>city1 <span class="operator">!=</span> city2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice_sample<span class="punctuation">(</span>n <span class="operator">=</span> <span class="number">100</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>comp_cd <span class="operator">=</span> map2_dbl<span class="punctuation">(</span>city1<span class="punctuation">,</span> city2<span class="punctuation">,</span> comp_cd_fun<span class="punctuation">,</span></span><br><span class="line">                            M_mat <span class="operator">=</span> M_mat<span class="punctuation">,</span></span><br><span class="line">                            phi_mat_wide <span class="operator">=</span> phi_mat_wide<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfres</span><br><span class="line">dfres</span><br><span class="line">mean<span class="punctuation">(</span>dfres<span class="operator">$</span>comp_cd<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>不过完全计算所有的使用单线程会非常缓慢，可以考虑使用多线程：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>这种多线程方法非常适合使用 map 族函数的代码。</p>
+<p>如果想要获取所有年份的数据，循环年份即可，不过需要注意技术关联矩阵是需要基于所有年份的专利数据重新计算。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/f75e341e4f924e688de8015f29f85348">名师讲堂｜使用 R 语言计算地区间技术互补指数</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.401Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/66483/" title="名师讲堂｜使用 Stata 计算地区间技术互补指数"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/16038/" title="旧版本｜1990～2023 年上市公司注册地址与办公地址周边一定范围的 CO2 排放量面板数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-30 · 约 13 分钟</span></li><li><a href="/posts/75631/">名师讲堂｜使用 R 语言测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 7 分钟</span></li><li><a href="/posts/46876/">名师讲堂｜使用 R 语言测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E5%9F%8E%E5%B8%82-%E5%B9%B4%E4%BB%BD-IPC%E7%9A%84%E4%B8%93%E5%88%A9%E6%95%B0%E9%87%8F"><span class="toc-text">步骤1：计算每个城市-年份-IPC的专利数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E5%9F%8E%E5%B8%82%E6%AF%8F%E5%B9%B4%E6%89%80%E6%9C%89-IPC-%E7%9A%84%E4%B8%93%E5%88%A9%E6%80%BB%E6%95%B0"><span class="toc-text">步骤2：计算每个城市每年所有 IPC 的专利总数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A43%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%AF%8F%E5%B9%B4%E6%AF%8F%E4%B8%AAIPC%E7%9A%84%E5%85%A8%E5%9B%BD%E4%B8%93%E5%88%A9%E6%80%BB%E6%95%B0"><span class="toc-text">步骤3：计算每年每个IPC的全国专利总数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A44%EF%BC%9A%E8%AE%A1%E7%AE%97-RPCA%EF%BC%88%E6%98%BE%E6%80%A7%E4%B8%93%E5%88%A9%E6%AF%94%E8%BE%83%E4%BC%98%E5%8A%BF%E6%8C%87%E6%95%B0%EF%BC%89"><span class="toc-text">步骤4：计算 RPCA（显性专利比较优势指数）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A45%EF%BC%9A%E6%9E%84%E5%BB%BA%E6%8A%80%E6%9C%AF%E5%85%B3%E8%81%94%E7%9F%A9%E9%98%B5-%CE%A6%EF%BC%88%E5%9F%BA%E4%BA%8E%E6%89%80%E6%9C%89%E5%B9%B4%E4%BB%BD%E7%9A%84%E5%85%B1%E7%8E%B0%EF%BC%89"><span class="toc-text">步骤5：构建技术关联矩阵 Φ（基于所有年份的共现）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A46%EF%BC%9A%E6%9E%84%E5%BB%BA%E6%AF%8F%E4%B8%AA%E5%9F%8E%E5%B8%82%E6%AF%8F%E5%B9%B4%E7%9A%84%E6%8A%80%E6%9C%AF%E4%BC%98%E5%8A%BF%E5%90%91%E9%87%8F-M-mat"><span class="toc-text">步骤6：构建每个城市每年的技术优势向量 M_mat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A47%EF%BC%9A%E8%AE%A1%E7%AE%97%E4%B8%A4%E4%B8%AA%E5%9F%8E%E5%B8%82-c-%E5%92%8C-d-%E4%B9%8B%E9%97%B4%E7%9A%84%E6%8A%80%E6%9C%AF%E4%BA%92%E8%A1%A5%E6%8C%87%E6%95%B0-comp-cd"><span class="toc-text">步骤7：计算两个城市 c 和 d 之间的技术互补指数 comp_cd</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

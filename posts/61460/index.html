@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/61460/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Python 测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异">
+<meta property="og:url" content="https://tidyfriday.cn/posts/61460/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Python 测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/61460.png">
+<meta property="article:published_time" content="2026-05-03T22:27:53.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.280Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="夜间灯光">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/61460.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异","description":"今天给大家分享使用 Python 测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。","url":"https://tidyfriday.cn/posts/61460/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/61460/"},"image":["https://tidyfriday.cn/og/61460.png"],"datePublished":"2026-05-03T22:27:53.000Z","dateModified":"2026-09-26T14:18:49.280Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"夜间灯光, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异","item":"https://tidyfriday.cn/posts/61460/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-03T22:27:53.000Z" itemprop="datePublished">2026-05-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3025 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%A4%9C%E9%97%B4%E7%81%AF%E5%85%89">夜间灯光</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 Python 测算中国各地区<strong>城乡夜间灯光亮度差异</strong>的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。</p>
+<span id="more"></span>
+
+<h2 id="原理与方法" class="article-heading"><a href="#原理与方法" class="headerlink" title="原理与方法"></a>原理与方法<a class="article-anchor" href="#原理与方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>城乡夜间灯光亮度差异是衡量<strong>城镇化水平</strong>和<strong>城乡差距</strong>的重要指标。本方法的核心思想是：</p>
+<ol>
+<li>将城市建成区（Cities）和镇建成区（Towns）的矢量边界合并作为”城市”区域</li>
+<li>其余区域定义为”农村”区域</li>
+<li>对夜间灯光栅格数据进行分区统计，计算城市和农村的平均亮度</li>
+<li>用城乡亮度比值（城市/农村）衡量城乡差距</li>
+</ol>
+<p>其中城市建成区和镇建成区的数据来源于这个论文：</p>
+<blockquote>
+<p>Bai, M., Zhang, X., Ai, W., Jing, X., &amp; Liu, L. (2026). A high-resolution global annual city and town boundaries dataset (2000–2022) derived from GLC_FCS30D product. Scientific Data, 13:50. <a target="_blank" rel="noopener external nofollow noreferrer" href="https://doi.org/10.1038/s41597-025-02568-9">https://doi.org/10.1038/s41597-025-02568-9</a></p>
+</blockquote>
+<p>夜间灯光数据平台上有好几个版本，这里选择的是施开放版本：</p>
+<blockquote>
+<p>1992～2024 年中国各省市区县乡镇类 DMSP-OLS 夜间灯光面板数据（施开放版本）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74">https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74</a></p>
+</blockquote>
+<p>另外也可以选择其余的三个版本：</p>
+<blockquote>
+<p>2000～2024 年各省市区县乡镇类 NPP-VIIRS 夜间灯光面板数据 &amp; 栅格数据（余柏蒗版本1）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/f8e6c2d0d4e549a58749d7d86a60e238">https://rstata.duanshu.com/#/brief/course/f8e6c2d0d4e549a58749d7d86a60e238</a></p>
+</blockquote>
+<blockquote>
+<p>1992～2024 年各省市区县乡镇类 NPP-VIIRS 夜间灯光面板数据 &amp; 栅格数据（余柏蒗版本2）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/5ee752e4c1d84ab48b2235366dfb83ec">https://rstata.duanshu.com/#/brief/course/5ee752e4c1d84ab48b2235366dfb83ec</a></p>
+</blockquote>
+<blockquote>
+<p>1986～2024 年中国各省市区县、乡镇夜间灯光面板数据（田一禾版本）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b7392dc0a7f649c9bf129666445c866e">https://rstata.duanshu.com/#/brief/course/b7392dc0a7f649c9bf129666445c866e</a></p>
+</blockquote>
+<h3 id="指标定义" class="article-heading"><a href="#指标定义" class="headerlink" title="指标定义"></a>指标定义<a class="article-anchor" href="#指标定义" aria-label="本节链接" title="复制本节链接"></a></h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>城市平均亮度</td>
+<td>建成区栅格的灯光均值</td>
+<td>值越大表示城镇化水平越高</td>
+</tr>
+<tr>
+<td>农村平均亮度</td>
+<td>非建成区栅格的灯光均值</td>
+<td>值越大表示农村发展水平越高</td>
+</tr>
+<tr>
+<td>城乡比</td>
+<td>城市/农村亮度比值</td>
+<td>值越大表示城乡差距越大</td>
+</tr>
+</tbody></table>
+<h3 id="技术流程" class="article-heading"><a href="#技术流程" class="headerlink" title="技术流程"></a>技术流程<a class="article-anchor" href="#技术流程" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">栅格数据 (TIF)</span><br><span class="line">       ↓</span><br><span class="line">  投影转换 (EPSG:4326)</span><br><span class="line">       ↓</span><br><span class="line">  建成区掩膜 (Cities + Towns)</span><br><span class="line">       ↓</span><br><span class="line">  城市灯光 × 掩膜</span><br><span class="line">  农村灯光 × (1 - 掩膜)</span><br><span class="line">       ↓</span><br><span class="line">  分区统计 (zonal mean)</span><br><span class="line">       ↓</span><br><span class="line">  省 / 市 / 区县 面板数据</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装，避免每次 knit 都重装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv_light&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> 代码块时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv_light</code>，不会再去碰 Anaconda。</p>
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterstats&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv_light&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv_light&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv_light 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看已安装的包" class="article-heading"><a href="#查看已安装的包" class="headerlink" title="查看已安装的包"></a>查看已安装的包<a class="article-anchor" href="#查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 列出虚拟环境中已安装的包</span></span><br><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv_light&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 只显示我们关心的包</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterstats&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv_light&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv_light&quot;, packages = &quot;geopandas&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据准备" class="article-heading"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备<a class="article-anchor" href="#数据准备" aria-label="本节链接" title="复制本节链接"></a></h2><p>本方法需要以下数据：</p>
+<ol>
+<li>夜间灯光栅格数据：年度 TIF 格式的夜间灯光亮度数据（以施开放版本为例）</li>
+<li>城市建成区边界：Cities_2022.shp（城市建成区矢量数据）</li>
+<li>镇建成区边界：Towns_2022.shp（镇建成区矢量数据）</li>
+<li>行政区划边界：省/市/区县 shp 文件（用于分区统计）</li>
+</ol>
+<blockquote>
+<p>数据来源说明：</p>
+<ul>
+<li>夜间灯光栅格数据：可使用施开放版本、田一禾版本、余柏蒗版本等</li>
+<li>建成区边界数据：来自 Cities_2000_2022 和 Towns_2000_2022 文件夹</li>
+<li>行政区划数据：2021 年行政区划</li>
+</ul>
+</blockquote>
+<p>首先设置参数：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import os</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import warnings</span><br><span class="line">warnings.filterwarnings(&#x27;ignore&#x27;)</span><br><span class="line"></span><br><span class="line"># 设置参数</span><br><span class="line">VERSION_NAME = <span class="string">&quot;施开放版本&quot;</span></span><br><span class="line">VERSION_FOLDER = <span class="string">&quot;夜间灯光亮度栅格数据（施开放版本）&quot;</span></span><br><span class="line">YEAR = 2022</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;=&quot;</span> * 60)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;城乡夜间灯光亮度差异测算 - Python 版本&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;数据版本: &#123;VERSION_NAME&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;年份: &#123;YEAR&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;=&quot;</span> * 60)</span><br></pre></td></tr></table></figure>
+
+<h2 id="读取灯光栅格数据" class="article-heading"><a href="#读取灯光栅格数据" class="headerlink" title="读取灯光栅格数据"></a>读取灯光栅格数据<a class="article-anchor" href="#读取灯光栅格数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>加载夜间灯光栅格数据并投影到 WGS84：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import rasterio</span><br><span class="line">from rasterio.warp import calculate_default_transform, reproject, Resampling</span><br><span class="line"></span><br><span class="line"># 读取灯光栅格数据</span><br><span class="line">light_tif_path = os.path.join(VERSION_FOLDER, f<span class="string">&quot;&#123;YEAR&#125;.tif&quot;</span>)</span><br><span class="line">light_raster = rasterio.<span class="keyword">open</span>(light_tif_path)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;栅格文件: &#123;light_tif_path&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;原始CRS: &#123;light_raster.crs&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;原始维度: &#123;light_raster.height&#125; x &#123;light_raster.width&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;数据范围: &#123;light_raster.bounds&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 读取数据</span><br><span class="line">light_data = light_raster.<span class="keyword">read</span>(1)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;数值范围: &#123;np.nanmin(light_data)&#125; - &#123;np.nanmax(light_data)&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>投影到 WGS84（用于与 shp 数据匹配）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import rasterio.transform</span><br><span class="line"></span><br><span class="line"># 投影到 WGS84 (EPSG:4326)</span><br><span class="line">light_crs_epsg = light_raster.crs.to_epsg()</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;原始 EPSG: &#123;light_crs_epsg&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> light_crs_epsg != 4326:</span><br><span class="line">    <span class="keyword">print</span>(<span class="string">&quot;正在投影到 WGS84 (EPSG:4326)...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    dst_crs = &#x27;EPSG:4326&#x27;</span><br><span class="line">    transform, width, height = calculate_default_transform(</span><br><span class="line">        light_raster.crs, dst_crs, light_raster.width, light_raster.height, *light_raster.bounds</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    light_proj_data = np.empty((height, width), dtype=light_data.dtype)</span><br><span class="line"></span><br><span class="line">    reproject(</span><br><span class="line">        source=light_data,</span><br><span class="line">        destination=light_proj_data,</span><br><span class="line">        src_transform=light_raster.transform,</span><br><span class="line">        src_crs=light_raster.crs,</span><br><span class="line">        dst_transform=transform,</span><br><span class="line">        dst_crs=dst_crs,</span><br><span class="line">        resampling=Resampling.bilinear</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">print</span>(f<span class="string">&quot;投影后维度: &#123;height&#125; x &#123;width&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    light_proj_data = light_data</span><br><span class="line">    transform = light_raster.transform</span><br><span class="line">    <span class="keyword">print</span>(<span class="string">&quot;数据已经是 WGS84 坐标系，无需投影&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="构建城乡掩膜" class="article-heading"><a href="#构建城乡掩膜" class="headerlink" title="构建城乡掩膜"></a>构建城乡掩膜<a class="article-anchor" href="#构建城乡掩膜" aria-label="本节链接" title="复制本节链接"></a></h2><p>城乡掩膜的构建是整个方法的核心步骤：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import geopandas <span class="keyword">as</span> gpd</span><br><span class="line">from rasterio.features import rasterize</span><br><span class="line">from rasterio.transform import from_bounds</span><br><span class="line"></span><br><span class="line"># 加载建成区边界数据</span><br><span class="line">此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>将矢量边界栅格化为掩膜：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> rasterio.coords <span class="keyword">import</span> BoundingBox</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取栅格参数</span></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;掩膜城市像元数: <span class="subst">&#123;np.<span class="built_in">sum</span>(mask_raster_data == <span class="number">1</span>)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;掩膜农村像元数: <span class="subst">&#123;np.<span class="built_in">sum</span>(mask_raster_data == <span class="number">0</span>)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关键说明</strong>：不再按面积过滤建成区，而是直接合并所有城市和镇矢量区域。这是因为 Towns 数据中存在面积字段为 0 的记录（可能是原始数据采集问题），去掉面积过滤可以保留更多有效区域。</p>
+</blockquote>
+<h2 id="计算城乡灯光" class="article-heading"><a href="#计算城乡灯光" class="headerlink" title="计算城乡灯光"></a>计算城乡灯光<a class="article-anchor" href="#计算城乡灯光" aria-label="本节链接" title="复制本节链接"></a></h2><p>将灯光栅格与掩膜相乘，分别得到城市和农村的灯光强度：</p>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><h2 id="分区统计" class="article-heading"><a href="#分区统计" class="headerlink" title="分区统计"></a>分区统计<a class="article-anchor" href="#分区统计" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用 <code>rasterstats.zonal_stats</code> 函数对省、市、县分别进行分区统计，计算各区划内的灯光均值。</p>
+<h3 id="读取行政区划数据" class="article-heading"><a href="#读取行政区划数据" class="headerlink" title="读取行政区划数据"></a>读取行政区划数据<a class="article-anchor" href="#读取行政区划数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 尝试读取行政区划数据</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>dir.exists<span class="punctuation">(</span><span class="string">&quot;2021行政区划&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  province_shp <span class="operator">&lt;-</span> sf<span class="operator">::</span>st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/省.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">  city_shp <span class="operator">&lt;-</span> sf<span class="operator">::</span>st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/市.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">  county_shp <span class="operator">&lt;-</span> sf<span class="operator">::</span>st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/县.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;行政区划数据读取完成\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;- 省:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>province_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;- 市:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>city_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;- 县:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>county_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;未找到行政区划数据，将使用建成区数据中的属性信息\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="省级统计" class="article-heading"><a href="#省级统计" class="headerlink" title="省级统计"></a>省级统计<a class="article-anchor" href="#省级统计" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> rasterstats <span class="keyword">import</span> zonal_stats</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此代码块仅作示例，实际运行需要行政区划数据</span></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取结果</span></span><br><span class="line">prov_data_list = []</span><br><span class="line"><span class="keyword">for</span> feat_u, feat_r <span class="keyword">in</span> <span class="built_in">zip</span>(prov_urban_stats, prov_rural_stats):</span><br><span class="line">    props_u = feat_u[<span class="string">&#x27;properties&#x27;</span>]</span><br><span class="line">    props_r = feat_r[<span class="string">&#x27;properties&#x27;</span>]</span><br><span class="line"></span><br><span class="line">    urban_mean = props_u.get(<span class="string">&#x27;mean&#x27;</span>, np.nan)</span><br><span class="line">    rural_mean = props_r.get(<span class="string">&#x27;mean&#x27;</span>, np.nan)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 计算城乡比</span></span><br><span class="line">    <span class="keyword">if</span> rural_mean <span class="keyword">and</span> rural_mean &gt; <span class="number">0</span> <span class="keyword">and</span> urban_mean <span class="keyword">and</span> <span class="keyword">not</span> np.isnan(urban_mean):</span><br><span class="line">        ratio = urban_mean / rural_mean</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        ratio = np.nan</span><br><span class="line"></span><br><span class="line">    prov_data_list.append(&#123;</span><br><span class="line">        <span class="string">&#x27;年份&#x27;</span>: YEAR,</span><br><span class="line">        <span class="string">&#x27;省代码&#x27;</span>: props_u.get(<span class="string">&#x27;省代码&#x27;</span>, <span class="string">&#x27;&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;省&#x27;</span>: props_u.get(<span class="string">&#x27;省&#x27;</span>, <span class="string">&#x27;&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;城市平均亮度&#x27;</span>: urban_mean <span class="keyword">if</span> urban_mean <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">else</span> np.nan,</span><br><span class="line">        <span class="string">&#x27;农村平均亮度&#x27;</span>: rural_mean <span class="keyword">if</span> rural_mean <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">else</span> np.nan,</span><br><span class="line">        <span class="string">&#x27;城乡比&#x27;</span>: ratio</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">prov_data = pd.DataFrame(prov_data_list)</span><br><span class="line"><span class="built_in">print</span>(prov_data.head(<span class="number">10</span>).to_string(index=<span class="literal">False</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整计算代码" class="article-heading"><a href="#完整计算代码" class="headerlink" title="完整计算代码"></a>完整计算代码<a class="article-anchor" href="#完整计算代码" aria-label="本节链接" title="复制本节链接"></a></h3><p>以下是完整的 Python 计算代码，可以直接运行：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#!/usr/bin/env python3</span><br><span class="line"># 完整代码请参考同目录下的 main.py 文件</span><br><span class="line"># 运行命令: python main.py</span><br></pre></td></tr></table></figure>
+
+<h2 id="运行-Python-脚本" class="article-heading"><a href="#运行-Python-脚本" class="headerlink" title="运行 Python 脚本"></a>运行 Python 脚本<a class="article-anchor" href="#运行-Python-脚本" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中直接调用 Python 脚本进行计算：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 运行 Python 脚本</span><br><span class="line">py_run_file(&quot;main.py&quot;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="读取结果" class="article-heading"><a href="#读取结果" class="headerlink" title="读取结果"></a>读取结果<a class="article-anchor" href="#读取结果" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取计算结果</span></span><br><span class="line">result_folder <span class="operator">&lt;-</span> <span class="string">&quot;施开放版本&quot;</span></span><br><span class="line">version_name <span class="operator">&lt;-</span> <span class="string">&quot;施开放版本&quot;</span></span><br><span class="line">year <span class="operator">&lt;-</span> 2022</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>dir.exists<span class="punctuation">(</span>result_folder<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="comment"># 读取省级结果</span></span><br><span class="line">  prov_file <span class="operator">&lt;-</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s省级结果_%d.csv&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span>file.exists<span class="punctuation">(</span>prov_file<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    prov_data <span class="operator">&lt;-</span> read.csv<span class="punctuation">(</span>prov_file<span class="punctuation">,</span> encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span></span><br><span class="line">    cat<span class="punctuation">(</span><span class="string">&quot;省级结果:\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">    print<span class="punctuation">(</span>head<span class="punctuation">(</span>prov_data<span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 读取市级结果</span></span><br><span class="line">  city_file <span class="operator">&lt;-</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s市级结果_%d.csv&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span>file.exists<span class="punctuation">(</span>city_file<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    city_data <span class="operator">&lt;-</span> read.csv<span class="punctuation">(</span>city_file<span class="punctuation">,</span> encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span></span><br><span class="line">    cat<span class="punctuation">(</span><span class="string">&quot;\n市级结果条数:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>city_data<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 读取区县级结果</span></span><br><span class="line">  county_file <span class="operator">&lt;-</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s区县级结果_%d.csv&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span>file.exists<span class="punctuation">(</span>county_file<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    county_data <span class="operator">&lt;-</span> read.csv<span class="punctuation">(</span>county_file<span class="punctuation">,</span> encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span></span><br><span class="line">    cat<span class="punctuation">(</span><span class="string">&quot;区县级结果条数:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>county_data<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="结果描述性统计" class="article-heading"><a href="#结果描述性统计" class="headerlink" title="结果描述性统计"></a>结果描述性统计<a class="article-anchor" href="#结果描述性统计" aria-label="本节链接" title="复制本节链接"></a></h2><p>查看各指标的描述性统计：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if (exists(&quot;prov_data&quot;)) &#123;</span><br><span class="line">  cat(&quot;=== 省级结果描述性统计 ===\n&quot;)</span><br><span class="line">  print(summary(prov_data[, c(&quot;城市平均亮度&quot;, &quot;农村平均亮度&quot;, &quot;城乡比&quot;)]))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">if (exists(&quot;city_data&quot;)) &#123;</span><br><span class="line">  cat(&quot;\n=== 市级结果描述性统计 ===\n&quot;)</span><br><span class="line">  print(summary(city_data[, c(&quot;城市平均亮度&quot;, &quot;农村平均亮度&quot;, &quot;城乡比&quot;)]))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">if (exists(&quot;county_data&quot;)) &#123;</span><br><span class="line">  cat(&quot;\n=== 区县级结果描述性统计 ===\n&quot;)</span><br><span class="line">  print(summary(county_data[, c(&quot;城市平均亮度&quot;, &quot;农村平均亮度&quot;, &quot;城乡比&quot;)]))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="结果变量说明" class="article-heading"><a href="#结果变量说明" class="headerlink" title="结果变量说明"></a>结果变量说明<a class="article-anchor" href="#结果变量说明" aria-label="本节链接" title="复制本节链接"></a></h2><p>最终输出的面板数据包含以下变量：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+<th>省级</th>
+<th>市级</th>
+<th>区县</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>年份</td>
+<td>观测年份</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>省代码</td>
+<td>省级区划代码</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>省</td>
+<td>省级区划名称</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>市代码</td>
+<td>市级区划代码</td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>市</td>
+<td>市级区划名称</td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>县代码</td>
+<td>县级区划代码</td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>县</td>
+<td>县级区划名称</td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>城市平均亮度</td>
+<td>建成区平均灯光强度</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>农村平均亮度</td>
+<td>非建成区平均灯光强度</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>城乡比</td>
+<td>城市/农村亮度比值</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<h2 id="R-与-Python-函数对照" class="article-heading"><a href="#R-与-Python-函数对照" class="headerlink" title="R 与 Python 函数对照"></a>R 与 Python 函数对照<a class="article-anchor" href="#R-与-Python-函数对照" aria-label="本节链接" title="复制本节链接"></a></h2><p>以下是本方法中主要函数的 R 与 Python 对照表：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>terra::rast()</code></td>
+<td><code>rasterio.open()</code></td>
+<td>读取栅格数据</td>
+</tr>
+<tr>
+<td><code>terra::project()</code></td>
+<td><code>rasterio.warp.reproject()</code></td>
+<td>投影转换</td>
+</tr>
+<tr>
+<td><code>sf::st_read()</code></td>
+<td><code>geopandas.read_file()</code></td>
+<td>读取矢量数据</td>
+</tr>
+<tr>
+<td><code>sf::st_transform()</code></td>
+<td><code>gdf.to_crs()</code></td>
+<td>坐标转换</td>
+</tr>
+<tr>
+<td><code>sf::st_make_valid()</code></td>
+<td><code>gdf.make_valid()</code></td>
+<td>修复几何</td>
+</tr>
+<tr>
+<td><code>terra::rasterize()</code></td>
+<td><code>rasterio.features.rasterize()</code></td>
+<td>栅格化</td>
+</tr>
+<tr>
+<td><code>terra::zonal()</code></td>
+<td><code>rasterstats.zonal_stats()</code></td>
+<td>分区统计</td>
+</tr>
+<tr>
+<td><code>terra::values()</code></td>
+<td><code>numpy.array</code></td>
+<td>提取栅格值</td>
+</tr>
+<tr>
+<td><code>dplyr::left_join()</code></td>
+<td><code>pandas.merge(how=&#39;left&#39;)</code></td>
+<td>左连接</td>
+</tr>
+<tr>
+<td><code>haven::write_dta()</code></td>
+<td><code>pandas.to_csv()</code></td>
+<td>保存数据</td>
+</tr>
+</tbody></table>
+<h2 id="关键差异说明" class="article-heading"><a href="#关键差异说明" class="headerlink" title="关键差异说明"></a>关键差异说明<a class="article-anchor" href="#关键差异说明" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-栅格数据处理" class="article-heading"><a href="#1-栅格数据处理" class="headerlink" title="1. 栅格数据处理"></a>1. 栅格数据处理<a class="article-anchor" href="#1-栅格数据处理" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>R (terra): 使用 SpatRaster 对象，支持延迟计算</li>
+<li>Python (rasterio): 使用 NumPy 数组，直接操作内存数据</li>
+</ul>
+<h3 id="2-分区统计" class="article-heading"><a href="#2-分区统计" class="headerlink" title="2. 分区统计"></a>2. 分区统计<a class="article-anchor" href="#2-分区统计" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>R (terra): zonal() 函数直接返回数据框</li>
+<li>Python (rasterstats): zonal_stats() 返回字典列表，需要额外处理</li>
+</ul>
+<h3 id="3-坐标参考系统" class="article-heading"><a href="#3-坐标参考系统" class="headerlink" title="3. 坐标参考系统"></a>3. 坐标参考系统<a class="article-anchor" href="#3-坐标参考系统" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>R: 使用 EPSG 代码字符串，如 “EPSG:4326”</li>
+<li>Python: rasterio 使用 CRS 对象，geopandas 支持 EPSG 代码</li>
+</ul>
+<h3 id="4-缺失值处理" class="article-heading"><a href="#4-缺失值处理" class="headerlink" title="4. 缺失值处理"></a>4. 缺失值处理<a class="article-anchor" href="#4-缺失值处理" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>R: 使用 NA</li>
+<li>Python: 使用 numpy.nan</li>
+</ul>
+<h2 id="附录：完整-Python-代码" class="article-heading"><a href="#附录：完整-Python-代码" class="headerlink" title="附录：完整 Python 代码"></a>附录：完整 Python 代码<a class="article-anchor" href="#附录：完整-Python-代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>完整的 Python 计算代码已保存为 <code>main.py</code>，可以直接运行：</p>
+<p>python main.py</p>
+<p>或在 R 中调用：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">reticulate<span class="operator">::</span>py_run_file<span class="punctuation">(</span><span class="string">&quot;main.py&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d12a899b0d2b415a8e76d5f525f5ac4a">名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.280Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/22543/" title="1999～2025 年中国城市统计年鉴面板数据整理结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/23392/" title="名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/40955/">名师讲堂｜使用 Python 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 18 分钟</span></li><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86%E4%B8%8E%E6%96%B9%E6%B3%95"><span class="toc-text">原理与方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89"><span class="toc-text">指标定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%B5%81%E7%A8%8B"><span class="toc-text">技术流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="toc-text">数据准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E7%81%AF%E5%85%89%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE"><span class="toc-text">读取灯光栅格数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E5%9F%8E%E4%B9%A1%E6%8E%A9%E8%86%9C"><span class="toc-text">构建城乡掩膜</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E5%9F%8E%E4%B9%A1%E7%81%AF%E5%85%89"><span class="toc-text">计算城乡灯光</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E7%BB%9F%E8%AE%A1"><span class="toc-text">分区统计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E6%95%B0%E6%8D%AE"><span class="toc-text">读取行政区划数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9C%81%E7%BA%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">省级统计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">完整计算代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C-Python-%E8%84%9A%E6%9C%AC"><span class="toc-text">运行 Python 脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E7%BB%93%E6%9E%9C"><span class="toc-text">读取结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">结果描述性统计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E5%8F%98%E9%87%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">结果变量说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#R-%E4%B8%8E-Python-%E5%87%BD%E6%95%B0%E5%AF%B9%E7%85%A7"><span class="toc-text">R 与 Python 函数对照</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82%E8%AF%B4%E6%98%8E"><span class="toc-text">关键差异说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="toc-text">1. 栅格数据处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E5%8C%BA%E7%BB%9F%E8%AE%A1"><span class="toc-text">2. 分区统计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%9D%90%E6%A0%87%E5%8F%82%E8%80%83%E7%B3%BB%E7%BB%9F"><span class="toc-text">3. 坐标参考系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BC%BA%E5%A4%B1%E5%80%BC%E5%A4%84%E7%90%86"><span class="toc-text">4. 缺失值处理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%AE%8C%E6%95%B4-Python-%E4%BB%A3%E7%A0%81"><span class="toc-text">附录：完整 Python 代码</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

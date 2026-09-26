@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/95486/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近给大家分享了一篇推文：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL">
+<meta property="og:url" content="https://tidyfriday.cn/posts/95486/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近给大家分享了一篇推文：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/95486.png">
+<meta property="article:published_time" content="2026-04-15T11:16:04.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:42.102Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="数据匹配">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/95486.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL","description":"最近给大家分享了一篇推文：","url":"https://tidyfriday.cn/posts/95486/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/95486/"},"image":["https://tidyfriday.cn/og/95486.png"],"datePublished":"2026-04-15T11:16:04.000Z","dateModified":"2026-09-26T14:18:42.102Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 数据匹配","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL","item":"https://tidyfriday.cn/posts/95486/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-04-15T11:16:04.000Z" itemprop="datePublished">2026-04-15</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2192 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E5%8C%B9%E9%85%8D">数据匹配</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近给大家分享了一篇推文：</p>
+<span id="more"></span>
+
+<blockquote>
+<p>如何去重上市公司前5大供应商与税调数据匹配结果？：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/5FeQMZqhDT_m_1vVSQC-dw">https://mp.weixin.qq.com/s/5FeQMZqhDT_m_1vVSQC-dw</a></p>
+</blockquote>
+<p>然后我让 Workbuddy 学习了这篇推文并生成了一个 SKILL，也就是附件中的 <code>stata-dedup-matching.zip</code> 文件。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Stata 企业名称匹配结果去重 Skill</span><br><span class="line"></span><br><span class="line">## 概述</span><br><span class="line"></span><br><span class="line">本 skill 提供一套针对**中文企业名称模糊匹配结果**的系统性去重方法。适用场景：</span><br><span class="line"></span><br><span class="line">- 上市公司供应商/客户数据与税调、工商、工企等数据的匹配结果去重</span><br><span class="line">- 工业企业数据库与海关数据匹配结果去重</span><br><span class="line">- 任何通过企业名称模糊匹配（`reclink`/`matchit`/`strdist` 等）产生的中间结果去重</span><br><span class="line"></span><br><span class="line">核心思路：**同一 ID 存在多条候选匹配时，按优先级规则逐步淘汰&quot;较差&quot;的匹配，最终保留最合适的一条。**</span><br><span class="line"></span><br><span class="line">## 触发信号</span><br><span class="line"></span><br><span class="line">当用户提到以下内容时使用本 skill：</span><br><span class="line">- 匹配结果中同一 ID 对应多条记录</span><br><span class="line">- 需要从多个候选匹配中挑选最合理的一条</span><br><span class="line">- 供应商/客户/企业名称匹配后的去重处理</span><br><span class="line">- `duplicates report` 显示仍有重复</span><br><span class="line"></span><br><span class="line">## 工作流程</span><br><span class="line"></span><br><span class="line">### Step 1：收集必要信息</span><br><span class="line"></span><br><span class="line">向用户确认以下变量：</span><br><span class="line"></span><br><span class="line">1. **主键变量**：唯一标识待去重实体的变量（如 `gysid`、`firmid`、`企业代码`）</span><br><span class="line">2. **名称A**：原始数据中的名称变量（如 `供应商名称`、`企业名称_原`）</span><br><span class="line">3. **名称B**：匹配到的名称变量（如 `企业名称`、`工商名称`）</span><br><span class="line">4. **输入文件**：匹配结果数据文件路径</span><br><span class="line">5. **输出文件**：去重后结果保存路径</span><br><span class="line"></span><br><span class="line">如果用户已提供代码或数据，从中推断上述变量，无需再次询问。</span><br><span class="line"></span><br><span class="line">### Step 2：读取参考规则</span><br><span class="line"></span><br><span class="line">读取 `references/dedup_rules.md`，其中包含：</span><br><span class="line">- 14条去重规则的详细说明和代码模板</span><br><span class="line">- 规则选择指南（根据数据特点选择适用规则）</span><br><span class="line">- 完整代码模板（含占位符 `[主键]`、`[名称A]`、`[名称B]`）</span><br><span class="line"></span><br><span class="line">### Step 3：生成去重代码</span><br><span class="line"></span><br><span class="line">基于参考文档中的完整代码模板，将占位符替换为用户实际的变量名，生成可直接运行的 Stata `.do` 文件。</span><br><span class="line"></span><br><span class="line">**代码生成规则：**</span><br><span class="line">- 所有注释使用 `*-` 开头</span><br><span class="line">- 每步结束后保留 `duplicates report [主键]` 用于验证效果</span><br><span class="line">- 根据数据特点选择性包含或删除部分规则（参考 `references/dedup_rules.md` 中的&quot;规则选择指南&quot;）</span><br><span class="line">- 若用户数据不涉及银行，可删除规则4、5；若不涉及能源企业，可删除规则6</span><br><span class="line"></span><br><span class="line">### Step 4：说明每步逻辑</span><br><span class="line"></span><br><span class="line">生成代码后，用简短的中文说明每个关键步骤的去重逻辑，帮助用户理解和调整。重点说明：</span><br><span class="line">- 整体优先级设计思路</span><br><span class="line">- 各规则针对的具体数据问题</span><br><span class="line">- 如何根据 `duplicates report` 的输出判断哪步效果最显著</span><br><span class="line"></span><br><span class="line">### Step 5：提供调整建议</span><br><span class="line"></span><br><span class="line">根据用户反馈，针对特定数据特征提供额外的去重规则建议，例如：</span><br><span class="line">- 数据中含有特殊行业关键词时，添加相应的排除规则</span><br><span class="line">- 需要更精细的字符串相似度阈值时，调整 `strdist` 的过滤条件</span><br><span class="line">- 数据中含外资企业时，建议补充中英文名称对照去重规则</span><br><span class="line"></span><br><span class="line">## 注意事项</span><br><span class="line"></span><br><span class="line">- `strdist` 命令需提前安装：`ssc install strdist`</span><br><span class="line">- `joinby` 用于 m:m 匹配，如数据已是 m:1 或 1:m 结构，改用 `merge`</span><br><span class="line">- 去重前建议先用 `duplicates report [主键]` 了解重复的规模</span><br><span class="line">- 每步去重后的 `duplicates report` 输出可帮助判断哪些规则最有效</span><br><span class="line">- 规则顺序很重要：先用语义规则（规则1-12），最后用统计兜底（规则13-14）</span><br></pre></td></tr></table></figure>
+
+<p>然后今天恰好测试了下，效果还挺好用：</p>
+<blockquote>
+<p>“匹配结果.dta” 数据中，变量名字带原始数据的是原始数据中的变量，myid 是原始数据的编号，其余变量是工商注册信息里面的变量，newgcid 是工商注册数据的编号，里面存在多条 myid 对应 newgcid 的情况，对其进行去重@skill:stata-dedup-matching@skill:stata-executor</p>
+</blockquote>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/15/11/02b79j1bdbe1b168g4/common/content/1776222674917_622217.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>其中 stata-executor 是告诉 workbuddy 在我的电脑上如何调用 Stata 执行代码的 SKILL，这个对大家估计用处不大，大家可以在 workbuddy 成功调用 Stata 执行代码的时候让它直接生成一个 SKILL 总结这个过程的经验，防止下次调用的时候反复出错。</p>
+<p>效果还挺不错，下面的代码是去重复生成的代码：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*==============================================================================</span></span><br><span class="line"><span class="comment">*- 企业名称匹配结果去重</span></span><br><span class="line"><span class="comment">*- 主键变量：myid（原始数据编号）</span></span><br><span class="line"><span class="comment">*- 名称A（原始方）：公司名称_原始数据</span></span><br><span class="line"><span class="comment">*- 名称B（匹配方）：企业名称（工商注册数据）</span></span><br><span class="line"><span class="comment">*- 工商注册数据编号：newgcid</span></span><br><span class="line"><span class="comment">*- 输入：匹配结果.dta（28,302 obs）</span></span><br><span class="line"><span class="comment">*- 输出：去重结果.dta</span></span><br><span class="line"><span class="comment">*==============================================================================</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/工商注册信息匹配2026-04-14&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;匹配结果.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 初始重复情况</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 初始重复情况 =====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> myid</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 用局部宏简化中文变量名引用</span></span><br><span class="line"><span class="keyword">local</span> nameA 公司名称_原始数据</span><br><span class="line"><span class="keyword">local</span> nameB 企业名称</span><br><span class="line"><span class="keyword">local</span> id    myid</span><br><span class="line"></span><br><span class="line"><span class="keyword">duplicates</span> tag <span class="symbol">`id&#x27;</span>, <span class="keyword">gen</span>(tags)</span><br><span class="line"><span class="keyword">gsort</span> -tags <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第1步：优先保留名称完全一致的匹配</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (<span class="symbol">`nameA&#x27;</span> == <span class="symbol">`nameB&#x27;</span>)</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第1步后（名称完全一致）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第2步：优先保留集团对集团的匹配</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;集团&quot;</span>) &amp; <span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;集团&quot;</span>))</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第3步：优先保留双方均非集团的匹配</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (!<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;集团&quot;</span>) &amp; !<span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;集团&quot;</span>))</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第3步后（集团层级过滤）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第4、5步：排除银行支行/分行</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">foreach</span> keyword <span class="keyword">in</span> <span class="string">&quot;支行&quot;</span> <span class="string">&quot;分行&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">gen</span> temp1 = (!<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;`keyword&#x27;&quot;</span>) &amp; !<span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;`keyword&#x27;&quot;</span>))</span><br><span class="line">    <span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第4-5步后（银行支行/分行）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第6步：排除末端机构&quot;站&quot;（如加油站、服务站）</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (!<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;站&quot;</span>) &amp; !<span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;站&quot;</span>))</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第7步：排除内部部门&quot;部&quot;</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (!<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;部&quot;</span>) &amp; !<span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;部&quot;</span>))</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第7步后（站/部门过滤）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第7b步：排除子公司/分公司/支公司层级不对称匹配</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">foreach</span> keyword <span class="keyword">in</span> <span class="string">&quot;子公司&quot;</span> <span class="string">&quot;分公司&quot;</span> <span class="string">&quot;支公司&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">gen</span> temp1 = (!<span class="built_in">index</span>(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;`keyword&#x27;&quot;</span>) &amp; !<span class="built_in">index</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;`keyword&#x27;&quot;</span>))</span><br><span class="line">    <span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第7b步后（子/分/支公司层级）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第8步：优先保留标准公司结构（排除嵌套公司名）</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> temp1 = (!ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>) &amp; !ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>))</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第9步：清理不对称嵌套结构</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> tags</span><br><span class="line"><span class="keyword">duplicates</span> tag <span class="symbol">`id&#x27;</span>, <span class="keyword">gen</span>(tags)</span><br><span class="line"><span class="keyword">foreach</span> suffix <span class="keyword">in</span> <span class="string">&quot;公司&quot;</span> <span class="string">&quot;局&quot;</span> <span class="string">&quot;煤矿&quot;</span> <span class="string">&quot;中心&quot;</span> <span class="string">&quot;厂&quot;</span> <span class="string">&quot;部&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司(.*)`suffix&#x27;&quot;</span>) &amp; !ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>)</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> !ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司(.*)`suffix&#x27;&quot;</span>) &amp; ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>)</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>) &amp; !ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司(.*)`suffix&#x27;&quot;</span>)</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> !ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司(.*)公司&quot;</span>) &amp; ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司(.*)`suffix&#x27;&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> ustrregexm(<span class="symbol">`nameA&#x27;</span>, <span class="string">&quot;公司$&quot;</span>) &amp; !ustrregexm(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;公司$&quot;</span>)</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第8-9步后（嵌套结构过滤）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> tags</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第10步：去掉&quot;股份&quot;后比较</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> nameB_tmp = <span class="built_in">subinstr</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;股份&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">gen</span> temp1 = (<span class="symbol">`nameA&#x27;</span> == nameB_tmp)</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1 nameB_tmp</span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第11步：强制去重（同 myid + 同企业名称）</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> <span class="symbol">`id&#x27;</span> <span class="symbol">`nameB&#x27;</span>, force</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第11步后（完全重复）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第12步：去掉&quot;责任&quot;后比较</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">gen</span> nameB_tmp = <span class="built_in">subinstr</span>(<span class="symbol">`nameB&#x27;</span>, <span class="string">&quot;责任&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">gen</span> temp1 = (<span class="symbol">`nameA&#x27;</span> == nameB_tmp)</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxtemp1 = <span class="built_in">max</span>(temp1)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> temp1 == 0 &amp; maxtemp1 &gt; 0</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> temp1 maxtemp1 nameB_tmp</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第12步后（有限公司/有限责任公司）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第13步：字符串相似度兜底（需安装 strdist）</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> tags</span><br><span class="line"><span class="keyword">duplicates</span> tag <span class="symbol">`id&#x27;</span>, <span class="keyword">gen</span>(tags)</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">ssc</span> install strdist</span><br><span class="line">strdist <span class="symbol">`nameA&#x27;</span> <span class="symbol">`nameB&#x27;</span> <span class="keyword">if</span> tags &gt; 0, <span class="keyword">gen</span>(dist)</span><br><span class="line"><span class="keyword">bysort</span> <span class="symbol">`id&#x27;</span>: <span class="keyword">egen</span> maxdist = <span class="built_in">max</span>(dist)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> dist == maxdist | <span class="built_in">mi</span>(dist)</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 第13步后（字符串相似度兜底）=====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">*- 第14步：最终强制去重并清理</span></span><br><span class="line"><span class="comment">*---------------------------------------------------------------------------</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> <span class="symbol">`id&#x27;</span>, force</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">drop</span> dist maxdist temp1 maxtemp1 tags</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;===== 最终去重结果 =====&quot;</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> <span class="symbol">`id&#x27;</span></span><br><span class="line"><span class="keyword">count</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;去重结果.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;去重完成，结果已保存至 去重结果.dta&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>最后的效果还挺好：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/15/11/02b79j1bdbe1b168g4/common/content/1776222671034_837786.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fbdf83cbdeea488b83f8f0e086dcc8d4">Workbuddy：构建一个使用 Stata 进行数据匹配结果去重的 SKILL</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:42.102Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/83835/" title="如何去重上市公司前5大供应商与税调数据匹配结果？"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/64115/" title="1970～2023 年各年各省市区县、各行业注销公司工商信息及数量统计面板数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21781/">Stata 中如何借助工商注册信息匹配结果把税调数据设定成面板？</a><span class="tf-related-meta">2025-12-16 · 约 4 分钟</span></li><li><a href="/posts/44849/">使用 Stata 进行税调专利匹配：超高效的匹配流程</a><span class="tf-related-meta">2025-06-16 · 约 11 分钟</span></li><li><a href="/posts/52709/">使用 Stata 匹配工商注册信息行业与国民经济行业代码</a><span class="tf-related-meta">2024-11-30 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

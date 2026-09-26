@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 爬取上市公司年报合集 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/77512/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="上市公司年报的获取方法很多，今天我们一起学习下如何从巨潮资讯网爬取，非常好的一点是，巨潮资讯网并不反爬，所以爬取起来简单很多。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 爬取上市公司年报合集">
+<meta property="og:url" content="https://tidyfriday.cn/posts/77512/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="上市公司年报的获取方法很多，今天我们一起学习下如何从巨潮资讯网爬取，非常好的一点是，巨潮资讯网并不反爬，所以爬取起来简单很多。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/77512.png">
+<meta property="article:published_time" content="2023-10-03T00:17:10.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:45.537Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="数据爬取">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/77512.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 爬取上市公司年报合集">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 爬取上市公司年报合集","description":"上市公司年报的获取方法很多，今天我们一起学习下如何从巨潮资讯网爬取，非常好的一点是，巨潮资讯网并不反爬，所以爬取起来简单很多。","url":"https://tidyfriday.cn/posts/77512/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/77512/"},"image":["https://tidyfriday.cn/og/77512.png"],"datePublished":"2023-10-03T00:17:10.000Z","dateModified":"2026-09-26T14:18:45.537Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 数据爬取, 上市公司, 文本数据","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 爬取上市公司年报合集","item":"https://tidyfriday.cn/posts/77512/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 爬取上市公司年报合集</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 爬取上市公司年报合集</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-10-03T00:17:10.000Z" itemprop="datePublished">2023-10-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2659 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>上市公司年报的获取方法很多，今天我们一起学习下如何从巨潮资讯网爬取，非常好的一点是，巨潮资讯网并不反爬，所以爬取起来简单很多。</p>
+<span id="more"></span>
+
+<p>爬取的网站网址是：<a target="_blank" rel="noopener external nofollow noreferrer" href="http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search">http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search</a></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/03/00/02b79j1bdbe1b168g4/common/content/1696263344856_211961.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>从网站右侧的筛选窗口可以筛选报告下载。所以我的爬取思路是，首先获取全部可选的上市公司列表，然后逐个公司爬取其历年年报的链接然后再下载。</p>
+<h2 id="获取所有可选的上市公司列表" class="article-heading"><a href="#获取所有可选的上市公司列表" class="headerlink" title="获取所有可选的上市公司列表"></a>获取所有可选的上市公司列表<a class="article-anchor" href="#获取所有可选的上市公司列表" aria-label="本节链接" title="复制本节链接"></a></h2><p>通过网页分析，可以找到可选的上市公司列表数据在这里：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/03/00/02b79j1bdbe1b168g4/common/content/1696263345146_435288.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>是一个 json 格式的文件，可以使用 insheetjson 命令处理：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 所有可选的公司：http://www.cninfo.com.cn/new/data/szse_stock.json</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">copy</span> <span class="string">&quot;http://www.cninfo.com.cn/new/data/szse_stock.json&quot;</span> ., <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 安装 insheetjson:</span></span><br><span class="line"><span class="comment">*- ssc install insheetjson</span></span><br><span class="line"><span class="comment">*- ssc install libjson</span></span><br><span class="line"><span class="comment">*- 首先查看响应</span></span><br><span class="line">insheetjson using <span class="string">&quot;szse_stock.json&quot;</span>, showr flatten</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 构造数据结构</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str30 code = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str30 pinyin = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str30 category = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str30 orgId = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str30 zwjc = <span class="string">&quot;&quot;</span></span><br><span class="line">insheetjson code pinyin category orgId zwjc using <span class="string">&quot;szse_stock.json&quot;</span>, <span class="keyword">table</span>(stockList) <span class="comment">///</span></span><br><span class="line"> columns(<span class="string">&quot;code&quot;</span> <span class="string">&quot;pinyin&quot;</span> <span class="string">&quot;category&quot;</span> <span class="string">&quot;orgId&quot;</span> <span class="string">&quot;zwjc&quot;</span>)</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">gen</span> stext = code + <span class="string">&quot;,&quot;</span> + orgId</span><br><span class="line"><span class="keyword">save</span> codelist, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/03/00/02b79j1bdbe1b168g4/common/content/1696263345585_657137.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>一共是 5630 家上市公司。</p>
+<h2 id="爬取单家公司的年报链接" class="article-heading"><a href="#爬取单家公司的年报链接" class="headerlink" title="爬取单家公司的年报链接"></a>爬取单家公司的年报链接<a class="article-anchor" href="#爬取单家公司的年报链接" aria-label="本节链接" title="复制本节链接"></a></h2><p>以平安银行近三年的年报为例：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/03/00/02b79j1bdbe1b168g4/common/content/1696263344488_572836.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>对着 <code>query</code> 右键复制 curl 代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl &#x27;http://www.cninfo.com.cn/new/hisAnnouncement/query&#x27; \</span><br><span class="line">  -H &#x27;Accept: */*&#x27; \</span><br><span class="line">  -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; \</span><br><span class="line">  -H &#x27;Connection: keep-alive&#x27; \</span><br><span class="line">  -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; \</span><br><span class="line">  -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; \</span><br><span class="line">  -H &#x27;Origin: http://www.cninfo.com.cn&#x27; \</span><br><span class="line">  -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; \</span><br><span class="line">  -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; \</span><br><span class="line">  -H &#x27;X-Requested-With: XMLHttpRequest&#x27; \</span><br><span class="line">  --data-raw &#x27;pageNum=1&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=000001%2Cgssz0000001&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2020-10-02~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; \</span><br><span class="line">  --compressed \</span><br><span class="line">  --insecure</span><br></pre></td></tr></table></figure>
+
+<p>curl 语句是在 DOS 窗口或者终端里面运行的，如果想在 Stata 中运行 curl 语句，需要在 curl 的前面加上 <code>!</code> 或者 <code>shell</code>，另外需要把 curl 语句改成一行，然后在结尾加上 <code>-o res.json</code> 表示把获取到的内容存储在 res.json 文件中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">!curl &#x27;http://www.cninfo.com.cn/new/hisAnnouncement/query&#x27; -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; -H &#x27;Connection: keep-alive&#x27; -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; -H &#x27;Origin: http://www.cninfo.com.cn&#x27; -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; -H &#x27;X-Requested-With: XMLHttpRequest&#x27; --data-raw &#x27;pageNum=1&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=000001%2Cgssz0000001&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2020-10-02~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; --compressed --insecure -o res.json</span><br></pre></td></tr></table></figure>
+
+<p>我们可以试试把 seDate 修改成 “2000-01-01~2023-10-02”（pageSize 也可以试试修改成 100，不过没什么效果）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">!curl &#x27;http://www.cninfo.com.cn/new/hisAnnouncement/query&#x27; -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; -H &#x27;Connection: keep-alive&#x27; -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; -H &#x27;Origin: http://www.cninfo.com.cn&#x27; -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; -H &#x27;X-Requested-With: XMLHttpRequest&#x27; --data-raw &#x27;pageNum=1&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=000001%2Cgssz0000001&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2000-01-01~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; --compressed --insecure -o res.json</span><br></pre></td></tr></table></figure>
+
+<p>再对得到的 res.json 文件进行处理：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">insheetjson using <span class="string">&quot;res.json&quot;</span>, showr flatten</span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line">insheetjson secCode secName announcementTitle adjunctUrl using <span class="string">&quot;res.json&quot;</span>, <span class="comment">///</span></span><br><span class="line"> <span class="keyword">table</span>(<span class="string">&quot;announcements&quot;</span>) columns(<span class="string">&quot;secCode&quot;</span> <span class="string">&quot;secName&quot;</span> <span class="string">&quot;announcementTitle&quot;</span> <span class="string">&quot;adjunctUrl&quot;</span>)</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10, <span class="keyword">compress</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     | secC~e    secName    announcementTitle                            adjunctUrl |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 000001   平安银行   2022年年度报告摘要   finalpage/2023-03-09/1216072955.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 000001   平安银行       2022年年度报告   finalpage/2023-03-09/1216072952.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  3. | 000001   平安银行       2021年年度报告   finalpage/2022-03-10/1212533413.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  4. | 000001   平安银行   2021年年度报告摘要   finalpage/2022-03-10/1212533358.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  5. | 000001   平安银行       2020年年度报告   finalpage/2021-02-02/1209224370.PDF |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. | 000001   平安银行   2020年年度报告摘要   finalpage/2021-02-02/1209224367.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  7. | 000001   平安银行   2019年年度报告摘要   finalpage/2020-02-14/1207305490.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  8. | 000001   平安银行       2019年年度报告   finalpage/2020-02-14/1207305488.PDF |</span></span><br><span class="line"><span class="comment">*&gt;  9. | 000001   平安银行   2018年年度报告摘要   finalpage/2019-03-07/1205881079.PDF |</span></span><br><span class="line"><span class="comment">*&gt; 10. | 000001   平安银行       2018年年度报告   finalpage/2019-03-07/1205881066.PDF |</span></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就得到了第一页的结果，类似的方法再获取第二页的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 第二页</span></span><br><span class="line">!curl &#x27;http:<span class="comment">//www.cninfo.com.cn/new/hisAnnouncement/query&#x27; -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; -H &#x27;Connection: keep-alive&#x27; -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; -H &#x27;Origin: http://www.cninfo.com.cn&#x27; -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; -H &#x27;X-Requested-With: XMLHttpRequest&#x27; --data-raw &#x27;pageNum=2&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=000001%2Cgssz0000001&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2000-01-01~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; --compressed --insecure -o res2.json</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line">insheetjson secCode secName announcementTitle adjunctUrl using <span class="string">&quot;res2.json&quot;</span>, <span class="comment">///</span></span><br><span class="line"> <span class="keyword">table</span>(<span class="string">&quot;announcements&quot;</span>) columns(<span class="string">&quot;secCode&quot;</span> <span class="string">&quot;secName&quot;</span> <span class="string">&quot;announcementTitle&quot;</span> <span class="string">&quot;adjunctUrl&quot;</span>)</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">save</span> df2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>不过可能会有多页，所以还是循环比较好：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 准备一个空数据</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">save</span> dfall, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环爬取 3 页</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/3 &#123;</span><br><span class="line"> <span class="keyword">di</span> <span class="string">&quot;`i&#x27;&quot;</span></span><br><span class="line"> <span class="keyword">qui</span> <span class="keyword">cap</span> &#123;</span><br><span class="line"><span class="comment">  *- 创建临时文件</span></span><br><span class="line">  <span class="keyword">tempfile</span> tempjson</span><br><span class="line">  !curl &#x27;http:<span class="comment">//www.cninfo.com.cn/new/hisAnnouncement/query&#x27; -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; -H &#x27;Connection: keep-alive&#x27; -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; -H &#x27;Origin: http://www.cninfo.com.cn&#x27; -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; -H &#x27;X-Requested-With: XMLHttpRequest&#x27; --data-raw &#x27;pageNum=`i&#x27;&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=000001%2Cgssz0000001&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2000-01-01~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; --compressed --insecure -o `tempjson&#x27;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line">  insheetjson secCode secName announcementTitle adjunctUrl using <span class="string">&quot;`tempjson&#x27;&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="keyword">table</span>(<span class="string">&quot;announcements&quot;</span>) columns(<span class="string">&quot;secCode&quot;</span> <span class="string">&quot;secName&quot;</span> <span class="string">&quot;announcementTitle&quot;</span> <span class="string">&quot;adjunctUrl&quot;</span>)</span><br><span class="line">  <span class="keyword">compress</span></span><br><span class="line">  <span class="keyword">append</span> using dfall</span><br><span class="line">  <span class="keyword">save</span> dfall, <span class="keyword">replace</span></span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 查看结果</span></span><br><span class="line"><span class="keyword">use</span> dfall, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">index</span>(announcementTitle, <span class="string">&quot;摘要&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> adjunctUrl = <span class="string">&quot;http://static.cninfo.com.cn/&quot;</span> + adjunctUrl</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了一家公司所有年份的年报文件链接了。</p>
+<h2 id="爬取全部上市公司的年报链接" class="article-heading"><a href="#爬取全部上市公司的年报链接" class="headerlink" title="爬取全部上市公司的年报链接"></a>爬取全部上市公司的年报链接<a class="article-anchor" href="#爬取全部上市公司的年报链接" aria-label="本节链接" title="复制本节链接"></a></h2><p>循环所有的上市公司代码即可，这里仅展示前 6 家公司的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 爬取全部上市公司的年报链接</span></span><br><span class="line"><span class="keyword">use</span> codelist, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 以前六家公司为例</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">in</span> 1/6</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 创建一个 urldir 保存</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;urldir&quot;</span></span><br><span class="line"><span class="keyword">forval</span> j = 1/`=_N&#x27; &#123;</span><br><span class="line"> <span class="keyword">local</span> codetemp = <span class="string">&quot;`=code[`j&#x27;]&#x27;&quot;</span></span><br><span class="line"> <span class="keyword">local</span> stexttemp = <span class="string">&quot;`=stext[`j&#x27;]&#x27;&quot;</span></span><br><span class="line"> <span class="keyword">di</span> <span class="string">&quot;`codetemp&#x27;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"> *- 如果文件不存在才爬取</span></span><br><span class="line"> <span class="keyword">if</span> !fileexists(<span class="string">&quot;urldir/`codetemp&#x27;.dta&quot;</span>) &#123;</span><br><span class="line">  <span class="keyword">preserve</span></span><br><span class="line"><span class="comment">  *- 准备一个空数据</span></span><br><span class="line">  <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">qui</span> <span class="keyword">save</span> dfall, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">  *- 循环爬取 5 页</span></span><br><span class="line">  <span class="keyword">forval</span> i = 1/5 &#123;</span><br><span class="line">   <span class="keyword">qui</span> <span class="keyword">cap</span> &#123;</span><br><span class="line"><span class="comment">    *- 创建临时文件</span></span><br><span class="line">    <span class="keyword">tempfile</span> tempjson</span><br><span class="line">    !curl &#x27;http:<span class="comment">//www.cninfo.com.cn/new/hisAnnouncement/query&#x27; -H &#x27;Accept-Language: zh-CN,zh;q=0.9,en;q=0.8&#x27; -H &#x27;Connection: keep-alive&#x27; -H &#x27;Content-Type: application/x-www-form-urlencoded; charset=UTF-8&#x27; -H &#x27;Cookie: JSESSIONID=B436758842708ED923684BB19BC585F3; _sp_ses.2141=*; _sp_id.2141=b13ee9ff-2493-4f42-a7f5-089a2990e863.1694410049.10.1696258131.1694788568.fcf26b41-22e6-43f2-90dc-55da9ae64753; routeId=.uc1&#x27; -H &#x27;Origin: http://www.cninfo.com.cn&#x27; -H &#x27;Referer: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&#x27; -H &#x27;User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36&#x27; -H &#x27;X-Requested-With: XMLHttpRequest&#x27; --data-raw &#x27;pageNum=`i&#x27;&amp;pageSize=30&amp;column=szse&amp;tabName=fulltext&amp;plate=&amp;stock=`stexttemp&#x27;&amp;searchkey=&amp;secid=&amp;category=category_ndbg_szsh&amp;trade=&amp;seDate=2000-01-01~2023-10-03&amp;sortName=&amp;sortType=&amp;isHLtitle=true&#x27; --compressed --insecure -o `tempjson&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">gen</span> str100 secCode = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">gen</span> str100 secName = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">gen</span> str100 announcementTitle = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">gen</span> str100 adjunctUrl = <span class="string">&quot;&quot;</span></span><br><span class="line">    insheetjson secCode secName announcementTitle adjunctUrl using <span class="string">&quot;`tempjson&#x27;&quot;</span>, <span class="comment">///</span></span><br><span class="line">     <span class="keyword">table</span>(<span class="string">&quot;announcements&quot;</span>) columns(<span class="string">&quot;secCode&quot;</span> <span class="string">&quot;secName&quot;</span> <span class="string">&quot;announcementTitle&quot;</span> <span class="string">&quot;adjunctUrl&quot;</span>)</span><br><span class="line">    <span class="keyword">compress</span></span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">index</span>(announcementTitle, <span class="string">&quot;摘要&quot;</span>)</span><br><span class="line">    <span class="keyword">append</span> using dfall</span><br><span class="line">    <span class="keyword">compress</span></span><br><span class="line">    <span class="keyword">save</span> urldir/<span class="symbol">`codetemp&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">   &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">restore</span></span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并 urldir 文件夹下的文件</span></span><br><span class="line"><span class="keyword">local</span> files: <span class="keyword">dir</span> <span class="string">&quot;urldir&quot;</span> files <span class="string">&quot;*.dta&quot;</span></span><br><span class="line"><span class="keyword">use</span> urldir/000001.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1/`=_N&#x27;</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> f <span class="keyword">in</span> <span class="symbol">`files&#x27;</span>&#123;</span><br><span class="line"> <span class="keyword">append</span> using <span class="string">&quot;urldir/`f&#x27;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">replace</span> adjunctUrl = <span class="string">&quot;http://static.cninfo.com.cn/&quot;</span> + adjunctUrl</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除不需要的结果</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">index</span>(announcementTitle, <span class="string">&quot;英文&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">index</span>(announcementTitle, <span class="string">&quot;补充&quot;</span>)</span><br><span class="line"><span class="keyword">save</span> dfall, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这里为了避免爬取过程中出现问题，我把每家公司爬取的结果也分别保存到了 urldir 文件夹中，方便再次循环的时候跳过这些已经爬取好的。</p>
+<p>这样会更加稳健。</p>
+<p>爬取到的结果中还有很多是补充报告或者英文报告等，这些文件如果不需要的话可以筛选出来删除。</p>
+<p>另外，里面还有一些同一年两份文件的情况，一份是更新前的，一份是更新后的。这种由于命名方式多种多样，所以得谨慎删除。不过这些更新的内容往往都很少，使用更新前的还是更新后的实际上对文本分析的结果几乎没有影响，所以也不用太在意。</p>
+<h2 id="批量下载-pdf-文件" class="article-heading"><a href="#批量下载-pdf-文件" class="headerlink" title="批量下载 pdf 文件"></a>批量下载 pdf 文件<a class="article-anchor" href="#批量下载-pdf-文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>如果有时间的话，可以更加认真的筛选要下载的 pdf 文件。筛选好之后就可以下载了，也很简单：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 批量下载 pdf 文件</span></span><br><span class="line"><span class="keyword">use</span> dfall, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保存的 pdf 采用如下命名规则</span></span><br><span class="line"><span class="keyword">gen</span> year = ustrregexs(0) <span class="keyword">if</span> ustrregexm(announcementTitle, <span class="string">&quot;\d&#123;4&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">gen</span> title = secCode + <span class="string">&quot;_&quot;</span> + year + <span class="string">&quot;_&quot;</span> + announcementTitle + <span class="string">&quot;.pdf&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 创建文件夹保存</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;pdf&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/`=_N&#x27; &#123;</span><br><span class="line"> <span class="keyword">if</span> !fileexists(<span class="string">&quot;pdf/`=title[`i&#x27;]&#x27;&quot;</span>) &#123;</span><br><span class="line">  <span class="keyword">copy</span> <span class="string">&quot;`=adjunctUrl[`i&#x27;]&#x27;&quot;</span> <span class="string">&quot;pdf/`=title[`i&#x27;]&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果要下载的 pdf 文件很多，可以考虑把 dfall.dta 拆分成多个文件，然后打开多个 Stata 分别下载对应的文件，效率很快很多。</p>
+<h2 id="文件管理" class="article-heading"><a href="#文件管理" class="headerlink" title="文件管理"></a>文件管理<a class="article-anchor" href="#文件管理" aria-label="本节链接" title="复制本节链接"></a></h2><p>完整下载所有的年报后会得到巨多的 pdf 文件，难以管理，这里我们可以使用代码索引文件筛选自己需要的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 文件管理</span></span><br><span class="line"><span class="keyword">local</span> files: <span class="keyword">dir</span> <span class="string">&quot;pdf&quot;</span> files <span class="string">&quot;*&quot;</span></span><br><span class="line"><span class="keyword">local</span> <span class="keyword">n</span>: word <span class="keyword">count</span> <span class="symbol">`files&#x27;</span></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">set</span> obs <span class="symbol">`n&#x27;</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">file</span> = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i <span class="keyword">in</span> <span class="symbol">`files&#x27;</span> &#123;</span><br><span class="line"> <span class="keyword">qui</span> <span class="keyword">replace</span> <span class="keyword">file</span> = <span class="string">&quot;`i&#x27;&quot;</span> <span class="keyword">in</span> <span class="symbol">`j&#x27;</span></span><br><span class="line"> <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">gen</span> code = ustrregexs(1) <span class="keyword">if</span> ustrregexm(<span class="keyword">file</span>, <span class="string">&quot;(\d&#123;6&#125;)_(\d&#123;4&#125;)_&quot;</span>)</span><br><span class="line"><span class="keyword">gen</span> year = ustrregexs(2) <span class="keyword">if</span> ustrregexm(<span class="keyword">file</span>, <span class="string">&quot;(\d&#123;6&#125;)_(\d&#123;4&#125;)_&quot;</span>)</span><br><span class="line"><span class="keyword">destring</span> year, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> filedf, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10, <span class="keyword">compress</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +----------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |                                     file     code   year |</span></span><br><span class="line"><span class="comment">*&gt;     |----------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. |           000007_2008_2008年年度报告.pdf   000007   2008 |</span></span><br><span class="line"><span class="comment">*&gt;  2. |   000007_2005_深达声Ａ2005年年度报告.pdf   000007   2005 |</span></span><br><span class="line"><span class="comment">*&gt;  3. |   000002_2003_万 科 Ａ2003年年度报告.pdf   000002   2003 |</span></span><br><span class="line"><span class="comment">*&gt;  4. | 000004_2008_2008年年度报告（更新后）.pdf   000004   2008 |</span></span><br><span class="line"><span class="comment">*&gt;  5. | 000002_2006_2006年年度报告（调整后）.pdf   000002   2006 |</span></span><br><span class="line"><span class="comment">*&gt;     |----------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. | 000004_2009_2009年年度报告（更新后）.pdf   000004   2009 |</span></span><br><span class="line"><span class="comment">*&gt;  7. |   000007_2003_深达声Ａ2003年年度报告.pdf   000007   2003 |</span></span><br><span class="line"><span class="comment">*&gt;  8. |           000002_2007_2007年年度报告.pdf   000002   2007 |</span></span><br><span class="line"><span class="comment">*&gt;  9. |   000007_2004_深达声Ａ2004年年度报告.pdf   000007   2004 |</span></span><br><span class="line"><span class="comment">*&gt; 10. |           000001_2007_2007年年度报告.pdf   000001   2007 |</span></span><br><span class="line"><span class="comment">*&gt;     +----------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/701bc76a7bca4be193c81ac9aeaee60b">使用 Stata 爬取上市公司年报合集</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:45.537Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/47302/" title="上市公司前 5 大供应商与客户面板数据（含工商注册信息、经纬度及所处的省市）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/85667/" title="使用 Stata 绘制双变量填充中国地图"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/22021/">Stata 如何爬取所有 A 股上市公司的基本信息并展示地域分布？</a><span class="tf-related-meta">2023-09-18 · 约 7 分钟</span></li><li><a href="/posts/12686/">使用 R 语言爬取全部上市公司的年报数据</a><span class="tf-related-meta">2023-09-16 · 约 13 分钟</span></li><li><a href="/posts/26811/">和讯网上市公司高管名录数据+Stata爬取方法（爬取课程已失效）</a><span class="tf-related-meta">2021-01-05 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%89%80%E6%9C%89%E5%8F%AF%E9%80%89%E7%9A%84%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8%E5%88%97%E8%A1%A8"><span class="toc-text">获取所有可选的上市公司列表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%AC%E5%8F%96%E5%8D%95%E5%AE%B6%E5%85%AC%E5%8F%B8%E7%9A%84%E5%B9%B4%E6%8A%A5%E9%93%BE%E6%8E%A5"><span class="toc-text">爬取单家公司的年报链接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%AC%E5%8F%96%E5%85%A8%E9%83%A8%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8%E7%9A%84%E5%B9%B4%E6%8A%A5%E9%93%BE%E6%8E%A5"><span class="toc-text">爬取全部上市公司的年报链接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%B9%E9%87%8F%E4%B8%8B%E8%BD%BD-pdf-%E6%96%87%E4%BB%B6"><span class="toc-text">批量下载 pdf 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86"><span class="toc-text">文件管理</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

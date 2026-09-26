@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/30592/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="指标来源与背景">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/30592/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="指标来源与背景">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/30592.png">
+<meta property="article:published_time" content="2026-05-03T23:09:43.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.052Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="面板数据">
+<meta property="article:tag" content="计量与统计方法">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/30592.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）","description":"指标来源与背景","url":"https://tidyfriday.cn/posts/30592/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/30592/"},"image":["https://tidyfriday.cn/og/30592.png"],"datePublished":"2026-05-03T23:09:43.000Z","dateModified":"2026-09-26T14:18:49.052Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"面板数据, 计量与统计方法, 上市公司, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）","item":"https://tidyfriday.cn/posts/30592/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-03T23:09:43.000Z" itemprop="datePublished">2026-05-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3710 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 12 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E9%9D%A2%E6%9D%BF%E6%95%B0%E6%8D%AE">面板数据</a><a href="/tags/#tag=%E8%AE%A1%E9%87%8F%E4%B8%8E%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95">计量与统计方法</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="指标来源与背景" class="article-heading"><a href="#指标来源与背景" class="headerlink" title="指标来源与背景"></a>指标来源与背景<a class="article-anchor" href="#指标来源与背景" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<p>关键核心技术突破（CKTB，Critical and Key Technology Breakthrough）指标体系来源于王海花等（2026）发表于《科学学研究》的论文：<strong>《专精特新企业技术专业化与关键核心技术突破》</strong>。</p>
+<p>该研究以我国前五批上市的专精特新小巨人企业中新一代信息技术产业为研究对象，深入探索技术专业化对关键核心技术突破的作用效应，在实证研究中使用专利数据构建了 CKTB 综合评分指标。</p>
+<h3 id="理论依据" class="article-heading"><a href="#理论依据" class="headerlink" title="理论依据"></a>理论依据<a class="article-anchor" href="#理论依据" aria-label="本节链接" title="复制本节链接"></a></h3><p>关键核心技术具有以下三个核心特征：</p>
+<table>
+<thead>
+<tr>
+<th>特征维度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>基础性</strong></td>
+<td>技术的科学根基深厚、知识积累丰富，体现研究与开发的深度</td>
+</tr>
+<tr>
+<td><strong>体系性</strong></td>
+<td>技术在产业体系中的地位，体现与上下游关联的广度与合作</td>
+</tr>
+<tr>
+<td><strong>竞争性</strong></td>
+<td>技术在国际市场中的差异化竞争力，体现技术覆盖与保护范围</td>
+</tr>
+</tbody></table>
+<h3 id="测度指标" class="article-heading"><a href="#测度指标" class="headerlink" title="测度指标"></a>测度指标<a class="article-anchor" href="#测度指标" aria-label="本节链接" title="复制本节链接"></a></h3><p>基于三大特征维度，论文构建了如下 <strong>7 个专利层面指标</strong>：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>knitr<span class="punctuation">)</span></span><br><span class="line">ind_df <span class="operator">&lt;-</span> data.frame<span class="punctuation">(</span></span><br><span class="line">  特征维度 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;基础性&quot;</span><span class="punctuation">,</span> <span class="string">&quot;基础性&quot;</span><span class="punctuation">,</span> <span class="string">&quot;基础性&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;体系性&quot;</span><span class="punctuation">,</span> <span class="string">&quot;体系性&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;竞争性&quot;</span><span class="punctuation">,</span> <span class="string">&quot;竞争性&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  测度指标 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;科学关联度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;技术累积度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;权利要求&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;社会价值&quot;</span><span class="punctuation">,</span> <span class="string">&quot;合作范围&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;同族专利&quot;</span><span class="punctuation">,</span> <span class="string">&quot;技术覆盖范围&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  专利指标 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;npl（非专利文献引用量）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;bwd_cite（引用专利数量）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;claims（权利要求数量）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;fwd_cite（3年内被引用次数）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;assignees（专利权人数量）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;family（同族成员数量）&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;ipc_cover（跨IPC部分类号数量）&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">kable<span class="punctuation">(</span>ind_df<span class="punctuation">,</span> align <span class="operator">=</span> <span class="string">&quot;lll&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>指标说明：</p>
+<ul>
+<li>非专利文献引用量（npl）：专利引用的科技文献（如学术论文）数量，反映专利的科学知识根基深度</li>
+<li>引用专利数量（bwd_cite）：专利引用的在先专利数量（向后引用），体现技术积累程度</li>
+<li>权利要求数量（claims）：专利权利要求条款数，条款越多代表技术覆盖越精细</li>
+<li>3年内被引次数（fwd_cite）：专利申请后3年内被其他专利引用的次数，体现技术社会价值</li>
+<li>专利权人数量（assignees）：联合申请人数量，反映合作创新程度</li>
+<li>同族成员数量（family）：在其他国家/地区提交的同族专利数，体现国际竞争布局</li>
+<li>IPC覆盖（ipc_cover）：企业当年专利跨越的 IPC 部（section）数量，反映技术领域多样性</li>
+</ul>
+<hr>
+<h2 id="熵权法原理" class="article-heading"><a href="#熵权法原理" class="headerlink" title="熵权法原理"></a>熵权法原理<a class="article-anchor" href="#熵权法原理" aria-label="本节链接" title="复制本节链接"></a></h2><p>**熵权法（Entropy Weight Method）**是一种客观赋权方法，不依赖专家主观判断，而是根据各指标的信息量来自动决定权重。其核心思想是：</p>
+<blockquote>
+<p>如果某个指标在所有样本中的取值差异很大，说明它包含的信息量多，应给予更高权重；<br>反之，若某指标的取值在所有样本中基本相同（无差异），则该指标对区分样本无帮助，权重接近 0。</p>
+</blockquote>
+<h3 id="计算步骤" class="article-heading"><a href="#计算步骤" class="headerlink" title="计算步骤"></a>计算步骤<a class="article-anchor" href="#计算步骤" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/03/23/02b79j1bdbe1b168g4/common/content/1777820735833_823169.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="熵权法函数实现（Python）" class="article-heading"><a href="#熵权法函数实现（Python）" class="headerlink" title="熵权法函数实现（Python）"></a>熵权法函数实现（Python）<a class="article-anchor" href="#熵权法函数实现（Python）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line">def entropy_weight(X):</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    熵权法计算函数</span><br><span class="line"></span><br><span class="line">    参数 X: <span class="keyword">n</span> × <span class="keyword">m</span> 的 DataFrame 或 ndarray，<span class="keyword">n</span>=样本数量，<span class="keyword">m</span>=指标数量</span><br><span class="line">    返回: dict，包含 scores（综合得分）、weights（权重）、<span class="keyword">E</span>（信息熵）</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    X = np.array(X, dtype=np.float64)</span><br><span class="line">    <span class="keyword">n</span>, <span class="keyword">m</span> = X.shape</span><br><span class="line"></span><br><span class="line">    # Step 1: 极差标准化</span><br><span class="line">    X_min = X.<span class="built_in">min</span>(axis=0)</span><br><span class="line">    X_max = X.<span class="built_in">max</span>(axis=0)</span><br><span class="line">    denom = X_max - X_min</span><br><span class="line">    denom[denom == 0] = 1e-10        # 极差为 0 时防止除零</span><br><span class="line">    X_norm = (X - X_min) / denom</span><br><span class="line">    X_norm = X_norm + 1e-10          # 避免 <span class="built_in">log</span>(0)</span><br><span class="line"></span><br><span class="line">    # Step 2: 计算信息熵</span><br><span class="line">    col_sum = X_norm.<span class="built_in">sum</span>(axis=0)</span><br><span class="line">    P = X_norm / col_sum</span><br><span class="line">    k = 1.0 / np.<span class="built_in">log</span>(<span class="keyword">n</span>)              # 调节系数</span><br><span class="line">    <span class="keyword">E</span> = -k * (P * np.<span class="built_in">log</span>(P + 1e-10)).<span class="built_in">sum</span>(axis=0)</span><br><span class="line">    <span class="keyword">E</span> = np.minimum(<span class="keyword">E</span>, 1.0)           # 熵值上限为 1</span><br><span class="line"></span><br><span class="line">    # Step 3: 差异系数</span><br><span class="line">    <span class="keyword">D</span> = 1.0 - <span class="keyword">E</span></span><br><span class="line"></span><br><span class="line">    # Step 4: 权重</span><br><span class="line">    W = <span class="keyword">D</span> / <span class="keyword">D</span>.<span class="built_in">sum</span>()</span><br><span class="line"></span><br><span class="line">    # Step 5: 综合得分</span><br><span class="line">    scores = X_norm @ W</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;scores&quot;</span>: scores, <span class="string">&quot;weights&quot;</span>: W, <span class="string">&quot;E&quot;</span>: <span class="keyword">E</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看已安装的包" class="article-heading"><a href="#查看已安装的包" class="headerlink" title="查看已安装的包"></a>查看已安装的包<a class="article-anchor" href="#查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">virtualenv_list()</span><br><span class="line"># 删除虚拟环境：virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"># 升级包：virtualenv_install(&quot;.venv&quot;, packages = &quot;numpy&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="数据准备" class="article-heading"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备<a class="article-anchor" href="#数据准备" aria-label="本节链接" title="复制本节链接"></a></h2><p>本讲义使用的数据文件：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>2010~2012年上市公司与专利数据匹配结果_含引用与被引用信息.csv</code></td>
+<td>主数据：专利-企业匹配，含各类引用信息（约 1 GB）</td>
+</tr>
+<tr>
+<td><code>1985~2024年各专利当年～十一年内的被自引、被他引数量统计.csv</code></td>
+<td>被引统计：专利被他引的分年统计（约 979 MB）</td>
+</tr>
+<tr>
+<td><code>拓展专利信息.csv</code></td>
+<td>拓展信息：权利要求数量、同族专利（约 1.5 GB）</td>
+</tr>
+</tbody></table>
+<p>上市公司数据来自：</p>
+<blockquote>
+<p>1985～2024 年上市公司与专利数据匹配结果（版本3， 含申请、授权信息）: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff">https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff</a></p>
+</blockquote>
+<p>被自引、被他引数量统计数据来自：</p>
+<blockquote>
+<p>1985~2024 年各专利当年～十一年内的被自引、被他引数量统计: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/51e62d1eae074a4d8174a3969f5025c6">https://rstata.duanshu.com/#/brief/course/51e62d1eae074a4d8174a3969f5025c6</a></p>
+</blockquote>
+<p><code>拓展专利信息.csv</code> 是我又从原始专利数据提取补充的一些变量：</p>
+<blockquote>
+<p>1985～2024 年专利申请与授权数据（版本 3，含申请人所处的省市区县）: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988">https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置文件路径</span><br><span class="line">PATH_MATCH  = &quot;2010~2012年上市公司与专利数据匹配结果_含引用与被引用信息.csv&quot;</span><br><span class="line">PATH_CITE   = &quot;1985~2024年各专利当年～十一年内的被自引、被他引数量统计.csv&quot;</span><br><span class="line">PATH_EXTEND = &quot;拓展专利信息.csv&quot;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="单公司演示：以凯莱英（002821）2012-年为例" class="article-heading"><a href="#单公司演示：以凯莱英（002821）2012-年为例" class="headerlink" title="单公司演示：以凯莱英（002821）2012 年为例"></a>单公司演示：以凯莱英（002821）2012 年为例<a class="article-anchor" href="#单公司演示：以凯莱英（002821）2012-年为例" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了清晰演示 CKTB 的计算过程，我们以<strong>凯莱英（股票代码：002821）2012 年</strong>的数据为例，逐步演示每个步骤。凯莱英是一家以化学合成和医药研发为核心的创新型企业，2012 年共申请了 23 件专利，样本量适中，演示效果清晰。</p>
+<blockquote>
+<p>演示时使用 <code>nrows=300000</code> 读取前 30 万行数据（凯莱英记录最远至第 295539 行），确保能完整捕获该公司所有专利。全量计算见下一节。</p>
+</blockquote>
+<h3 id="第一步：读取主数据" class="article-heading"><a href="#第一步：读取主数据" class="headerlink" title="第一步：读取主数据"></a>第一步：读取主数据<a class="article-anchor" href="#第一步：读取主数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取前 300000 行（演示用，覆盖凯莱英全部记录）</span></span><br><span class="line">cols_main <span class="operator">=</span> <span class="punctuation">[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;股票名称&quot;</span><span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;引证科技文献&quot;</span><span class="punctuation">,</span> <span class="string">&quot;引证专利&quot;</span><span class="punctuation">,</span> <span class="string">&quot;当前权利人&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;IPC&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># dtype 指定：股票代码必须为字符串（保留前导零），其他关键 ID 也设为字符串</span></span><br><span class="line">df_main_raw <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span></span><br><span class="line">    PATH_MATCH<span class="punctuation">,</span> usecols<span class="operator">=</span>cols_main<span class="punctuation">,</span> nrows<span class="operator">=</span><span class="number">300000</span><span class="punctuation">,</span></span><br><span class="line">    dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;股票代码&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;公开公告号&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_main_raw <span class="operator">=</span> df_main_raw.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="string">&quot;股票代码&quot;</span><span class="operator">:</span> <span class="string">&quot;firm_id&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;年份&quot;</span><span class="operator">:</span> <span class="string">&quot;apply_year&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;读取完成：&#123;len(df_main_raw)&#125; 条专利记录（演示用 30 万行）&quot;</span><span class="punctuation">)</span></span><br><span class="line">firms <span class="operator">=</span> df_main_raw<span class="punctuation">[</span><span class="string">&quot;firm_id&quot;</span><span class="punctuation">]</span>.nunique<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">years <span class="operator">=</span> sorted<span class="punctuation">(</span>df_main_raw<span class="punctuation">[</span><span class="string">&quot;apply_year&quot;</span><span class="punctuation">]</span>.unique<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;涉及企业数：&#123;firms&#125; 家，年份：&#123;&#x27;、&#x27;.join(str(y) for y in years)&#125;&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第二步：专利去重" class="article-heading"><a href="#第二步：专利去重" class="headerlink" title="第二步：专利去重"></a>第二步：专利去重<a class="article-anchor" href="#第二步：专利去重" aria-label="本节链接" title="复制本节链接"></a></h3><p>同一专利可能因为多源数据拼接而产生重复记录，需要去重。策略：<strong>优先保留在被引用统计表中出现的专利</strong>（因为该专利有更完整的引用信息）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取被引用统计中的专利 ID 集合（用于去重时优先保留）</span></span><br><span class="line">cite_ids <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>PATH_CITE<span class="punctuation">,</span> usecols<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> nrows<span class="operator">=</span><span class="number">200000</span><span class="punctuation">,</span> dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">cite_ids <span class="operator">=</span> set<span class="punctuation">(</span>cite_ids<span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">]</span>.unique<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;被引用统计中的专利数（前 20 万行去重后）：&#123;len(cite_ids)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 打标：是否在被引用统计表中出现</span></span><br><span class="line">df_main_raw<span class="punctuation">[</span><span class="string">&quot;in_cite&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_main_raw<span class="punctuation">[</span><span class="string">&quot;patent_id&quot;</span><span class="punctuation">]</span>.isin<span class="punctuation">(</span>cite_ids<span class="punctuation">)</span></span><br><span class="line">df_main_raw<span class="punctuation">[</span><span class="string">&quot;公开公告号_clean&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_main_raw<span class="punctuation">[</span><span class="string">&quot;公开公告号&quot;</span><span class="punctuation">]</span>.str.replace<span class="punctuation">(</span><span class="string">r&quot;[A-Z]$&quot;, &quot;&quot;, regex=True)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 去重：优先保留 in_cite=True 的记录</span></span><br><span class="line"><span class="string"># 先按 firm_id, apply_year, in_cite（降序）排序，再对公开公告号_clean和申请号分别去重</span></span><br><span class="line"><span class="string">df_main_raw = df_main_raw.sort_values(</span></span><br><span class="line"><span class="string">    [&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;in_cite&quot;], ascending=[True, True, False]</span></span><br><span class="line"><span class="string">)</span></span><br><span class="line"><span class="string">df_main = df_main_raw.drop_duplicates(</span></span><br><span class="line"><span class="string">    subset=[&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;公开公告号_clean&quot;], keep=&quot;first&quot;</span></span><br><span class="line"><span class="string">)</span></span><br><span class="line"><span class="string">df_main = df_main.drop_duplicates(</span></span><br><span class="line"><span class="string">    subset=[&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;申请号&quot;], keep=&quot;first&quot;</span></span><br><span class="line"><span class="string">)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">print(f&quot;去重前：&#123;len(df_main_raw)&#125; 条 → 去重后：&#123;len(df_main)&#125; 条&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 筛选凯莱英 2012 年的数据</span><br><span class="line">df_demo = df_main[(df_main[&quot;firm_id&quot;] == &quot;002821&quot;) &amp; (df_main[&quot;apply_year&quot;] == 2012)].copy()</span><br><span class="line"></span><br><span class="line">print(f&quot;凯莱英（002821）2012 年专利数：&#123;len(df_demo)&#125; 条&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="第三步：读取拓展信息并合并" class="article-heading"><a href="#第三步：读取拓展信息并合并" class="headerlink" title="第三步：读取拓展信息并合并"></a>第三步：读取拓展信息并合并<a class="article-anchor" href="#第三步：读取拓展信息并合并" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df_extend <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span></span><br><span class="line">    PATH_EXTEND<span class="punctuation">,</span></span><br><span class="line">    usecols<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;权利要求数量&quot;</span><span class="punctuation">,</span> <span class="string">&quot;扩展同族&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    nrows<span class="operator">=</span><span class="number">200000</span><span class="punctuation">,</span></span><br><span class="line">    dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">df_extend <span class="operator">=</span> df_extend.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;权利要求数量&quot;</span><span class="operator">:</span> <span class="string">&quot;claims_ext&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_demo <span class="operator">=</span> df_demo.merge<span class="punctuation">(</span>df_extend<span class="punctuation">,</span> on<span class="operator">=</span><span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;left&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;拓展信息合并后：&#123;len(df_demo)&#125; 条记录&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第四步：提取专利层面-CKTB-指标" class="article-heading"><a href="#第四步：提取专利层面-CKTB-指标" class="headerlink" title="第四步：提取专利层面 CKTB 指标"></a>第四步：提取专利层面 CKTB 指标<a class="article-anchor" href="#第四步：提取专利层面-CKTB-指标" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># npl: 非专利文献引用量（基础性-科学关联度）</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>各指标描述性统计：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">indicator_cols = [&quot;npl&quot;, &quot;bwd_cite&quot;, &quot;claims&quot;, &quot;assignees&quot;, &quot;family&quot;, &quot;ipc_cover&quot;]</span><br><span class="line">desc = df_demo[indicator_cols].describe().T[[&quot;min&quot;, &quot;mean&quot;, &quot;max&quot;]]</span><br><span class="line">desc.columns = [&quot;最小值&quot;, &quot;均值&quot;, &quot;最大值&quot;]</span><br><span class="line">desc[&quot;均值&quot;] = desc[&quot;均值&quot;].round(2)</span><br><span class="line">print(desc.to_string())</span><br></pre></td></tr></table></figure>
+
+<h3 id="第五步：合并-3-年内被引次数" class="article-heading"><a href="#第五步：合并-3-年内被引次数" class="headerlink" title="第五步：合并 3 年内被引次数"></a>第五步：合并 3 年内被引次数<a class="article-anchor" href="#第五步：合并-3-年内被引次数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df_cite_sample <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>PATH_CITE<span class="punctuation">,</span> nrows<span class="operator">=</span><span class="number">200000</span><span class="punctuation">,</span> dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_fwd_demo <span class="operator">=</span> df_cite_sample<span class="punctuation">[</span>df_cite_sample<span class="punctuation">[</span><span class="string">&quot;引用或被引用&quot;</span><span class="punctuation">]</span> <span class="operator">==</span> <span class="string">&quot;被他引信息&quot;</span><span class="punctuation">]</span>.copy<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">df_fwd_demo <span class="operator">=</span> df_fwd_demo<span class="punctuation">[[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;三年内&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span>.rename<span class="punctuation">(</span></span><br><span class="line">    columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;year&quot;</span><span class="operator">:</span> <span class="string">&quot;cite_year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;三年内&quot;</span><span class="operator">:</span> <span class="string">&quot;fwd_cite&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">df_fwd_demo<span class="punctuation">[</span><span class="string">&quot;fwd_cite&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_fwd_demo<span class="punctuation">[</span><span class="string">&quot;fwd_cite&quot;</span><span class="punctuation">]</span>.fillna<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">)</span>.astype<span class="punctuation">(</span>int<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_demo <span class="operator">=</span> df_demo.merge<span class="punctuation">(</span></span><br><span class="line">    df_fwd_demo<span class="punctuation">,</span> left_on<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;apply_year&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> right_on<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;cite_year&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;left&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">df_demo<span class="punctuation">[</span><span class="string">&quot;fwd_cite&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_demo<span class="punctuation">[</span><span class="string">&quot;fwd_cite&quot;</span><span class="punctuation">]</span>.fillna<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">)</span>.astype<span class="punctuation">(</span>int<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;fwd_cite — 均值: &#123;df_demo[&#x27;fwd_cite&#x27;].mean():.2f&#125;，最大值: &#123;df_demo[&#x27;fwd_cite&#x27;].max()&#125;&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第六步：运行熵权法" class="article-heading"><a href="#第六步：运行熵权法" class="headerlink" title="第六步：运行熵权法"></a>第六步：运行熵权法<a class="article-anchor" href="#第六步：运行熵权法" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<h3 id="第七步：汇总到企业-年度" class="article-heading"><a href="#第七步：汇总到企业-年度" class="headerlink" title="第七步：汇总到企业-年度"></a>第七步：汇总到企业-年度<a class="article-anchor" href="#第七步：汇总到企业-年度" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">firm_demo = df_demo.groupby([&quot;firm_id&quot;, &quot;apply_year&quot;]).agg(</span><br><span class="line">    CKTB=(&quot;cktb_score&quot;, &quot;mean&quot;),</span><br><span class="line">    n_patents=(&quot;cktb_score&quot;, &quot;count&quot;),</span><br><span class="line">    ipc_cover=(&quot;ipc_cover&quot;, &quot;first&quot;)</span><br><span class="line">).reset_index()</span><br><span class="line">firm_demo = firm_demo.rename(columns=&#123;&quot;apply_year&quot;: &quot;year&quot;&#125;)</span><br><span class="line">firm_demo[&quot;CKTB&quot;] = firm_demo[&quot;CKTB&quot;].round(4)</span><br><span class="line"></span><br><span class="line"># 合并股票名称</span><br><span class="line">firm_names = df_demo[[&quot;firm_id&quot;, &quot;股票名称&quot;]].drop_duplicates()</span><br><span class="line">firm_demo = firm_demo.merge(firm_names, on=&quot;firm_id&quot;, how=&quot;left&quot;)</span><br><span class="line"></span><br><span class="line">print(firm_demo[[&quot;firm_id&quot;, &quot;股票名称&quot;, &quot;year&quot;, &quot;CKTB&quot;, &quot;n_patents&quot;, &quot;ipc_cover&quot;]].to_string(index=False))</span><br></pre></td></tr></table></figure>
+
+<p>Top 10% 稳健性指标：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">top10_thr = np.<span class="keyword">quantile</span>(df_demo[<span class="string">&quot;cktb_score&quot;</span>].values, 0.90)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;Top10% 得分门槛（凯莱英 2012 年）：&#123;top10_thr:.4f&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line">n_top10 = (df_demo[<span class="string">&quot;cktb_score&quot;</span>] &gt;= top10_thr).<span class="built_in">sum</span>()</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;Top10% 关键核心技术专利数：&#123;n_top10&#125; 件（占比 &#123;100 * n_top10 / len(df_demo):.1f&#125;%）&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="全量计算：所有公司、所有年份" class="article-heading"><a href="#全量计算：所有公司、所有年份" class="headerlink" title="全量计算：所有公司、所有年份"></a>全量计算：所有公司、所有年份<a class="article-anchor" href="#全量计算：所有公司、所有年份" aria-label="本节链接" title="复制本节链接"></a></h2><p>上面演示了单家公司的计算逻辑，以下代码对全部数据（2010～2012 年）进行批量计算。</p>
+<blockquote>
+<p><strong>注意</strong>：由于原始数据文件约 1～1.5 GB，完整运行需要较多内存（建议 16 GB+ RAM）和时间（约 10～30 分钟）。</p>
+</blockquote>
+<h3 id="完整计算代码" class="article-heading"><a href="#完整计算代码" class="headerlink" title="完整计算代码"></a>完整计算代码<a class="article-anchor" href="#完整计算代码" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import pandas as pd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置路径</span></span><br><span class="line">PATH_MATCH  <span class="operator">=</span> <span class="string">&quot;2010~2012年上市公司与专利数据匹配结果_含引用与被引用信息.csv&quot;</span></span><br><span class="line">PATH_CITE   <span class="operator">=</span> <span class="string">&quot;1985~2024年各专利当年～十一年内的被自引、被他引数量统计.csv&quot;</span></span><br><span class="line">PATH_EXTEND <span class="operator">=</span> <span class="string">&quot;拓展专利信息.csv&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 1: 读取全量主数据</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;&gt;&gt;&gt; 步骤1: 读取全量主数据...&quot;</span><span class="punctuation">)</span></span><br><span class="line">cols_main <span class="operator">=</span> <span class="punctuation">[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;股票名称&quot;</span><span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;引证科技文献&quot;</span><span class="punctuation">,</span> <span class="string">&quot;引证专利&quot;</span><span class="punctuation">,</span> <span class="string">&quot;当前权利人&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;IPC&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="punctuation">]</span></span><br><span class="line">df_all <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>PATH_MATCH<span class="punctuation">,</span> usecols<span class="operator">=</span>cols_main<span class="punctuation">,</span></span><br><span class="line">                     dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;股票代码&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;公开公告号&quot;</span><span class="operator">:</span> str<span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">df_all <span class="operator">=</span> df_all.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;股票代码&quot;</span><span class="operator">:</span> <span class="string">&quot;firm_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="operator">:</span> <span class="string">&quot;apply_year&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  全量记录：&#123;len(df_all)&#125; 条&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 2: 读取引用 ID 集合 + 去重</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;&gt;&gt;&gt; 步骤2: 去重...&quot;</span><span class="punctuation">)</span></span><br><span class="line">cite_ids <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>PATH_CITE<span class="punctuation">,</span> usecols<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;newipzlid&quot;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">]</span>.unique<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">cite_ids <span class="operator">=</span> set<span class="punctuation">(</span>cite_ids<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_all<span class="punctuation">[</span><span class="string">&quot;in_cite&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_all<span class="punctuation">[</span><span class="string">&quot;patent_id&quot;</span><span class="punctuation">]</span>.isin<span class="punctuation">(</span>cite_ids<span class="punctuation">)</span></span><br><span class="line">df_all<span class="punctuation">[</span><span class="string">&quot;公开公告号_clean&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df_all<span class="punctuation">[</span><span class="string">&quot;公开公告号&quot;</span><span class="punctuation">]</span>.str.replace<span class="punctuation">(</span><span class="string">r&quot;[A-Z]$&quot;, &quot;&quot;, regex=True)</span></span><br><span class="line"><span class="string">df_all = df_all.sort_values([&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;in_cite&quot;], ascending=[True, True, False])</span></span><br><span class="line"><span class="string">df_all = df_all.drop_duplicates(subset=[&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;公开公告号_clean&quot;], keep=&quot;first&quot;)</span></span><br><span class="line"><span class="string">df_all = df_all.drop_duplicates(subset=[&quot;firm_id&quot;, &quot;apply_year&quot;, &quot;申请号&quot;], keep=&quot;first&quot;)</span></span><br><span class="line"><span class="string">print(f&quot;  去重后：&#123;len(df_all)&#125; 条&quot;)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 3: 合并拓展信息</span></span><br><span class="line"><span class="string">print(&quot;&gt;&gt;&gt; 步骤3: 读取拓展信息...&quot;)</span></span><br><span class="line"><span class="string">df_extend = pd.read_csv(PATH_EXTEND, usecols=[&quot;newipzlid&quot;, &quot;权利要求数量&quot;, &quot;扩展同族&quot;],</span></span><br><span class="line"><span class="string">                         dtype=&#123;&quot;newipzlid&quot;: str&#125;)</span></span><br><span class="line"><span class="string">df_extend = df_extend.rename(columns=&#123;&quot;newipzlid&quot;: &quot;patent_id&quot;, &quot;权利要求数量&quot;: &quot;claims_ext&quot;&#125;)</span></span><br><span class="line"><span class="string">df_all = df_all.merge(df_extend, on=&quot;patent_id&quot;, how=&quot;left&quot;)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 4: 提取专利层面指标</span></span><br><span class="line"><span class="string"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 5: 合并被引用数据</span></span><br><span class="line"><span class="string">print(&quot;&gt;&gt;&gt; 步骤5: 读取被引用统计...&quot;)</span></span><br><span class="line"><span class="string">df_fwd = pd.read_csv(PATH_CITE, dtype=&#123;&quot;newipzlid&quot;: str&#125;)</span></span><br><span class="line"><span class="string">df_fwd = df_fwd[df_fwd[&quot;引用或被引用&quot;] == &quot;被他引信息&quot;].copy()</span></span><br><span class="line"><span class="string">df_fwd = df_fwd[[&quot;newipzlid&quot;, &quot;year&quot;, &quot;三年内&quot;]].rename(</span></span><br><span class="line"><span class="string">    columns=&#123;&quot;newipzlid&quot;: &quot;patent_id&quot;, &quot;year&quot;: &quot;cite_year&quot;, &quot;三年内&quot;: &quot;fwd_cite&quot;&#125;</span></span><br><span class="line"><span class="string">)</span></span><br><span class="line"><span class="string">df_fwd[&quot;fwd_cite&quot;] = df_fwd[&quot;fwd_cite&quot;].fillna(0).astype(int)</span></span><br><span class="line"><span class="string">df_all = df_all.merge(df_fwd, left_on=[&quot;patent_id&quot;, &quot;apply_year&quot;], right_on=[&quot;patent_id&quot;, &quot;cite_year&quot;], how=&quot;left&quot;)</span></span><br><span class="line"><span class="string">df_all[&quot;fwd_cite&quot;] = df_all[&quot;fwd_cite&quot;].fillna(0).astype(int)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 6: 熵权法</span></span><br><span class="line"><span class="string"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 8: 保存</span></span><br><span class="line"><span class="string">print(&quot;&gt;&gt;&gt; 步骤8: 保存结果...&quot;)</span></span><br><span class="line"><span class="string">firm_cktb.to_csv(&quot;firm_cktb_2010_2012_python.csv&quot;, index=False)</span></span><br><span class="line"><span class="string"># Stata 格式（version=118 支持 UTF-8 中文）</span></span><br><span class="line"><span class="string">firm_cktb.to_stata(&quot;firm_cktb_2010_2012_python.dta&quot;, version=118,</span></span><br><span class="line"><span class="string">                    variable_labels=&#123;&quot;firm_id&quot;: &quot;股票代码&quot;, &quot;year&quot;: &quot;年份&quot;,</span></span><br><span class="line"><span class="string">                                     &quot;CKTB&quot;: &quot;熵权法综合得分&quot;, &quot;n_patents&quot;: &quot;专利数量&quot;,</span></span><br><span class="line"><span class="string">                                     &quot;ipc_cover&quot;: &quot;IPC覆盖&quot;, &quot;CKTB_Top10&quot;: &quot;Top10%专利数&quot;&#125;)</span></span><br><span class="line"><span class="string">print(&quot;已保存：firm_cktb_2010_2012_python.csv 和 firm_cktb_2010_2012_python.dta&quot;)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 步骤 9: 描述性统计</span></span><br><span class="line"><span class="string">print(&quot;\n===== 按年份统计 =====&quot;)</span></span><br><span class="line"><span class="string">yearly = firm_cktb.groupby(&quot;year&quot;).agg(</span></span><br><span class="line"><span class="string">    企业数=(&quot;firm_id&quot;, &quot;count&quot;),</span></span><br><span class="line"><span class="string">    均值_CKTB=(&quot;CKTB&quot;, &quot;mean&quot;),</span></span><br><span class="line"><span class="string">    标准差_CKTB=(&quot;CKTB&quot;, &quot;std&quot;),</span></span><br><span class="line"><span class="string">    均值_专利数量=(&quot;n_patents&quot;, &quot;mean&quot;)</span></span><br><span class="line"><span class="string">).reset_index()</span></span><br><span class="line"><span class="string">yearly[&quot;均值_CKTB&quot;] = yearly[&quot;均值_CKTB&quot;].round(4)</span></span><br><span class="line"><span class="string">yearly[&quot;标准差_CKTB&quot;] = yearly[&quot;标准差_CKTB&quot;].round(4)</span></span><br><span class="line"><span class="string">yearly[&quot;均值_专利数量&quot;] = yearly[&quot;均值_专利数量&quot;].round(1)</span></span><br><span class="line"><span class="string">print(yearly.to_string(index=False))</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">print(&quot;\n===== CKTB Top10 企业（2012 年）=====&quot;)</span></span><br><span class="line"><span class="string">top_firms = firm_cktb[firm_cktb[&quot;year&quot;] == 2012].nlargest(10, &quot;CKTB&quot;)</span></span><br><span class="line"><span class="string">top_firms[&quot;CKTB&quot;] = top_firms[&quot;CKTB&quot;].round(4)</span></span><br><span class="line"><span class="string">print(top_firms.to_string(index=False))</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="变量说明" class="article-heading"><a href="#变量说明" class="headerlink" title="变量说明"></a>变量说明<a class="article-anchor" href="#变量说明" aria-label="本节链接" title="复制本节链接"></a></h2><p>最终输出的企业-年度面板数据包含以下变量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>knitr<span class="punctuation">)</span></span><br><span class="line">tibble<span class="operator">::</span>tibble<span class="punctuation">(</span></span><br><span class="line">  变量名 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;firm_id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;CKTB&quot;</span><span class="punctuation">,</span> <span class="string">&quot;n_patents&quot;</span><span class="punctuation">,</span> <span class="string">&quot;ipc_cover&quot;</span><span class="punctuation">,</span> <span class="string">&quot;CKTB_Top10&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  说明 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">    <span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;专利申请年份&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;熵权法综合得分（企业当年所有专利的均值）&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;当年有效专利数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;当年专利跨越的 IPC 部（section）数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;得分位于前 10% 的关键核心技术专利数量（稳健性检验）&quot;</span></span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  kable<span class="punctuation">(</span>align <span class="operator">=</span> <span class="string">&quot;ll&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>把上市公司专利数据替换成全部年份的就可以计算全部结果了～</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/11a0e54fff2447f4a0d1542a30f4e8eb">名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.052Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/23392/" title="名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/87602/" title="名师讲堂｜使用 R 语言测算上市公司关键核心技术突破指标面板数据（熵权法）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/56634/">名师讲堂｜使用 Stata 测算上市公司关键核心技术突破指标面板数据（熵权法）</a><span class="tf-related-meta">2026-05-03 · 约 8 分钟</span></li><li><a href="/posts/87602/">名师讲堂｜使用 R 语言测算上市公司关键核心技术突破指标面板数据（熵权法）</a><span class="tf-related-meta">2026-05-03 · 约 11 分钟</span></li><li><a href="/posts/64056/">名师讲堂｜使用 Python 测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-15 · 约 17 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-text">指标来源与背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%90%86%E8%AE%BA%E4%BE%9D%E6%8D%AE"><span class="toc-text">理论依据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E5%BA%A6%E6%8C%87%E6%A0%87"><span class="toc-text">测度指标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%86%B5%E6%9D%83%E6%B3%95%E5%8E%9F%E7%90%86"><span class="toc-text">熵权法原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4"><span class="toc-text">计算步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%86%B5%E6%9D%83%E6%B3%95%E5%87%BD%E6%95%B0%E5%AE%9E%E7%8E%B0%EF%BC%88Python%EF%BC%89"><span class="toc-text">熵权法函数实现（Python）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="toc-text">数据准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E5%85%AC%E5%8F%B8%E6%BC%94%E7%A4%BA%EF%BC%9A%E4%BB%A5%E5%87%AF%E8%8E%B1%E8%8B%B1%EF%BC%88002821%EF%BC%892012-%E5%B9%B4%E4%B8%BA%E4%BE%8B"><span class="toc-text">单公司演示：以凯莱英（002821）2012 年为例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%AF%BB%E5%8F%96%E4%B8%BB%E6%95%B0%E6%8D%AE"><span class="toc-text">第一步：读取主数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E4%B8%93%E5%88%A9%E5%8E%BB%E9%87%8D"><span class="toc-text">第二步：专利去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%8B%93%E5%B1%95%E4%BF%A1%E6%81%AF%E5%B9%B6%E5%90%88%E5%B9%B6"><span class="toc-text">第三步：读取拓展信息并合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E6%8F%90%E5%8F%96%E4%B8%93%E5%88%A9%E5%B1%82%E9%9D%A2-CKTB-%E6%8C%87%E6%A0%87"><span class="toc-text">第四步：提取专利层面 CKTB 指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E5%90%88%E5%B9%B6-3-%E5%B9%B4%E5%86%85%E8%A2%AB%E5%BC%95%E6%AC%A1%E6%95%B0"><span class="toc-text">第五步：合并 3 年内被引次数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E6%AD%A5%EF%BC%9A%E8%BF%90%E8%A1%8C%E7%86%B5%E6%9D%83%E6%B3%95"><span class="toc-text">第六步：运行熵权法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E6%AD%A5%EF%BC%9A%E6%B1%87%E6%80%BB%E5%88%B0%E4%BC%81%E4%B8%9A-%E5%B9%B4%E5%BA%A6"><span class="toc-text">第七步：汇总到企业-年度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E9%87%8F%E8%AE%A1%E7%AE%97%EF%BC%9A%E6%89%80%E6%9C%89%E5%85%AC%E5%8F%B8%E3%80%81%E6%89%80%E6%9C%89%E5%B9%B4%E4%BB%BD"><span class="toc-text">全量计算：所有公司、所有年份</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">完整计算代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">变量说明</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/92580/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近知网上更新了 2022 年中国县域统计年鉴，不过并没有提供 excel 格式的数据。所以我只下载了 caj 文件。今天的课程中我们将一起学习如何把 caj 文件转换成 pdf 文件、对 pdf 文件进行文本识别以及处理识别后的结果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗">
+<meta property="og:url" content="https://tidyfriday.cn/posts/92580/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近知网上更新了 2022 年中国县域统计年鉴，不过并没有提供 excel 格式的数据。所以我只下载了 caj 文件。今天的课程中我们将一起学习如何把 caj 文件转换成 pdf 文件、对 pdf 文件进行文本识别以及处理识别后的结果。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/92580.png">
+<meta property="article:published_time" content="2023-04-12T18:44:14.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:53.302Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/92580.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗","description":"最近知网上更新了 2022 年中国县域统计年鉴，不过并没有提供 excel 格式的数据。所以我只下载了 caj 文件。今天的课程中我们将一起学习如何把 caj 文件转换成 pdf 文件、对 pdf 文件进行文本识别以及处理识别后的结果。","url":"https://tidyfriday.cn/posts/92580/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/92580/"},"image":["https://tidyfriday.cn/og/92580.png"],"datePublished":"2023-04-12T18:44:14.000Z","dateModified":"2026-09-26T14:18:53.302Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"文本数据","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗","item":"https://tidyfriday.cn/posts/92580/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-04-12T18:44:14.000Z" itemprop="datePublished">2023-04-12</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3582 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 12 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近知网上更新了 2022 年中国县域统计年鉴，不过并没有提供 excel 格式的数据。所以我只下载了 caj 文件。今天的课程中我们将一起学习如何把 caj 文件转换成 pdf 文件、对 pdf 文件进行文本识别以及处理识别后的结果。</p>
+<span id="more"></span>
+
+<p>后面如果知网提供了 excel 文件就直接整理 excel 文件即可。不过本文讲解的方法依然适合很多没有提供 excel 文件的统计年鉴数据提取整理。</p>
+<h2 id="caj-文件转换成-pdf-文件" class="article-heading"><a href="#caj-文件转换成-pdf-文件" class="headerlink" title="caj 文件转换成 pdf 文件"></a>caj 文件转换成 pdf 文件<a class="article-anchor" href="#caj-文件转换成-pdf-文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>caj 文件需要使用知网提供的 caj 阅读器打开，我们没办法直接对 caj 文件进行文本识别和提取，因此我们需要先把 caj 文件转换成 pdf 或者其他可处理的格式。</p>
+<p>对于页数较少的 caj 文件，可以通过一页页的截图，不过页数多的话这种方法就非常麻烦了。为此我找到了一个把 caj 转换成 pdf 文件的工具：</p>
+<p>附件中我为大家下载好了三个文件：</p>
+<ol>
+<li>caj2pdf-qt-macos-x86_64-v0.1.5.zip：Mac OS 安装</li>
+<li>caj2pdf-qt-windows-x86-v0.1.5.zip：32 位的 Windows OS 安装</li>
+<li>caj2pdf-qt-windows-x86_64-v0.1.5.zip：64 位 Windows OS 安装</li>
+</ol>
+<p>Windows 上的安装使用我尚未测试，大家可以遇到问题的时候再来研究，根据原作者的介绍，Windows 的安装需要注意：</p>
+<blockquote>
+<p>解压缩后点 caj2pdf.exe 启动。</p>
+<p>注意，Windows Defender 或其它一些杀毒软件可能会拦截转换进程，导致转换失败。</p>
+<p>这是由于在构建程序的时候使用了 PyInstaller 将 caj2pdf 命令行工具打包成了单个可执行文件，而一些杀毒软件会将 PyInstaller 打包的程序当成病毒处理，参考：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/pyinstaller/pyinstaller/issues/5492">https://github.com/pyinstaller/pyinstaller/issues/5492</a></p>
+<p>如果你信任编译好的压缩包，可以将这个文件夹添加到排除项：将排除项添加到 Windows 安全中心。</p>
+</blockquote>
+<p>我使用的是 Mac OS，使用过程也遇到了问题：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295613289_284173.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>双击打开：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295613656_836833.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>不过我们可以这样打开。首先右键选择“显示包内容”：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295613900_386899.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>找到这个文件：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295614480_439488.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>双击打开即可：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295614678_622558.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>然后使用这个工具转换 caj 文件生成 pdf 文件即可。</p>
+<p>这样我们就得到了 pdf 文件：<code>中国县域统计年鉴_王贵荣_主编_2021年县(市)社会经济主要指标.pdf</code>。</p>
+<h2 id="pdf-文件识别文本、提取表格数据" class="article-heading"><a href="#pdf-文件识别文本、提取表格数据" class="headerlink" title="pdf 文件识别文本、提取表格数据"></a>pdf 文件识别文本、提取表格数据<a class="article-anchor" href="#pdf-文件识别文本、提取表格数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>图像的文本识别工具很多，例如 tesseract，不过尝试之后发现都不是特别好用，最好用的工具还是这个在线的应用。</p>
+<p>如果要识别的文件页数较少，选择免费转换即可。付费转换的价格也不贵，例如这份 pdf 文件有 419 页，收费 17.67 元（如果要识别很多文件，最好先把文件合并成一个 pdf 文件上传识别，因为这个网站是阶梯收费，页数越多，单价越低）。</p>
+<p>上传之后根据自己的需要设定解析参数即可：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295614917_488666.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>解析过程可能需要数十分钟，耐心等待即可。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295615208_539669.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这次大家就不用再付费转换了，附件中有我转换后的数据，大家可以使用附件中的结果继续学习后面的内容。也就是 <code>中国县域统计年鉴_王贵荣_主编_2021年县(市)社会经济主要指标_output.xlsx</code> 文件。</p>
+<h2 id="手动检查" class="article-heading"><a href="#手动检查" class="headerlink" title="手动检查"></a>手动检查<a class="article-anchor" href="#手动检查" aria-label="本节链接" title="复制本节链接"></a></h2><p>解析的结果并不一定能直接使用 Stata 处理（有很多细节不好编程进行），我们需要先手动检查下做一些准备工作。</p>
+<p>这里主要是手动从每个表格中提取省份信息生成一个新列，见文件“整理结果.xlsx”。</p>
+<h2 id="在-Stata-中处理" class="article-heading"><a href="#在-Stata-中处理" class="headerlink" title="在 Stata 中处理"></a>在 Stata 中处理<a class="article-anchor" href="#在-Stata-中处理" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面我们使用 Stata 读取处理这个文件：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/&quot;</span></span><br><span class="line">import excel using <span class="string">&quot;整理结果.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 填补省份</span></span><br><span class="line">carryforward A, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(<span class="keyword">D</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">E</span>) &amp; <span class="built_in">missing</span>(F) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(<span class="keyword">G</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">H</span>) &amp; <span class="built_in">missing</span>(I) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(J) &amp; <span class="built_in">missing</span>(K) &amp; <span class="built_in">missing</span>(<span class="keyword">L</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去除 B 中的空格</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">save</span> data1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 统一 B 中的指标名称</span></span><br><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;・&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;，&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;、&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> B, force</span><br><span class="line"><span class="keyword">keep</span> B</span><br><span class="line"><span class="keyword">gsort</span> B</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> B == <span class="string">&quot;&quot;</span> | B == <span class="string">&quot;一、基本情况行政区域面积&quot;</span> | B == <span class="string">&quot;一基本情况行政区域面积&quot;</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民政0艮务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民谢艮务机构床位数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民呦艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政^务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民斑艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民班艮务机构&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>使用该代码处理原始数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;・&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;，&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;、&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> B == <span class="string">&quot;&quot;</span> | B == <span class="string">&quot;一、基本情况行政区域面积&quot;</span> | B == <span class="string">&quot;一基本情况行政区域面积&quot;</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民政0艮务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民谢艮务机构床位数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民呦艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政^务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民斑艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民班艮务机构&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> C</span><br></pre></td></tr></table></figure>
+
+<p>根据 B == “指标” 拆分每个表：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> z = _n <span class="keyword">if</span> B == <span class="string">&quot;指标&quot;</span></span><br><span class="line"><span class="keyword">order</span> z</span><br><span class="line">carryforward z, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>检查有没有识别错误的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 检查有没有识别错误的</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">count</span>) id, <span class="keyword">by</span>(z)</span><br><span class="line"></span><br><span class="line"><span class="keyword">sum</span> id</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     Variable |        Obs        Mean    Std. dev.       Min        Max</span></span><br><span class="line"><span class="comment">*&gt; -------------+---------------------------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;           id |        418    23.19378    1.228463         20         43</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 可以看到 z 的最大数量是 43，说明有识别错误的，修正下</span></span><br><span class="line"><span class="keyword">list</span> z <span class="keyword">if</span> id &gt; 25</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 检查下</span></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> z == 6162</span><br></pre></td></tr></table></figure>
+
+<p>可以看到有部分海南省的数据少了“指标”这一行，我们再回到原始数据修正这一行数据得到“整理结果2.xlsx”</p>
+<p>重新处理 “整理结果2.xlsx”：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import excel using <span class="string">&quot;整理结果2.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">carryforward A, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(<span class="keyword">D</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">E</span>) &amp; <span class="built_in">missing</span>(F) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(<span class="keyword">G</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">H</span>) &amp; <span class="built_in">missing</span>(I) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(J) &amp; <span class="built_in">missing</span>(K) &amp; <span class="built_in">missing</span>(<span class="keyword">L</span>)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;・&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;，&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;、&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> B == <span class="string">&quot;&quot;</span> | B == <span class="string">&quot;一、基本情况行政区域面积&quot;</span> | B == <span class="string">&quot;一基本情况行政区域面积&quot;</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民政0艮务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民谢艮务机构床位数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民呦艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政^务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民斑艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民班艮务机构&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> C</span><br><span class="line"><span class="keyword">gen</span> z = _n <span class="keyword">if</span> B == <span class="string">&quot;指标&quot;</span></span><br><span class="line"><span class="keyword">order</span> z</span><br><span class="line">carryforward z, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 再次检查有没有识别错误的</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">count</span>) id, <span class="keyword">by</span>(z)</span><br><span class="line"></span><br><span class="line"><span class="keyword">sum</span> id</span><br><span class="line"><span class="comment">*- 这个时候 z 变量最多的数量是 24，没什么问题了</span></span><br></pre></td></tr></table></figure>
+
+<p>继续整理 data2.dta：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 转换成长数据</span></span><br><span class="line"><span class="comment">*- gather 和 spread 的安装：ssc install tidy</span></span><br><span class="line">gather <span class="keyword">D</span> - <span class="keyword">L</span></span><br><span class="line">spread B value</span><br><span class="line"><span class="keyword">order</span> z A 指标</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除不是数据的</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(指标)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用 destring 把能转换成数值变量的都转换成数值变量</span></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 把数据变紧凑些：</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>把“整理结果2.xlsx”复制一份命名为“整理结果3.xlsx”，然后逐个检查为什么有些变量无法 destring：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">destring</span> 乡, force <span class="keyword">gen</span>(乡2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(乡) &amp; <span class="built_in">missing</span>(乡2)</span><br><span class="line"><span class="keyword">list</span> A 指标 乡 乡2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +-----------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |                A       指标    乡   乡2 |</span></span><br><span class="line"><span class="comment">*&gt;     |-----------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 新疆维吾尔自治区   英吉沙县   ,10     . |</span></span><br><span class="line"><span class="comment">*&gt;     +-----------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">destring</span> 住户存款余额, force <span class="keyword">gen</span>(住户存款余额2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(住户存款余额) &amp; <span class="built_in">missing</span>(住户存款余额2)</span><br><span class="line"><span class="keyword">list</span> A 指标 住户存款余额 住户存款余额2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标    住户~额   住户存~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |---------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 河北省   滦州市   386力 82          . |</span></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">destring</span> 固定电话用户, force <span class="keyword">gen</span>(固定电话用户2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(固定电话用户) &amp; <span class="built_in">missing</span>(固定电话用户2)</span><br><span class="line"><span class="keyword">list</span> A 指标 固定电话用户 固定电话用户2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +----------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |                A     指标   固定电话~户   固定电~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |----------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 新疆维吾尔自治区   莎车县   ,     21511          . |</span></span><br><span class="line"><span class="comment">*&gt;     +----------------------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;地区生产总值&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标    地区~值   地区生~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |---------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 四川省   荥经县   82 乃 33          . |</span></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;年末金融机构各项贷款余额&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标    年末~额   年末金~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |---------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 湖南省   衡东县    15277万          . |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 陕西省   洛川县   65 乃 29          . |</span></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;户籍人口&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +-----------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |            A       指标   户籍人口   户籍人~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |-----------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 内蒙古自治区   翁牛特旗       46,8          . |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 内蒙古自治区   扎兰屯市       39,7          . |</span></span><br><span class="line"><span class="comment">*&gt;     +-----------------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;提供住宿的民政服务机构&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标   提供~构   提供住~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |--------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 四川省   金川县         I          . |</span></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;街道办事处&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标   街道~处   街道办~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |--------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 福建省   松溪县         I          . |</span></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> p = <span class="string">&quot;设施农业种植占地面积&quot;</span></span><br><span class="line"><span class="keyword">destring</span> <span class="symbol">`p&#x27;</span>, force <span class="keyword">gen</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>) &amp; <span class="built_in">missing</span>(<span class="symbol">`p&#x27;</span>2)</span><br><span class="line"><span class="keyword">list</span> A 指标 <span class="symbol">`p&#x27;</span> <span class="symbol">`p&#x27;</span>2</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |      A     指标   设施~积   设施农~2 |</span></span><br><span class="line"><span class="comment">*&gt;     |--------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 陕西省   麟游县       ,76          . |</span></span><br><span class="line"><span class="comment">*&gt;     +--------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 在“整理结果3.xlsx”中改正这个错误。</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就纠正了这些错误。</p>
+<p>重新处理 “整理结果3.xlsx”：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import excel using <span class="string">&quot;整理结果3.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">carryforward A, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(<span class="keyword">D</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">E</span>) &amp; <span class="built_in">missing</span>(F) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(<span class="keyword">G</span>) &amp; <span class="built_in">missing</span>(<span class="keyword">H</span>) &amp; <span class="built_in">missing</span>(I) <span class="comment">///</span></span><br><span class="line"> &amp; <span class="built_in">missing</span>(J) &amp; <span class="built_in">missing</span>(K) &amp; <span class="built_in">missing</span>(<span class="keyword">L</span>)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;・&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;，&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> B = <span class="built_in">subinstr</span>(B, <span class="string">&quot;、&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> B == <span class="string">&quot;&quot;</span> | B == <span class="string">&quot;一、基本情况行政区域面积&quot;</span> | B == <span class="string">&quot;一基本情况行政区域面积&quot;</span></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民政0艮务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政服务机构床位数&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民谢艮务机构床位数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> B = <span class="string">&quot;提供住宿的民政服务机构&quot;</span> <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line"> <span class="built_in">inlist</span>(B, <span class="string">&quot;提供住宿的民呦艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民政^务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民斑艮务机构&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;提供住宿的民班艮务机构&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> C</span><br><span class="line"><span class="keyword">gen</span> z = _n <span class="keyword">if</span> B == <span class="string">&quot;指标&quot;</span></span><br><span class="line"><span class="keyword">order</span> z</span><br><span class="line">carryforward z, <span class="keyword">replace</span></span><br><span class="line">gather <span class="keyword">D</span> - <span class="keyword">L</span></span><br><span class="line">spread B value</span><br><span class="line"><span class="keyword">order</span> z A 指标</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(指标)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除辅助变量 z</span></span><br><span class="line"><span class="keyword">drop</span> z</span><br><span class="line"></span><br><span class="line"><span class="keyword">ren</span> A 省</span><br><span class="line"><span class="keyword">ren</span> 指标 县</span><br><span class="line"><span class="keyword">order</span> 省 县 行政区域面积 乡 镇 街道办事处 户籍人口 <span class="comment">///</span></span><br><span class="line"> 地区生产总值 第一产业增加值 第二产业增加值 第三产业增加值 <span class="comment">///</span></span><br><span class="line"> 地方一般公共预算收入 地方一般公共预算支出 住户存款余额 <span class="comment">///</span></span><br><span class="line"> 年末金融机构各项贷款余额 设施农业种植占地面积 油料产量 <span class="comment">///</span></span><br><span class="line"> 棉花产量 规模以上工业企业 固定电话用户 普通中学在校学生 <span class="comment">///</span></span><br><span class="line"> 小学在校学生 医疗卫生机构床位 提供住宿的民政服务机构 <span class="comment">///</span></span><br><span class="line"> 提供住宿的民政服务机构床位数</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 紧凑数据</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">save</span> data4, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>最后我们再检查变量的数值中是否有识别错误的，通常我会检查数据的分布：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data4, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">di</span> <span class="string">&quot;hist `i&#x27;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也可以把所有的变量分布绘制到一幅图上：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data4, <span class="keyword">clear</span></span><br><span class="line">gather 行政区域面积 乡 镇 街道办事处 户籍人口 <span class="comment">///</span></span><br><span class="line"> 地区生产总值 第一产业增加值 第二产业增加值 <span class="comment">///</span></span><br><span class="line"> 第三产业增加值 地方一般公共预算收入 <span class="comment">///</span></span><br><span class="line"> 地方一般公共预算支出 住户存款余额 <span class="comment">///</span></span><br><span class="line"> 年末金融机构各项贷款余额 设施农业种植占地面积 <span class="comment">///</span></span><br><span class="line"> 油料产量 棉花产量 规模以上工业企业 固定电话用户 <span class="comment">///</span></span><br><span class="line"> 普通中学在校学生 小学在校学生 医疗卫生机构床位 <span class="comment">///</span></span><br><span class="line"> 提供住宿的民政服务机构 提供住宿的民政服务机构床位数</span><br><span class="line"><span class="keyword">tw</span> <span class="keyword">hist</span> value || <span class="comment">///</span></span><br><span class="line"> <span class="keyword">kdensity</span> value, <span class="keyword">by</span>(<span class="keyword">var</span>, rescale <span class="keyword">note</span>(<span class="string">&quot;&quot;</span>) leg(off))</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export picn.png, width(2400) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/12/18/02b79j1bdbe1b168g4/common/content/1681295612756_299276.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>看起来基本没什么明显的问题，大家如果时间充裕的话，也可以逐个检查那些分布右偏的变量</p>
+<h2 id="检查区县名称的识别错误" class="article-heading"><a href="#检查区县名称的识别错误" class="headerlink" title="检查区县名称的识别错误"></a>检查区县名称的识别错误<a class="article-anchor" href="#检查区县名称的识别错误" aria-label="本节链接" title="复制本节链接"></a></h2><p>虽然在人工检查过程中我们也纠正了一些识别错误问题，不过应该还有很多我们没有发现，在下次课中我们会讲解如何为数据添加行政区划代码，在这个过程中我们就能发现和纠正区县名称识别错误的问题了。另外如果把多年的数据匹配起来，就可以通过检查数据的趋势来识别出数值错误的问题。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/59fbd94072c844d985f0f4fcdbd4c40e">如何整理 2022 年县域统计年鉴：caj 文件转 pdf、文本识别与数据清洗</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:53.302Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/82379/" title="1960～2020 年各省市区县分年、分月、逐日降水量面板数据（气象资料日值数据集来源）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/48214/" title="Stata 中如何进行跨行观测值比较？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/40896/">使用 Stata 调用本地部署的大语言模型进行文本主要内容提取——历年政府工作报告中的经济增长目标提取（deepseek版本）</a><span class="tf-related-meta">2025-08-23 · 约 7 分钟</span></li><li><a href="/posts/50706/">readfiles：批量读取指定文件夹中特定扩展名的所有文本文件</a><span class="tf-related-meta">2025-08-23 · 约 6 分钟</span></li><li><a href="/posts/59552/">使用 Stata 调用本地部署的大语言模型进行文本主要内容提取——历年政府工作报告中的经济增长目标提取</a><span class="tf-related-meta">2024-08-13 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#caj-%E6%96%87%E4%BB%B6%E8%BD%AC%E6%8D%A2%E6%88%90-pdf-%E6%96%87%E4%BB%B6"><span class="toc-text">caj 文件转换成 pdf 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pdf-%E6%96%87%E4%BB%B6%E8%AF%86%E5%88%AB%E6%96%87%E6%9C%AC%E3%80%81%E6%8F%90%E5%8F%96%E8%A1%A8%E6%A0%BC%E6%95%B0%E6%8D%AE"><span class="toc-text">pdf 文件识别文本、提取表格数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E6%A3%80%E6%9F%A5"><span class="toc-text">手动检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8-Stata-%E4%B8%AD%E5%A4%84%E7%90%86"><span class="toc-text">在 Stata 中处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E5%8C%BA%E5%8E%BF%E5%90%8D%E7%A7%B0%E7%9A%84%E8%AF%86%E5%88%AB%E9%94%99%E8%AF%AF"><span class="toc-text">检查区县名称的识别错误</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

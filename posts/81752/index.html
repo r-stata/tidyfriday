@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/81752/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近有小伙伴问到了如何计算港股公司的数字赋能指数问题，在计算过程中我发现在处理繁体文本的时候不仅仅需要考虑繁体与简体的转换，还需要考虑繁体和简体的不同用词习惯。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/81752/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近有小伙伴问到了如何计算港股公司的数字赋能指数问题，在计算过程中我发现在处理繁体文本的时候不仅仅需要考虑繁体与简体的转换，还需要考虑繁体和简体的不同用词习惯。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/81752.png">
+<meta property="article:published_time" content="2024-04-08T22:45:53.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:43.880Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/81752.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）","description":"最近有小伙伴问到了如何计算港股公司的数字赋能指数问题，在计算过程中我发现在处理繁体文本的时候不仅仅需要考虑繁体与简体的转换，还需要考虑繁体和简体的不同用词习惯。","url":"https://tidyfriday.cn/posts/81752/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/81752/"},"image":["https://tidyfriday.cn/og/81752.png"],"datePublished":"2024-04-08T22:45:53.000Z","dateModified":"2026-09-26T14:18:43.880Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 文本数据","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）","item":"https://tidyfriday.cn/posts/81752/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-04-08T22:45:53.000Z" itemprop="datePublished">2024-04-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1479 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 5 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近有小伙伴问到了如何计算港股公司的数字赋能指数问题，在计算过程中我发现在处理繁体文本的时候不仅仅需要考虑繁体与简体的转换，还需要考虑繁体和简体的不同用词习惯。</p>
+<span id="more"></span>
+
+<p>在今天的课程中我们将会以「阿里巴巴」公司的年报分析为例进行讲解。</p>
+<h2 id="下载年报文件" class="article-heading"><a href="#下载年报文件" class="headerlink" title="下载年报文件"></a>下载年报文件<a class="article-anchor" href="#下载年报文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>港股上市公司的年报可以在披露易网站下载： <a target="_blank" rel="noopener external nofollow noreferrer" href="https://sc.hkexnews.hk/TuniS/www.hkexnews.hk/index_c.htm">https://sc.hkexnews.hk/TuniS/www.hkexnews.hk/index_c.htm</a></p>
+<p>我下载了阿里巴巴公司 2020～2023 年的年报存放在了附件的 pdf 文件夹中。</p>
+<h2 id="读取和处理-pdf-文本" class="article-heading"><a href="#读取和处理-pdf-文本" class="headerlink" title="读取和处理 pdf 文本"></a>读取和处理 pdf 文本<a class="article-anchor" href="#读取和处理-pdf-文本" aria-label="本节链接" title="复制本节链接"></a></h2><p>在之前的文本分析课程中我们讲解过 pdf 文件的文本提取和处理：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>jiebaR<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取 pdf 文本</span></span><br><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;pdf&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  lapply<span class="punctuation">(</span><span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    tibble<span class="punctuation">(</span>file <span class="operator">=</span> x<span class="punctuation">,</span></span><br><span class="line">           text <span class="operator">=</span> paste0<span class="punctuation">(</span>pdftools<span class="operator">::</span>pdf_text<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line"><span class="comment"># 去除空格、换行符和制表符</span></span><br><span class="line">dfall <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>text <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>text<span class="punctuation">,</span> <span class="string">&quot;[\\s\\n\\t]&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br></pre></td></tr></table></figure>
+
+<p>下面我们将根据这一文本数据计算阿里巴巴的数字赋能指数，计算方法参考的是吴非(2021)，附件中也提供了该文献的 pdf 文件。</p>
+<p>企业数字化转型包含下面这些词汇：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/08/22/02b79j1bdbe1b168g4/common/content/1712587507768_689416.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>我们下面要做的就是从年报文本中统计这些词汇的词频。然后加总起来就是企业的数字化转型指标了。</p>
+<p>附件中的 <code>dictionary.txt</code> 文件存放的就是这些词汇，也就是后面分词使用的用户词典。</p>
+<p>由于 dfall 里面的文本是繁体，而 <code>dictionary.txt</code> 中的词汇是简体，所以我们需要进行繁体-简体的转换。之前的课程中我们介绍过调用百度翻译接口进行语言转换的方法：</p>
+<blockquote>
+<p>使用 R 语言调用百度翻译接口：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/87d85f8605dc4c5cb608a54341bf1725">https://rstata.duanshu.com/#/brief/course/87d85f8605dc4c5cb608a54341bf1725</a></p>
+</blockquote>
+<p>不过对于这种超长文本，这个方法并不好用。所以这里我们可以使用<code>中文繁简体字符对照表.txt</code>文件进行字对字的转换。</p>
+<h2 id="繁体-简体转换" class="article-heading"><a href="#繁体-简体转换" class="headerlink" title="繁体-简体转换"></a>繁体-简体转换<a class="article-anchor" href="#繁体-简体转换" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 语言中，pinyi 包（<a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/pzhaonet/pinyin）可以实现把文字转换成拼音的功能，也可以自定义词典把某些字符批量替换成另外一些字符。">https://github.com/pzhaonet/pinyin）可以实现把文字转换成拼音的功能，也可以自定义词典把某些字符批量替换成另外一些字符。</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装 pinyi</span><br><span class="line">install.packages(&quot;pinyin&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>该包的帮助文档给出了一个自定义词典的案例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span><span class="string">&#x27;pinyin&#x27;</span><span class="punctuation">)</span></span><br><span class="line">mypy <span class="operator">&lt;-</span> pydic<span class="punctuation">(</span><span class="punctuation">)</span> <span class="comment"># 载入默认字典</span></span><br><span class="line">py<span class="punctuation">(</span><span class="string">&quot;春眠不觉晓，处处闻啼鸟&quot;</span><span class="punctuation">,</span> dic <span class="operator">=</span> mypy<span class="punctuation">)</span> <span class="comment"># 转换</span></span><br><span class="line"></span><br><span class="line">dic_sj <span class="operator">&lt;-</span> <span class="string">&#x27;sijiao.txt&#x27;</span> <span class="comment">#自定义字典链接</span></span><br><span class="line">mysj <span class="operator">&lt;-</span> load_dic<span class="punctuation">(</span>dic_file <span class="operator">=</span> dic_sj<span class="punctuation">)</span> <span class="comment"># 载入自定义字典</span></span><br><span class="line">py<span class="punctuation">(</span><span class="string">&quot;春眠不觉晓，处处闻啼鸟&quot;</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&#x27;_&#x27;</span><span class="punctuation">,</span> dic <span class="operator">=</span> mysj<span class="punctuation">)</span> <span class="comment"># 转换</span></span><br></pre></td></tr></table></figure>
+
+<p>我们这里就可以仿照 <code>sijiao.txt</code> 文件构建一个我们的繁简体转换词典：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 构造中文繁简体字符对照表</span></span><br><span class="line">write_delim<span class="punctuation">(</span>x <span class="operator">=</span> tibble<span class="punctuation">(</span><span class="string">&quot;# format = 2\n&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            file <span class="operator">=</span> <span class="string">&quot;简繁体对照表.txt&quot;</span><span class="punctuation">,</span> delim <span class="operator">=</span> <span class="string">&quot; &quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="built_in">quote</span> <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">read_table<span class="punctuation">(</span><span class="string">&#x27;中文繁简体字符对照表.txt&#x27;</span><span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>X1<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;繁体&quot;</span><span class="punctuation">,</span> <span class="string">&quot;简体&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;\\(&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>简体 <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>简体<span class="punctuation">,</span> <span class="string">&quot;\\)&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>简体<span class="punctuation">,</span> 繁体<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>简体 <span class="operator">=</span> paste0<span class="punctuation">(</span>简体<span class="punctuation">,</span> <span class="string">&quot;&amp;&amp;&quot;</span><span class="punctuation">,</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;&amp;&amp;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>繁体 <span class="operator">=</span> paste0<span class="punctuation">(</span>繁体<span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  write_delim<span class="punctuation">(</span><span class="string">&quot;简繁体对照表.txt&quot;</span><span class="punctuation">,</span> delim <span class="operator">=</span> <span class="string">&quot; &quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="built_in">quote</span> <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">,</span> append <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以把繁体的年报转换成简体的了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>pinyin<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 载入自定义字典</span></span><br><span class="line">mysj <span class="operator">&lt;-</span> load_dic<span class="punctuation">(</span>dic_file <span class="operator">=</span> <span class="string">&quot;简繁体对照表.txt&quot;</span><span class="punctuation">)</span></span><br><span class="line">py<span class="punctuation">(</span><span class="string">&quot;弔冊&quot;</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&#x27;_&#x27;</span><span class="punctuation">,</span> dic <span class="operator">=</span> mysj<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dfall <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>text <span class="operator">=</span> map_chr<span class="punctuation">(</span>text<span class="punctuation">,</span> py<span class="punctuation">,</span> dic <span class="operator">=</span> mysj<span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 去除特征符号</span></span><br><span class="line">dfall2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>text <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>text<span class="punctuation">,</span> <span class="string">&quot;&amp;&amp;\\d+&amp;&amp;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall2</span><br><span class="line"></span><br><span class="line">dfall2</span><br></pre></td></tr></table></figure>
+
+<h2 id="繁体与简体的表达差异" class="article-heading"><a href="#繁体与简体的表达差异" class="headerlink" title="繁体与简体的表达差异"></a>繁体与简体的表达差异<a class="article-anchor" href="#繁体与简体的表达差异" aria-label="本节链接" title="复制本节链接"></a></h2><p>按照我们最开始说的，在繁体文本的分析中，我们不仅仅需要进行繁体简体的转换，还需要注意不同文本的用词差异，例如简体文本中的“人工智能”，在繁体文本中通常使用“人工智慧”来表达。因此这里我们不能单纯把繁体转换成简体之后就立即进行文本分析，而是应该再处理下用户词典，尽可能包含同一词汇的各种表达方式。</p>
+<p>所以下面我们把数字转型关键词再使用百度翻译接口翻译成繁体的表达方式：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 词典翻译为繁体</span></span><br><span class="line">read_csv<span class="punctuation">(</span><span class="string">&quot;dictionary.txt&quot;</span><span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> word</span><br></pre></td></tr></table></figure>
+
+<p>在之前的课程「使用 R 语言调用百度翻译接口」<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/87d85f8605dc4c5cb608a54341bf1725">https://rstata.duanshu.com/#/brief/course/87d85f8605dc4c5cb608a54341bf1725</a> 中我们介绍了百度翻译接口的使用，这里我们就可以使用该接口把简体文本翻译成繁体（注意这个就不是直接的字对字翻译了，例如它会把“人工智能”翻译成“人工智慧”）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">appid <span class="operator">=</span> <span class="string">&quot;20171205000102469&quot;</span></span><br><span class="line">key <span class="operator">=</span> <span class="string">&quot;8PHPDzkGMr_kWd5rIhRc&quot;</span></span><br><span class="line">rand <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>runif<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">1000000000</span><span class="punctuation">,</span> <span class="number">9999999999</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">query <span class="operator">=</span> <span class="string">&quot;人工智能&quot;</span></span><br><span class="line">paste0<span class="punctuation">(</span><span class="string">&quot;http://api.fanyi.baidu.com/api/trans/vip/translate?q=&quot;</span><span class="punctuation">,</span> query<span class="punctuation">,</span> <span class="string">&quot;&amp;from=zh&amp;to=cht&amp;appid=&quot;</span><span class="punctuation">,</span> appid<span class="punctuation">,</span> <span class="string">&quot;&amp;salt=&quot;</span><span class="punctuation">,</span> rand<span class="punctuation">,</span> <span class="string">&quot;&amp;sign=&quot;</span><span class="punctuation">,</span> cli<span class="operator">::</span>hash_md5<span class="punctuation">(</span>paste0<span class="punctuation">(</span>appid<span class="punctuation">,</span> query<span class="punctuation">,</span> rand<span class="punctuation">,</span> key<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  URLencode<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line">lst<span class="operator">$</span>trans_result<span class="operator">$</span>dst</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以翻译所有的了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">word <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>X2 <span class="operator">=</span> map_chr<span class="punctuation">(</span>X1<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    rand <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>runif<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">1000000000</span><span class="punctuation">,</span> <span class="number">9999999999</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">    paste0<span class="punctuation">(</span><span class="string">&quot;http://api.fanyi.baidu.com/api/trans/vip/translate?q=&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;&amp;from=zh&amp;to=cht&amp;appid=&quot;</span><span class="punctuation">,</span> appid<span class="punctuation">,</span> <span class="string">&quot;&amp;salt=&quot;</span><span class="punctuation">,</span> rand<span class="punctuation">,</span> <span class="string">&quot;&amp;sign=&quot;</span><span class="punctuation">,</span> cli<span class="operator">::</span>hash_md5<span class="punctuation">(</span>paste0<span class="punctuation">(</span>appid<span class="punctuation">,</span> x<span class="punctuation">,</span> rand<span class="punctuation">,</span> key<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      URLencode<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line">    lst<span class="operator">$</span>trans_result<span class="operator">$</span>dst</span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> word1</span><br><span class="line"></span><br><span class="line">word1</span><br></pre></td></tr></table></figure>
+
+<p>合并两部分得到新的用户词典：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">word1 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>X2 <span class="operator">=</span> map_chr<span class="punctuation">(</span>X2<span class="punctuation">,</span> py<span class="punctuation">,</span> dic <span class="operator">=</span> mysj<span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>X2 <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>X2<span class="punctuation">,</span> <span class="string">&quot;&amp;&amp;\\d+&amp;&amp;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  gather<span class="punctuation">(</span>X1<span class="punctuation">,</span> X2<span class="punctuation">,</span> key <span class="operator">=</span> <span class="string">&quot;key&quot;</span><span class="punctuation">,</span> value <span class="operator">=</span> <span class="string">&quot;value&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>value<span class="punctuation">)</span> <span class="operator">-&gt;</span> word1a</span><br><span class="line"></span><br><span class="line">word1a<span class="operator">$</span>value</span><br><span class="line"></span><br><span class="line">word1a <span class="operator">%&gt;%</span></span><br><span class="line">  write.table<span class="punctuation">(</span><span class="string">&quot;dictionary2.txt&quot;</span><span class="punctuation">,</span> col.names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">,</span> row.names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">,</span> <span class="built_in">quote</span> <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="根据新的用户词典进行分词与词频统计" class="article-heading"><a href="#根据新的用户词典进行分词与词频统计" class="headerlink" title="根据新的用户词典进行分词与词频统计"></a>根据新的用户词典进行分词与词频统计<a class="article-anchor" href="#根据新的用户词典进行分词与词频统计" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">engine_s2 <span class="operator">&lt;-</span> worker<span class="punctuation">(</span>stop_word <span class="operator">=</span> <span class="string">&quot;stopwords.txt&quot;</span><span class="punctuation">,</span> user <span class="operator">=</span> <span class="string">&quot;dictionary2.txt&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dfall2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>res <span class="operator">=</span> map<span class="punctuation">(</span>text<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    jiebaR<span class="operator">::</span>segment<span class="punctuation">(</span>x<span class="punctuation">,</span> jiebar <span class="operator">=</span> engine_s2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      dplyr<span class="operator">::</span>as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      dplyr<span class="operator">::</span>count<span class="punctuation">(</span>value<span class="punctuation">,</span> sort <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall3</span><br><span class="line"></span><br><span class="line">dfall3</span><br></pre></td></tr></table></figure>
+
+<p>最后再简单处理下就得到了数字赋能指数计算结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall3 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>text<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>file <span class="operator">=</span> str_extract<span class="punctuation">(</span>file<span class="punctuation">,</span> <span class="string">&quot;\\d+&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>年份 <span class="operator">=</span> file<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>年份 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>年份<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>res<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>value <span class="operator">%in%</span> word<span class="operator">$</span>X1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  spread<span class="punctuation">(</span>value<span class="punctuation">,</span> n<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="number">0</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rowwise<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>数字赋能指数 <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>c_across<span class="punctuation">(</span>大数据<span class="operator">:</span>C2C<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/0c6f289941e141199752ca04ba895f62">使用 R 语言处理港股年报计算数字赋能指数（繁体文本的文本分析）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:43.880Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/38756/" title="旧版本｜2000～2022 年上市公司的办公地址和注册地址（含经纬度、省市区县及搬迁距离）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/21342/" title="1990~2022 年上市公司办公地址及注册地址周边 1～30km 范围内各种类型金融机构的数量"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/59574/">使用 R 语言从文本中提取地址</a><span class="tf-related-meta">2024-04-12 · 约 3 分钟</span></li><li><a href="/posts/75337/">使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析</a><span class="tf-related-meta">2024-01-23 · 约 6 分钟</span></li><li><a href="/posts/79165/">使用 R 语言绘制分段回归线+拟合方程文本标签以及如何导出可以插入 word 文档中的矢量图</a><span class="tf-related-meta">2023-10-20 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%B9%B4%E6%8A%A5%E6%96%87%E4%BB%B6"><span class="toc-text">下载年报文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E5%92%8C%E5%A4%84%E7%90%86-pdf-%E6%96%87%E6%9C%AC"><span class="toc-text">读取和处理 pdf 文本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B9%81%E4%BD%93-%E7%AE%80%E4%BD%93%E8%BD%AC%E6%8D%A2"><span class="toc-text">繁体-简体转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B9%81%E4%BD%93%E4%B8%8E%E7%AE%80%E4%BD%93%E7%9A%84%E8%A1%A8%E8%BE%BE%E5%B7%AE%E5%BC%82"><span class="toc-text">繁体与简体的表达差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B9%E6%8D%AE%E6%96%B0%E7%9A%84%E7%94%A8%E6%88%B7%E8%AF%8D%E5%85%B8%E8%BF%9B%E8%A1%8C%E5%88%86%E8%AF%8D%E4%B8%8E%E8%AF%8D%E9%A2%91%E7%BB%9F%E8%AE%A1"><span class="toc-text">根据新的用户词典进行分词与词频统计</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

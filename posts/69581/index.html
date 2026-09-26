@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜Stata 最优化与马科维茨有效前沿的实现 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/69581/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="本文使用 4 只股票：银泰资源、大悦城、中国天楹和通化金马的历史数据演示了如何使用 Stata 进行股票分析、构建投资组合（夏普比率最大 or 方差最小）及寻找马科维茨有效前沿。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜Stata 最优化与马科维茨有效前沿的实现">
+<meta property="og:url" content="https://tidyfriday.cn/posts/69581/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="本文使用 4 只股票：银泰资源、大悦城、中国天楹和通化金马的历史数据演示了如何使用 Stata 进行股票分析、构建投资组合（夏普比率最大 or 方差最小）及寻找马科维茨有效前沿。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/69581.png">
+<meta property="article:published_time" content="2020-11-12T16:38:13.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.722Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/69581.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜Stata 最优化与马科维茨有效前沿的实现">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜Stata 最优化与马科维茨有效前沿的实现","description":"本文使用 4 只股票：银泰资源、大悦城、中国天楹和通化金马的历史数据演示了如何使用 Stata 进行股票分析、构建投资组合（夏普比率最大 or 方差最小）及寻找马科维茨有效前沿。","url":"https://tidyfriday.cn/posts/69581/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/69581/"},"image":["https://tidyfriday.cn/og/69581.png"],"datePublished":"2020-11-12T16:38:13.000Z","dateModified":"2026-09-26T14:18:48.722Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜Stata 最优化与马科维茨有效前沿的实现","item":"https://tidyfriday.cn/posts/69581/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜Stata 最优化与马科维茨有效前沿的实现</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜Stata 最优化与马科维茨有效前沿的实现</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2020-11-12T16:38:13.000Z" itemprop="datePublished">2020-11-12</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3919 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 15 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>本文使用 4 只股票：银泰资源、大悦城、中国天楹和通化金马的历史数据演示了如何使用 Stata 进行股票分析、构建投资组合（夏普比率最大 or 方差最小）及寻找马科维茨有效前沿。</p>
+<span id="more"></span>
+
+<h2 id="获取数据" class="article-heading"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据<a class="article-anchor" href="#获取数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>附件中提供了四只股票的交易数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用上证 50 四根票进行组合</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 000975, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> clsprc date</span><br><span class="line"><span class="keyword">ren</span> clsprc 银泰资源</span><br><span class="line"><span class="keyword">save</span> a000975, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 000031, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> clsprc date</span><br><span class="line"><span class="keyword">ren</span> clsprc 大悦城</span><br><span class="line"><span class="keyword">save</span> a000031, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 000035, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> clsprc date</span><br><span class="line"><span class="keyword">ren</span> clsprc 中国天楹</span><br><span class="line"><span class="keyword">save</span> a000035, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 000766, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> clsprc date</span><br><span class="line"><span class="keyword">ren</span> clsprc 通化金马</span><br><span class="line"><span class="keyword">save</span> a000766, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后再把这四个文件 merge 到一起：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> a000975, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">foreach</span> i <span class="keyword">in</span> <span class="string">&quot;000031&quot;</span> <span class="string">&quot;000035&quot;</span> <span class="string">&quot;000766&quot;</span>&#123;</span><br><span class="line">    <span class="keyword">merge</span> 1:1 date using a<span class="symbol">`i&#x27;</span></span><br><span class="line">    <span class="keyword">drop</span> _m</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">*- 保留 2019 年</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inrange</span>(date, <span class="built_in">mdy</span>(1, 1, 2019), <span class="built_in">mdy</span>(12, 31, 2019))</span><br><span class="line"><span class="comment">*- 或者</span></span><br><span class="line"><span class="comment">*- keep if yofd(date) == 2019</span></span><br><span class="line"><span class="keyword">save</span> rawdata, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>rawdata 数据集是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">list in 1/10</span><br><span class="line"></span><br><span class="line">*&gt;     +------------------------------------------------------+</span><br><span class="line">*&gt;     |       date   银泰资源    大悦城       中国天楹     通化金马 |</span><br><span class="line">*&gt;     |------------------------------------------------------|</span><br><span class="line">*&gt;  1. | 2019-01-02      10.07     4.86       5.54       7.01 |</span><br><span class="line">*&gt;  2. | 2019-01-03      10.44     4.86       5.61       6.77 |</span><br><span class="line">*&gt;  3. | 2019-01-04      10.51     4.99       5.56       6.86 |</span><br><span class="line">*&gt;  4. | 2019-01-07      10.36     5.02       5.53       6.92 |</span><br><span class="line">*&gt;  5. | 2019-01-08       9.94        5       5.54       6.97 |</span><br><span class="line">*&gt;     |------------------------------------------------------|</span><br><span class="line">*&gt;  6. | 2019-01-09       9.97     5.04       5.42       6.99 |</span><br><span class="line">*&gt;  7. | 2019-01-10      10.26     4.99       5.39       6.87 |</span><br><span class="line">*&gt;  8. | 2019-01-11       10.2     5.01       5.47       6.88 |</span><br><span class="line">*&gt;  9. | 2019-01-14      10.14        5       5.57        6.8 |</span><br><span class="line">*&gt; 10. | 2019-01-15      10.29     5.06       5.54       6.77 |</span><br><span class="line">*&gt;     +------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<h2 id="观察四只股票的股价走势" class="article-heading"><a href="#观察四只股票的股价走势" class="headerlink" title="观察四只股票的股价走势"></a>观察四只股票的股价走势<a class="article-anchor" href="#观察四只股票的股价走势" aria-label="本节链接" title="复制本节链接"></a></h2><p>把期初的股价标准化为 100，观测四只股票的股价走势关系：</p>
+<blockquote>
+<p>注意：colorscheme 也是外部命令，附件中有其离线安装包。</p>
+</blockquote>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 股价标准化（2019年1月2日的股价设定为100）</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = (<span class="symbol">`i&#x27;</span> / `=<span class="symbol">`i&#x27;</span>[1]&#x27;) * 100</span><br><span class="line">        <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %6.2f</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">colorscheme 4, <span class="keyword">palette</span>(Dark2)</span><br><span class="line"><span class="comment">*- di date(&quot;20191231&quot;, &quot;YMD&quot;)</span></span><br><span class="line"><span class="keyword">tw</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> 银泰资源 大悦城 中国天楹 通化金马 date, <span class="comment">///</span></span><br><span class="line">    xla(21550(45)21914, ang(20)) <span class="comment">///</span></span><br><span class="line">    leg(<span class="keyword">order</span>(1 <span class="string">&quot;银泰资源&quot;</span> 2 <span class="string">&quot;大悦城&quot;</span> <span class="comment">///</span></span><br><span class="line">        3 <span class="string">&quot;中国天楹&quot;</span> 4 <span class="string">&quot;通化金马&quot;</span>) pos(1) ring(0)) <span class="comment">///</span></span><br><span class="line">    lp(solid solid solid solid) lc(`<span class="built_in">r</span>(colors)&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473360511_242496.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>接下来计算每只股票的对数收益率，这里需要注意由于股票交易日之间可能存在间隔，所以不能直接用日期作为时间变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 由于股票交易日之间可能存在间隔，所以不能直接用日期作为时间变量</span></span><br><span class="line"><span class="keyword">gen</span> dateid = _n</span><br><span class="line"><span class="keyword">tsset</span> dateid</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span> &amp; <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;dateid&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">gen</span> <span class="keyword">l</span><span class="symbol">`i&#x27;</span> = <span class="keyword">l</span>.<span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = <span class="built_in">log</span>(<span class="symbol">`i&#x27;</span>/<span class="keyword">l</span><span class="symbol">`i&#x27;</span>)</span><br><span class="line">        <span class="keyword">drop</span> <span class="keyword">l</span><span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %6.4f</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">drop</span> dateid</span><br><span class="line"><span class="keyword">save</span> returndata, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>returndata 是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">list in 1/10</span><br><span class="line"></span><br><span class="line">*&gt;     +-------------------------------------------------------+</span><br><span class="line">*&gt;     |       date    银泰资源      大悦城     中国天楹     通化金马 |</span><br><span class="line">*&gt;     |-------------------------------------------------------|</span><br><span class="line">*&gt;  1. | 2019-01-02          .         .          .          . |</span><br><span class="line">*&gt;  2. | 2019-01-03     0.0361    0.0000     0.0126    -0.0348 |</span><br><span class="line">*&gt;  3. | 2019-01-04     0.0067    0.0264    -0.0090     0.0132 |</span><br><span class="line">*&gt;  4. | 2019-01-07    -0.0144    0.0060    -0.0054     0.0087 |</span><br><span class="line">*&gt;  5. | 2019-01-08    -0.0414   -0.0040     0.0018     0.0072 |</span><br><span class="line">*&gt;     |-------------------------------------------------------|</span><br><span class="line">*&gt;  6. | 2019-01-09     0.0030    0.0080    -0.0219     0.0029 |</span><br><span class="line">*&gt;  7. | 2019-01-10     0.0287   -0.0100    -0.0056    -0.0173 |</span><br><span class="line">*&gt;  8. | 2019-01-11    -0.0059    0.0040     0.0147     0.0015 |</span><br><span class="line">*&gt;  9. | 2019-01-14    -0.0059   -0.0020     0.0181    -0.0117 |</span><br><span class="line">*&gt; 10. | 2019-01-15     0.0147    0.0119    -0.0054    -0.0044 |</span><br><span class="line">*&gt;     +-------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>观测一下股票对数收益率的分布：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">ren</span> <span class="symbol">`i&#x27;</span> returns<span class="symbol">`i&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">reshape</span> long returns, <span class="built_in">i</span>(date) <span class="built_in">j</span>(name) string</span><br><span class="line"><span class="keyword">hist</span> returns, <span class="keyword">by</span>(name, r <span class="keyword">note</span>(<span class="string">&quot;&quot;</span>)) bin(50) <span class="comment">///</span></span><br><span class="line">    xti(日对数收益率) yti(频率) <span class="comment">///</span></span><br><span class="line">    xla(, <span class="keyword">format</span>(%6.2f))  norm <span class="comment">///</span></span><br><span class="line">    leg(rows(1))</span><br><span class="line"><span class="keyword">gr</span> export pic2.png, width(1200) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473360157_226357.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这就是“尖峰厚尾”了（峰比正态分布高，尾比正态分布厚）。</p>
+<h2 id="投资组合的构建" class="article-heading"><a href="#投资组合的构建" class="headerlink" title="投资组合的构建"></a>投资组合的构建<a class="article-anchor" href="#投资组合的构建" aria-label="本节链接" title="复制本节链接"></a></h2><p>夏普比率代表交易者每多承担一份风险，相应的就可以拿到几份超额报酬。若其为正，代表回报率高过波动风险；若其为负值，代表操作风险大过回报率。这样，每个投资组合都可以计算夏普比率，即投资回报与多冒风险的比例，这个比率越高对应的投资组合越好。</p>
+<p>首先计算每只股票对数收益率的均值，然后存储在矩阵 returns 中（其实是个一维的行向量）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">        <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;`r1&#x27;, `r2&#x27;, `r3&#x27;, `r4&#x27;&quot;</span></span><br><span class="line"><span class="comment">*&gt; 0017526058780214, .0016060119467009, .0004432278358542, -.0004437631669057</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然后计算协方差矩阵，并将协方差矩阵存储在矩阵 variance 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">corr 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line"></span><br><span class="line">*&gt;         |银泰资源大悦城中国天楹通化金马</span><br><span class="line">*&gt; ---------+------------------------------------</span><br><span class="line">*&gt; 银泰资源  |  .000846</span><br><span class="line">*&gt; 大悦城  |  .000066  .000472</span><br><span class="line">*&gt; 中国天楹  |  .000159  .000181  .000626</span><br><span class="line">*&gt; 通化金马  |  .000165  .000363  .000301  .001137</span><br><span class="line"></span><br><span class="line">mat variance = r(C)</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是使用 Stata 进行最优化的，为了便于大家理解，我先举一个 Stata 帮助文档里面的例子。假如我想寻找最大化，代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">void myeval(todo, x, y, g, H)</span><br><span class="line">&#123;</span><br><span class="line">y = exp(-x^2 + x - 3)</span><br><span class="line">&#125;</span><br><span class="line">S = optimize_init()</span><br><span class="line">optimize_init_evaluator(S, &amp;myeval())</span><br><span class="line">optimize_init_params(S, 0)</span><br><span class="line">x = optimize(S)</span><br><span class="line">x</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>可以看到最优化之后得到的 x 取值是 0.5。我们可以把这个函数的图像画出来看看：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw function y = exp(-x^2 + x - 3), ///</span><br><span class="line"> yti(&quot;y = e&#123;sup:-x&#123;sup:2&#125; + x - 3&#125;&quot;) ///</span><br><span class="line"> ylab(, format(%6.2f)) xlab(, format(%6.1f)) ///</span><br><span class="line"> xline(0.5)</span><br><span class="line"></span><br><span class="line">gr export pic3.png, width(1200) replace</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473360742_227892.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>可以看到，确实是 0.5 处的 y 取最大值。</p>
+<p>我再解释一下这段最优化代码，因为它不同于我们常见的 Stata 代码，它是 Mata 的代码：</p>
+<p><code>mata:</code> 表示进入 Mata 语言的环境，然后是一个 <code>myeval</code> 函数，这个函数名前面有个 void，表示这个函数是无返回值的。函数有五个参数 —— todo, x, y, g, H，我们这里只需要用到 x 和 y，剩下三个参数的含义可以自行阅读帮助文档（help optimize）。</p>
+<p>也就是说，待调优的参数是放在函数的第二个参数上；函数的返回值是放在第三个参数上。</p>
+<p><code>S = optimize_init()</code> 表示初始化，<code>optimize_init_evaluator(S, &amp;myeval())</code> 设定要最优化的函数；<code>optimize_init_params(S, 0)</code> 是设定初始值，这里是设定初始的 <code>x = 0</code>，然后默认使用的最优化方法是 Newton–Raphson 方法。最后执行 <code>x = optimize(S)</code> 进行最优化，x 就是我们需要的结果。</p>
+<p>我们再回到我们的投资组合构建上。</p>
+<p>首先我们允许卖空，就是说权重参数可以为负数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">mata clear</span><br><span class="line">void sharpe_ratio(real scalar todo, real vector w123, sharpe, g, H)</span><br><span class="line">&#123;</span><br><span class="line">    real scalar w4</span><br><span class="line">    w4 = 1 - sum(w123)</span><br><span class="line">    real vector rmean</span><br><span class="line">    rmean = st_matrix(&quot;returns&quot;)</span><br><span class="line">    real scalar rp</span><br><span class="line">    real vector w</span><br><span class="line">    w = (w123, w4)</span><br><span class="line">    rp = w * rmean&#x27;</span><br><span class="line">    rp = rp * 252</span><br><span class="line">    real matrix variancep</span><br><span class="line">    variancep = st_matrix(&quot;variance&quot;)</span><br><span class="line">    variancep = w * variancep * w&#x27;</span><br><span class="line">    variancep = variancep * 252</span><br><span class="line">    real scalar std</span><br><span class="line">    std = sqrt(variancep[1, 1])</span><br><span class="line">    sharpe = (rp - 0.04) / std</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">S = optimize_init()</span><br><span class="line">optimize_init_evaluator(S, &amp;sharpe_ratio())</span><br><span class="line">optimize_init_technique(S, &quot;nr&quot;)</span><br><span class="line">optimize_init_params(S, J(1, 3, 0.25))</span><br><span class="line">wh = optimize(S)</span><br><span class="line">wh</span><br><span class="line"></span><br><span class="line">w = (wh, 1-sum(wh))</span><br><span class="line">rp_yearly = (wh, 1-sum(wh)) * st_matrix(&quot;returns&quot;)&#x27; * 252</span><br><span class="line">variancep = (w * st_matrix(&quot;variance&quot;) * w&#x27;) * 252</span><br><span class="line">std = sqrt(variancep[1, 1])</span><br><span class="line">sharpe = (rp_yearly - 0.04) / std</span><br><span class="line">&quot;权重分别为：&quot;</span><br><span class="line">w</span><br><span class="line"></span><br><span class="line">*&gt;                 1              2              3              4</span><br><span class="line">*&gt;   +-------------------------------------------------------------+</span><br><span class="line">*&gt; 1 |   .4940084988    1.125948699   -.0810411934   -.5389160044  |</span><br><span class="line">*&gt;   +-------------------------------------------------------------+</span><br><span class="line"></span><br><span class="line">&quot;此时的组合收益为：&quot;</span><br><span class="line">rp_yearly</span><br><span class="line"></span><br><span class="line">*&gt; .7250847964</span><br><span class="line"></span><br><span class="line">&quot;此时的组合标准差为：&quot;</span><br><span class="line">std</span><br><span class="line"></span><br><span class="line">*&gt; .4095752946</span><br><span class="line"></span><br><span class="line">&quot;此时组合的夏普比率为：&quot;</span><br><span class="line">sharpe</span><br><span class="line"></span><br><span class="line">*&gt;  1.672671192</span><br><span class="line"></span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>这就是允许卖空时夏普比率最大的组合。</p>
+<p>再考虑不允许卖空的情形，为了保证权重为正且总和为 1，我借用了函数的特点：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算每只股票对数收益率的均值</span></span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">        <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;`r1&#x27;, `r2&#x27;, `r3&#x27;, `r4&#x27;&quot;</span></span><br><span class="line"><span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算对数收益率的协方差矩阵</span></span><br><span class="line"><span class="keyword">corr</span> 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line"><span class="keyword">mat</span> variance = <span class="built_in">r</span>(C)</span><br><span class="line"></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line"><span class="keyword">mata</span> <span class="keyword">clear</span></span><br><span class="line">void sharpe_ratio_no_short(real <span class="keyword">scalar</span> todo, real vector w1234, sharpe, <span class="keyword">g</span>, <span class="keyword">H</span>)</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    real vector rmean</span><br><span class="line">    rmean = st_matrix(<span class="string">&quot;returns&quot;</span>)</span><br><span class="line">    real <span class="keyword">scalar</span> rp</span><br><span class="line">    real vector w</span><br><span class="line">    w = (<span class="built_in">exp</span>(w1234[1]), <span class="built_in">exp</span>(w1234[2]), <span class="built_in">exp</span>(w1234[3]), <span class="built_in">exp</span>(w1234[4])) / <span class="built_in">sum</span>((<span class="built_in">exp</span>(w1234[1]), <span class="built_in">exp</span>(w1234[2]), <span class="built_in">exp</span>(w1234[3]), <span class="built_in">exp</span>(w1234[4])))</span><br><span class="line">    rp = w * rmean&#x27;</span><br><span class="line">    rp = rp * 252</span><br><span class="line">    real <span class="keyword">matrix</span> variancep</span><br><span class="line">    variancep = st_matrix(<span class="string">&quot;variance&quot;</span>)</span><br><span class="line">    variancep = w * variancep * w&#x27;</span><br><span class="line">    variancep = variancep * 252</span><br><span class="line">    real <span class="keyword">scalar</span> std</span><br><span class="line">    std = <span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">    sharpe = (rp - 0.04) / std</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">S = optimize_init()</span><br><span class="line">optimize_init_evaluator(S, &amp;sharpe_ratio_no_short())</span><br><span class="line">optimize_init_technique(S, <span class="string">&quot;nr&quot;</span>)</span><br><span class="line">optimize_init_params(S, <span class="built_in">J</span>(1, 4, 0.01))</span><br><span class="line"><span class="keyword">wh</span> = optimize(S)</span><br><span class="line"><span class="keyword">wh</span></span><br><span class="line"></span><br><span class="line">w = (<span class="built_in">exp</span>(<span class="keyword">wh</span>[1]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[2]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[3]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[4])) / <span class="built_in">sum</span>((<span class="built_in">exp</span>(<span class="keyword">wh</span>[1]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[2]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[3]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[4])))</span><br><span class="line">rp_yearly = ((<span class="built_in">exp</span>(<span class="keyword">wh</span>[1]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[2]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[3]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[4])) / <span class="built_in">sum</span>((<span class="built_in">exp</span>(<span class="keyword">wh</span>[1]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[2]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[3]), <span class="built_in">exp</span>(<span class="keyword">wh</span>[4])))) * st_matrix(<span class="string">&quot;returns&quot;</span>)&#x27; * 252</span><br><span class="line">variancep = (w * st_matrix(<span class="string">&quot;variance&quot;</span>) * w&#x27;) * 252</span><br><span class="line">std = <span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">sharpe = (rp_yearly - 0.04) / std</span><br><span class="line"><span class="string">&quot;权重分别为：&quot;</span></span><br><span class="line">w</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;                 1             2             3             4</span></span><br><span class="line"><span class="comment">*&gt;    +---------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;  1 |  .3700694896   .6299305104   6.33387e-22   3.50516e-18  |</span></span><br><span class="line"><span class="comment">*&gt;    +---------------------------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时的组合收益为：&quot;</span></span><br><span class="line">rp_yearly</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; .4183859958</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时的组合标准差为：&quot;</span></span><br><span class="line">std</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; .2901268944</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时组合的夏普比率为：&quot;</span></span><br><span class="line">sharpe</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; 1.304208617</span></span><br><span class="line"></span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>不过需要注意的是，这里的最优化结果并没有达到收敛。能不能收敛跟数据是有关系的，无法收敛就说明在不允许卖空的时候无法达到夏普比率的最优化。注意到权重，实际上这个结果是让我们只买前两只股票。只要买一点点后两只股票，夏普比率就会变小。</p>
+<h3 id="夏普比率函数" class="article-heading"><a href="#夏普比率函数" class="headerlink" title="夏普比率函数"></a>夏普比率函数<a class="article-anchor" href="#夏普比率函数" aria-label="本节链接" title="复制本节链接"></a></h3><p>我还写了个可以计算夏普比率的函数：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 夏普比率函数</span></span><br><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算每只股票对数收益率的均值</span></span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">        <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;`r1&#x27;, `r2&#x27;, `r3&#x27;, `r4&#x27;&quot;</span></span><br><span class="line"><span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算对数收益率的协方差矩阵</span></span><br><span class="line"><span class="keyword">corr</span> 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line"><span class="keyword">mat</span> variance = <span class="built_in">r</span>(C)</span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line"><span class="keyword">mata</span> <span class="keyword">clear</span></span><br><span class="line">real <span class="keyword">scalar</span> sharpe_ratio(real <span class="keyword">scalar</span> w1, real <span class="keyword">scalar</span> w2, real <span class="keyword">scalar</span> w3)</span><br><span class="line">&#123;</span><br><span class="line">    real <span class="keyword">scalar</span> w4</span><br><span class="line">    w4 = 1 - w1 - w2 - w3</span><br><span class="line">    real colvector w</span><br><span class="line">    w = (w1 \ w2 \ w3 \ w4)</span><br><span class="line">    real <span class="keyword">matrix</span> r</span><br><span class="line">    real colvector rmean</span><br><span class="line">    rmean = st_matrix(<span class="string">&quot;returns&quot;</span>)</span><br><span class="line">    real <span class="keyword">scalar</span> rp</span><br><span class="line">    rp = w&#x27; * rmean&#x27;</span><br><span class="line">    rp = rp * 252</span><br><span class="line">    real <span class="keyword">matrix</span> variancep</span><br><span class="line">    variancep = st_matrix(<span class="string">&quot;variance&quot;</span>)</span><br><span class="line">    variancep = w&#x27; * variancep * w</span><br><span class="line">    variancep = variancep * 252</span><br><span class="line">    real <span class="keyword">scalar</span> std</span><br><span class="line">    std = <span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">    real <span class="keyword">scalar</span> sharpe</span><br><span class="line">    sharpe = (rp - 0.04) / std</span><br><span class="line">    <span class="built_in">return</span>(sharpe)</span><br><span class="line">&#125;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">mata</span>: sharpe_ratio(0.5, 0.5, 0)</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata: sharpe_ratio(0.3700694896, 1-0.3700694896, 0)</span><br><span class="line">*&gt; 1.304208617</span><br></pre></td></tr></table></figure>
+
+<p>和上面最优化运行得到的结果是一致的，也就是说，在不允许卖空的时候，夏普比率最大的组合是买入 0.37 份的银泰资源和 0.63 份的大悦城，剩下两只股票不买入。</p>
+<p>下面我们再用蒙特卡洛模拟观测不允许卖空时，所有可能的组合的收益和标准差的关系：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">prog</span> <span class="keyword">drop</span> front</span><br><span class="line"><span class="keyword">prog</span> def front, rclass</span><br><span class="line">    <span class="keyword">version</span> 15.1</span><br><span class="line">    <span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">local</span> w1 = runiform()</span><br><span class="line">    <span class="keyword">local</span> w2 = runiform()</span><br><span class="line">    <span class="keyword">local</span> w3 = runiform()</span><br><span class="line">    <span class="keyword">local</span> w4 = runiform()</span><br><span class="line">    <span class="keyword">mat</span> weight = (<span class="symbol">`w1&#x27;</span> \ <span class="symbol">`w2&#x27;</span> \ <span class="symbol">`w3&#x27;</span> \ <span class="symbol">`w4&#x27;</span>)</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> weight</span><br><span class="line">    <span class="keyword">mat</span> weight = weight / (<span class="symbol">`w1&#x27;</span>+<span class="symbol">`w2&#x27;</span>+<span class="symbol">`w3&#x27;</span>+<span class="symbol">`w4&#x27;</span>)</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> weight</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> w1 = weight[1, 1]</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> w2 = weight[2, 1]</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> w3 = weight[3, 1]</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> w4 = weight[4, 1]</span><br><span class="line">    <span class="keyword">local</span> j = 1</span><br><span class="line">    <span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">            <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">            <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">            <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> returns</span><br><span class="line">    <span class="keyword">mat</span> a =  returns * weight * 252</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> a</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> <span class="keyword">ret</span> = a[1, 1]</span><br><span class="line">    <span class="keyword">corr</span> 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">list</span></span><br><span class="line">    <span class="keyword">mat</span> variance = <span class="built_in">r</span>(C)</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> variance</span><br><span class="line">    <span class="keyword">mat</span> b =  weight&#x27; * variance * 252 * weight</span><br><span class="line">    <span class="keyword">mat</span> <span class="keyword">list</span> b</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> <span class="keyword">var</span> = b[1, 1]</span><br><span class="line">    <span class="keyword">ret</span> <span class="keyword">scalar</span> std = <span class="built_in">sqrt</span>(b[1, 1])</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">simulate</span> <span class="keyword">ret</span> = <span class="built_in">r</span>(<span class="keyword">ret</span>) <span class="keyword">var</span> = <span class="built_in">r</span>(<span class="keyword">var</span>) std = <span class="built_in">r</span>(std) w1 = <span class="built_in">r</span>(w1) w2 = <span class="built_in">r</span>(w2) w3 = <span class="built_in">r</span>(w3) w4 = <span class="built_in">r</span>(w4), reps(100000): front</span><br><span class="line"><span class="comment">*- 计算夏普比率</span></span><br><span class="line"><span class="keyword">gen</span> sharpe_ratio = (<span class="keyword">ret</span> - 0.04)/std</span><br><span class="line"><span class="keyword">save</span> montecarlo, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>绘图展示：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> montecarlo, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tw</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">sc</span> <span class="keyword">ret</span> std, msize(*0.01) xti(波动率) yti(收益率) msymbol(o) <span class="comment">///</span></span><br><span class="line">    xla(#6, <span class="keyword">format</span>(%6.2f)) yla(, <span class="keyword">format</span>(%6.1f)) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;投资组合收益率与波动率的关系&quot;</span>, size(*1.2)) || <span class="comment">///</span></span><br><span class="line">scatteri 0.7250847964 0.4095752946 <span class="string">&quot;允许卖空&quot;</span>, mc(<span class="string">&quot;red&quot;</span>) msymbol(o) || <span class="comment">///</span></span><br><span class="line">scatteri 0.4183859958 0.2901268944 <span class="string">&quot;不允许卖空&quot;</span>, mc(<span class="string">&quot;green&quot;</span>) msymbol(o) <span class="comment">///</span></span><br><span class="line">    mlabp(2) leg(off)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export pic4.png, width(1200) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473360939_279364.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>显然，卖空即提高了收益又增加了风险。</p>
+<h3 id="最小化方差" class="article-heading"><a href="#最小化方差" class="headerlink" title="最小化方差"></a>最小化方差<a class="article-anchor" href="#最小化方差" aria-label="本节链接" title="复制本节链接"></a></h3><p>最小化方差也就是最小化标准差，显然就是上图中最右边的那个点了。下面用程序寻找这个点对于的组合构建方法。</p>
+<p>首先还是允许做空：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">        <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;`r1&#x27;, `r2&#x27;, `r3&#x27;, `r4&#x27;&quot;</span></span><br><span class="line"><span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br><span class="line"><span class="keyword">corr</span> 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line"><span class="keyword">mat</span> variance = <span class="built_in">r</span>(C)</span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line"><span class="keyword">mata</span> <span class="keyword">clear</span></span><br><span class="line">void min_std(real <span class="keyword">scalar</span> todo, real vector w123, std, <span class="keyword">g</span>, <span class="keyword">H</span>)</span><br><span class="line">&#123;</span><br><span class="line">    real <span class="keyword">scalar</span> w4</span><br><span class="line">    w4 = 1 - <span class="built_in">sum</span>(w123)</span><br><span class="line">    real vector rmean</span><br><span class="line">    rmean = st_matrix(<span class="string">&quot;returns&quot;</span>)</span><br><span class="line">    real <span class="keyword">scalar</span> rp</span><br><span class="line">    real vector w</span><br><span class="line">    w = (w123, w4)</span><br><span class="line">    rp = w * rmean&#x27;</span><br><span class="line">    rp = rp * 252</span><br><span class="line">    real <span class="keyword">matrix</span> variancep</span><br><span class="line">    variancep = st_matrix(<span class="string">&quot;variance&quot;</span>)</span><br><span class="line">    variancep = w * variancep * w&#x27;</span><br><span class="line">    variancep = variancep * 252</span><br><span class="line">    std = -<span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">S = optimize_init()</span><br><span class="line">optimize_init_evaluator(S, &amp;min_std())</span><br><span class="line">optimize_init_technique(S, <span class="string">&quot;nr&quot;</span>)</span><br><span class="line">optimize_init_params(S, <span class="built_in">J</span>(1, 3, 0.25))</span><br><span class="line"><span class="keyword">wh</span> = optimize(S)</span><br><span class="line"><span class="keyword">wh</span></span><br><span class="line"></span><br><span class="line">w = (<span class="keyword">wh</span>, 1-<span class="built_in">sum</span>(<span class="keyword">wh</span>))</span><br><span class="line">rp_yearly = (<span class="keyword">wh</span>, 1-<span class="built_in">sum</span>(<span class="keyword">wh</span>)) * st_matrix(<span class="string">&quot;returns&quot;</span>)&#x27; * 252</span><br><span class="line">variancep = (w * st_matrix(<span class="string">&quot;variance&quot;</span>) * w&#x27;) * 252</span><br><span class="line">std = <span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">sharpe = (rp_yearly - 0.04) / std</span><br><span class="line"><span class="string">&quot;权重分别为：&quot;</span></span><br><span class="line">w</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时的组合收益为：&quot;</span></span><br><span class="line">rp_yearly</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; 0.3399958417</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时的组合标准差为：&quot;</span></span><br><span class="line">std</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; 0.271031146</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;此时组合的夏普比率为：&quot;</span></span><br><span class="line">sharpe</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt; 1.106868513</span></span><br><span class="line"></span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>注意上面的代码里面，我在 std = -sqrt(variancep[1, 1]) 里面加了个负号，这样最大化 std 的时候就最小化标准差了。</p>
+<p>这个点在这里：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> montecarlo, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tw</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">sc</span> <span class="keyword">ret</span> std, msize(*0.01) xti(波动率) yti(收益率) msymbol(o) <span class="comment">///</span></span><br><span class="line">    xla(#6, <span class="keyword">format</span>(%6.2f)) yla(, <span class="keyword">format</span>(%6.1f)) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;投资组合收益率与波动率的关系&quot;</span>, size(*1.2)) || <span class="comment">///</span></span><br><span class="line">scatteri 0.7250847964 0.4095752946 <span class="string">&quot;允许卖空&quot;</span>, <span class="comment">///</span></span><br><span class="line"> mc(<span class="string">&quot;red&quot;</span>) msymbol(o) || <span class="comment">///</span></span><br><span class="line">scatteri 0.4183859958 0.2901268944 <span class="string">&quot;不允许卖空&quot;</span>, <span class="comment">///</span></span><br><span class="line"> mc(<span class="string">&quot;green&quot;</span>) msymbol(o) <span class="comment">///</span></span><br><span class="line">    mlabp(2) leg(off) || <span class="comment">///</span></span><br><span class="line">scatteri 0.3399958417 0.271031146 <span class="string">&quot;最小方差点&quot;</span>, <span class="comment">///</span></span><br><span class="line">    mc(<span class="string">&quot;pink&quot;</span>)  msymbol(o) mlabc(<span class="string">&quot;pink&quot;</span>)</span><br><span class="line"><span class="keyword">gr</span> export pic5.png, width(1200) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473361173_216445.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="构造有效前沿" class="article-heading"><a href="#构造有效前沿" class="headerlink" title="构造有效前沿"></a>构造有效前沿<a class="article-anchor" href="#构造有效前沿" aria-label="本节链接" title="复制本节链接"></a></h2><p>有效前沿是一条线，其上的点表示既定收益率下方差最小的投资组合。显然就是最小方差点到最大夏普比率点的边界线。从图中可以看出从最小方差到允许卖空的最大夏普比率点的收益率范围为：[0.33, 0.73]，以 0.01 为间隔，计算每个收益率水平上的最小方差。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> returndata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"><span class="keyword">local</span> j = 1</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all&#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;`i&#x27;&quot;</span> != <span class="string">&quot;date&quot;</span>&#123;</span><br><span class="line">        <span class="keyword">qui</span> <span class="keyword">sum</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">        <span class="keyword">local</span> r<span class="symbol">`j&#x27;</span> = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line">        <span class="keyword">local</span> j = <span class="symbol">`j&#x27;</span> + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;`r1&#x27;, `r2&#x27;, `r3&#x27;, `r4&#x27;&quot;</span></span><br><span class="line"><span class="keyword">mat</span> returns = (<span class="symbol">`r1&#x27;</span>, <span class="symbol">`r2&#x27;</span>, <span class="symbol">`r3&#x27;</span>, <span class="symbol">`r4&#x27;</span>)</span><br><span class="line"><span class="keyword">corr</span> 银泰资源 大悦城 中国天楹 通化金马, cov</span><br><span class="line"><span class="keyword">mat</span> variance = <span class="built_in">r</span>(C)</span><br><span class="line"><span class="comment">*- 允许卖空</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line"><span class="keyword">mata</span> <span class="keyword">clear</span></span><br><span class="line">void min_std(real <span class="keyword">scalar</span> todo, real vector w1234, std, <span class="keyword">g</span>, <span class="keyword">H</span>)</span><br><span class="line">&#123;</span><br><span class="line">    real vector rmean</span><br><span class="line">    rmean = st_matrix(<span class="string">&quot;returns&quot;</span>)</span><br><span class="line">    real <span class="keyword">scalar</span> rp</span><br><span class="line">    real vector w</span><br><span class="line">    w = w1234</span><br><span class="line">    rp = w * rmean&#x27;</span><br><span class="line">    rp = rp * 252</span><br><span class="line">    real <span class="keyword">matrix</span> variancep</span><br><span class="line">    variancep = st_matrix(<span class="string">&quot;variance&quot;</span>)</span><br><span class="line">    variancep = w * variancep * w&#x27;</span><br><span class="line">    variancep = variancep * 252</span><br><span class="line">    std = -<span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">&#125;</span><br><span class="line">std_vector = <span class="built_in">J</span>(1, 41, 0)</span><br><span class="line">j = 1</span><br><span class="line"><span class="keyword">for</span>(i = 0.33; i &lt; 0.73; i = i + 0.01)</span><br><span class="line">&#123;</span><br><span class="line">    S = optimize_init()</span><br><span class="line">    optimize_init_evaluator(S, &amp;min_std())</span><br><span class="line">    optimize_init_technique(S, <span class="string">&quot;nr&quot;</span>)</span><br><span class="line">    optimize_init_constraints(S, ((st_matrix(<span class="string">&quot;returns&quot;</span>) * 252 \ <span class="built_in">J</span>(1, 4, 1)), (i \ 1)))</span><br><span class="line">    optimize_init_params(S, <span class="built_in">J</span>(1, 4, 0.25))</span><br><span class="line">    <span class="keyword">wh</span> = optimize(S)</span><br><span class="line">    <span class="keyword">wh</span></span><br><span class="line"></span><br><span class="line">    w = <span class="keyword">wh</span></span><br><span class="line">    variancep = (w * st_matrix(<span class="string">&quot;variance&quot;</span>) * w&#x27;) * 252</span><br><span class="line">    std = <span class="built_in">sqrt</span>(variancep[1, 1])</span><br><span class="line">    std_vector[1, j] = std</span><br><span class="line">    j++</span><br><span class="line">&#125;</span><br><span class="line">st_matrix(<span class="string">&quot;std_vector&quot;</span>, std_vector)</span><br><span class="line">end</span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">set</span> obs 41</span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">ret</span> = (_n + 32) / 100</span><br><span class="line"><span class="keyword">gen</span> std = .</span><br><span class="line"><span class="keyword">forval</span> i = 1/41&#123;</span><br><span class="line">    <span class="keyword">replace</span> std = std_vector[1, <span class="symbol">`i&#x27;</span>] <span class="keyword">in</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">gen</span> front = 1</span><br><span class="line"><span class="keyword">save</span> front, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这里我使用的是含约束的最优化，通过设定 <code>optimize_init_constraints()</code> 的约束矩阵实现的。</p>
+<p>同样我们把刚刚得到的 41 个点（得删除 0.73 对应的点，这个点的 std = 0，因为允许卖空时的最大收益才 0.725）绘图展示：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> montecarlo, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using front</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> std == 0</span><br><span class="line"></span><br><span class="line"><span class="keyword">tw</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">sc</span> <span class="keyword">ret</span> std, msize(*0.01) xti(波动率) yti(收益率) msymbol(o) <span class="comment">///</span></span><br><span class="line">    xla(#6, <span class="keyword">format</span>(%6.2f)) yla(, <span class="keyword">format</span>(%6.1f)) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;投资组合收益率与波动率的关系&quot;</span>, size(*1.2)) || <span class="comment">///</span></span><br><span class="line">scatteri 0.7250847964 0.4095752946 <span class="string">&quot;允许卖空&quot;</span>, <span class="comment">///</span></span><br><span class="line"> mc(<span class="string">&quot;red&quot;</span>) msymbol(o) || <span class="comment">///</span></span><br><span class="line">scatteri 0.4183859958 0.2901268944 <span class="string">&quot;不允许卖空&quot;</span>, <span class="comment">///</span></span><br><span class="line"> mc(<span class="string">&quot;green&quot;</span>) msymbol(o) <span class="comment">///</span></span><br><span class="line">    mlabp(2) leg(off) || <span class="comment">///</span></span><br><span class="line">scatteri 0.3399958417 0.271031146 <span class="string">&quot;最小方差点&quot;</span>, <span class="comment">///</span></span><br><span class="line">    mc(<span class="string">&quot;pink&quot;</span>)  msymbol(o) mlabc(<span class="string">&quot;pink&quot;</span>) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">sc</span> <span class="keyword">ret</span> std <span class="keyword">if</span> front == 1, msize(tiny) msymbol(<span class="keyword">D</span>) <span class="comment">///</span></span><br><span class="line">    mc(<span class="string">&quot;dkorange&quot;</span>) leg(off)</span><br><span class="line"><span class="keyword">gr</span> export pic6.png, width(1200) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/05/10/02b79j1bdbe1b168g4/common/content/1696473361437_527485.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>感觉用 Stata 做金融分析也是蛮有意思的。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/7f758321942b4852aaa8e76e23db08b3">名师讲堂｜Stata 最优化与马科维茨有效前沿的实现</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.722Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/25451/" title="地理距离与新型冠状病毒的传播——一个简单的相关分析"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/20226/" title="R 语言：百度地图迁徙大数据爬取与可视化"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21098/">名师讲堂｜使用 Stata 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 13 分钟</span></li><li><a href="/posts/68408/">名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据</a><span class="tf-related-meta">2026-08-07 · 约 8 分钟</span></li><li><a href="/posts/27665/">名师讲堂｜使用 Stata 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-04 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="toc-text">获取数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%82%E5%AF%9F%E5%9B%9B%E5%8F%AA%E8%82%A1%E7%A5%A8%E7%9A%84%E8%82%A1%E4%BB%B7%E8%B5%B0%E5%8A%BF"><span class="toc-text">观察四只股票的股价走势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%95%E8%B5%84%E7%BB%84%E5%90%88%E7%9A%84%E6%9E%84%E5%BB%BA"><span class="toc-text">投资组合的构建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8F%E6%99%AE%E6%AF%94%E7%8E%87%E5%87%BD%E6%95%B0"><span class="toc-text">夏普比率函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%8C%96%E6%96%B9%E5%B7%AE"><span class="toc-text">最小化方差</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0%E6%9C%89%E6%95%88%E5%89%8D%E6%B2%BF"><span class="toc-text">构造有效前沿</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

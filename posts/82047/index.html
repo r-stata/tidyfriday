@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算各城市技术集群指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/82047/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="本讲义介绍如何使用 Python 测算各城市的技术集群指标（技术关联性 link_c 和技术多样性 diver_c），该方法参考自冉征等（2025）《技术集群结构与颠覆式创新》一文。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算各城市技术集群指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/82047/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="本讲义介绍如何使用 Python 测算各城市的技术集群指标（技术关联性 link_c 和技术多样性 diver_c），该方法参考自冉征等（2025）《技术集群结构与颠覆式创新》一文。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/82047.png">
+<meta property="article:published_time" content="2026-07-12T16:39:20.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.153Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="创新与知识">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/82047.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算各城市技术集群指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算各城市技术集群指标","description":"本讲义介绍如何使用 Python 测算各城市的技术集群指标（技术关联性 link_c 和技术多样性 diver_c），该方法参考自冉征等（2025）《技术集群结构与颠覆式创新》一文。","url":"https://tidyfriday.cn/posts/82047/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/82047/"},"image":["https://tidyfriday.cn/og/82047.png"],"datePublished":"2026-07-12T16:39:20.000Z","dateModified":"2026-09-26T14:18:49.153Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"创新与知识, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算各城市技术集群指标","item":"https://tidyfriday.cn/posts/82047/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算各城市技术集群指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算各城市技术集群指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-07-12T16:39:20.000Z" itemprop="datePublished">2026-07-12</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1719 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>本讲义介绍如何使用 <strong>Python</strong> 测算各城市的技术集群指标（技术关联性 <code>link_c</code> 和技术多样性 <code>diver_c</code>），该方法参考自冉征等（2025）《技术集群结构与颠覆式创新》一文。</p>
+<span id="more"></span>
+
+<p>附件中提供了该参考文献的 PDF 文件，感兴趣的小伙伴可以阅读原文。</p>
+<hr>
+<h2 id="一、指标来源与计算原理" class="article-heading"><a href="#一、指标来源与计算原理" class="headerlink" title="一、指标来源与计算原理"></a>一、指标来源与计算原理<a class="article-anchor" href="#一、指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-1-显性技术比较优势（RTCA）" class="article-heading"><a href="#1-1-显性技术比较优势（RTCA）" class="headerlink" title="1.1 显性技术比较优势（RTCA）"></a>1.1 显性技术比较优势（RTCA）<a class="article-anchor" href="#1-1-显性技术比较优势（RTCA）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/12/16/02b79j1bdbe1b168g4/common/content/1783845313358_741237.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-2-技术多样性（diver-c）" class="article-heading"><a href="#1-2-技术多样性（diver-c）" class="headerlink" title="1.2 技术多样性（diver_c）"></a>1.2 技术多样性（diver_c）<a class="article-anchor" href="#1-2-技术多样性（diver-c）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/12/16/02b79j1bdbe1b168g4/common/content/1783845313571_397462.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-3-技术关联性（link-c）" class="article-heading"><a href="#1-3-技术关联性（link-c）" class="headerlink" title="1.3 技术关联性（link_c）"></a>1.3 技术关联性（link_c）<a class="article-anchor" href="#1-3-技术关联性（link-c）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/12/16/02b79j1bdbe1b168g4/common/content/1783845313744_422223.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-4-计算步骤概述" class="article-heading"><a href="#1-4-计算步骤概述" class="headerlink" title="1.4 计算步骤概述"></a>1.4 计算步骤概述<a class="article-anchor" href="#1-4-计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算过程分为以下几个步骤：</p>
+<ol>
+<li>数据读取与去重：读取专利数据，按公告号和申请号两步去重</li>
+<li>IPC 小类展开：将每条专利的多个 IPC 分类号展开，取前 4 位作为技术领域标识</li>
+<li>RTCA 计算：逐年计算每个城市每个技术领域的 RTCA 值</li>
+<li>diver_c 计算：统计每个城市具有 RTCA ≥ 1 的技术领域数量</li>
+<li>link_c 计算：基于技术联系矩阵 Φ 计算技术关联性</li>
+<li>结果保存：输出 CSV 和 Stata 格式文件</li>
+</ol>
+<hr>
+<h2 id="二、使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#二、使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="二、使用 reticulate 创建与管理 Python 虚拟环境"></a>二、使用 <code>reticulate</code> 创建与管理 Python 虚拟环境<a class="article-anchor" href="#二、使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错。因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径。</p>
+</blockquote>
+<h3 id="2-1-安装-reticulate（仅首次）" class="article-heading"><a href="#2-1-安装-reticulate（仅首次）" class="headerlink" title="2.1 安装 reticulate（仅首次）"></a>2.1 安装 reticulate（仅首次）<a class="article-anchor" href="#2-1-安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-虚拟环境初始化（已在-setup-chunk-中完成）" class="article-heading"><a href="#2-2-虚拟环境初始化（已在-setup-chunk-中完成）" class="headerlink" title="2.2 虚拟环境初始化（已在 setup chunk 中完成）"></a>2.2 虚拟环境初始化（已在 setup chunk 中完成）<a class="article-anchor" href="#2-2-虚拟环境初始化（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="2-3-在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#2-3-在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="2.3 在虚拟环境中安装 Python 包（仅首次）"></a>2.3 在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#2-3-在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyreadr&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-验证激活状态" class="article-heading"><a href="#2-4-验证激活状态" class="headerlink" title="2.4 验证激活状态"></a>2.4 验证激活状态<a class="article-anchor" href="#2-4-验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、详细计算代码（Python-版本）" class="article-heading"><a href="#三、详细计算代码（Python-版本）" class="headerlink" title="三、详细计算代码（Python 版本）"></a>三、详细计算代码（Python 版本）<a class="article-anchor" href="#三、详细计算代码（Python-版本）" aria-label="本节链接" title="复制本节链接"></a></h2><p>以下代码对应 <code>计算技术关联性与多样性.py</code> 脚本，以 <strong>2010–2012 年</strong>为例演示完整计算过程。</p>
+<h3 id="3-1-路径与参数设置" class="article-heading"><a href="#3-1-路径与参数设置" class="headerlink" title="3.1 路径与参数设置"></a>3.1 路径与参数设置<a class="article-anchor" href="#3-1-路径与参数设置" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import os</span><br><span class="line">from pathlib import Path</span><br><span class="line"></span><br><span class="line"># 设置工作目录（请根据实际情况修改）</span><br><span class="line"># os.<span class="keyword">chdir</span>(<span class="string">&quot;/Users/ac/Desktop/使用 Python 测算各城市技术集群指标/&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 路径与参数</span><br><span class="line">DATA_DIR = <span class="string">&quot;newIP专利数据分年_csv&quot;</span></span><br><span class="line">RDS_PATH = <span class="string">&quot;phi_matrix.rds&quot;</span></span><br><span class="line">OUT_DIR  = <span class="string">&quot;output&quot;</span></span><br><span class="line">YEARS   = <span class="keyword">list</span>(<span class="keyword">range</span>(2010, 2013))  # 2010-2012 年</span><br><span class="line"></span><br><span class="line">os.makedirs(OUT_DIR, exist_ok=True)</span><br><span class="line"></span><br><span class="line"># IPC 小类提取正则</span><br><span class="line">IPC_SUBCLASS_PATTERN = r<span class="string">&quot;^[A-Z][0-9]&#123;2&#125;[A-Z]&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;路径与参数设置完成&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;目标年份：&#123;YEARS&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>代码说明</strong>：</p>
+<ul>
+<li>DATA_DIR：专利 CSV 数据所在文件夹</li>
+<li>RDS_PATH：技术联系矩阵文件（来自 R 语言版本，无需重新计算）</li>
+<li>OUT_DIR：输出文件夹</li>
+<li>YEARS：目标计算年份</li>
+</ul>
+<h3 id="3-2-工具函数定义" class="article-heading"><a href="#3-2-工具函数定义" class="headerlink" title="3.2 工具函数定义"></a>3.2 工具函数定义<a class="article-anchor" href="#3-2-工具函数定义" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import re</span><br><span class="line"></span><br><span class="line">def extract_ipc4(ipc_str):</span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;提取 IPC 小类（前4位）&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> pd.isna(ipc_str):</span><br><span class="line">        <span class="keyword">return</span> None</span><br><span class="line">    match = re.<span class="keyword">search</span>(IPC_SUBCLASS_PATTERN, str(ipc_str).strip())</span><br><span class="line">    <span class="keyword">return</span> match.<span class="built_in">group</span>(0) <span class="keyword">if</span> match <span class="keyword">else</span> None</span><br><span class="line"></span><br><span class="line">def split_ipc(ipc_str):</span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;拆分多 IPC 字符串 → 返回列表&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> pd.isna(ipc_str):</span><br><span class="line">        <span class="keyword">return</span> []</span><br><span class="line">    parts = str(ipc_str).<span class="keyword">replace</span>(<span class="string">&quot;,&quot;</span>, <span class="string">&quot;;&quot;</span>).<span class="keyword">split</span>(<span class="string">&quot;;&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> [p.strip() <span class="keyword">for</span> p <span class="keyword">in</span> parts <span class="keyword">if</span> p.strip()]</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;工具函数定义完成&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>函数说明</strong>：</p>
+<ul>
+<li>extract_ipc4()：使用正则表达式提取 IPC 小类前 4 位（如 F42B、G06Q）</li>
+<li>split_ipc()：将包含多个 IPC 分类号的字符串按分号/逗号分隔</li>
+</ul>
+<h3 id="3-3-Step-1：读取并去重专利数据" class="article-heading"><a href="#3-3-Step-1：读取并去重专利数据" class="headerlink" title="3.3 Step 1：读取并去重专利数据"></a>3.3 Step 1：读取并去重专利数据<a class="article-anchor" href="#3-3-Step-1：读取并去重专利数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">def read_and_dedup<span class="punctuation">(</span>yr<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;读取某一年份的专利数据并去重&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    path <span class="operator">=</span> os.path.join<span class="punctuation">(</span>DATA_DIR<span class="punctuation">,</span> f<span class="string">&quot;&#123;yr&#125;.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">    print<span class="punctuation">(</span>f<span class="string">&quot;  读取 &#123;yr&#125; 年...&quot;</span><span class="punctuation">,</span> end<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 只读取需要的列</span></span><br><span class="line">    cols <span class="operator">=</span> <span class="punctuation">[</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;市代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省&quot;</span><span class="punctuation">]</span></span><br><span class="line">    dt <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>path<span class="punctuation">,</span> encoding<span class="operator">=</span><span class="string">&quot;utf-8&quot;</span><span class="punctuation">,</span> dtype<span class="operator">=</span>str<span class="punctuation">,</span> usecols<span class="operator">=</span>cols<span class="punctuation">)</span></span><br><span class="line">    print<span class="punctuation">(</span>f<span class="string">&quot; &#123;len(dt)&#125; 行&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 清洗公开公告号（去末尾字母）</span></span><br><span class="line">    dt<span class="punctuation">[</span><span class="string">&quot;公开公告号_clean&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> dt<span class="punctuation">[</span><span class="string">&quot;公开公告号&quot;</span><span class="punctuation">]</span>.str.replace<span class="punctuation">(</span><span class="string">r&quot;[A-Za-z]+$&quot;, &quot;&quot;, regex=True)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    # Step1: 按 市代码 + 年份 + 公开公告号_clean 去重</span></span><br><span class="line"><span class="string">    dt = dt.drop_duplicates(subset=[&quot;市代码&quot;, &quot;年份&quot;, &quot;公开公告号_clean&quot;])</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    # Step2: 按 市代码 + 年份 + 申请号 去重</span></span><br><span class="line"><span class="string">    dt = dt.drop_duplicates(subset=[&quot;市代码&quot;, &quot;年份&quot;, &quot;申请号&quot;])</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    print(f&quot;    去重后：&#123;len(dt)&#125; 行&quot;)</span></span><br><span class="line"><span class="string">    return dt</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 读取目标年份数据</span></span><br><span class="line"><span class="string">patent_list = [read_and_dedup(yr) for yr in YEARS]</span></span><br><span class="line"><span class="string">patent_dt = pd.concat(patent_list, ignore_index=True)</span></span><br><span class="line"><span class="string">print(f&quot;合并后总行数：&#123;len(patent_dt)&#125;&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>去重规则说明</strong>：</p>
+<ol>
+<li>先清洗公开公告号末尾的字母（如 CN12345A → CN12345）</li>
+<li>按「市代码 + 年份 + 公开公告号_clean」去重</li>
+<li>再按「市代码 + 年份 + 申请号」去重</li>
+</ol>
+<h3 id="3-4-展开-IPC-小类" class="article-heading"><a href="#3-4-展开-IPC-小类" class="headerlink" title="3.4 展开 IPC 小类"></a>3.4 展开 IPC 小类<a class="article-anchor" href="#3-4-展开-IPC-小类" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>说明</strong>：每条专利可能有多个 IPC 分类号（分号/逗号分隔），需要展开后取前 4 位作为 IPC 小类标识，然后再进行统计。</p>
+<hr>
+<h2 id="四、技术联系矩阵与指标计算" class="article-heading"><a href="#四、技术联系矩阵与指标计算" class="headerlink" title="四、技术联系矩阵与指标计算"></a>四、技术联系矩阵与指标计算<a class="article-anchor" href="#四、技术联系矩阵与指标计算" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="4-1-读取技术联系矩阵-Φ" class="article-heading"><a href="#4-1-读取技术联系矩阵-Φ" class="headerlink" title="4.1 读取技术联系矩阵 Φ"></a>4.1 读取技术联系矩阵 Φ<a class="article-anchor" href="#4-1-读取技术联系矩阵-Φ" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>重要说明</strong>：<code>phi_matrix.rds</code> 由 <strong>R 语言版本的课程提供</strong>，使用 1985–2022 年全样本专利引用关系构建，以保证外生性。Python 版本通过 <code>pyreadr</code> 包直接读取，无需重新计算。</p>
+<h3 id="4-2-逐年计算-RTCA、diver-c、link-c" class="article-heading"><a href="#4-2-逐年计算-RTCA、diver-c、link-c" class="headerlink" title="4.2 逐年计算 RTCA、diver_c、link_c"></a>4.2 逐年计算 RTCA、diver_c、link_c<a class="article-anchor" href="#4-2-逐年计算-RTCA、diver-c、link-c" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;\n&quot; + &quot;=&quot;*40)</span><br><span class="line">print(&quot;Step 3: 逐年计算技术多样性和技术关联性&quot;)</span><br><span class="line">print(&quot;=&quot;*40)</span><br><span class="line"></span><br><span class="line">results_list = []</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键步骤说明</strong>：</p>
+<ol>
+<li>RTCA 计算：(n / n_city) / (n_nat / n_total)，≥1 则 x_ci = 1</li>
+<li>diver_c 计算：对每个城市，统计 x_ci 之和</li>
+<li>link_c 计算：</li>
+</ol>
+<h3 id="4-3-汇总输出" class="article-heading"><a href="#4-3-汇总输出" class="headerlink" title="4.3 汇总输出"></a>4.3 汇总输出<a class="article-anchor" href="#4-3-汇总输出" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;\n&quot; + &quot;=&quot;*40)</span><br><span class="line">print(&quot;Step 4: 汇总输出&quot;)</span><br><span class="line">print(&quot;=&quot;*40)</span><br><span class="line"></span><br><span class="line">final = pd.concat(results_list, ignore_index=True)</span><br><span class="line">final = final[[&quot;年份&quot;, &quot;省代码&quot;, &quot;省&quot;, &quot;市代码&quot;, &quot;市&quot;, &quot;diver_c&quot;, &quot;link_c&quot;]]</span><br><span class="line">final = final.sort_values([&quot;年份&quot;, &quot;市代码&quot;]).reset_index(drop=True)</span><br><span class="line"></span><br><span class="line"># 保存为 CSV</span><br><span class="line">out_csv = os.path.join(OUT_DIR, &quot;city_tech_cluster_2010_2012.csv&quot;)</span><br><span class="line">final.to_csv(out_csv, index=False, encoding=&quot;utf-8-sig&quot;)</span><br><span class="line">print(f&quot;结果已保存至：&#123;out_csv&#125;&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;\n前10行：&quot;)</span><br><span class="line">print(final.head(10))</span><br><span class="line"></span><br><span class="line">print(&quot;\n各年描述统计：&quot;)</span><br><span class="line">stats = final.groupby(&quot;年份&quot;).agg(</span><br><span class="line">    n_city     = (&quot;市代码&quot;, &quot;count&quot;),</span><br><span class="line">    diver_mean = (&quot;diver_c&quot;, &quot;mean&quot;),</span><br><span class="line">    diver_sd   = (&quot;diver_c&quot;, &quot;std&quot;),</span><br><span class="line">    link_mean  = (&quot;link_c&quot;,  &quot;mean&quot;),</span><br><span class="line">    link_sd    = (&quot;link_c&quot;,   &quot;std&quot;)</span><br><span class="line">).round(4)</span><br><span class="line">print(stats)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d6e8edde2ae34eebb23c5e23dbdd4771">名师讲堂｜使用 Python 测算各城市技术集群指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.153Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/58670/" title="名师讲堂｜使用 R 语言测算各城市技术集群指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/90238/" title="2000年1月～2024年12月各省市区县CO2排放量面板数据 &amp; 栅格数据（CGER 来源）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/75606/">名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 10 分钟</span></li><li><a href="/posts/55794/">名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利</a><span class="tf-related-meta">2026-07-17 · 约 11 分钟</span></li><li><a href="/posts/79234/">名师讲堂｜使用 Python 语言测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 10 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">一、指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%98%BE%E6%80%A7%E6%8A%80%E6%9C%AF%E6%AF%94%E8%BE%83%E4%BC%98%E5%8A%BF%EF%BC%88RTCA%EF%BC%89"><span class="toc-text">1.1 显性技术比较优势（RTCA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8A%80%E6%9C%AF%E5%A4%9A%E6%A0%B7%E6%80%A7%EF%BC%88diver-c%EF%BC%89"><span class="toc-text">1.2 技术多样性（diver_c）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%8A%80%E6%9C%AF%E5%85%B3%E8%81%94%E6%80%A7%EF%BC%88link-c%EF%BC%89"><span class="toc-text">1.3 技术关联性（link_c）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">1.4 计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">二、使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.1 安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">2.2 虚拟环境初始化（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.3 在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">2.4 验证激活状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%AF%A6%E7%BB%86%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81%EF%BC%88Python-%E7%89%88%E6%9C%AC%EF%BC%89"><span class="toc-text">三、详细计算代码（Python 版本）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE"><span class="toc-text">3.1 路径与参数设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%AE%9A%E4%B9%89"><span class="toc-text">3.2 工具函数定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Step-1%EF%BC%9A%E8%AF%BB%E5%8F%96%E5%B9%B6%E5%8E%BB%E9%87%8D%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE"><span class="toc-text">3.3 Step 1：读取并去重专利数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B1%95%E5%BC%80-IPC-%E5%B0%8F%E7%B1%BB"><span class="toc-text">3.4 展开 IPC 小类</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8A%80%E6%9C%AF%E8%81%94%E7%B3%BB%E7%9F%A9%E9%98%B5%E4%B8%8E%E6%8C%87%E6%A0%87%E8%AE%A1%E7%AE%97"><span class="toc-text">四、技术联系矩阵与指标计算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%AF%BB%E5%8F%96%E6%8A%80%E6%9C%AF%E8%81%94%E7%B3%BB%E7%9F%A9%E9%98%B5-%CE%A6"><span class="toc-text">4.1 读取技术联系矩阵 Φ</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%80%90%E5%B9%B4%E8%AE%A1%E7%AE%97-RTCA%E3%80%81diver-c%E3%80%81link-c"><span class="toc-text">4.2 逐年计算 RTCA、diver_c、link_c</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%B1%87%E6%80%BB%E8%BE%93%E5%87%BA"><span class="toc-text">4.3 汇总输出</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

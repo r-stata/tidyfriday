@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/33593/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在之前的 R 语言课程「R 语言文本分析」中，我介绍了使用词频统计进行情感分析的方法，也就是先对文本进行分词，根据情感词典统计积极、消极和中性词的词频进行分析。不过这种方法难以分析复杂的文本表述。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析">
+<meta property="og:url" content="https://tidyfriday.cn/posts/33593/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在之前的 R 语言课程「R 语言文本分析」中，我介绍了使用词频统计进行情感分析的方法，也就是先对文本进行分词，根据情感词典统计积极、消极和中性词的词频进行分析。不过这种方法难以分析复杂的文本表述。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/33593.png">
+<meta property="article:published_time" content="2025-12-15T13:25:55.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.597Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="计量与统计方法">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/33593.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析","description":"在之前的 R 语言课程「R 语言文本分析」中，我介绍了使用词频统计进行情感分析的方法，也就是先对文本进行分词，根据情感词典统计积极、消极和中性词的词频进行分析。不过这种方法难以分析复杂的文本表述。","url":"https://tidyfriday.cn/posts/33593/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/33593/"},"image":["https://tidyfriday.cn/og/33593.png"],"datePublished":"2025-12-15T13:25:55.000Z","dateModified":"2026-09-26T14:18:48.597Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 计量与统计方法, 上市公司, 文本数据","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析","item":"https://tidyfriday.cn/posts/33593/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-12-15T13:25:55.000Z" itemprop="datePublished">2025-12-15</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2201 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E8%AE%A1%E9%87%8F%E4%B8%8E%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95">计量与统计方法</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在之前的 R 语言课程「R 语言文本分析」中，我介绍了使用词频统计进行情感分析的方法，也就是先对文本进行分词，根据情感词典统计积极、消极和中性词的词频进行分析。不过这种方法难以分析复杂的文本表述。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>R 语言文本分析：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/bf37cf50eef04d38b43541cc52114c96">https://rstata.duanshu.com/#/brief/course/bf37cf50eef04d38b43541cc52114c96</a></p>
+</blockquote>
+<p>另外在课程「使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析」中，我又介绍了一种使用 API 接口进行文本情感分析的方法，不过这种方法需要付费，不够经济。</p>
+<blockquote>
+<p>使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/8c0ceabc989d4d2bb886862d256c7181">https://rstata.duanshu.com/#/brief/course/8c0ceabc989d4d2bb886862d256c7181</a></p>
+</blockquote>
+<p>最近找到了一种新的方法，也就是借助一些预训练模型，这里我使用的是 finbert-tone-chinese 模型。</p>
+<blockquote>
+<p>finbert-tone-chinese: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://hf-mirror.com/yiyanghkust/finbert-tone-chinese">https://hf-mirror.com/yiyanghkust/finbert-tone-chinese</a></p>
+</blockquote>
+<p>该模型是基于 bert-base-chinese，使用大约 8000 份分析师报告文本进行训练得到，在测试集上的准确度为 0.88。</p>
+<p>关于 bert-base-chinese 模型的使用，大家可以学习之前的课程：</p>
+<blockquote>
+<p>名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（一）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/35f74d717a0b464ea103175adbb5d885">https://rstata.duanshu.com/#/brief/course/35f74d717a0b464ea103175adbb5d885</a></p>
+<p>名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b1e28818e8164cfda3430cc45fddaf91">https://rstata.duanshu.com/#/brief/course/b1e28818e8164cfda3430cc45fddaf91</a></p>
+</blockquote>
+<p>类似上述课程，这里我们同样使用 R 语言运行这一模型。</p>
+<p>附件中的“finbert-tone-chinese”文件夹就是该模型的文件。如果大家使用 Mac 电脑的话，可以使用下面的代码下载（注意是 shell 代码，不是 R 语言的。附件中有下载好的，不用再下载了）：</p>
+<blockquote>
+<p>brew 的安装在系列课程「R 语言数据科学」第一次课里面有介绍。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">brew install git-lfs</span><br><span class="line">git lfs install</span><br><span class="line">git clone https://hf-mirror.com/yiyanghkust/finbert-tone-chinese</span><br></pre></td></tr></table></figure>
+
+<p>为了在 R 语言中调用，我们需要先使用 Python 编写一个函数：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># 下载模型（<span class="keyword">MAC</span> 系统）</span><br><span class="line"># brew install git-lfs</span><br><span class="line"># git lfs install</span><br><span class="line"># git clone https:<span class="comment">//hf-mirror.com/yiyanghkust/finbert-tone-chinese</span></span><br><span class="line"></span><br><span class="line">from transformers import BertTokenizer, BertForSequenceClassification</span><br><span class="line">import torch</span><br><span class="line">import torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line">def get_financial_sentiment_scores(text: str) -&gt; dict:</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    输入一段中文金融文本，输出 FinBERT-Tone-Chinese 模型预测的三种情感（正面/负面/中性）得分</span><br><span class="line"></span><br><span class="line">    参数:</span><br><span class="line">        text: str - 待分析的中文文本（建议为金融相关内容，如财报摘要、新闻标题、市场评论等）</span><br><span class="line"></span><br><span class="line">    返回:</span><br><span class="line">        dict - 包含 <span class="string">&quot;neutral&quot;</span>（中性得分）、<span class="string">&quot;positive&quot;</span>（正面得分）、<span class="string">&quot;negative&quot;</span>（负面得分）的字典，</span><br><span class="line">               得分范围为 [0,1]，三者总和为 1</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    # 1. 定义模型名称（与 URL 对应）和情感标签映射</span><br><span class="line">    MODEL_NAME = <span class="string">&quot;/Users/ac/Desktop/上市公司年报文本情感分析/finbert-tone-chinese/&quot;</span></span><br><span class="line">    SENTIMENT_LABELS = [<span class="string">&quot;neutral&quot;</span>, <span class="string">&quot;positive&quot;</span>, <span class="string">&quot;negative&quot;</span>]  # 模型输出顺序固定</span><br><span class="line"></span><br><span class="line">    try:</span><br><span class="line">        # 2. 加载模型和分词器（首次调用会自动下载模型，后续复用本地文件）</span><br><span class="line">        tokenizer = BertTokenizer.from_pretrained(MODEL_NAME)</span><br><span class="line">        model = BertForSequenceClassification.from_pretrained(MODEL_NAME)</span><br><span class="line"></span><br><span class="line">        # 3. 文本预处理：将文本转换为模型可接受的张量格式</span><br><span class="line">        # truncation=True：超过模型最大长度（512）的文本截断</span><br><span class="line">        # padding=True：不足长度的文本补全</span><br><span class="line">        # return_tensors=<span class="string">&quot;pt&quot;</span>：返回 PyTorch 张量</span><br><span class="line">        inputs = tokenizer(</span><br><span class="line">            text,</span><br><span class="line">            truncation=True,</span><br><span class="line">            padding=True,</span><br><span class="line">            max_length=512,</span><br><span class="line">            return_tensors=<span class="string">&quot;pt&quot;</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        # 4. 模型推理（关闭梯度计算，提高效率）</span><br><span class="line">        model.eval()  # 切换为评估模式（避免训练时的随机 dropout）</span><br><span class="line">        with torch.no_grad():</span><br><span class="line">            outputs = model(**inputs)  # 传入预处理后的文本</span><br><span class="line">            logits = outputs.logits  # 获取模型原始输出（未归一化的得分）</span><br><span class="line">            probabilities = F.softmax(logits, dim=1)  # 归一化，得到概率得分（总和为 1）</span><br><span class="line"></span><br><span class="line">        # 5. 结果转换：从张量提取数值，与情感标签对应</span><br><span class="line">        prob_values = probabilities.squeeze().tolist()  # 去除多余维度，转为列表</span><br><span class="line">        sentiment_scores = dict(<span class="keyword">zip</span>(SENTIMENT_LABELS, prob_values))</span><br><span class="line"></span><br><span class="line">        # 6. 保留 4 位小数（可选，提升可读性）</span><br><span class="line">        sentiment_scores = &#123;k: <span class="built_in">round</span>(v, 4) <span class="keyword">for</span> k, v <span class="keyword">in</span> sentiment_scores.items()&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> sentiment_scores</span><br><span class="line"></span><br><span class="line">    except Exception <span class="keyword">as</span> <span class="keyword">e</span>:</span><br><span class="line">        raise RuntimeError(f<span class="string">&quot;情感分析失败：&#123;str(e)&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这个函数会输入一段中文金融文本，输出 FinBERT-Tone-Chinese 模型预测的三种情感（正面/负面/中性）得分。</p>
+<p>然后回到 R 语言里面。首先加载相关 R 包，创建虚拟环境：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 创建虚拟环境</span></span><br><span class="line"><span class="comment"># 安装 python3.10</span></span><br><span class="line">conda_create<span class="punctuation">(</span>envname <span class="operator">=</span> <span class="string">&quot;bert2&quot;</span><span class="punctuation">,</span> python_version <span class="operator">=</span> <span class="string">&quot;3.10&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [1] &quot;/opt/anaconda3/envs/bert2/bin/python&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 激活环境</span></span><br><span class="line">use_condaenv<span class="punctuation">(</span><span class="string">&quot;bert2&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 安装必要的库</span></span><br><span class="line"><span class="comment"># 1. 读取requirements.txt文件</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> readLines<span class="punctuation">(</span><span class="string">&quot;requirements.txt&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 清理空行和注释</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> grep<span class="punctuation">(</span><span class="string">&quot;^[^#]&quot;</span><span class="punctuation">,</span> requirements<span class="punctuation">,</span> value <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span>  <span class="comment"># 移除注释行</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> trimws<span class="punctuation">(</span>requirements<span class="punctuation">)</span>  <span class="comment"># 去除两端空格</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> requirements<span class="punctuation">[</span>requirements <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">]</span>  <span class="comment"># 移除空行</span></span><br><span class="line"></span><br><span class="line">requirements</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt;  [1] &quot;accelerate==0.20.3&quot;           &quot;certifi==2025.6.15&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [3] &quot;charset-normalizer==3.4.2&quot;    &quot;click==8.2.1&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [5] &quot;filelock==3.18.0&quot;             &quot;fsspec==2025.5.1&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [7] &quot;hf-xet==1.1.5&quot;                &quot;huggingface-hub==0.19.4&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [9] &quot;idna==3.10&quot;                   &quot;Jinja2==3.1.6&quot;</span></span><br><span class="line"><span class="comment">#&gt; [11] &quot;joblib==1.5.1&quot;                &quot;MarkupSafe==3.0.2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [13] &quot;mpmath==1.3.0&quot;                &quot;networkx==3.4.2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [15] &quot;nltk==3.9.1&quot;                  &quot;numpy==1.26.4&quot;</span></span><br><span class="line"><span class="comment">#&gt; [17] &quot;packaging==25.0&quot;              &quot;pillow==11.2.1&quot;</span></span><br><span class="line"><span class="comment">#&gt; [19] &quot;psutil==7.0.0&quot;                &quot;PyYAML==6.0.2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [21] &quot;regex==2024.11.6&quot;             &quot;requests==2.32.4&quot;</span></span><br><span class="line"><span class="comment">#&gt; [23] &quot;safetensors==0.5.3&quot;           &quot;scikit-learn==1.7.0&quot;</span></span><br><span class="line"><span class="comment">#&gt; [25] &quot;scipy==1.15.3&quot;                &quot;sentence-transformers==2.2.2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [27] &quot;sentencepiece==0.2.0&quot;         &quot;sympy==1.14.0&quot;</span></span><br><span class="line"><span class="comment">#&gt; [29] &quot;threadpoolctl==3.6.0&quot;         &quot;tokenizers==0.13.3&quot;</span></span><br><span class="line"><span class="comment">#&gt; [31] &quot;torch==2.0.1&quot;                 &quot;torchaudio==2.0.2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [33] &quot;torchvision==0.15.2&quot;          &quot;tqdm==4.67.1&quot;</span></span><br><span class="line"><span class="comment">#&gt; [35] &quot;transformers==4.30.2&quot;         &quot;typing_extensions==4.14.0&quot;</span></span><br><span class="line"><span class="comment">#&gt; [37] &quot;urllib3==2.5.0&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 安装所有依赖</span></span><br><span class="line">conda_install<span class="punctuation">(</span>packages <span class="operator">=</span> requirements<span class="punctuation">,</span> envname <span class="operator">=</span> <span class="string">&quot;bert2&quot;</span><span class="punctuation">,</span></span><br><span class="line">              python_version <span class="operator">=</span> <span class="string">&quot;3.10&quot;</span><span class="punctuation">,</span> pip <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span></span><br><span class="line">              pip_options <span class="operator">=</span> <span class="string">&quot;--index-url https://pypi.tuna.tsinghua.edu.cn/simple&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt;  [1] &quot;&#x27;accelerate==0.20.3&#x27;&quot;           &quot;&#x27;certifi==2025.6.15&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [3] &quot;&#x27;charset-normalizer==3.4.2&#x27;&quot;    &quot;&#x27;click==8.2.1&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [5] &quot;&#x27;filelock==3.18.0&#x27;&quot;             &quot;&#x27;fsspec==2025.5.1&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [7] &quot;&#x27;hf-xet==1.1.5&#x27;&quot;                &quot;&#x27;huggingface-hub==0.19.4&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  [9] &quot;&#x27;idna==3.10&#x27;&quot;                   &quot;&#x27;Jinja2==3.1.6&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [11] &quot;&#x27;joblib==1.5.1&#x27;&quot;                &quot;&#x27;MarkupSafe==3.0.2&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [13] &quot;&#x27;mpmath==1.3.0&#x27;&quot;                &quot;&#x27;networkx==3.4.2&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [15] &quot;&#x27;nltk==3.9.1&#x27;&quot;                  &quot;&#x27;numpy==1.26.4&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [17] &quot;&#x27;packaging==25.0&#x27;&quot;              &quot;&#x27;pillow==11.2.1&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [19] &quot;&#x27;psutil==7.0.0&#x27;&quot;                &quot;&#x27;PyYAML==6.0.2&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [21] &quot;&#x27;regex==2024.11.6&#x27;&quot;             &quot;&#x27;requests==2.32.4&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [23] &quot;&#x27;safetensors==0.5.3&#x27;&quot;           &quot;&#x27;scikit-learn==1.7.0&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [25] &quot;&#x27;scipy==1.15.3&#x27;&quot;                &quot;&#x27;sentence-transformers==2.2.2&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [27] &quot;&#x27;sentencepiece==0.2.0&#x27;&quot;         &quot;&#x27;sympy==1.14.0&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [29] &quot;&#x27;threadpoolctl==3.6.0&#x27;&quot;         &quot;&#x27;tokenizers==0.13.3&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [31] &quot;&#x27;torch==2.0.1&#x27;&quot;                 &quot;&#x27;torchaudio==2.0.2&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [33] &quot;&#x27;torchvision==0.15.2&#x27;&quot;          &quot;&#x27;tqdm==4.67.1&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [35] &quot;&#x27;transformers==4.30.2&#x27;&quot;         &quot;&#x27;typing_extensions==4.14.0&#x27;&quot;</span></span><br><span class="line"><span class="comment">#&gt; [37] &quot;&#x27;urllib3==2.5.0&#x27;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以把 Python 的函数 source 成 R 语言的函数了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">source_python(&quot;main.py&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>使用示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">get_financial_sentiment_scores(text = &quot;公司2024年净利润同比增长50%，核心业务市场份额进一步扩大&quot;)</span><br><span class="line"></span><br><span class="line">#&gt; $neutral</span><br><span class="line">#&gt; [1] 0.0005</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $positive</span><br><span class="line">#&gt; [1] 0.9992</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $negative</span><br><span class="line">#&gt; [1] 0.0003</span><br><span class="line"></span><br><span class="line">get_financial_sentiment_scores(text = &quot;此外宁德时代上半年实现出口约2GWh，同比增加200%+。&quot;)</span><br><span class="line"></span><br><span class="line">#&gt; $neutral</span><br><span class="line">#&gt; [1] 0.0007</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $positive</span><br><span class="line">#&gt; [1] 0.9989</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $negative</span><br><span class="line">#&gt; [1] 0.0004</span><br><span class="line"></span><br><span class="line">get_financial_sentiment_scores(&quot;公司因违规操作被监管处罚，预计本年度营收将减少20%&quot;)</span><br><span class="line"></span><br><span class="line">#&gt; $neutral</span><br><span class="line">#&gt; [1] 0.0007</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $positive</span><br><span class="line">#&gt; [1] 0.0005</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $negative</span><br><span class="line">#&gt; [1] 0.9988</span><br><span class="line"></span><br><span class="line">get_financial_sentiment_scores(&quot;央行今日发布2024年第二季度货币政策执行报告，详细阐述当前经济形势&quot;)</span><br><span class="line"></span><br><span class="line">#&gt; $neutral</span><br><span class="line">#&gt; [1] 0.9934</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $positive</span><br><span class="line">#&gt; [1] 0.0048</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $negative</span><br><span class="line">#&gt; [1] 0.0018</span><br></pre></td></tr></table></figure>
+
+<p>如果是数据框，可以使用如此代码计算每段文本的情感得分：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 对于数据框</span></span><br><span class="line">tibble<span class="punctuation">(</span>text <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;公司2024年净利润同比增长50%，核心业务市场份额进一步扩大&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;此外宁德时代上半年实现出口约2GWh，同比增加200%+。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;公司因违规操作被监管处罚，预计本年度营收将减少20%&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;央行今日发布2024年第二季度货币政策执行报告，详细阐述当前经济形势&quot;</span></span><br><span class="line"><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 4 × 1</span></span><br><span class="line"><span class="comment">#&gt;   text</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 公司2024年净利润同比增长50%，核心业务市场份额进一步扩大</span></span><br><span class="line"><span class="comment">#&gt; 2 此外宁德时代上半年实现出口约2GWh，同比增加200%+。</span></span><br><span class="line"><span class="comment">#&gt; 3 公司因违规操作被监管处罚，预计本年度营收将减少20%</span></span><br><span class="line"><span class="comment">#&gt; 4 央行今日发布2024年第二季度货币政策执行报告，详细阐述当前经济形势</span></span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>res <span class="operator">=</span> map<span class="punctuation">(</span>text<span class="punctuation">,</span> get_financial_sentiment_scores<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>res <span class="operator">=</span> map<span class="punctuation">(</span>res<span class="punctuation">,</span> <span class="operator">~</span>tibble<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;neutral&quot;</span><span class="punctuation">,</span> <span class="string">&quot;positive&quot;</span><span class="punctuation">,</span> <span class="string">&quot;negative&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> value <span class="operator">=</span> unlist<span class="punctuation">(</span>.x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>res<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  spread<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> value<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 4 × 4</span></span><br><span class="line"><span class="comment">#&gt;   text                                                 negative neutral positive</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;                                                   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 公司2024年净利润同比增长50%，核心业务市场份额进一步扩大……   0.0003  0.0005   0.999</span></span><br><span class="line"><span class="comment">#&gt; 2 公司因违规操作被监管处罚，预计本年度营收将减少20%      0.999   0.0007   0.0005</span></span><br><span class="line"><span class="comment">#&gt; 3 央行今日发布2024年第二季度货币政策执行报告，详细阐述当前经济形势……   0.0018  0.993    0.0048</span></span><br><span class="line"><span class="comment">#&gt; 4 此外宁德时代上半年实现出口约2GWh，同比增加200%+。      0.0004  0.0007   0.999</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以进行其他分析了。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8df262417de54b40a5d3f93581e3b09f">名师讲堂｜R 语言中使用 finbert-tone-chinese 模型对上市公司年报文本进行情感分析</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.597Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/29618/" title="1970～2024 年中国各省市区县、乡镇 N2O 排放量面板数据 &amp; 栅格数据（EDGAR v2025）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/10100/" title="2007～2020 年税调与上市公司匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/87602/">名师讲堂｜使用 R 语言测算上市公司关键核心技术突破指标面板数据（熵权法）</a><span class="tf-related-meta">2026-05-03 · 约 11 分钟</span></li><li><a href="/posts/60295/">名师讲堂｜使用 R 语言调用 deepseek-r1 模型判断上市公司高管的政治背景</a><span class="tf-related-meta">2025-08-22 · 约 13 分钟</span></li><li><a href="/posts/95492/">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-14 · 约 15 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

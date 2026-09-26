@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>2022 年中国各省市级行政区划矢量数据（附带邻近区域） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/37427/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享一套超级实用的 2022 年中国各省、市、区县的行政区划地理数据，数据来源于民政部。数据包含如下内容：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2022 年中国各省市级行政区划矢量数据（附带邻近区域）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/37427/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享一套超级实用的 2022 年中国各省、市、区县的行政区划地理数据，数据来源于民政部。数据包含如下内容：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/37427.png">
+<meta property="article:published_time" content="2022-06-29T19:16:04.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:38.288Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="矢量数据">
+<meta property="article:tag" content="行政区划">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/37427.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="2022 年中国各省市级行政区划矢量数据（附带邻近区域）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"2022 年中国各省市级行政区划矢量数据（附带邻近区域）","description":"今天给大家分享一套超级实用的 2022 年中国各省、市、区县的行政区划地理数据，数据来源于民政部。数据包含如下内容：","url":"https://tidyfriday.cn/posts/37427/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/37427/"},"image":["https://tidyfriday.cn/og/37427.png"],"datePublished":"2022-06-29T19:16:04.000Z","dateModified":"2026-09-26T14:18:38.288Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"矢量数据, 行政区划","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"2022 年中国各省市级行政区划矢量数据（附带邻近区域）","item":"https://tidyfriday.cn/posts/37427/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">2022 年中国各省市级行政区划矢量数据（附带邻近区域）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">2022 年中国各省市级行政区划矢量数据（附带邻近区域）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-06-29T19:16:04.000Z" itemprop="datePublished">2022-06-29</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1774 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E7%9F%A2%E9%87%8F%E6%95%B0%E6%8D%AE">矢量数据</a><a href="/tags/#tag=%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92">行政区划</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享一套超级实用的 2022 年<code>中国各省、市、区县的行政区划地理数据</code>，数据来源于<a target="_blank" rel="noopener external nofollow noreferrer" href="http://xzqh.mca.gov.cn/map">民政部</a>。数据包含如下内容：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234790996_997532.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>根据这份数据，我们可以绘制出非常标准的中国省级、市级和县级的行政区划图。图示如下：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/29/19/02b79j1bdbe1b168g4/common/content/1656503868246_542982.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/29/19/02b79j1bdbe1b168g4/common/content/1656503868492_123717.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/29/19/02b79j1bdbe1b168g4/common/content/1656503868940_783921.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>利用这份数据，我们还可以具体展现各省市自治区的行政区划。在绘制各省市自治区的行政区划图时，为了避免图片单调的问题，我们将该省附近的区域也简单标示出来，使得图片内容更加丰富。</p>
+<p>各个省的预览图如下(31个各省市自治区，不含港澳台)：</p>
+<table>
+<thead>
+<tr>
+<th>安徽省</th>
+<th>北京市</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234822310_476546.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234869881_351725.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>重庆市</td>
+<td>福建省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234870111_327621.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234870379_554578.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>甘肃省</td>
+<td>广东省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234870598_124754.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234870809_758393.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>广西壮族自治区</td>
+<td>贵州省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234871012_253187.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234871250_586426.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>海南省</td>
+<td>河北省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234871466_412663.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234871659_732535.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>河南省</td>
+<td>黑龙江省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234871859_348253.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234896513_128247.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>湖北省</td>
+<td>湖南省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234896703_483457.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234896939_478287.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>吉林省</td>
+<td>江苏省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234897131_984734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234897307_282432.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>江西省</td>
+<td>辽宁省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234897522_245382.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234897715_822257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>内蒙古自治区</td>
+<td>宁夏回族自治区</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234897895_292133.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698234898122_341154.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>青海省</td>
+<td>山东省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235137534_664465.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235137878_245272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>山西省</td>
+<td>陕西省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235138358_837312.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235138639_881457.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>上海市</td>
+<td>四川省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235138833_949364.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235139288_672369.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>天津市</td>
+<td>西藏自治区</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235139513_996223.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235139702_547679.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>新疆维吾尔自治区</td>
+<td>云南省</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235139956_582239.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/19/02b79j1bdbe1b168g4/common/content/1698235140211_435459.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td>浙江省</td>
+<td>全国</td>
+</tr>
+<tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/20/02b79j1bdbe1b168g4/common/content/1698235204848_218737.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/25/20/02b79j1bdbe1b168g4/common/content/1698235205308_634318.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>下面详细介绍如何使用 R 语言获取并整理中国各省、市、区县的行政区划地理数据，并对该份数据进行绘图展示。</p>
+<h2 id="数据处理" class="article-heading"><a href="#数据处理" class="headerlink" title="数据处理"></a>数据处理<a class="article-anchor" href="#数据处理" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先从<a target="_blank" rel="noopener external nofollow noreferrer" href="http://www.mca.gov.cn/article/sj/xzqh/2020/20201201.html">2020年中国县以上行政区划代码</a>中爬取省代码列表。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载包</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>rvest<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>fs<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 爬取省代码列表</span></span><br><span class="line">read_html<span class="punctuation">(</span><span class="string">&#x27;http://www.mca.gov.cn/article/sj/xzqh/2020/20201201.html&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_nodes<span class="punctuation">(</span>xpath <span class="operator">=</span> <span class="string">&quot;/html/body/div/table&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_table<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> codedf</span><br><span class="line"></span><br><span class="line">codedf<span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span>.name_repair <span class="operator">=</span> <span class="string">&quot;minimal&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="operator">-</span><span class="number">3</span><span class="operator">:</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>code <span class="operator">=</span> X2<span class="punctuation">,</span> name <span class="operator">=</span> X3<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_sub<span class="punctuation">(</span>code<span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">,</span> <span class="number">6</span><span class="punctuation">)</span> <span class="operator">==</span> <span class="string">&quot;0000&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> codedf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 港澳台无数据</span></span><br><span class="line">codedf <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span>name <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;台湾省&quot;</span><span class="punctuation">,</span> <span class="string">&quot;香港特别行政区&quot;</span><span class="punctuation">,</span> <span class="string">&quot;澳门特别行政区&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> codedf</span><br></pre></td></tr></table></figure>
+
+<p>创建 provjson 文件夹和各省的子文件夹，用于下载并存放中国各省行政区划地理数据，每个子文件夹里面包含 2 个 JSON 和 1 个 GEOJSON 文件。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir.create(&quot;provjson&quot;)</span><br><span class="line"></span><br><span class="line">for (i in 1:nrow(codedf)) &#123;</span><br><span class="line">  dir.create(paste0(&quot;provjson/&quot;, codedf$name[i]))</span><br><span class="line">  try(&#123;</span><br><span class="line">    download.file(paste0(&quot;http://xzqh.mca.gov.cn/data/&quot;, codedf$code[i], &quot;_Line.geojson&quot;),</span><br><span class="line">                  paste0(&quot;provjson/&quot;, codedf$name[i], &quot;/&quot;, codedf$code[i], &quot;_Line.geojson&quot;))</span><br><span class="line">    download.file(paste0(&quot;http://xzqh.mca.gov.cn/data/&quot;, codedf$code[i], &quot;_Point.geojson&quot;),</span><br><span class="line">                  paste0(&quot;provjson/&quot;, codedf$name[i], &quot;/&quot;, codedf$code[i], &quot;_Point.geojson&quot;))</span><br><span class="line">    download.file(paste0(&quot;http://xzqh.mca.gov.cn/data/&quot;, codedf$code[i], &quot;.json&quot;),</span><br><span class="line">                  paste0(&quot;provjson/&quot;, codedf$name[i], &quot;/&quot;, codedf$code[i], &quot;.json&quot;))</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="绘图代码" class="article-heading"><a href="#绘图代码" class="headerlink" title="绘图代码"></a>绘图代码<a class="article-anchor" href="#绘图代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>接下来我们具体介绍这份数据在 R 语言中如何使用（其实 GIS 软件也可以使用 GEOJSON 文件）。</p>
+<h3 id="中国各省行政区划图" class="article-heading"><a href="#中国各省行政区划图" class="headerlink" title="中国各省行政区划图"></a>中国各省行政区划图<a class="article-anchor" href="#中国各省行政区划图" aria-label="本节链接" title="复制本节链接"></a></h3><p>根据 provjson 文件夹中各省的行政区划地理数据，我们可以分别绘制中国各省行政区划图，这里以山东省为例进行演示：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>hrbrthemes<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 字体设置</span></span><br><span class="line">library<span class="punctuation">(</span>showtext<span class="punctuation">)</span></span><br><span class="line">showtext_auto<span class="punctuation">(</span>enable <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">font_add<span class="punctuation">(</span><span class="string">&quot;songti&quot;</span><span class="punctuation">,</span> regular <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">)</span></span><br><span class="line">cnfont <span class="operator">&lt;-</span> <span class="string">&quot;songti&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取山东省地理数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;provjson/山东省/370000.json&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="operator">%&gt;%</span> st_set_crs<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;provjson/山东省/370000_Point.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfpoint</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;provjson/山东省/370000_Line.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfline</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘图</span></span><br><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>df<span class="punctuation">,</span> FillColor <span class="operator">==</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span> QUHUADAIMA <span class="operator">!=</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          fill <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.6</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>df<span class="punctuation">,</span> FillColor <span class="operator">==</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span> QUHUADAIMA <span class="operator">==</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          fill <span class="operator">=</span> <span class="string">&quot;#6AA7DF&quot;</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.6</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>df<span class="punctuation">,</span> FillColor <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> dfpoint<span class="punctuation">,</span></span><br><span class="line">          shape <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> dfpoint<span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&#x27;\n\n&#x27;</span><span class="punctuation">,</span> NAME<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               family <span class="operator">=</span> cnfont<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">               check_overlap <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>dfline<span class="punctuation">,</span> QUHUADAIMA <span class="operator">!=</span> <span class="string">&quot;other&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;山东省行政区划&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;地图数据来源于中华人民共和国民政部&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.title <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就得到了山东省的行政区划图，其他省市自治区的行政区划图也是类似的方法，此处不再赘述。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/29/19/02b79j1bdbe1b168g4/common/content/1656503913387_622291.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="中国行政区划图（市级）" class="article-heading"><a href="#中国行政区划图（市级）" class="headerlink" title="中国行政区划图（市级）"></a>中国行政区划图（市级）<a class="article-anchor" href="#中国行政区划图（市级）" aria-label="本节链接" title="复制本节链接"></a></h3><p>合并各省全部的 JSON 文件，能够得到中国各市的地理矢量数据，从而可以绘制中国市级行政区划图。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并全部的</span></span><br><span class="line">dir_ls<span class="punctuation">(</span><span class="string">&quot;provjson&quot;</span><span class="punctuation">,</span> recurse <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> regexp <span class="operator">=</span> <span class="string">&quot;\\.json&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  lapply<span class="punctuation">(</span><span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    read_sf<span class="punctuation">(</span>x<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_set_crs<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citydf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘图</span></span><br><span class="line">boundary <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;全国/quanguo_Line.geojson&quot;</span><span class="punctuation">)</span></span><br><span class="line">provboundary <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;全国/quanguo.json&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_set_crs<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span></span><br><span class="line">point <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;全国/quanguo_Point.geojson&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>citydf<span class="punctuation">,</span> FillColor <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span> FillColor <span class="operator">!=</span> <span class="string">&quot;#0000c0&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.08</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> FillColor <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> QUHUADAIMA <span class="operator">==</span> <span class="string">&quot;710000&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               <span class="operator">!</span>str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;#6AA7DF&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> shape <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;\n\n&quot;</span><span class="punctuation">,</span> NAME<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">               check_overlap <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span></span><br><span class="line">               size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_sf<span class="punctuation">(</span>crs <span class="operator">=</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中华人民共和国行政区划（市级）&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;地图数据来源：民政部&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.title <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="中国行政区划图（省级）" class="article-heading"><a href="#中国行政区划图（省级）" class="headerlink" title="中国行政区划图（省级）"></a>中国行政区划图（省级）<a class="article-anchor" href="#中国行政区划图（省级）" aria-label="本节链接" title="复制本节链接"></a></h3><p>中国省级行政区划图和中国市级行政区划图绘制方法类似。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> FillColor <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> FillColor <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.08</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               <span class="operator">!</span>str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;#6AA7DF&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> shape <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;\n\n&quot;</span><span class="punctuation">,</span> NAME<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">               check_overlap <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span></span><br><span class="line">               size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span>  <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">7</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;#E31A1C&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2.5</span><span class="punctuation">,</span></span><br><span class="line">               family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_sf<span class="punctuation">(</span>crs <span class="operator">=</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中华人民共和国行政区划（省级）&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;地图数据来源：民政部&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.title <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="中国行政区划图（县级）" class="article-heading"><a href="#中国行政区划图（县级）" class="headerlink" title="中国行政区划图（县级）"></a>中国行政区划图（县级）<a class="article-anchor" href="#中国行政区划图（县级）" aria-label="本节链接" title="复制本节链接"></a></h3><p>中国县级行政区划图和中国市级行政区划图绘制方法也类似。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;全国/xian_quanguo.json&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> countydf</span><br><span class="line">countydf <span class="operator">%&gt;%</span></span><br><span class="line">  st_set_crs<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> countydf</span><br><span class="line"></span><br><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>countydf<span class="punctuation">,</span> FillColor <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span> FillColor <span class="operator">!=</span> <span class="string">&quot;#000033&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.01</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> FillColor <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>provboundary<span class="punctuation">,</span> QUHUADAIMA <span class="operator">==</span> <span class="string">&quot;710000&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>FillColor<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               <span class="operator">!</span>str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>boundary<span class="punctuation">,</span> NAME <span class="operator">!=</span> <span class="string">&quot;&quot;</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_length<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">)</span> <span class="operator">!=</span> <span class="number">7</span> <span class="operator">&amp;</span></span><br><span class="line">                               str_detect<span class="punctuation">(</span>QUHUADAIMA<span class="punctuation">,</span> <span class="string">&quot;hai&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">                               NAME <span class="operator">!=</span> <span class="string">&quot;jiantou&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;#6AA7DF&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> shape <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> point<span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>label <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;\n\n&quot;</span><span class="punctuation">,</span> NAME<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">               check_overlap <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span></span><br><span class="line">               size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_sf<span class="punctuation">(</span>crs <span class="operator">=</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中华人民共和国行政区划（县级）&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;地图数据来源：民政部&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.title <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/574b567592ec48c8a6166d79f12a236e">2022 年中国各省市级行政区划矢量数据（附带邻近区域）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:38.288Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/25952/" title="各个区县与最近城市的交通距离、驾车耗时、最优路线数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/45950/" title="旧版本｜1998～2014 年工企数据与绿色专利匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/37442/">中国各级行政区划矢量数据库（SHP 和 GEOJSON 格式，1820～2024 年）</a><span class="tf-related-meta">2025-02-24 · 约 2 分钟</span></li><li><a href="/posts/74399/">旧版本｜中国各级行政区划矢量数据库（SHP 和 GEOJSON 格式，1820～2021 年）</a><span class="tf-related-meta">2022-10-03 · 约 2 分钟</span></li><li><a href="/posts/56691/">2021年｜中国省市区县行政区划（SHP 和 GEOJSON 格式，附带 R 语言绘图代码）</a><span class="tf-related-meta">2022-03-17 · 约 1 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="toc-text">数据处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%98%E5%9B%BE%E4%BB%A3%E7%A0%81"><span class="toc-text">绘图代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E5%9B%BD%E5%90%84%E7%9C%81%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E5%9B%BE"><span class="toc-text">中国各省行政区划图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E5%9B%BD%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E5%9B%BE%EF%BC%88%E5%B8%82%E7%BA%A7%EF%BC%89"><span class="toc-text">中国行政区划图（市级）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E5%9B%BD%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E5%9B%BE%EF%BC%88%E7%9C%81%E7%BA%A7%EF%BC%89"><span class="toc-text">中国行政区划图（省级）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E5%9B%BD%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E5%9B%BE%EF%BC%88%E5%8E%BF%E7%BA%A7%EF%BC%89"><span class="toc-text">中国行政区划图（县级）</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

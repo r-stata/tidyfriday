@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>高效合并多个 dta 文件：appendall 命令详解 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/81638/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在日常数据分析工作中，我们经常会遇到需要合并多个 Stata 数据文件(.dta) 的情况。今天给大家介绍一个我编写的实用 Stata 命令—— appendall ，它可以一键合并指定文件夹中的所有 .dta 文件，大幅提升工作效率。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高效合并多个 dta 文件：appendall 命令详解">
+<meta property="og:url" content="https://tidyfriday.cn/posts/81638/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在日常数据分析工作中，我们经常会遇到需要合并多个 Stata 数据文件(.dta) 的情况。今天给大家介绍一个我编写的实用 Stata 命令—— appendall ，它可以一键合并指定文件夹中的所有 .dta 文件，大幅提升工作效率。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/81638.png">
+<meta property="article:published_time" content="2025-08-07T17:42:20.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:19:02.697Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/81638.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="高效合并多个 dta 文件：appendall 命令详解">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"高效合并多个 dta 文件：appendall 命令详解","description":"在日常数据分析工作中，我们经常会遇到需要合并多个 Stata 数据文件(.dta) 的情况。今天给大家介绍一个我编写的实用 Stata 命令—— appendall ，它可以一键合并指定文件夹中的所有 .dta 文件，大幅提升工作效率。","url":"https://tidyfriday.cn/posts/81638/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/81638/"},"image":["https://tidyfriday.cn/og/81638.png"],"datePublished":"2025-08-07T17:42:20.000Z","dateModified":"2026-09-26T14:19:02.697Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"编程技巧","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"高效合并多个 dta 文件：appendall 命令详解","item":"https://tidyfriday.cn/posts/81638/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">高效合并多个 dta 文件：appendall 命令详解</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">高效合并多个 dta 文件：appendall 命令详解</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-08-07T17:42:20.000Z" itemprop="datePublished">2025-08-07</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>989 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在日常数据分析工作中，我们经常会遇到需要合并多个 Stata 数据文件(.dta) 的情况。今天给大家介绍一个我编写的实用 Stata 命令—— <code>appendall</code> ，它可以一键合并指定文件夹中的所有 <code>.dta</code> 文件，大幅提升工作效率。</p>
+<span id="more"></span>
+
+<h2 id="命令开发背景" class="article-heading"><a href="#命令开发背景" class="headerlink" title="命令开发背景"></a>命令开发背景<a class="article-anchor" href="#命令开发背景" aria-label="本节链接" title="复制本节链接"></a></h2><p>最初我编写了一个简易版本的 <code>appendall</code> 命令，功能虽然简单但已经能满足基本需求：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*! appendall: 合并子文件夹中所有的 dta 文件</span></span><br><span class="line"><span class="comment">*! 用法：appendall datadir</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">prog</span> <span class="keyword">drop</span> appendall</span><br><span class="line"><span class="keyword">prog</span> def appendall</span><br><span class="line">    <span class="keyword">syntax</span> anything(name = filefolder)</span><br><span class="line">    <span class="keyword">local</span> files: <span class="keyword">dir</span> <span class="string">&quot;`filefolder&#x27;&quot;</span> files <span class="string">&quot;*.dta&quot;</span></span><br><span class="line">    <span class="keyword">local</span> first_file: word 1 of <span class="symbol">`files&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">use</span> <span class="string">&quot;`filefolder&#x27;/`first_file&#x27;&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">in</span> 1/`=_N&#x27;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">foreach</span> i <span class="keyword">in</span> <span class="symbol">`files&#x27;</span> &#123;</span><br><span class="line">        <span class="keyword">append</span> using <span class="string">&quot;`filefolder&#x27;/`i&#x27;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>后来经过 DeepSeek 的润色优化，生成了功能更完善的 <code>appendall</code> 命令，增加了错误处理、进度显示、文件筛选等实用功能。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*! appendall v1.0.0 26jul2025</span><br><span class="line">*! Author: RStata</span><br><span class="line">*! Merges all .dta files in a specified directory</span><br><span class="line"></span><br><span class="line">cap program drop appendall</span><br><span class="line">program define appendall, rclass</span><br><span class="line">    version 16  // 指定兼容的 Stata 版本</span><br><span class="line"></span><br><span class="line">    syntax [anything(name=foldername)] [, CLEAR FORCE LIST PATTERN(string) SAVing(string)]</span><br><span class="line"></span><br><span class="line">    // 如果没有指定文件夹，默认当前目录</span><br><span class="line">    if &quot;`foldername&#x27;&quot; == &quot;&quot; &#123;</span><br><span class="line">        local foldername &quot;.&quot;</span><br><span class="line">        di as text &quot;Note: Using current working directory&quot;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 检查文件夹是否存在</span><br><span class="line">    local oldpwd = `&quot;`c(pwd)&#x27;&quot;&#x27;</span><br><span class="line">    cap qui cd &quot;`foldername&#x27;&quot;</span><br><span class="line">    if _rc &#123;</span><br><span class="line">        di as error &quot;Directory `foldername&#x27; not found&quot;</span><br><span class="line">        exit 601</span><br><span class="line">    &#125;</span><br><span class="line">    cd `&quot;`oldpwd&#x27;&quot;&#x27;  // 返回原始目录</span><br><span class="line"></span><br><span class="line">    // 获取文件列表</span><br><span class="line">    if &quot;`pattern&#x27;&quot; == &quot;&quot; local pattern &quot;*.dta&quot;</span><br><span class="line">    local files: dir &quot;`foldername&#x27;&quot; files &quot;`pattern&#x27;&quot;, respectcase</span><br><span class="line">    local filecount: word count `files&#x27;</span><br><span class="line"></span><br><span class="line">    if `filecount&#x27; == 0 &#123;</span><br><span class="line">        di as error &quot;No .dta files found in `foldername&#x27;&quot;</span><br><span class="line">        exit 601</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 显示找到的文件列表（如果指定了list选项）</span><br><span class="line">    if &quot;`list&#x27;&quot; != &quot;&quot; &#123;</span><br><span class="line">        di as text _n &quot;Found `filecount&#x27; files:&quot;</span><br><span class="line">        foreach f of local files &#123;</span><br><span class="line">            di as text &quot; - `f&#x27;&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 检查内存中是否有数据（除非指定了clear或force）</span><br><span class="line">    if c(N) &gt; 0 &amp; &quot;`clear&#x27;&quot; == &quot;&quot; &amp; &quot;`force&#x27;&quot; == &quot;&quot; &#123;</span><br><span class="line">        di as error &quot;Data in memory will be lost. Use &#123;bf:clear&#125; or &#123;bf:force&#125; option&quot;</span><br><span class="line">        exit 4</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 主处理循环</span><br><span class="line">    tempfile master</span><br><span class="line">    local firstfile: word 1 of `files&#x27;</span><br><span class="line">    di as text _n &quot;Number of files found: `filecount&#x27;&quot;</span><br><span class="line"></span><br><span class="line">    qui use &quot;`foldername&#x27;/`firstfile&#x27;&quot;, clear</span><br><span class="line">    qui gen filename = &quot;`firstfile&#x27;&quot;</span><br><span class="line">    di as text _n &quot;Appending files: (1&quot; _continue</span><br><span class="line"></span><br><span class="line">    forvalues i = 2/`filecount&#x27; &#123;</span><br><span class="line">        local nextfile: word `i&#x27; of `files&#x27;</span><br><span class="line">        cap qui append using &quot;`foldername&#x27;/`nextfile&#x27;&quot;</span><br><span class="line">        qui replace filename = &quot;`nextfile&#x27;&quot; if mi(filename)</span><br><span class="line">        if _rc &#123;</span><br><span class="line">            di as error _n &quot;Error appending `nextfile&#x27;&quot;</span><br><span class="line">            if &quot;`force&#x27;&quot; == &quot;&quot; exit _rc</span><br><span class="line">        &#125;</span><br><span class="line">        di as text &quot; `i&#x27;&quot; _continue</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    di as text &quot;) Done&quot; _n</span><br><span class="line">    di as text &quot;Total observations:  &quot; as result _N</span><br><span class="line"></span><br><span class="line">    // 保存结果（如果指定了saving选项）</span><br><span class="line">    if &quot;`saving&#x27;&quot; != &quot;&quot; &#123;</span><br><span class="line">        save &quot;`saving&#x27;&quot;, `replace&#x27;</span><br><span class="line">        di as text _n &quot;Merged data saved to: `saving&#x27;&quot;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 返回信息</span><br><span class="line">    return local N_files = `filecount&#x27;</span><br><span class="line">    return local files `&quot;`files&#x27;&quot;&#x27;</span><br><span class="line">    return local directory `&quot;`foldername&#x27;&quot;&#x27;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>Deepseek 还帮我生成了该命令的帮助文档：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/07/17/02b79j1bdbe1b168g4/common/content/1754559712819_522819.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="命令功能特点" class="article-heading"><a href="#命令功能特点" class="headerlink" title="命令功能特点"></a>命令功能特点<a class="article-anchor" href="#命令功能特点" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
+<li>智能文件搜索：可指定文件夹路径和文件匹配模式</li>
+<li>安全保护机制：避免意外覆盖内存中的数据</li>
+<li>进度可视化：实时显示合并进度</li>
+<li>结果保存：支持直接保存合并后的数据集</li>
+<li>信息反馈：返回合并的文件数量和名称列表</li>
+</ol>
+<h2 id="安装方法" class="article-heading"><a href="#安装方法" class="headerlink" title="安装方法"></a>安装方法<a class="article-anchor" href="#安装方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>我已将命令打包成安装文件，本地安装方法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net install appendall.pkg, from(&quot;appendall.pkg 文件的路径&quot;) replace</span><br></pre></td></tr></table></figure>
+
+<p>安装完成后即可使用。</p>
+<h2 id="使用示例" class="article-heading"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例<a class="article-anchor" href="#使用示例" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="示例数据生成" class="article-heading"><a href="#示例数据生成" class="headerlink" title="示例数据生成"></a>示例数据生成<a class="article-anchor" href="#示例数据生成" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先我们创建一些测试数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;testdata&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/5 &#123;</span><br><span class="line">    <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">set</span> obs 100</span><br><span class="line">    <span class="keyword">gen</span> id = _n</span><br><span class="line">    <span class="keyword">gen</span> value = rnormal()</span><br><span class="line">    <span class="keyword">save</span> <span class="string">&quot;testdata/data`i&#x27;.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="基本使用方法" class="article-heading"><a href="#基本使用方法" class="headerlink" title="基本使用方法"></a>基本使用方法<a class="article-anchor" href="#基本使用方法" aria-label="本节链接" title="复制本节链接"></a></h3><p>合并当前目录下所有.dta文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall</span><br></pre></td></tr></table></figure>
+
+<p>合并指定文件夹中的文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall &quot;D:/research/data&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="高级选项" class="article-heading"><a href="#高级选项" class="headerlink" title="高级选项"></a>高级选项<a class="article-anchor" href="#高级选项" aria-label="本节链接" title="复制本节链接"></a></h3><ol>
+<li>显示文件列表：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall, list</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>自定义文件匹配模式：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall, pattern(&quot;mydata*.dta&quot;)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>直接保存合并结果：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall, saving(&quot;merged_data.dta&quot;)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>强制合并（忽略内存中的数据）：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall, force</span><br></pre></td></tr></table></figure>
+
+<h2 id="性能优化" class="article-heading"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化<a class="article-anchor" href="#性能优化" aria-label="本节链接" title="复制本节链接"></a></h2><p>当处理大量文件时，建议：</p>
+<ol>
+<li>使用 clear 选项明确清除内存数据；</li>
+<li>先使用 list 选项确认要合并的文件；</li>
+<li>合并完成后立即保存结果；</li>
+</ol>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/e1ac857b880a49f493f976c6391741e4">高效合并多个 dta 文件：appendall 命令详解</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:19:02.697Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/19129/" title="R 语言：使用夜间灯光数据构造城市形态指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/99231/" title="名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/96797/">Mac OS 使用技巧及常用软件下载安装教程</a><span class="tf-related-meta">2026-03-24 · 约 9 分钟</span></li><li><a href="/posts/99294/">金融许可证持有机构列表、经纬度及省市区县分布数据（截止2025年6月21日）</a><span class="tf-related-meta">2025-06-22 · 约 4 分钟</span></li><li><a href="/posts/33131/">Stata 如何读取超大的 dta 和 csv 文件</a><span class="tf-related-meta">2025-04-03 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E5%BC%80%E5%8F%91%E8%83%8C%E6%99%AF"><span class="toc-text">命令开发背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E5%8A%9F%E8%83%BD%E7%89%B9%E7%82%B9"><span class="toc-text">命令功能特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95"><span class="toc-text">安装方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="toc-text">使用示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90"><span class="toc-text">示例数据生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-text">基本使用方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E9%80%89%E9%A1%B9"><span class="toc-text">高级选项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-text">性能优化</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

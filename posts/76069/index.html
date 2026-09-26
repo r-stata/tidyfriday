@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 绘制城市间专利合作申请数量网络图 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/76069/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="之前给大家分享了使用 R 语言绘制城市间专利合作申请数量网络图的方法：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 绘制城市间专利合作申请数量网络图">
+<meta property="og:url" content="https://tidyfriday.cn/posts/76069/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="之前给大家分享了使用 R 语言绘制城市间专利合作申请数量网络图的方法：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/76069.png">
+<meta property="article:published_time" content="2025-03-10T00:27:58.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:46.214Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/76069.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 绘制城市间专利合作申请数量网络图">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 绘制城市间专利合作申请数量网络图","description":"之前给大家分享了使用 R 语言绘制城市间专利合作申请数量网络图的方法：","url":"https://tidyfriday.cn/posts/76069/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/76069/"},"image":["https://tidyfriday.cn/og/76069.png"],"datePublished":"2025-03-10T00:27:58.000Z","dateModified":"2026-09-26T14:18:46.214Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, Stata, 专利","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 绘制城市间专利合作申请数量网络图","item":"https://tidyfriday.cn/posts/76069/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 绘制城市间专利合作申请数量网络图</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 绘制城市间专利合作申请数量网络图</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-03-10T00:27:58.000Z" itemprop="datePublished">2025-03-10</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2566 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>之前给大家分享了使用 R 语言绘制城市间专利合作申请数量网络图的方法：</p>
+<span id="more"></span>
+
+<blockquote>
+<p>使用 R 语言绘制城市间专利合作申请数量网络图(一)：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/4ef23aa8632046e283b8e7175f6a6f7f">https://rstata.duanshu.com/#/brief/course/4ef23aa8632046e283b8e7175f6a6f7f</a><br>使用 R 语言绘制城市间专利合作申请数量网络图(二)：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/cc8ff6330fd944039f1af4c2d6622342">https://rstata.duanshu.com/#/brief/course/cc8ff6330fd944039f1af4c2d6622342</a></p>
+</blockquote>
+<p>考虑到有小伙伴没有使用过 R 语言，今天我们再来讲解下如何使用 Stata 绘制这样的图表：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/23/02b79j1bdbe1b168g4/common/content/1741534391393_194271.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>实际上之前也有讲解过类似的课程：</p>
+<blockquote>
+<p>使用 Stata 绘制中国地图+空间网络图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/06ef5cad0db54403ba93916e3b11c404">https://rstata.duanshu.com/#/brief/course/06ef5cad0db54403ba93916e3b11c404</a></p>
+</blockquote>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/23/02b79j1bdbe1b168g4/common/content/1741534250891_532544.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>使用 Stata 绘制地图是一门精细的操作，因此在学习本课程之前，需要预先学习下面的课程：</p>
+<blockquote>
+<p>使用 Stata 绘制历年中国市级行政区划（小地图版本 + 长版）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/0e9d78633ae64fefa684d6aad89633bc">https://rstata.duanshu.com/#/brief/course/0e9d78633ae64fefa684d6aad89633bc</a></p>
+</blockquote>
+<h2 id="构造-arrow-数据" class="article-heading"><a href="#构造-arrow-数据" class="headerlink" title="构造 arrow 数据"></a>构造 arrow 数据<a class="article-anchor" href="#构造-arrow-数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>网络图里面的每条边都是从起点到终点的一条线，但是我们的数据里面并没有起点和终点的坐标：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2020年城市间各类型专利合作数量统计.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据计算：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +------------------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      | 年份      城市1      城市2   合作申..   合作申..   合作申..   合作申.. |</span></span><br><span class="line"><span class="comment">*&gt;      |------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | 2020   七台河市     北京市          3          0          1          2 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | 2020   七台河市   哈尔滨市         12          0          3          9 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | 2020     万宁市     大庆市          1          0          1          0 |</span></span><br><span class="line"><span class="comment">*&gt;   4. | 2020     万宁市     江门市          1          0          0          1 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 2020     万宁市     海口市          1          0          1          0 |</span></span><br><span class="line"><span class="comment">*&gt;      |------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | 2020     三亚市     三沙市          2          0          1          1 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | 2020     三亚市     上海市          1          0          1          0 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | 2020     三亚市     九江市          1          0          1          0 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | 2020     三亚市     北京市         14          0          7          7 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | 2020     三亚市     南京市          2          0          2          0 |</span></span><br><span class="line"><span class="comment">*&gt;      +------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>因此第一步我们就需要在数据里面添加每条边的起点和终点坐标，也就是各个城市的质心：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 首先计算各城市质心的经纬度</span></span><br><span class="line">shp2dta using 2021行政区划/市.shp, database(city_db) coordinates(city_coord) genid(ID) <span class="keyword">replace</span> gencentroids(centroids)</span><br><span class="line"><span class="comment">*&gt; type: 5</span></span><br><span class="line"><span class="keyword">use</span> city_db, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 转换成 aea 坐标系</span></span><br><span class="line"><span class="keyword">keep</span> 市 *cen*</span><br><span class="line">geo2xy y_centroids x_centroids, <span class="keyword">gen</span>(_Y1 _X1) projection(albers, 6378137 298.257223563 25 47 0 105) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> *cen*</span><br><span class="line"><span class="keyword">ren</span> 市 城市1</span><br><span class="line"><span class="keyword">save</span> 各城市质心坐标, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file 各城市质心坐标.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<p>由于提供的地图数据是 aea 坐标系的，所以所有的坐标也都需要转换成 aea 坐标系的。</p>
+<p>然后就可以分别把起点和终点的坐标添加到数据里面了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 构造 arrowdata</span></span><br><span class="line"><span class="keyword">use</span> 2020年城市间各类型专利合作数量统计.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据计算：微信公众号 RStata)</span></span><br><span class="line"><span class="comment">*- 删除三沙市的数据</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 城市1 == <span class="string">&quot;三沙市&quot;</span> | 城市2 == <span class="string">&quot;三沙市&quot;</span></span><br><span class="line"><span class="comment">*&gt; (4 observations deleted)</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 城市1 using 各城市质心坐标</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                            11</span></span><br><span class="line"><span class="comment">*&gt;         from master                         0  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                         11  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                            12,312  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">ren</span> (_X1 _Y1) (_X2 _Y2)</span><br><span class="line"><span class="keyword">ren</span> 城市1 to</span><br><span class="line"><span class="keyword">ren</span> 城市2 城市1</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 城市1 using 各城市质心坐标</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                            22</span></span><br><span class="line"><span class="comment">*&gt;         from master                        11  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                         11  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                            12,312  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">ren</span> 城市1 from</span><br><span class="line"><span class="keyword">keep</span> from to _* 合作申请专利数量</span><br><span class="line"><span class="keyword">ren</span> 合作申请专利数量 value</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(_X1) | <span class="built_in">mi</span>(_X2)</span><br><span class="line"><span class="comment">*&gt; (22 observations deleted)</span></span><br><span class="line"><span class="comment">*- 两个目标，一个是总 value 最大的 10 个城市的线条用彩色；二个是线条的粗细和 value 相关</span></span><br><span class="line"><span class="keyword">bysort</span> from: <span class="keyword">egen</span> <span class="keyword">sum</span> = <span class="built_in">sum</span>(value)</span><br><span class="line"><span class="keyword">egen</span> rank = rank(-<span class="keyword">sum</span>)</span><br><span class="line"><span class="keyword">gsort</span> rank</span><br><span class="line"><span class="keyword">egen</span> group1 = <span class="built_in">group</span>(rank)</span><br><span class="line"><span class="keyword">replace</span> group1 = 11 <span class="keyword">if</span> group1 &gt; 10</span><br><span class="line"><span class="comment">*&gt; (10,081 real changes made)</span></span><br><span class="line"><span class="keyword">drop</span> rank</span><br><span class="line"><span class="comment">*- 线条粗细分成 6 组</span></span><br><span class="line"><span class="keyword">egen</span> group2 = cut(value), <span class="built_in">group</span>(6)</span><br><span class="line"><span class="keyword">tab</span> group2</span><br><span class="line"><span class="comment">*&gt;      group2 |      Freq.     Percent        Cum.</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;           1 |      3,082       25.03       25.03</span></span><br><span class="line"><span class="comment">*&gt;           2 |      1,934       15.71       40.74</span></span><br><span class="line"><span class="comment">*&gt;           3 |      2,980       24.20       64.94</span></span><br><span class="line"><span class="comment">*&gt;           4 |      2,244       18.23       83.17</span></span><br><span class="line"><span class="comment">*&gt;           5 |      2,072       16.83      100.00</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;       Total |     12,312      100.00</span></span><br><span class="line"><span class="comment">*- 结果只分成了 5 组</span></span><br><span class="line"><span class="comment">*- 为了强调彩色的线条，把所有彩色的线条都设置成最粗的</span></span><br><span class="line"><span class="keyword">replace</span> group2 = 5 <span class="keyword">if</span> group1 &lt;= 10</span><br><span class="line"><span class="comment">*&gt; (1,334 real changes made)</span></span><br><span class="line"><span class="comment">*- 总组别</span></span><br><span class="line"><span class="keyword">gsort</span> group1 group2</span><br><span class="line"><span class="keyword">egen</span> group = <span class="built_in">group</span>(group1 group2)</span><br><span class="line"><span class="comment">* group 总共是 55 类，1-5 类其实就是 group1 == 1 的，5-10 是 group1 == 2 的，记住这个规则很重要，等下我们再根据这个规则设定线粗和颜色</span></span><br><span class="line"><span class="keyword">gsort</span> group1</span><br><span class="line"><span class="keyword">gen</span> _ID = _n</span><br><span class="line"><span class="keyword">save</span> arrowdata, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file arrowdata.dta saved</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +--------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      |             to     from   value          _X2         _Y2         _X1         _Y1     sum   group1   group2   group   _ID |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------------------------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. |         芜湖市   北京市     125    1231309.3   3383761.6   953794.11   4375700.2   54652        1        5       1     1 |</span></span><br><span class="line"><span class="comment">*&gt;   2. |         无锡市   北京市     280    1405801.1   3449808.8   953794.11   4375700.2   54652        1        5       1     2 |</span></span><br><span class="line"><span class="comment">*&gt;   3. |         松原市   北京市       6    1519670.4   4989671.2   953794.11   4375700.2   54652        1        5       1     3 |</span></span><br><span class="line"><span class="comment">*&gt;   4. |         宜昌市   北京市      41    579339.71   3273463.9   953794.11   4375700.2   54652        1        5       1     4 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 楚雄彝族自治州   北京市       3   -345036.94   2658956.6   953794.11   4375700.2   54652        1        5       1     5 |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------------------------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. |         泰安市   北京市     249    1061873.5     3912382   953794.11   4375700.2   54652        1        5       1     6 |</span></span><br><span class="line"><span class="comment">*&gt;   7. |         吉安市   北京市      28    968520.16   2881172.5   953794.11   4375700.2   54652        1        5       1     7 |</span></span><br><span class="line"><span class="comment">*&gt;   8. |         柳州市   北京市      23    441353.74   2617867.3   953794.11   4375700.2   54652        1        5       1     8 |</span></span><br><span class="line"><span class="comment">*&gt;   9. |         福州市   北京市     459    1412234.2   2831413.6   953794.11   4375700.2   54652        1        5       1     9 |</span></span><br><span class="line"><span class="comment">*&gt;  10. |         澄迈县   北京市       6    532326.58   2045782.2   953794.11   4375700.2   54652        1        5       1    10 |</span></span><br><span class="line"><span class="comment">*&gt;      +--------------------------------------------------------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意 arrow 数据的格式要求，运行 <code>help spmap##spatdata</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">  _ID       _X1       _Y1       _X2       _Y2   byvar_ar</span><br><span class="line">---------------------------------------------------------</span><br><span class="line">    1        11        30        18        30          1</span><br><span class="line">    2        15        40        15        45          1</span><br><span class="line">    3        15        40        25        40          1</span><br><span class="line">    4        20        35        28        45          2</span><br><span class="line">    5        17        20        20        11          2</span><br><span class="line">---------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+<p>这也是为什么我们要把 arrowdata 构造成前面的样子。</p>
+<h2 id="构造-point-数据" class="article-heading"><a href="#构造-point-数据" class="headerlink" title="构造 point 数据"></a>构造 point 数据<a class="article-anchor" href="#构造-point-数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>point 数据是用来绘制一些关键节点城市：</p>
+<blockquote>
+<p>此处代码需下载讲义材料查看～</p>
+</blockquote>
+<p>可以看到 point 数据的格式也要按照要求。</p>
+<h2 id="构造-label-数据" class="article-heading"><a href="#构造-label-数据" class="headerlink" title="构造 label 数据"></a>构造 label 数据<a class="article-anchor" href="#构造-label-数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>除了指北针和比例尺之外，我们还希望添加 value 和最大的 10 个城市的标签：</p>
+<blockquote>
+<p>此处代码需下载讲义材料查看～</p>
+</blockquote>
+<p>最后我们就可以绘图了，由于细节较多，这里就不在一句句解释了，建议结合视频讲解学习：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> chinaprov2021mini_db, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> colorlist = <span class="string">`&quot;&quot;80 80 255&quot; &quot;206 61 50&quot; &quot;116 155 88&quot; &quot;240 230 133&quot; &quot;70 105 131&quot; &quot;186 99 56&quot; &quot;93 177 221&quot; &quot;128 34 104&quot; &quot;107 215 107&quot; &quot;213 149 167&quot; &quot;146 72 34&quot; &quot;131 123 141&quot; &quot;199 81 39&quot; &quot;213 143 92&quot; &quot;122 101 165&quot; &quot;228 175 105&quot; &quot;59 27 83&quot; &quot;205 222 183&quot; &quot;97 42 121&quot; &quot;174 31 99&quot; &quot;231 199 111&quot; &quot;90 101 94&quot; &quot;204 153 0&quot; &quot;153 204 0&quot; &quot;169 169 169&quot; &quot;204 153 0&quot; &quot;153 204 0&quot; &quot;51 204 0&quot; &quot;0 204 51&quot; &quot;0 204 153&quot; &quot;0 153 204&quot; &quot;10 71 255&quot; &quot;71 117 255&quot; &quot;255 194 10&quot;&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 线条的颜色：11 种，每个循环 5 次</span></span><br><span class="line"><span class="keyword">local</span> rawcolor = <span class="string">`&quot;&quot;0 115 194&quot; &quot;239 192 0&quot; &quot;134 134 134&quot; &quot;205 83 76&quot; &quot;122 166 220&quot; &quot;0 60 103&quot; &quot;143 119 0&quot; &quot;59 59 59&quot; &quot;167 48 48&quot; &quot;74 105 144&quot; gray&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> colorlist2 = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/11 &#123;</span><br><span class="line">  <span class="keyword">local</span> tempcolor: word <span class="symbol">`i&#x27;</span> of <span class="symbol">`rawcolor&#x27;</span></span><br><span class="line">  <span class="keyword">forval</span> j = 1/5 &#123;</span><br><span class="line">    <span class="keyword">local</span> colorlist2 = <span class="string">`&quot;`colorlist2&#x27; &quot;`tempcolor&#x27;&quot;&quot;&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 线条的粗细：5 种，整体循环 11 次</span></span><br><span class="line"><span class="keyword">local</span> rawsize = <span class="string">`&quot;vvvthin vvvthin vvvthin vvvthin vvthin&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> sizelist2 = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/11 &#123;</span><br><span class="line">  <span class="keyword">local</span> sizelist2 = <span class="string">`&quot;`sizelist2&#x27; `rawsize&#x27;&quot;&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">spmap using chinaprov2021mini_coord.dta, <span class="comment">///</span></span><br><span class="line">  id(ID) osize(vthin ...) ocolor(gray ...) <span class="comment">///</span></span><br><span class="line">  graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">  fcolor(<span class="string">&quot;white&quot;</span> ...) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">line</span>(data(line_with_nhb) <span class="keyword">by</span>(group) <span class="comment">///</span></span><br><span class="line">    select(<span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 4, 7)) <span class="comment">///</span></span><br><span class="line">    size(vvthin *1.2 *0.5 *0.5 *0.5 *1.2) pattern(solid ...) <span class="comment">///</span></span><br><span class="line">    color(white <span class="comment">/// 省界颜色</span></span><br><span class="line">        <span class="string">&quot;162 154 196&quot;</span> <span class="comment">/// 国界线颜色</span></span><br><span class="line">        <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">        black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">        black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">        )) <span class="comment">///</span></span><br><span class="line">  polygon(data(polygon_with_nhb) <span class="keyword">by</span>(class_group) <span class="comment">///</span></span><br><span class="line">    fcolor(black black <span class="string">&quot;237 237 237&quot;</span>) <span class="comment">///</span></span><br><span class="line">    osize(vvthin ...) ocolor(black black black)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(mylabel) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="comment">///</span></span><br><span class="line">    <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">  ti(<span class="string">&quot;2020 年城市间专利合作网络&quot;</span>) <span class="comment">///</span></span><br><span class="line">  subti(<span class="string">&quot;数据处理 &amp; 绘制：微信公众号 RStata&quot;</span>, size(*0.8)) <span class="comment">///</span></span><br><span class="line">  caption(<span class="string">&quot;数据来源：国家知识产权局&quot;</span>, size(*0.8)) <span class="comment">///</span></span><br><span class="line">  plotr(fcolor(<span class="string">&quot;187 209 235&quot;</span>) margin(-0.95 -0.95 -0.95 -0.95)) <span class="comment">///</span></span><br><span class="line">  arrow(data(arrowdata) <span class="keyword">by</span>(group) <span class="comment">///</span></span><br><span class="line">        lcolor(<span class="symbol">`colorlist2&#x27;</span>) <span class="comment">///</span></span><br><span class="line">        lpattern(solid ...) lsize(<span class="symbol">`sizelist2&#x27;</span>) <span class="comment">///</span></span><br><span class="line">        hfcolor(<span class="symbol">`colorlist2&#x27;</span>) hocolor(<span class="symbol">`colorlist2&#x27;</span>) <span class="comment">///</span></span><br><span class="line">        hosize(vvvthin ...) hsize(tiny ...) hbarbsize(tiny ...)) <span class="comment">///</span></span><br><span class="line">  point(data(first100df) <span class="keyword">by</span>(byvar) <span class="comment">///</span></span><br><span class="line">      fcolor(<span class="string">&quot;black&quot;</span> ...) <span class="comment">///</span></span><br><span class="line">        x(_X) <span class="built_in">y</span>(_Y) <span class="comment">///</span></span><br><span class="line">        size(vtiny tiny vsmall small medsmall) legenda(off)) <span class="comment">///</span></span><br><span class="line">  leg(off)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export pic1.png, width(4800) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/23/02b79j1bdbe1b168g4/common/content/1741534390286_483163.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="把-point-图层放置在上层" class="article-heading"><a href="#把-point-图层放置在上层" class="headerlink" title="把 point 图层放置在上层"></a>把 point 图层放置在上层<a class="article-anchor" href="#把-point-图层放置在上层" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于没有办法解决散点被压在下面的问题，所以我们可以考虑另外一种绘制线条的方案：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> arrowdata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">expand</span> 3</span><br><span class="line"><span class="keyword">gsort</span> _ID</span><br><span class="line"><span class="keyword">bysort</span> _ID: <span class="keyword">replace</span> _X1 = _X2 <span class="keyword">if</span> _n == 2</span><br><span class="line"><span class="keyword">bysort</span> _ID: <span class="keyword">replace</span> _Y1 = _Y2 <span class="keyword">if</span> _n == 2</span><br><span class="line"><span class="keyword">drop</span> _X2 _Y2</span><br><span class="line"><span class="keyword">ren</span> (_X1 _Y1) (_X _Y)</span><br><span class="line"><span class="keyword">bysort</span> _ID: <span class="keyword">replace</span> _X = . <span class="keyword">if</span> _n == _N</span><br><span class="line"><span class="keyword">bysort</span> _ID: <span class="keyword">replace</span> _Y = . <span class="keyword">if</span> _n == _N</span><br><span class="line"><span class="keyword">replace</span> _ID = _ID + 43</span><br><span class="line"><span class="keyword">replace</span> group = group + 7</span><br><span class="line"><span class="keyword">append</span> using line_with_nhb</span><br><span class="line"><span class="keyword">save</span> myline, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 绘图</span></span><br><span class="line">&gt; 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/23/02b79j1bdbe1b168g4/common/content/1741534391393_194271.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="去除邻国地区" class="article-heading"><a href="#去除邻国地区" class="headerlink" title="去除邻国地区"></a>去除邻国地区<a class="article-anchor" href="#去除邻国地区" aria-label="本节链接" title="复制本节链接"></a></h2><p>邻国区域主要是包括 polygon 和 label 数据，因此从二者里面删除相应的内容即可：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 不添加邻国</span></span><br><span class="line"><span class="keyword">use</span> mylabel, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">mi</span>(ename) &amp; !<span class="built_in">inlist</span>(ename, <span class="string">&quot;N&quot;</span>, <span class="string">&quot;1000km&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> Y = Y + 80000 <span class="keyword">if</span> <span class="built_in">mi</span>(ename)</span><br><span class="line"><span class="keyword">save</span> mylabel2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> polygon_with_nhb, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">class</span> == <span class="string">&quot;邻国&quot;</span></span><br><span class="line"><span class="keyword">save</span> polygon_with_nhb2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> chinaprov2021mini_db, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">local</span> colorlist = <span class="string">`&quot;&quot;80 80 255&quot; &quot;206 61 50&quot; &quot;116 155 88&quot; &quot;240 230 133&quot; &quot;70 105 131&quot; &quot;186 99 56&quot; &quot;93 177 221&quot; &quot;128 34 104&quot; &quot;107 215 107&quot; &quot;213 149 167&quot; &quot;146 72 34&quot; &quot;131 123 141&quot; &quot;199 81 39&quot; &quot;213 143 92&quot; &quot;122 101 165&quot; &quot;228 175 105&quot; &quot;59 27 83&quot; &quot;205 222 183&quot; &quot;97 42 121&quot; &quot;174 31 99&quot; &quot;231 199 111&quot; &quot;90 101 94&quot; &quot;204 153 0&quot; &quot;153 204 0&quot; &quot;169 169 169&quot; &quot;204 153 0&quot; &quot;153 204 0&quot; &quot;51 204 0&quot; &quot;0 204 51&quot; &quot;0 204 153&quot; &quot;0 153 204&quot; &quot;10 71 255&quot; &quot;71 117 255&quot; &quot;255 194 10&quot;&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 线条的颜色：11 种，每个循环 5 次</span></span><br><span class="line"><span class="keyword">local</span> rawcolor = <span class="string">`&quot;&quot;0 115 194&quot; &quot;239 192 0&quot; &quot;134 134 134&quot; &quot;205 83 76&quot; &quot;122 166 220&quot; &quot;0 60 103&quot; &quot;143 119 0&quot; &quot;59 59 59&quot; &quot;167 48 48&quot; &quot;74 105 144&quot; gray&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> colorlist2 = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/11 &#123;</span><br><span class="line">  <span class="keyword">local</span> tempcolor: word <span class="symbol">`i&#x27;</span> of <span class="symbol">`rawcolor&#x27;</span></span><br><span class="line">  <span class="keyword">forval</span> j = 1/5 &#123;</span><br><span class="line">    <span class="keyword">local</span> colorlist2 = <span class="string">`&quot;`colorlist2&#x27; &quot;`tempcolor&#x27;&quot;&quot;&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 线条的粗细：5 种，整体循环 11 次</span></span><br><span class="line"><span class="keyword">local</span> rawsize = <span class="string">`&quot;vvvthin vvvthin vvvthin vvvthin vvthin&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> sizelist2 = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/11 &#123;</span><br><span class="line">  <span class="keyword">local</span> sizelist2 = <span class="string">`&quot;`sizelist2&#x27; `rawsize&#x27;&quot;&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">spmap using chinaprov2021mini_coord.dta, <span class="comment">///</span></span><br><span class="line">  id(ID) osize(vthin ...) ocolor(gray ...) <span class="comment">///</span></span><br><span class="line">  graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">  fcolor(<span class="string">&quot;white&quot;</span> ...) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">line</span>(data(myline) <span class="keyword">by</span>(group) <span class="comment">///</span></span><br><span class="line">    select(<span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 4, 7)) <span class="comment">///</span></span><br><span class="line">    size(vvthin *1.2 *0.5 *0.5 *0.5 <span class="symbol">`sizelist2&#x27;</span>) <span class="comment">///</span></span><br><span class="line">    pattern(solid ...) <span class="comment">///</span></span><br><span class="line">    color(white <span class="comment">/// 省界颜色</span></span><br><span class="line">        <span class="string">&quot;162 154 196&quot;</span> <span class="comment">/// 国界线颜色</span></span><br><span class="line">        <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">        black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">        black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">        <span class="symbol">`colorlist2&#x27;</span>)) <span class="comment">///</span></span><br><span class="line">  polygon(data(polygon_with_nhb2) <span class="keyword">by</span>(class_group) <span class="comment">///</span></span><br><span class="line">    fcolor(black black <span class="string">&quot;237 237 237&quot;</span>) <span class="comment">///</span></span><br><span class="line">    osize(vvthin ...) ocolor(black black black)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(mylabel2) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="comment">///</span></span><br><span class="line">    <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">  ti(<span class="string">&quot;2020 年城市间专利合作网络&quot;</span>) <span class="comment">///</span></span><br><span class="line">  subti(<span class="string">&quot;数据处理 &amp; 绘制：微信公众号 RStata&quot;</span>, size(*0.8)) <span class="comment">///</span></span><br><span class="line">  caption(<span class="string">&quot;数据来源：国家知识产权局&quot;</span>, size(*0.8)) <span class="comment">///</span></span><br><span class="line">  plotr(margin(-0.95 -0.95 -0.95 -0.95)) <span class="comment">///</span></span><br><span class="line">  point(data(first100df) <span class="keyword">by</span>(byvar) <span class="comment">///</span></span><br><span class="line">      fcolor(<span class="string">&quot;black%80&quot;</span> ...) <span class="comment">///</span></span><br><span class="line">        x(_X) <span class="built_in">y</span>(_Y) <span class="comment">///</span></span><br><span class="line">        size(vtiny tiny vsmall small medsmall) legenda(off)) <span class="comment">///</span></span><br><span class="line">  leg(off)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export pic3.png, width(4800) <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/23/02b79j1bdbe1b168g4/common/content/1741534392281_365127.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/33d24c5aeb704ffda02e4a26e31cb07e">使用 Stata 绘制城市间专利合作申请数量网络图</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:46.214Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/11411/" title="2000～2019 年各省市区县、乡镇玉米、小麦、水稻三大作物种植面积面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/81021/" title="税调企业专利的引证专利基本信息"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/62740/">使用 Python 绘制城市间专利合作申请数量网络图(一)</a><span class="tf-related-meta">2026-04-23 · 约 8 分钟</span></li><li><a href="/posts/10258/">使用 Python 绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2026-04-23 · 约 7 分钟</span></li><li><a href="/posts/31379/">如何编写一个使用 Stata 绘制地图的 SKILLS？</a><span class="tf-related-meta">2026-03-22 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0-arrow-%E6%95%B0%E6%8D%AE"><span class="toc-text">构造 arrow 数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0-point-%E6%95%B0%E6%8D%AE"><span class="toc-text">构造 point 数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0-label-%E6%95%B0%E6%8D%AE"><span class="toc-text">构造 label 数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%8A-point-%E5%9B%BE%E5%B1%82%E6%94%BE%E7%BD%AE%E5%9C%A8%E4%B8%8A%E5%B1%82"><span class="toc-text">把 point 图层放置在上层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%BB%E9%99%A4%E9%82%BB%E5%9B%BD%E5%9C%B0%E5%8C%BA"><span class="toc-text">去除邻国地区</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

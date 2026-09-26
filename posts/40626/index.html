@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/40626/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="之前给大家分享过历年工企周边的 PM2.5 浓度数据，今天我们一起来看下这种数据是如何使用 R 语言计算的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/40626/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="之前给大家分享过历年工企周边的 PM2.5 浓度数据，今天我们一起来看下这种数据是如何使用 R 语言计算的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/40626.png">
+<meta property="article:published_time" content="2024-03-18T17:10:46.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:45.061Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="空气质量">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/40626.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度","description":"之前给大家分享过历年工企周边的 PM2.5 浓度数据，今天我们一起来看下这种数据是如何使用 R 语言计算的。","url":"https://tidyfriday.cn/posts/40626/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/40626/"},"image":["https://tidyfriday.cn/og/40626.png"],"datePublished":"2024-03-18T17:10:46.000Z","dateModified":"2026-09-26T14:18:45.061Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 空气质量, 上市公司","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度","item":"https://tidyfriday.cn/posts/40626/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-03-18T17:10:46.000Z" itemprop="datePublished">2024-03-18</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2626 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E7%A9%BA%E6%B0%94%E8%B4%A8%E9%87%8F">空气质量</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>之前给大家分享过历年工企周边的 PM2.5 浓度数据，今天我们一起来看下这种数据是如何使用 R 语言计算的。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>历年工企业周边年平均 PM2.5 浓度面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/96e2daf6e4d94af9baf7f98908d6c535">https://rstata.duanshu.com/#/brief/course/96e2daf6e4d94af9baf7f98908d6c535</a></p>
+</blockquote>
+<h2 id="逐年计算" class="article-heading"><a href="#逐年计算" class="headerlink" title="逐年计算"></a>逐年计算<a class="article-anchor" href="#逐年计算" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先我在附件中给大家准备了大概 1 万条工企数据的样本：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取工企数据</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;工企样本.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"><span class="comment"># 生成年份变量</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">(</span>gqid<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 10,098 × 6</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                    经度  纬度  year</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 2004002192 肇源县电业局                125.  45.5  2004</span></span><br><span class="line"><span class="comment">#&gt;  2 718200 1998329797 肇源县电业局                125.  45.5  1998</span></span><br><span class="line"><span class="comment">#&gt;  3 718200 2010055403 肇源县电业局                125.  45.5  2010</span></span><br><span class="line"><span class="comment">#&gt;  4 718200 2000030231 黑龙江省大庆市肇源县电业局  125.  45.5  2000</span></span><br><span class="line"><span class="comment">#&gt;  5 718200 2002029419 肇源县电业局                125.  45.5  2002</span></span><br><span class="line"><span class="comment">#&gt;  6 718200 2009296420 肇源县电业局                125.  45.5  2009</span></span><br><span class="line"><span class="comment">#&gt;  7 718200 2012040413 肇源县电业局                125.  45.5  2012</span></span><br><span class="line"><span class="comment">#&gt;  8 718200 2014263271 肇源县电业局                125.  45.5  2014</span></span><br><span class="line"><span class="comment">#&gt;  9 718200 2011161483 肇源县电业局                125.  45.5  2011</span></span><br><span class="line"><span class="comment">#&gt; 10 718200 2007169319 肇源县电业局                125.  45.5  2007</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 10,088 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>转换成 sf 对象：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  fill<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> .direction <span class="operator">=</span> <span class="string">&quot;updown&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf</span><br><span class="line"></span><br><span class="line">dfsf</span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 10098 features and 4 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: POINT</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 106.7291 ymin: 31.78151 xmax: 129.6261 ymax: 49.56619</span></span><br><span class="line"><span class="comment">#&gt; Geodetic CRS:  WGS 84</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 10,098 × 5</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                    year           geometry</span></span><br><span class="line"><span class="comment">#&gt;  *  &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                      &lt;dbl&gt;        &lt;POINT [°]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 2004002192 肇源县电业局                2004 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  2 718200 1998329797 肇源县电业局                1998 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  3 718200 2010055403 肇源县电业局                2010 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  4 718200 2000030231 黑龙江省大庆市肇源县电业局  2000 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  5 718200 2002029419 肇源县电业局                2002 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  6 718200 2009296420 肇源县电业局                2009 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  7 718200 2012040413 肇源县电业局                2012 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  8 718200 2014263271 肇源县电业局                2014 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  9 718200 2011161483 肇源县电业局                2011 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt; 10 718200 2007169319 肇源县电业局                2007 (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 10,088 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>首先以 2004 年为例讲解计算过程：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsf <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>year <span class="operator">==</span> <span class="number">2004</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf2004</span><br><span class="line"></span><br><span class="line">dfsf2004</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 594 features and 4 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: POINT</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 106.8158 ymin: 31.88336 xmax: 128.4702 ymax: 49.56619</span></span><br><span class="line"><span class="comment">#&gt; Geodetic CRS:  WGS 84</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 594 × 5</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                year            geometry</span></span><br><span class="line"><span class="comment">#&gt;  *  &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                  &lt;dbl&gt;         &lt;POINT [°]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 2004002192 肇源县电业局            2004  (125.0754 45.5125)</span></span><br><span class="line"><span class="comment">#&gt;  2 718201 2004002193 肇州县电业局            2004 (125.2614 45.70529)</span></span><br><span class="line"><span class="comment">#&gt;  3 718203 2004002196 黑龙江省延寿县电业局    2004 (128.3165 45.44723)</span></span><br><span class="line"><span class="comment">#&gt;  4 718204 2004002197 逊克县电业局            2004 (128.4702 49.56619)</span></span><br><span class="line"><span class="comment">#&gt;  5 718257 2004002372 中国印刷总公司          2004 (116.3437 39.93172)</span></span><br><span class="line"><span class="comment">#&gt;  6 718263 2004002380 常林股份有限公司        2004 (119.8291 31.88336)</span></span><br><span class="line"><span class="comment">#&gt;  7 718264 2004002384 清华同方股份有限公司    2004   (116.3283 39.996)</span></span><br><span class="line"><span class="comment">#&gt;  8 718268 2004002394 北京市热力集团有限公司  2004 (116.4297 39.95771)</span></span><br><span class="line"><span class="comment">#&gt;  9 718271 2004002411 北京长亿参饮料有限公司  2004 (116.6549 40.09434)</span></span><br><span class="line"><span class="comment">#&gt; 10 718272 2004002415 北京卷烟厂              2004  (116.573 39.91558)</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 584 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>生成坐标点周边 5km 的缓冲区（圆形区域）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsf2004 <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfbuffer_5km</span><br></pre></td></tr></table></figure>
+
+<p>这个区域数据是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>leaflet<span class="punctuation">)</span></span><br><span class="line">url <span class="operator">&lt;-</span> <span class="string">&quot;http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetWarm/MapServer/tile/&#123;z&#125;/&#123;y&#125;/&#123;x&#125;&quot;</span></span><br><span class="line">leaflet<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  addTiles<span class="punctuation">(</span>url<span class="punctuation">,</span> attribution <span class="operator">=</span> <span class="string">&quot;微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> map</span><br><span class="line"></span><br><span class="line"><span class="comment"># 仅展示名称含有“北京”的</span></span><br><span class="line">dfbuffer_5km <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>企业名称<span class="punctuation">,</span> <span class="string">&quot;北京&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>map <span class="operator">=</span> map<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/03/18/17/02b79j1bdbe1b168g4/common/content/1710752950353_369664.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>读取 2004 年的栅格数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rast(&quot;yeartif/cn2004.tif&quot;) -&gt; rst</span><br><span class="line">rst</span><br><span class="line">#&gt; class       : SpatRaster</span><br><span class="line">#&gt; dimensions  : 4724, 6159, 1  (nrow, ncol, nlyr)</span><br><span class="line">#&gt; resolution  : 0.01, 0.01  (x, y)</span><br><span class="line">#&gt; extent      : 73.5, 135.09, 6.320002, 53.56  (xmin, xmax, ymin, ymax)</span><br><span class="line">#&gt; coord. ref. : lon/lat WGS 84 (EPSG:4326)</span><br><span class="line">#&gt; source      : cn2004.tif</span><br><span class="line">#&gt; name        : cn2004</span><br><span class="line">#&gt; min value   :      1</span><br><span class="line">#&gt; max value   :    108</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以提取各工企 5km 范围内的 PM2.5 浓度均值了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">terra<span class="operator">::</span>extract<span class="punctuation">(</span>rst<span class="punctuation">,</span> vect<span class="punctuation">(</span>dfbuffer_5km<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> exact <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res5km</span><br></pre></td></tr></table></figure>
+
+<p>再和原数据合并：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfbuffer_5km <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ID <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>res5km<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>ID<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>PM25_5km <span class="operator">=</span> cn2004<span class="punctuation">)</span> <span class="operator">-&gt;</span> df5km</span><br><span class="line"></span><br><span class="line">df5km</span><br><span class="line"><span class="comment">#&gt; # A tibble: 594 × 5</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                year PM25_5km</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                  &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 2004002192 肇源县电业局            2004     32.1</span></span><br><span class="line"><span class="comment">#&gt;  2 718201 2004002193 肇州县电业局            2004     31.5</span></span><br><span class="line"><span class="comment">#&gt;  3 718203 2004002196 黑龙江省延寿县电业局    2004     34.5</span></span><br><span class="line"><span class="comment">#&gt;  4 718204 2004002197 逊克县电业局            2004     18.1</span></span><br><span class="line"><span class="comment">#&gt;  5 718257 2004002372 中国印刷总公司          2004     80.5</span></span><br><span class="line"><span class="comment">#&gt;  6 718263 2004002380 常林股份有限公司        2004     62.3</span></span><br><span class="line"><span class="comment">#&gt;  7 718264 2004002384 清华同方股份有限公司    2004     72.6</span></span><br><span class="line"><span class="comment">#&gt;  8 718268 2004002394 北京市热力集团有限公司  2004     80.7</span></span><br><span class="line"><span class="comment">#&gt;  9 718271 2004002411 北京长亿参饮料有限公司  2004     70.4</span></span><br><span class="line"><span class="comment">#&gt; 10 718272 2004002415 北京卷烟厂              2004     78.6</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 584 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>对于多年数据，循环各年然后合并即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsf <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsfbuffer_5km</span><br><span class="line"></span><br><span class="line">dfsfbuffer_5km</span><br><span class="line">lapply<span class="punctuation">(</span><span class="number">1998</span><span class="operator">:</span><span class="number">2014</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  print<span class="punctuation">(</span>x<span class="punctuation">)</span></span><br><span class="line">  dfsfbuffer_5km <span class="operator">%&gt;%</span></span><br><span class="line">    filter<span class="punctuation">(</span>year <span class="operator">==</span> x<span class="punctuation">)</span> <span class="operator">-&gt;</span> buffertemp</span><br><span class="line">  rast<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;yeartif/cn&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rsttemp</span><br><span class="line"></span><br><span class="line">  terra<span class="operator">::</span>extract<span class="punctuation">(</span>rsttemp<span class="punctuation">,</span> vect<span class="punctuation">(</span>buffertemp<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                 fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> exact <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> restemp</span><br><span class="line">  buffertemp <span class="operator">%&gt;%</span></span><br><span class="line">    st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span>ID <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    left_join<span class="punctuation">(</span>restemp<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span><span class="operator">-</span>ID<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="string">&quot;group&quot;</span><span class="punctuation">,</span> <span class="string">&quot;gqid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;企业名称&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;PM25_5km&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br><span class="line"><span class="comment">#&gt; # A tibble: 10,098 × 5</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                  year PM25_5km</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                    &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 1998329797 肇源县电业局              1998     32.3</span></span><br><span class="line"><span class="comment">#&gt;  2 718201 1998329798 肇州县电业局              1998     33.8</span></span><br><span class="line"><span class="comment">#&gt;  3 718203 1998164685 延寿县电业局              1998     32.5</span></span><br><span class="line"><span class="comment">#&gt;  4 718204 1998021653 逊克县电业局              1998     28.9</span></span><br><span class="line"><span class="comment">#&gt;  5 718257 1998329958 中国印刷总公司            1998     65.9</span></span><br><span class="line"><span class="comment">#&gt;  6 718263 1998164852 常林股份有限公司          1998     46.9</span></span><br><span class="line"><span class="comment">#&gt;  7 718264 1998329970 清华同方股份有限公司      1998     60.2</span></span><br><span class="line"><span class="comment">#&gt;  8 718268 1998329984 北京市热力公司            1998     66.0</span></span><br><span class="line"><span class="comment">#&gt;  9 718271 1998330005 北京偿亿人参饮料有限公司  1998     58.0</span></span><br><span class="line"><span class="comment">#&gt; 10 718272 1998164894 北京卷烟厂                1998     62.1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 10,088 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就得到了所有企业各年周边 5km 范围内的平均 PM2.5 浓度。</p>
+<p>如果想要多个距离的，可以再嵌套一个循环，例如计算 5 和 10km 的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">lapply<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>y<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  print<span class="punctuation">(</span>y<span class="punctuation">)</span></span><br><span class="line">  dfsf <span class="operator">%&gt;%</span></span><br><span class="line">    st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span>y<span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsfbuffer_temp</span><br><span class="line">  lapply<span class="punctuation">(</span><span class="number">1998</span><span class="operator">:</span><span class="number">2014</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    dfsfbuffer_temp <span class="operator">%&gt;%</span></span><br><span class="line">      filter<span class="punctuation">(</span>year <span class="operator">==</span> x<span class="punctuation">)</span> <span class="operator">-&gt;</span> buffertemp</span><br><span class="line">    rast<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;yeartif/cn&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rsttemp</span><br><span class="line"></span><br><span class="line">    terra<span class="operator">::</span>extract<span class="punctuation">(</span>rsttemp<span class="punctuation">,</span> vect<span class="punctuation">(</span>buffertemp<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                   fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> exact <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> restemp</span><br><span class="line">    suppressMessages<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      buffertemp <span class="operator">%&gt;%</span></span><br><span class="line">        st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        mutate<span class="punctuation">(</span>ID <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        left_join<span class="punctuation">(</span>restemp<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        select<span class="punctuation">(</span><span class="operator">-</span>ID<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        set_names<span class="punctuation">(</span><span class="string">&quot;group&quot;</span><span class="punctuation">,</span> <span class="string">&quot;gqid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;企业名称&quot;</span><span class="punctuation">,</span></span><br><span class="line">                  <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> paste0<span class="punctuation">(</span><span class="string">&quot;PM25_&quot;</span><span class="punctuation">,</span> y<span class="punctuation">,</span> <span class="string">&quot;km&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    bind_rows<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> resall</span><br><span class="line"></span><br><span class="line">resall <span class="operator">%&gt;%</span></span><br><span class="line">  reduce<span class="punctuation">(</span>left_join<span class="punctuation">)</span> <span class="operator">-&gt;</span> resalldf</span><br><span class="line"></span><br><span class="line">resalldf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">resalldf <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;1998～2014年部分工企周边的平均PM2.5浓度.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>绘图：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;1998～2014年部分工企周边的平均PM2.5浓度.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> resalldf</span><br><span class="line">library<span class="punctuation">(</span>gghighlight<span class="punctuation">)</span></span><br><span class="line">ggplot<span class="punctuation">(</span>resalldf<span class="punctuation">,</span> aes<span class="punctuation">(</span>x <span class="operator">=</span> year<span class="punctuation">,</span> y <span class="operator">=</span> PM25_5km<span class="punctuation">,</span></span><br><span class="line">                     color <span class="operator">=</span> factor<span class="punctuation">(</span>group<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_line<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  gghighlight<span class="punctuation">(</span>group <span class="operator">%in%</span> sample<span class="punctuation">(</span>unique<span class="punctuation">(</span>resalldf<span class="operator">$</span>group<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                size <span class="operator">=</span> <span class="number">8</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              label_params <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                                  label <span class="operator">=</span> <span class="string">&quot;企业名称&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_brewer<span class="punctuation">(</span>palette <span class="operator">=</span> <span class="string">&quot;Set1&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggthemes<span class="operator">::</span>theme_solarized_2<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;#fff5e3&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.margin <span class="operator">=</span> grid<span class="operator">::</span>unit<span class="punctuation">(</span><span class="built_in">rep</span><span class="punctuation">(</span><span class="number">0.8</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_x_continuous<span class="punctuation">(</span>breaks <span class="operator">=</span> <span class="number">1998</span><span class="operator">:</span><span class="number">2014</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_y_continuous<span class="punctuation">(</span>breaks <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">150</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="number">20</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>y <span class="operator">=</span> <span class="string">&quot;年均 PM2.5 质量浓度(µg/m3)&quot;</span><span class="punctuation">,</span></span><br><span class="line">       title <span class="operator">=</span> <span class="string">&quot;1998~2014年部分工企周边 5km 范围内的平均 PM2.5 浓度&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据计算：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：工企数据库，经纬度根据高德地图地理编码接口解析，PM2.5 栅格数据来源于华盛顿大学圣路易斯分校&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/03/18/17/02b79j1bdbe1b168g4/common/content/1710753001817_817313.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这个过程的计算原理可以通过下面的图理解：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>raster<span class="punctuation">)</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;北京长条范围.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fanwei</span><br><span class="line">raster<span class="punctuation">(</span><span class="string">&quot;yeartif/cn2004.tif&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>mask<span class="punctuation">(</span>fanwei<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>crop<span class="punctuation">(</span>fanwei<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rasterToPolygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取范围内的</span></span><br><span class="line">dfbuffer_5km <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>fanwei<span class="punctuation">)</span> <span class="operator">-&gt;</span> dftemp</span><br><span class="line">rstpoly <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>fanwei<span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpolytemp</span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>mapview<span class="punctuation">)</span></span><br><span class="line">mapview<span class="punctuation">(</span>rstpolytemp<span class="punctuation">,</span></span><br><span class="line">        layer.name <span class="operator">=</span> <span class="string">&quot;NDVI&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  mapview<span class="punctuation">(</span>dftemp<span class="punctuation">,</span></span><br><span class="line">          layer.name <span class="operator">=</span> <span class="string">&quot;5 km&quot;</span><span class="punctuation">,</span> map <span class="operator">=</span> map<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/03/18/17/02b79j1bdbe1b168g4/common/content/1710752994349_284737.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>再回想前面的提取代码为：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># terra::extract(rst, vect(dfbuffer_5km),</span></span><br><span class="line"><span class="comment">#                fun = &quot;mean&quot;, na.rm = T, exact = T) %&gt;%</span></span><br><span class="line"><span class="comment">#   as_tibble() -&gt; res5km</span></span><br></pre></td></tr></table></figure>
+
+<p>也就是加总平均每个圆圈内的值，如果使用了 <code>exact = T</code> 参数，表示边缘的方块根据进入内部的比例计算，如果 <code>exact = F</code>，表示边缘的方块不作考虑，只计算内部的。</p>
+<h2 id="直接计算多年的" class="article-heading"><a href="#直接计算多年的" class="headerlink" title="直接计算多年的"></a>直接计算多年的<a class="article-anchor" href="#直接计算多年的" aria-label="本节链接" title="复制本节链接"></a></h2><p>另外也可以使用这样的方法计算：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;yeartif&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">rast<span class="punctuation">(</span>fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;yeartif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line"></span><br><span class="line">terra<span class="operator">::</span>extract<span class="punctuation">(</span>rst<span class="punctuation">,</span> vect<span class="punctuation">(</span>dfsfbuffer_5km<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> exact <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res5km</span><br><span class="line"></span><br><span class="line">res5km</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 10,098 × 18</span></span><br><span class="line"><span class="comment">#&gt;       ID cn1998 cn1999 cn2000 cn2001 cn2002 cn2003 cn2004 cn2005 cn2006 cn2007</span></span><br><span class="line"><span class="comment">#&gt;    &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     1   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  2     2   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  3     3   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  4     4   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  5     5   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  6     6   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  7     7   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  8     8   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt;  9     9   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt; 10    10   32.3   27.9   33.8   34.5   36.9   43.9   32.1   34.7   42.1   38.9</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 10,088 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 7 more variables: cn2008 &lt;dbl&gt;, cn2009 &lt;dbl&gt;, cn2010 &lt;dbl&gt;, cn2011 &lt;dbl&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   cn2012 &lt;dbl&gt;, cn2013 &lt;dbl&gt;, cn2014 &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>再合并原数据、去除不同年份的结果即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsfbuffer_5km <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ID <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>res5km<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>ID<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  gather<span class="punctuation">(</span>contains<span class="punctuation">(</span><span class="string">&quot;cn&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> key <span class="operator">=</span> <span class="string">&quot;key&quot;</span><span class="punctuation">,</span> value <span class="operator">=</span> <span class="string">&quot;PM25_5km&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>key <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>key<span class="punctuation">,</span> <span class="string">&quot;cn&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         key <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>key<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>year <span class="operator">==</span> key<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="operator">-</span>key<span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 10,081 × 6</span></span><br><span class="line"><span class="comment">#&gt;     group       gqid 企业名称                  year   key PM25_5km</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 718200 1998329797 肇源县电业局              1998  1998     32.3</span></span><br><span class="line"><span class="comment">#&gt;  2 718201 1998329798 肇州县电业局              1998  1998     33.8</span></span><br><span class="line"><span class="comment">#&gt;  3 718203 1998164685 延寿县电业局              1998  1998     32.5</span></span><br><span class="line"><span class="comment">#&gt;  4 718204 1998021653 逊克县电业局              1998  1998     28.9</span></span><br><span class="line"><span class="comment">#&gt;  5 718257 1998329958 中国印刷总公司            1998  1998     65.9</span></span><br><span class="line"><span class="comment">#&gt;  6 718263 1998164852 常林股份有限公司          1998  1998     46.9</span></span><br><span class="line"><span class="comment">#&gt;  7 718264 1998329970 清华同方股份有限公司      1998  1998     60.2</span></span><br><span class="line"><span class="comment">#&gt;  8 718268 1998329984 北京市热力公司            1998  1998     66.0</span></span><br><span class="line"><span class="comment">#&gt;  9 718271 1998330005 北京偿亿人参饮料有限公司  1998  1998     58.0</span></span><br><span class="line"><span class="comment">#&gt; 10 718272 1998164894 北京卷烟厂                1998  1998     62.1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 10,071 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>有时候我们也会遇到不同年份的栅格数据范围不一致、分辨率不一致的问题（会无法直接使用 rast 读取），这个时候可以先把各年的栅格数据重采样成一致的，然后再使用 rast() 读取：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;yeartif&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fls</span><br><span class="line"><span class="comment"># 读取第一个</span></span><br><span class="line">rast<span class="punctuation">(</span>fls<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 然后循环所有的年份，都重采样成和第一年一样的</span></span><br><span class="line">lapply<span class="punctuation">(</span>fls<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  rast<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    terra<span class="operator">::</span>resample<span class="punctuation">(</span>rst1<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rast<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstnew</span><br><span class="line"></span><br><span class="line"><span class="built_in">names</span><span class="punctuation">(</span>rstnew<span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="number">1998</span><span class="operator">:</span><span class="number">2014</span></span><br><span class="line">rstnew</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; class       : SpatRaster</span></span><br><span class="line"><span class="comment">#&gt; dimensions  : 4724, 6159, 17  (nrow, ncol, nlyr)</span></span><br><span class="line"><span class="comment">#&gt; resolution  : 0.01, 0.01  (x, y)</span></span><br><span class="line"><span class="comment">#&gt; extent      : 73.5, 135.09, 6.320002, 53.56  (xmin, xmax, ymin, ymax)</span></span><br><span class="line"><span class="comment">#&gt; coord. ref. : lon/lat WGS 84 (EPSG:4326)</span></span><br><span class="line"><span class="comment">#&gt; source(s)   : memory</span></span><br><span class="line"><span class="comment">#&gt; names       : 1998, 1999, 2000,  2001,  2002,  2003, ...</span></span><br><span class="line"><span class="comment">#&gt; min values  :  1.3,  1.4,  1.6,   1.3,   1.2,   1.0, ...</span></span><br><span class="line"><span class="comment">#&gt; max values  : 87.0, 91.8, 96.8, 115.5, 113.1, 104.4, ...</span></span><br></pre></td></tr></table></figure>
+
+<p>然后后面的操作就都一样了。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/016330182fb64ecd9fab8ada0d816130">使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:45.061Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/87813/" title="1998~2014 年工企与港口和海岸线的距离"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/57142/" title="使用 Stata 绘制中国乡镇地图及根据经纬度判断所处的乡镇"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/20608/">R 语言：如何绘制上市公司投资网络图</a><span class="tf-related-meta">2025-02-06 · 约 7 分钟</span></li><li><a href="/posts/12686/">使用 R 语言爬取全部上市公司的年报数据</a><span class="tf-related-meta">2023-09-16 · 约 13 分钟</span></li><li><a href="/posts/13606/">R 语言课程｜相邻城市共同边界附近的工企与共同边界的距离计算 &amp; 绘图展示</a><span class="tf-related-meta">2022-05-08 · 约 3 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%90%E5%B9%B4%E8%AE%A1%E7%AE%97"><span class="toc-text">逐年计算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E8%AE%A1%E7%AE%97%E5%A4%9A%E5%B9%B4%E7%9A%84"><span class="toc-text">直接计算多年的</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

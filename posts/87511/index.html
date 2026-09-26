@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/87511/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天有个培训班的小伙伴问了一个这样的问题：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/87511/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天有个培训班的小伙伴问了一个这样的问题：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/87511.png">
+<meta property="article:published_time" content="2022-12-25T15:51:10.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:39.932Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/87511.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？","description":"今天有个培训班的小伙伴问了一个这样的问题：","url":"https://tidyfriday.cn/posts/87511/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/87511/"},"image":["https://tidyfriday.cn/og/87511.png"],"datePublished":"2022-12-25T15:51:10.000Z","dateModified":"2026-09-26T14:18:39.932Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, R 语言, 文本数据","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？","item":"https://tidyfriday.cn/posts/87511/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-12-25T15:51:10.000Z" itemprop="datePublished">2022-12-25</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>829 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天有个培训班的小伙伴问了一个这样的问题：</p>
+<span id="more"></span>
+
+<blockquote>
+<p>老师，分面facet的时候，想把每个小图的标题带个特殊符号该怎么操作呢？举个例子，原来分面出来的标题是1/2/3，现在想改成1℃/2℃/3℃，该怎么办呢？</p>
+</blockquote>
+<p>解决方法有很多，这里提供一种。</p>
+<p>首先我们找个绘制分面图的案例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">iris <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 150 x 5</span></span><br><span class="line"><span class="comment">#&gt;     Sepal.Length Sepal.Width Petal.Length Petal.Width Species</span></span><br><span class="line"><span class="comment">#&gt;            &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;fct&gt;</span></span><br><span class="line"><span class="comment">#&gt;   1          5.1         3.5          1.4         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   2          4.9         3            1.4         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   3          4.7         3.2          1.3         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   4          4.6         3.1          1.5         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   5          5           3.6          1.4         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   6          5.4         3.9          1.7         0.4 setosa</span></span><br><span class="line"><span class="comment">#&gt;   7          4.6         3.4          1.4         0.3 setosa</span></span><br><span class="line"><span class="comment">#&gt;   8          5           3.4          1.5         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;   9          4.4         2.9          1.4         0.2 setosa</span></span><br><span class="line"><span class="comment">#&gt;  10          4.9         3.1          1.5         0.1 setosa</span></span><br><span class="line"><span class="comment">#&gt;  # … with 140 more rows</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">iris <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>Sepal.Length<span class="punctuation">,</span> Sepal.Width<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  facet_wrap<span class="punctuation">(</span><span class="operator">~</span>Species<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/12/25/15/02b79j1bdbe1b168g4/common/content/1671954577913_211523.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>为了演示如何在小图的标题上添加摄氏度符号，我们把 Species 变量替换下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">unique<span class="punctuation">(</span>iris<span class="operator">$</span>Species<span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; [1] setosa     versicolor virginica</span></span><br><span class="line"><span class="comment">#&gt; Levels: setosa versicolor virginica</span></span><br><span class="line"></span><br><span class="line">iris <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>Species <span class="operator">=</span> case_when<span class="punctuation">(</span></span><br><span class="line">    Species <span class="operator">==</span> <span class="string">&quot;setosa&quot;</span> <span class="operator">~</span> <span class="string">&quot;1&amp;#176;C&quot;</span><span class="punctuation">,</span></span><br><span class="line">    Species <span class="operator">==</span> <span class="string">&quot;versicolor&quot;</span> <span class="operator">~</span> <span class="string">&quot;2&amp;#176;C&quot;</span><span class="punctuation">,</span></span><br><span class="line">    Species <span class="operator">==</span> <span class="string">&quot;virginica&quot;</span> <span class="operator">~</span> <span class="string">&quot;3&amp;#176;C&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> iris2</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>&amp;#176;</code> 在 HTML 里面表示摄氏度的小圆圈，然后我们可以使用 ggtext 包的 element_textbox() 元素：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">iris2 <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>Sepal.Length<span class="punctuation">,</span> Sepal.Width<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  facet_wrap<span class="punctuation">(</span><span class="operator">~</span>Species<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>strip.text <span class="operator">=</span> ggtext<span class="operator">::</span>element_textbox<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/12/25/15/02b79j1bdbe1b168g4/common/content/1671954578668_334411.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>再例如：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">iris2 <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>Sepal.Length<span class="punctuation">,</span> Sepal.Width<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  facet_wrap<span class="punctuation">(</span><span class="operator">~</span>Species<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;&amp;omicron;&amp;para;&amp;sect;&amp;times;&amp;frac14;&amp;pi;&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>strip.text <span class="operator">=</span> ggtext<span class="operator">::</span>element_textbox<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.title <span class="operator">=</span> ggtext<span class="operator">::</span>element_textbox<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/12/25/15/02b79j1bdbe1b168g4/common/content/1671954578914_922417.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下面是一些的 HTML 特殊符号的表示方法，使用的时候记得去掉 &amp; 后面的空格：</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>说明</th>
+<th>对应编码(使用时去掉&amp;后的空格)</th>
+<th>英文读法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&amp;</td>
+<td>AND 符号</td>
+<td>&amp; amp;</td>
+<td>ampersand</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>小于</td>
+<td>&amp; lt;</td>
+<td>little</td>
+</tr>
+<tr>
+<td>&gt;</td>
+<td>大于</td>
+<td>&amp; gt;</td>
+<td>great</td>
+</tr>
+<tr>
+<td></td>
+<td>不断行的空白格</td>
+<td>&amp; nbsp;</td>
+<td>number space</td>
+</tr>
+<tr>
+<td></td>
+<td>半方大的空白</td>
+<td>&amp; ensp;</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>全方大的空白</td>
+<td>&amp; emsp;</td>
+<td></td>
+</tr>
+<tr>
+<td>¿</td>
+<td>倒问号</td>
+<td>&amp; iquest;</td>
+<td>inverted question</td>
+</tr>
+<tr>
+<td>?</td>
+<td>问号</td>
+<td>&amp; quest;</td>
+<td>question</td>
+</tr>
+<tr>
+<td>«</td>
+<td>左书名号</td>
+<td>&amp; laquo;</td>
+<td>left angle quote</td>
+</tr>
+<tr>
+<td>»</td>
+<td>右书名号</td>
+<td>&amp; raquo;</td>
+<td>right angle quote</td>
+</tr>
+<tr>
+<td>“</td>
+<td>引号</td>
+<td>&amp; quot;</td>
+<td>quote</td>
+</tr>
+<tr>
+<td>‘</td>
+<td>左单引号</td>
+<td>&amp; lsquo;</td>
+<td>left single quote</td>
+</tr>
+<tr>
+<td>’</td>
+<td>右单引号</td>
+<td>&amp; rsquo:</td>
+<td>right single quote</td>
+</tr>
+<tr>
+<td>“</td>
+<td>左双引号</td>
+<td>&amp; ldquo:</td>
+<td>left double quote</td>
+</tr>
+<tr>
+<td>”</td>
+<td>右双引号</td>
+<td>&amp; rdquo:</td>
+<td>right double quote</td>
+</tr>
+<tr>
+<td>¶</td>
+<td>段落符号</td>
+<td>&amp; para;</td>
+<td>paragraph</td>
+</tr>
+<tr>
+<td>§</td>
+<td>章节符</td>
+<td>&amp; sect;</td>
+<td>section</td>
+</tr>
+<tr>
+<td>×</td>
+<td>乘号</td>
+<td>&amp; times;</td>
+<td>times</td>
+</tr>
+<tr>
+<td>÷</td>
+<td>除号</td>
+<td>&amp; divide;</td>
+<td>divide</td>
+</tr>
+<tr>
+<td>±</td>
+<td>加减号</td>
+<td>&amp; plusmn;</td>
+<td>plus minus</td>
+</tr>
+<tr>
+<td>ƒ</td>
+<td>函数</td>
+<td>&amp; fnof;</td>
+<td>function</td>
+</tr>
+<tr>
+<td>√</td>
+<td>根号</td>
+<td>&amp; radic;</td>
+<td>radic</td>
+</tr>
+<tr>
+<td>∞</td>
+<td>无穷大</td>
+<td>&amp; infin;</td>
+<td>infinite</td>
+</tr>
+<tr>
+<td>°</td>
+<td>度</td>
+<td>&amp; deg;</td>
+<td>degree</td>
+</tr>
+<tr>
+<td>≠</td>
+<td>不等号</td>
+<td>&amp; ne;</td>
+<td>ne</td>
+</tr>
+<tr>
+<td>≡</td>
+<td>恒等于</td>
+<td>&amp; equiv;</td>
+<td>equivalent</td>
+</tr>
+<tr>
+<td>≤</td>
+<td>小于等于</td>
+<td>&amp; le;</td>
+<td>less than or equal to</td>
+</tr>
+<tr>
+<td>≥</td>
+<td>大于等于</td>
+<td>&amp; ge;</td>
+<td>great than or equal to</td>
+</tr>
+<tr>
+<td>⊥</td>
+<td>垂直符号</td>
+<td>&amp; perp;</td>
+<td>perpendicular</td>
+</tr>
+<tr>
+<td>←</td>
+<td>左箭头</td>
+<td>&amp; larr;</td>
+<td>left arrow</td>
+</tr>
+<tr>
+<td>→</td>
+<td>右箭头</td>
+<td>&amp; rarr;</td>
+<td>right arrow</td>
+</tr>
+<tr>
+<td>↑</td>
+<td>上箭头</td>
+<td>&amp; uarr;</td>
+<td>up arrow</td>
+</tr>
+<tr>
+<td>↓</td>
+<td>下箭头</td>
+<td>&amp; darr;</td>
+<td>down arrow</td>
+</tr>
+<tr>
+<td>↔</td>
+<td>水平箭头</td>
+<td>&amp; harr;</td>
+<td>horizontal arrow</td>
+</tr>
+<tr>
+<td>↕</td>
+<td>竖直箭头</td>
+<td>&amp; varr;</td>
+<td>vertical arrow</td>
+</tr>
+<tr>
+<td>⇐</td>
+<td>双线左箭头</td>
+<td>&amp; lArr;</td>
+<td>left arrow</td>
+</tr>
+<tr>
+<td>⇒</td>
+<td>双线右箭头</td>
+<td>&amp; rArr;</td>
+<td>right arrow</td>
+</tr>
+<tr>
+<td>⇑</td>
+<td>双线上箭头</td>
+<td>&amp; uArr;</td>
+<td>up arrow</td>
+</tr>
+<tr>
+<td>⇓</td>
+<td>双线下箭头</td>
+<td>&amp; dArr;</td>
+<td>down arrow</td>
+</tr>
+<tr>
+<td>⇔</td>
+<td>双线水平双箭头</td>
+<td>&amp; hArr;</td>
+<td>horizontal arrow</td>
+</tr>
+<tr>
+<td>⇕</td>
+<td>双线竖直箭头</td>
+<td>&amp; vArr;</td>
+<td>vertical arrow</td>
+</tr>
+<tr>
+<td>♠</td>
+<td>黑桃</td>
+<td>&amp; spades;</td>
+<td></td>
+</tr>
+<tr>
+<td>♥</td>
+<td>红桃</td>
+<td>&amp; hearts;</td>
+<td>hearts</td>
+</tr>
+<tr>
+<td>♣</td>
+<td>梅花</td>
+<td>&amp; clubs;</td>
+<td>club</td>
+</tr>
+<tr>
+<td>♦</td>
+<td>方块</td>
+<td>&amp; diams;</td>
+<td>diamonds</td>
+</tr>
+<tr>
+<td>©</td>
+<td>版权</td>
+<td>&amp; copy;</td>
+<td>copy right</td>
+</tr>
+<tr>
+<td>®</td>
+<td>注册商标</td>
+<td>&amp; reg;</td>
+<td>registration</td>
+</tr>
+<tr>
+<td>™</td>
+<td>商标</td>
+<td>&amp; trade;</td>
+<td>trade</td>
+</tr>
+<tr>
+<td>¥</td>
+<td>人民币</td>
+<td>&amp; yen;</td>
+<td></td>
+</tr>
+<tr>
+<td>€</td>
+<td>欧元</td>
+<td>&amp; euro;</td>
+<td>euro</td>
+</tr>
+<tr>
+<td>¢</td>
+<td>美分</td>
+<td>&amp; cent;</td>
+<td>cent</td>
+</tr>
+<tr>
+<td>£</td>
+<td>英磅</td>
+<td>&amp; pound;</td>
+<td>pound</td>
+</tr>
+<tr>
+<td>⊕</td>
+<td></td>
+<td>&amp; oplus;</td>
+<td></td>
+</tr>
+<tr>
+<td>½</td>
+<td>二分之一</td>
+<td>&amp; frac12;</td>
+<td>fraction</td>
+</tr>
+<tr>
+<td>¼</td>
+<td>四分之一</td>
+<td>&amp; frac14;</td>
+<td>fraction</td>
+</tr>
+<tr>
+<td>‰</td>
+<td>千分符号</td>
+<td>&amp; permil;</td>
+<td>per mille</td>
+</tr>
+<tr>
+<td>∴</td>
+<td>所以</td>
+<td>&amp; there4;</td>
+<td>there fore</td>
+</tr>
+<tr>
+<td>π</td>
+<td>圆周率</td>
+<td>&amp; pi;</td>
+<td></td>
+</tr>
+<tr>
+<td>¹</td>
+<td>商标 1</td>
+<td>&amp; sup1;</td>
+<td>super 1</td>
+</tr>
+<tr>
+<td>α</td>
+<td>alpha</td>
+<td>&amp; alpha;</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>β</td>
+<td>beta</td>
+<td>&amp; beta;</td>
+<td>beta</td>
+</tr>
+<tr>
+<td>γ</td>
+<td>gamma</td>
+<td>&amp; gamma;</td>
+<td>gamma</td>
+</tr>
+<tr>
+<td>δ</td>
+<td>delta</td>
+<td>&amp; delta;</td>
+<td>delta</td>
+</tr>
+<tr>
+<td>θ</td>
+<td>theta</td>
+<td>&amp; theta;</td>
+<td>theta</td>
+</tr>
+<tr>
+<td>λ</td>
+<td>lambda</td>
+<td>&amp; lambda;</td>
+<td>lambda</td>
+</tr>
+<tr>
+<td>σ</td>
+<td>sigma</td>
+<td>&amp; sigma;</td>
+<td>sigma</td>
+</tr>
+<tr>
+<td>τ</td>
+<td>tau</td>
+<td>&amp; tau;</td>
+<td>tau</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/3c01157b00db46b08744b9ea515bc4b6">R 语言绘图中如何添加特殊符号文本？例如 ℃、⇔、¥ 这些？</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:39.932Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/69673/" title="1980年1月1日～2022年10月31日中国各省市区县 PM10 质量浓度面板数据 &amp; 栅格数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/96930/" title="Mac 上 R 语言安装 rJava、xlsx、tabulizer 等出错如何解决？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/79165/">使用 R 语言绘制分段回归线+拟合方程文本标签以及如何导出可以插入 word 文档中的矢量图</a><span class="tf-related-meta">2023-10-19 · 约 4 分钟</span></li><li><a href="/posts/42594/">如何从论文图表中提取数据重新使用 Stata 或者 R 语言绘图</a><span class="tf-related-meta">2025-09-09 · 约 6 分钟</span></li><li><a href="/posts/21497/">使用 R 语言绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2025-03-08 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

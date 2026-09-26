@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>文章归档 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/archives/2024/01/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="一起来学习 R 语言和 Stata 吧！">
+<meta property="og:type" content="website">
+<meta property="og:title" content="文章归档">
+<meta property="og:url" content="https://tidyfriday.cn/archives/2024/01/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="一起来学习 R 语言和 Stata 吧！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/site.png">
+<meta property="article:author" content="RStata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/site.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="文章归档">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"文章归档","url":"https://tidyfriday.cn/archives/2024/01/","inLanguage":"zh-Hans-CN","isPartOf":{"@type":"WebSite","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"文章归档","item":"https://tidyfriday.cn/archives/2024/01/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+
+<div id="content-wrap">
+  <div class="wrapper">
+    <div class="inner" id="tf-archive">
+
+      <header class="tf-page-head">
+        <h1 class="tf-page-title">文章归档</h1>
+        <p class="tf-page-sub">
+          按年份浏览全部文章，共 49 篇，时间跨度 2024–2024 年。
+          支持关键词检索与排序；点击条目直接进入文章，点击左侧年份可快速定位。
+        </p>
+      </header>
+
+      <div class="tf-stats">
+        <div class="tf-stat">
+          <span class="tf-stat-num">49<small>篇</small></span>
+          <span class="tf-stat-label">文章总数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">4.5 万字</span>
+          <span class="tf-stat-label">累计字数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">151<small>分钟</small></span>
+          <span class="tf-stat-label">预估总阅读时间</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">911<small>字</small></span>
+          <span class="tf-stat-label">篇均字数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">2<small>个</small></span>
+          <span class="tf-stat-label">分类数量</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">20<small>个</small></span>
+          <span class="tf-stat-label">标签数量</span>
+        </div>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">历年发文量
+          <span class="tf-block-extra">2024–2024 年 · 年均 49 篇</span>
+        </h2>
+        <div class="tf-chart"><div class="tf-chart-row" data-year-jump="2024" title="跳转到 2024 年"><span class="tf-chart-year">2024</span><span class="tf-chart-track"><span class="tf-chart-bar" style="width:100%"></span></span><span class="tf-chart-value">49 篇</span></div></div>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">分类分布<span class="tf-block-extra">点击可筛选</span></h2>
+        <ul class="tf-tag-list">
+          
+          <li><button type="button" class="tf-tag" data-fill="数据资料">数据资料<span class="tf-tag-count">45</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="课程">课程<span class="tf-tag-count">4</span></button></li>
+          
+        </ul>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">热门标签<span class="tf-block-extra">点击可筛选</span></h2>
+        <ul class="tf-tag-list">
+          
+          <li><button type="button" class="tf-tag" data-fill="专利">专利<span class="tf-tag-count">32</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="数据匹配">数据匹配<span class="tf-tag-count">28</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="企业数据">企业数据<span class="tf-tag-count">27</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="创新与知识">创新与知识<span class="tf-tag-count">17</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="旧版本">旧版本<span class="tf-tag-count">15</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="区域经济">区域经济<span class="tf-tag-count">13</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="金融">金融<span class="tf-tag-count">8</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="上市公司">上市公司<span class="tf-tag-count">6</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="地图">地图<span class="tf-tag-count">4</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="可视化与绘图">可视化与绘图<span class="tf-tag-count">4</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="R 语言">R 语言<span class="tf-tag-count">4</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="计量与统计方法">计量与统计方法<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="距离与边界">距离与边界<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="文本数据">文本数据<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="土地">土地<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="地形与地理">地形与地理<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="面板数据">面板数据<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="生态环境">生态环境<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="数据爬取">数据爬取<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="Stata">Stata<span class="tf-tag-count">1</span></button></li>
+          
+        </ul>
+      </div>
+
+      <div class="tf-archive-toolbar">
+        <span class="tf-archive-search">
+          <i class="fa fa-search"></i>
+          <input type="search" id="tf-archive-search-input" placeholder="搜索标题、分类、标签或摘要…" autocomplete="off">
+          <button type="button" id="tf-archive-clear" class="tf-archive-clear" aria-label="清空">&#10005;</button>
+        </span>
+        <select id="tf-archive-sort" class="tf-archive-sort" aria-label="排序方式">
+          <option value="date">按时间排序</option>
+          <option value="words">按字数排序</option>
+          <option value="title">按标题排序</option>
+        </select>
+        <span class="tf-archive-count" id="tf-archive-count">共 49 篇</span>
+      </div>
+
+      
+      <section class="tf-year" data-year="2024">
+        <h2 class="tf-year-title">
+          <span class="tf-year-num">2024</span>
+          <span class="tf-year-count" data-base="49 篇 · 4.5 万字 · 约 151 分钟">49 篇 · 4.5 万字 · 约 151 分钟</span>
+        </h2>
+        <ul class="tf-post-list">
+          
+          <li class="tf-post-item" data-title="使用 R 语言绘制三变量填充中国地图" data-search="使用 r 语言绘制三变量填充中国地图 课程 可视化与绘图 地图 r 语言 在之前「使用 r 语言绘制历年中国各省市区县地图（小地图版本 + 长版）」课程的基础上，我们今天再来学习下如何绘制双变量填充地图，也同样包含两种版本：" data-words="1366" data-date="2024-01-29">
+            <a class="tf-post-link" href="/posts/62142/">
+              <span class="tf-post-title">使用 R 语言绘制三变量填充中国地图</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2024-01-29</span>
+                <span class="tf-post-words">1366 字</span>
+                <span>5 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000～2023 年 12 月 31 日土地出让结果公告数据" data-search="2000～2023 年 12 月 31 日土地出让结果公告数据 数据资料 土地 文本数据 之前给大家分享了一份 2000～2023年8月 的土地出让结果公告数据，为了方便大家使用我把原始数据中的行政区变量拆分成了省市区县变量，并解析了地块的经纬度。由于数据各个年份的都有，所以行政区划也是各个年份的，没有统一，不方便使用，所以最近" data-words="1068" data-date="2024-01-29">
+            <a class="tf-post-link" href="/posts/96262/">
+              <span class="tf-post-title">2000～2023 年 12 月 31 日土地出让结果公告数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-29</span>
+                <span class="tf-post-words">1068 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2000～2023 年 12 月 31 日土地出让结果公告数据" data-search="旧版本｜2000～2023 年 12 月 31 日土地出让结果公告数据 数据资料 土地 文本数据 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/4127c2c9925a47f89216f0080cb3d413" data-words="1080" data-date="2024-01-29">
+            <a class="tf-post-link" href="/posts/94739/">
+              <span class="tf-post-title">旧版本｜2000～2023 年 12 月 31 日土地出让结果公告数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-29</span>
+                <span class="tf-post-words">1080 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="使用 Stata 绘制三变量填充中国地图" data-search="使用 stata 绘制三变量填充中国地图 课程 可视化与绘图 地图 stata 在之前「使用 stata 绘制历年中国各省市区县地图（小地图版本 + 长版）」课程的基础上，我们今天再来学习下如何绘制三变量填充地图，之前的课程链接：" data-words="1952" data-date="2024-01-29">
+            <a class="tf-post-link" href="/posts/88567/">
+              <span class="tf-post-title">使用 Stata 绘制三变量填充中国地图</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2024-01-29</span>
+                <span class="tf-post-words">1952 字</span>
+                <span>7 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析" data-search="使用 r 语言调用百度大脑自然语言处理接口进行文本情感倾向分析 课程 r 语言 数据爬取 文本数据 在之前的课程中我们讲解过如何使用情感分析词典进行文本情感分析，今天我们再来学习下如何使用 r 语言调用百度大脑自然语言处理接口进行文本情感分析。" data-words="1674" data-date="2024-01-22">
+            <a class="tf-post-link" href="/posts/75337/">
+              <span class="tf-post-title">使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2024-01-22</span>
+                <span class="tf-post-words">1674 字</span>
+                <span>6 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1998~2014 年企业污染库与工商注册信息匹配结果" data-search="旧版本｜1998~2014 年企业污染库与工商注册信息匹配结果 数据资料 企业数据 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/445615ebbb8f424d87445bb2b4a292b5" data-words="976" data-date="2024-01-17">
+            <a class="tf-post-link" href="/posts/87112/">
+              <span class="tf-post-title">旧版本｜1998~2014 年企业污染库与工商注册信息匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-17</span>
+                <span class="tf-post-words">976 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000~2016 年海关企业名称与工商注册信息匹配结果" data-search="2000~2016 年海关企业名称与工商注册信息匹配结果 数据资料 企业数据 数据匹配 之前给大家分享过一份带经纬度的工商企业注册信息：" data-words="853" data-date="2024-01-14">
+            <a class="tf-post-link" href="/posts/77813/">
+              <span class="tf-post-title">2000~2016 年海关企业名称与工商注册信息匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-14</span>
+                <span class="tf-post-words">853 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2000~2016 年海关企业名称与工商注册信息匹配结果" data-search="旧版本｜2000~2016 年海关企业名称与工商注册信息匹配结果 数据资料 企业数据 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/fe61acdee53d4000bb4b80ec0afbfff4" data-words="865" data-date="2024-01-14">
+            <a class="tf-post-link" href="/posts/31262/">
+              <span class="tf-post-title">旧版本｜2000~2016 年海关企业名称与工商注册信息匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-14</span>
+                <span class="tf-post-words">865 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998～2014 年海关企业地理位置高程与坡度数据" data-search="1998～2014 年海关企业地理位置高程与坡度数据 数据资料 企业数据 地形与地理 前不久给大家分享了一份海关企业的地理位置数据：" data-words="376" data-date="2024-01-14">
+            <a class="tf-post-link" href="/posts/35533/">
+              <span class="tf-post-title">1998～2014 年海关企业地理位置高程与坡度数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-14</span>
+                <span class="tf-post-words">376 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="相邻区县对的税调与共同边界距离数据 （地理断点回归模型数据包）" data-search="相邻区县对的税调与共同边界距离数据 （地理断点回归模型数据包） 数据资料 距离与边界 企业数据 计量与统计方法 位于两个相邻区县的税调企业经营环境大致相同，但是由于处于不同的区县境内，又可能受到不同的政策环境影响，因此以相邻区县的共同边界为界，可以构造很好的地理断点回归模型。" data-words="1503" data-date="2024-01-14">
+            <a class="tf-post-link" href="/posts/99962/">
+              <span class="tf-post-title">相邻区县对的税调与共同边界距离数据 （地理断点回归模型数据包）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-14</span>
+                <span class="tf-post-words">1503 字</span>
+                <span>5 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="相邻城市对的税调与共同边界距离数据 （地理断点回归模型数据包）" data-search="相邻城市对的税调与共同边界距离数据 （地理断点回归模型数据包） 数据资料 距离与边界 企业数据 计量与统计方法 上次给大家分享了相邻县对的 rdd 模型数据包，今天再给大家分享一个城市的～" data-words="1536" data-date="2024-01-14">
+            <a class="tf-post-link" href="/posts/83518/">
+              <span class="tf-post-title">相邻城市对的税调与共同边界距离数据 （地理断点回归模型数据包）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-14</span>
+                <span class="tf-post-words">1536 字</span>
+                <span>5 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="相邻省份对的税调与共同边界距离数据 （地理断点回归模型数据包）" data-search="相邻省份对的税调与共同边界距离数据 （地理断点回归模型数据包） 数据资料 距离与边界 企业数据 计量与统计方法 位于两个相邻省份的税调企业经营环境大致相同，但是由于处于不同的省份境内，又可能受到不同的政策环境影响，因此以相邻省份的共同边界为界，可以构造很好的地理断点回归模型。 为了让大家能够更便捷的应用这种模型，我们特意为大家准备了这份“相邻省份对税" data-words="1437" data-date="2024-01-13">
+            <a class="tf-post-link" href="/posts/38868/">
+              <span class="tf-post-title">相邻省份对的税调与共同边界距离数据 （地理断点回归模型数据包）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-13</span>
+                <span class="tf-post-words">1437 字</span>
+                <span>5 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="金融机构网点与数字经济专利数据匹配结果" data-search="金融机构网点与数字经济专利数据匹配结果 数据资料 金融 区域经济 专利 数据匹配 之前给大家分享过金融机构网点与专利数据的匹配结果：" data-words="947" data-date="2024-01-13">
+            <a class="tf-post-link" href="/posts/40157/">
+              <span class="tf-post-title">金融机构网点与数字经济专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-13</span>
+                <span class="tf-post-words">947 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果" data-search="旧版本｜瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果 数据资料 区域经济 企业数据 专利 创新与知识 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/ea970d1e984b4c8eb034a23c1b4a5386" data-words="980" data-date="2024-01-13">
+            <a class="tf-post-link" href="/posts/25082/">
+              <span class="tf-post-title">旧版本｜瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-13</span>
+                <span class="tf-post-words">980 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果" data-search="瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果 数据资料 区域经济 企业数据 专利 创新与知识 数据匹配 之前给大家分享过瞪羚、独角兽、创新型企业与专利数据的匹配结果：" data-words="968" data-date="2024-01-13">
+            <a class="tf-post-link" href="/posts/15866/">
+              <span class="tf-post-title">瞪羚、独角兽、创新型企业与数字经济专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-13</span>
+                <span class="tf-post-words">968 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2007~2016 年税调与数字经济专利数据匹配结果" data-search="旧版本｜2007~2016 年税调与数字经济专利数据匹配结果 数据资料 区域经济 企业数据 专利 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/1e5570c199e94ca08ac76fb3042c94ac" data-words="982" data-date="2024-01-13">
+            <a class="tf-post-link" href="/posts/73444/">
+              <span class="tf-post-title">旧版本｜2007~2016 年税调与数字经济专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-13</span>
+                <span class="tf-post-words">982 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998～2014 年工企与数字经济专利数据匹配结果" data-search="1998～2014 年工企与数字经济专利数据匹配结果 数据资料 区域经济 专利 上市公司 数据匹配 之前给大家分享过工企与专利数据的匹配结果：" data-words="969" data-date="2024-01-12">
+            <a class="tf-post-link" href="/posts/36486/">
+              <span class="tf-post-title">1998～2014 年工企与数字经济专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-12</span>
+                <span class="tf-post-words">969 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="瞪羚、独角兽、创新型企业与绿色低碳技术专利数据匹配结果" data-search="瞪羚、独角兽、创新型企业与绿色低碳技术专利数据匹配结果 数据资料 企业数据 专利 创新与知识 数据匹配 之前给大家分享过瞪羚、独角兽、创新型企业与专利数据的匹配结果：" data-words="967" data-date="2024-01-12">
+            <a class="tf-post-link" href="/posts/57560/">
+              <span class="tf-post-title">瞪羚、独角兽、创新型企业与绿色低碳技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-12</span>
+                <span class="tf-post-words">967 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007~2016 年税调与绿色低碳技术专利数据匹配结果" data-search="2007~2016 年税调与绿色低碳技术专利数据匹配结果 数据资料 企业数据 专利 数据匹配 之前给大家分享过税调企业与专利数据的匹配结果：" data-words="896" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/12461/">
+              <span class="tf-post-title">2007~2016 年税调与绿色低碳技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">896 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998～2014 年工企与绿色低碳技术专利数据匹配结果" data-search="1998～2014 年工企与绿色低碳技术专利数据匹配结果 数据资料 专利 上市公司 数据匹配 注意部分涉及类别对应的专利并不一定是绿色低碳专利。" data-words="926" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/36825/">
+              <span class="tf-post-title">1998～2014 年工企与绿色低碳技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">926 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜金融机构网点与关键数字技术专利数据匹配结果" data-search="旧版本｜金融机构网点与关键数字技术专利数据匹配结果 数据资料 金融 专利 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/d260a2ee5194494f8094a29c2022ae39" data-words="1026" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/82007/">
+              <span class="tf-post-title">旧版本｜金融机构网点与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">1026 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="金融机构网点与关键数字技术专利数据匹配结果" data-search="金融机构网点与关键数字技术专利数据匹配结果 数据资料 金融 专利 数据匹配 之前给大家分享过金融机构网点与专利数据的匹配结果：" data-words="1013" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/25215/">
+              <span class="tf-post-title">金融机构网点与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">1013 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果" data-search="旧版本｜瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果 数据资料 企业数据 专利 创新与知识 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/ea970d1e984b4c8eb034a23c1b4a5386" data-words="1051" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/12744/">
+              <span class="tf-post-title">旧版本｜瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">1051 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果" data-search="瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果 数据资料 企业数据 专利 创新与知识 数据匹配 之前给大家分享过瞪羚、独角兽、创新型企业与专利数据的匹配结果：" data-words="1039" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/42830/">
+              <span class="tf-post-title">瞪羚、独角兽、创新型企业与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">1039 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007~2016 年税调与关键数字技术专利数据匹配结果" data-search="2007~2016 年税调与关键数字技术专利数据匹配结果 数据资料 企业数据 专利 数据匹配 之前给大家分享过税调企业与专利数据的匹配结果：" data-words="962" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/40333/">
+              <span class="tf-post-title">2007~2016 年税调与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">962 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2007~2016 年税调与关键数字技术专利数据匹配结果" data-search="旧版本｜2007~2016 年税调与关键数字技术专利数据匹配结果 数据资料 企业数据 专利 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/87696ee606ca4427bed1be3a455b395b" data-words="975" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/20218/">
+              <span class="tf-post-title">旧版本｜2007~2016 年税调与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">975 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1998～2014 年工企与关键数字技术专利数据匹配结果" data-search="旧版本｜1998～2014 年工企与关键数字技术专利数据匹配结果 数据资料 专利 上市公司 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/d99599f592794242963dd417fddbe366" data-words="980" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/74737/">
+              <span class="tf-post-title">旧版本｜1998～2014 年工企与关键数字技术专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">980 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="使用 R 语言绘制地图课程汇总" data-search="使用 r 语言绘制地图课程汇总 数据资料 可视化与绘图 地图 r 语言 经过长久的努力，感觉终于把各种地图的绘制课程都制作好啦，这篇推文汇总了平台上所有的使用 r 语言绘制地图课程，方便大家之后查找和学习。前五个课程非常重要，推荐按顺序学习～" data-words="1084" data-date="2024-01-11">
+            <a class="tf-post-link" href="/posts/62610/">
+              <span class="tf-post-title">使用 R 语言绘制地图课程汇总</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-11</span>
+                <span class="tf-post-words">1084 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="使用 R 语言绘制中国地图 + 空间网络图" data-search="使用 r 语言绘制中国地图 + 空间网络图 课程 可视化与绘图 地图 r 语言 前不久给大家分享过「上市公司前5大供应商和客户工商注册数据匹配结果（含经纬度和所处的省市区县）」数据，在数据介绍中我展示了「2022 年上市公司前 5 大客户与供应商地理分布」：" data-words="2115" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/99916/">
+              <span class="tf-post-title">使用 R 语言绘制中国地图 + 空间网络图</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">2115 字</span>
+                <span>8 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1988～2022 年金融机构网点各种绿色专利数量及专利知识宽度" data-search="1988～2022 年金融机构网点各种绿色专利数量及专利知识宽度 数据资料 金融 区域经济 专利 创新与知识 前不久给大家更新了金融机构网点的绿色专利数据：" data-words="612" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/88661/">
+              <span class="tf-post-title">1988～2022 年金融机构网点各种绿色专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">612 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1988～2022 年金融机构网点与绿色专利数据匹配结果" data-search="1988～2022 年金融机构网点与绿色专利数据匹配结果 数据资料 金融 专利 数据匹配 前不久给大家更新了一份绿色专利数据：" data-words="478" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/74179/">
+              <span class="tf-post-title">1988～2022 年金融机构网点与绿色专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">478 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1988～2022 年金融网点机构各种专利数量及专利知识宽度" data-search="1988～2022 年金融网点机构各种专利数量及专利知识宽度 数据资料 金融 区域经济 专利 创新与知识 前不久给大家分享了金融机构网点的专利数据：" data-words="536" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/13478/">
+              <span class="tf-post-title">1988～2022 年金融网点机构各种专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">536 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1988～2022 年金融机构网点与专利数据匹配结果" data-search="1988～2022 年金融机构网点与专利数据匹配结果 数据资料 金融 专利 数据匹配 前不久给大家更新了一份专利全库数据：" data-words="842" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/13022/">
+              <span class="tf-post-title">1988～2022 年金融机构网点与专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">842 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1988～2022 年金融机构网点与专利数据匹配结果" data-search="旧版本｜1988～2022 年金融机构网点与专利数据匹配结果 数据资料 金融 专利 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/5d4f651f9ca54fe09cbbc0bd0f8715a5" data-words="854" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/39373/">
+              <span class="tf-post-title">旧版本｜1988～2022 年金融机构网点与专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">854 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2022 年瞪羚、独角兽、创新型企业各种绿色专利数量及专利知识宽度" data-search="1985～2022 年瞪羚、独角兽、创新型企业各种绿色专利数量及专利知识宽度 数据资料 区域经济 企业数据 专利 创新与知识 前不久给大家更新了瞪羚、独角兽、创新型企业的绿色专利数据：" data-words="633" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/97472/">
+              <span class="tf-post-title">1985～2022 年瞪羚、独角兽、创新型企业各种绿色专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">633 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果" data-search="1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果 数据资料 企业数据 专利 创新与知识 数据匹配 前不久给大家更新了一份绿色专利数据：" data-words="498" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/53791/">
+              <span class="tf-post-title">1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">498 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果" data-search="旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果 数据资料 企业数据 专利 创新与知识 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/b89b0e6befab46faa81e27f4c9bc340e" data-words="510" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/36187/">
+              <span class="tf-post-title">旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与绿色专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">510 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2022 年瞪羚、独角兽、创新型企业各种专利数量及专利知识宽度" data-search="1985～2022 年瞪羚、独角兽、创新型企业各种专利数量及专利知识宽度 数据资料 区域经济 企业数据 专利 创新与知识 前不久给大家分享了一份瞪羚、独角兽、创新型企业的专利数据：" data-words="567" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/12989/">
+              <span class="tf-post-title">1985～2022 年瞪羚、独角兽、创新型企业各种专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">567 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2）" data-search="1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2） 数据资料 企业数据 专利 创新与知识 数据匹配 前不久给大家更新了一份专利全库数据：" data-words="871" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/33626/">
+              <span class="tf-post-title">1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">871 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2）" data-search="旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2） 数据资料 企业数据 专利 创新与知识 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/fac1b81a8287457bbd6b914d37462a26" data-words="884" data-date="2024-01-09">
+            <a class="tf-post-link" href="/posts/27610/">
+              <span class="tf-post-title">旧版本｜1985～2022 年瞪羚、独角兽、创新型企业与专利数据匹配结果（版本2）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-09</span>
+                <span class="tf-post-words">884 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007～2016 年各税调各种绿色专利数量及专利知识宽度" data-search="2007～2016 年各税调各种绿色专利数量及专利知识宽度 数据资料 区域经济 企业数据 专利 创新与知识 前不久给大家分享了一份税调企业的绿色专利数据：" data-words="601" data-date="2024-01-08">
+            <a class="tf-post-link" href="/posts/32265/">
+              <span class="tf-post-title">2007～2016 年各税调各种绿色专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-08</span>
+                <span class="tf-post-words">601 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2007～2016 年税调与绿色专利数据匹配结果" data-search="旧版本｜2007～2016 年税调与绿色专利数据匹配结果 数据资料 企业数据 专利 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/e74c1a11cf184fda8532a357b190ed5b" data-words="481" data-date="2024-01-08">
+            <a class="tf-post-link" href="/posts/11806/">
+              <span class="tf-post-title">旧版本｜2007～2016 年税调与绿色专利数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-08</span>
+                <span class="tf-post-words">481 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007~2016 年各税调各种专利数量及专利知识宽度" data-search="2007~2016 年各税调各种专利数量及专利知识宽度 数据资料 区域经济 企业数据 专利 创新与知识 前不久给大家分享了一份税调企业的专利数据：" data-words="528" data-date="2024-01-08">
+            <a class="tf-post-link" href="/posts/47162/">
+              <span class="tf-post-title">2007~2016 年各税调各种专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-08</span>
+                <span class="tf-post-words">528 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998~2014 年各工企各种绿色专利数量及专利知识宽度" data-search="1998~2014 年各工企各种绿色专利数量及专利知识宽度 数据资料 区域经济 专利 上市公司 创新与知识 前不久给大家更新了工企绿色专利数据：" data-words="593" data-date="2024-01-07">
+            <a class="tf-post-link" href="/posts/18333/">
+              <span class="tf-post-title">1998~2014 年各工企各种绿色专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-07</span>
+                <span class="tf-post-words">593 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1998～2014 年工企与绿色专利数据匹配结果（版本2）" data-search="旧版本｜1998～2014 年工企与绿色专利数据匹配结果（版本2） 数据资料 专利 上市公司 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/2a23a887042944d19b0f5b9f32a4ea21" data-words="481" data-date="2024-01-07">
+            <a class="tf-post-link" href="/posts/81277/">
+              <span class="tf-post-title">旧版本｜1998～2014 年工企与绿色专利数据匹配结果（版本2）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-07</span>
+                <span class="tf-post-words">481 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998~2014 年各工企各种专利数量及专利知识宽度" data-search="1998~2014 年各工企各种专利数量及专利知识宽度 数据资料 区域经济 专利 上市公司 创新与知识 前不久给大家更新了工企专利数据：" data-words="520" data-date="2024-01-07">
+            <a class="tf-post-link" href="/posts/30417/">
+              <span class="tf-post-title">1998~2014 年各工企各种专利数量及专利知识宽度</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-07</span>
+                <span class="tf-post-words">520 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007～2016 年税调与海关数据匹配结果" data-search="2007～2016 年税调与海关数据匹配结果 数据资料 企业数据 数据匹配 前不久给大家分享了一份全国税收调查数据：" data-words="553" data-date="2024-01-07">
+            <a class="tf-post-link" href="/posts/63646/">
+              <span class="tf-post-title">2007～2016 年税调与海关数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-07</span>
+                <span class="tf-post-words">553 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜2007～2016 年税调与海关数据匹配结果" data-search="旧版本｜2007～2016 年税调与海关数据匹配结果 数据资料 企业数据 数据匹配 旧版本 新版本在这里： https://rstata.duanshu.com/#/course/d6d872f05ee746a18f29cd84cab9c028" data-words="565" data-date="2024-01-07">
+            <a class="tf-post-link" href="/posts/43309/">
+              <span class="tf-post-title">旧版本｜2007～2016 年税调与海关数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-07</span>
+                <span class="tf-post-words">565 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="月度数据｜1982年1月～2022 年12月 GIMMS NDVI 指数（归一化植被指数）各省市区县、乡镇月度面板数据" data-search="月度数据｜1982年1月～2022 年12月 gimms ndvi 指数（归一化植被指数）各省市区县、乡镇月度面板数据 数据资料 面板数据 生态环境 前不久给大家分享了一份 1982～2022 年 gimms ndvi 指数的年度面板数据，最近有小伙伴提出也需要月度的面板数据，于是我就直接帮忙处理了下。" data-words="483" data-date="2024-01-05">
+            <a class="tf-post-link" href="/posts/71044/">
+              <span class="tf-post-title">月度数据｜1982年1月～2022 年12月 GIMMS NDVI 指数（归一化植被指数）各省市区县、乡镇月度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2024-01-05</span>
+                <span class="tf-post-words">483 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+      </section>
+      
+
+      <div class="tf-archive-empty" style="display:none">
+        <i class="fa fa-search"></i><br>没有匹配的文章，换个关键词试试
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+<!-- 归档页交互 -->
+<script src="/assets/tf-archive.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/91453/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="《经济评论》2024年第3期论文「高铁网络如何促进城市间合作创新——基于高铁网络通达性与合作专利的实证分析」中介绍了这样的一个指标：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/91453/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="《经济评论》2024年第3期论文「高铁网络如何促进城市间合作创新——基于高铁网络通达性与合作专利的实证分析」中介绍了这样的一个指标：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/91453.png">
+<meta property="article:published_time" content="2025-03-09T14:47:12.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.747Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/91453.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？","description":"《经济评论》2024年第3期论文「高铁网络如何促进城市间合作创新——基于高铁网络通达性与合作专利的实证分析」中介绍了这样的一个指标：","url":"https://tidyfriday.cn/posts/91453/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/91453/"},"image":["https://tidyfriday.cn/og/91453.png"],"datePublished":"2025-03-09T14:47:12.000Z","dateModified":"2026-09-26T14:18:48.747Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利, 编程技巧","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？","item":"https://tidyfriday.cn/posts/91453/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-03-09T14:47:12.000Z" itemprop="datePublished">2025-03-09</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3289 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 12 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>《经济评论》2024年第3期论文「高铁网络如何促进城市间合作创新——基于高铁网络通达性与合作专利的实证分析」中介绍了这样的一个指标：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/14/02b79j1bdbe1b168g4/common/content/1741502487291_129272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>论文全文：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/jDl_v0-gCHWgoTUaI86BCA">https://mp.weixin.qq.com/s/jDl_v0-gCHWgoTUaI86BCA</a></p>
+</blockquote>
+<p>今天我们一起来学习下如何在 Stata 中高效的计算这一指标，也就是<code>城市间合作申请专利数量</code>。</p>
+<p>前不久我们分享的「1985～2024年共同申请专利的所有申请人经纬度及其所属的省市区县」数据正好可以用来计算这一指标：</p>
+<blockquote>
+<p>1985～2024年共同申请专利的所有申请人经纬度及其所属的省市区县：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/6ce40daa5ebe4164af66b07f68374c49">https://rstata.duanshu.com/#/brief/course/6ce40daa5ebe4164af66b07f68374c49</a></p>
+</blockquote>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/14/02b79j1bdbe1b168g4/common/content/1741502486831_416688.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>该数据是对所有申请人为企业的进行地理编码，由于直接对企业名称地理编码会错误率很高，所以先匹配工商注册信息，使用工商注册地址解析，然后匹配不到工商注册信息的使用企业名称解析获得经纬度，有了经纬度之后就可以根据经纬度判断每个企业所处的省市区县了。对于实在无法解析的企业，尽可能使用其名称中包含的城市信息。</p>
+<p>在附件中我选择了 2015～2017 年的数据作为示例：</p>
+<blockquote>
+<p>2015～2017年共同申请专利的所有申请人经纬度及其所属的省市区县.dta</p>
+</blockquote>
+<p>首先读取该数据，去除重复的专利：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？&quot;</span></span><br><span class="line"><span class="comment">*&gt; /Users/ac/Desktop/Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;2015～2017年共同申请专利的所有申请人经纬度及其所属的省市区县.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="comment">*- 删除重复专利</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (444,049 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (245,323 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (296,944 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (36,974 real changes made)</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of 公开公告号</span></span><br><span class="line"><span class="comment">*&gt; (674,896 observations deleted)</span></span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*&gt; (202,118 real changes made)</span></span><br><span class="line"><span class="keyword">keep</span> newipzlid</span><br><span class="line"><span class="keyword">save</span> unique_patent, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file unique_patent.dta saved</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +-------------+</span></span><br><span class="line"><span class="comment">*&gt;      |   newipzlid |</span></span><br><span class="line"><span class="comment">*&gt;      |-------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | 20150000221 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | 20150000222 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | 20150000223 |</span></span><br><span class="line"><span class="comment">*&gt;   4. | 20150000224 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 20150000225 |</span></span><br><span class="line"><span class="comment">*&gt;      |-------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | 20150001365 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | 20150001366 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | 20150001385 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | 20150001389 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | 20150001420 |</span></span><br><span class="line"><span class="comment">*&gt;      +-------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>这是因为该专利数据中同时包含了专利的引用与授权公告，直接删除授权公告又担心有些授权专利的申请公告没有包含在数据里面：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/14/02b79j1bdbe1b168g4/common/content/1741502796605_296577.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。</p>
+<p>上面获取的是所有互不重复的专利编号，再和原始数据匹配，保留匹配成功的，就得到了所有互不重复的专利申请人信息：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;2015～2017年共同申请专利的所有申请人经纬度及其所属的省市区县.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 newipzlid using unique_patent</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                       235,927</span></span><br><span class="line"><span class="comment">*&gt;         from master                   235,927  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                          0  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                           787,363  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="comment">*&gt; (235,927 observations deleted)</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*&gt; (457,348 real changes made)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后按照论文中介绍的方法进行一些筛选：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 删除申请人数量超过 10 个的</span></span><br><span class="line"><span class="keyword">bysort</span> newipzlid: <span class="keyword">gen</span> <span class="keyword">count</span> = _N</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">count</span> &lt; 2 | <span class="keyword">count</span> &gt; 10</span><br><span class="line"><span class="comment">*&gt; (922 observations deleted)</span></span><br><span class="line"><span class="comment">*- 有些只剩一个的是因为另外一个没解析成功</span></span><br><span class="line"><span class="keyword">tab</span> <span class="keyword">count</span></span><br><span class="line"><span class="comment">*&gt;       count |      Freq.     Percent        Cum.</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;           2 |    554,622       70.52       70.52</span></span><br><span class="line"><span class="comment">*&gt;           3 |    162,960       20.72       91.24</span></span><br><span class="line"><span class="comment">*&gt;           4 |     47,452        6.03       97.28</span></span><br><span class="line"><span class="comment">*&gt;           5 |     14,035        1.78       99.06</span></span><br><span class="line"><span class="comment">*&gt;           6 |      5,424        0.69       99.75</span></span><br><span class="line"><span class="comment">*&gt;           7 |      1,498        0.19       99.94</span></span><br><span class="line"><span class="comment">*&gt;           8 |        280        0.04       99.98</span></span><br><span class="line"><span class="comment">*&gt;           9 |         90        0.01       99.99</span></span><br><span class="line"><span class="comment">*&gt;          10 |         80        0.01      100.00</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;       Total |    786,441      100.00</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">count</span></span><br><span class="line"><span class="keyword">save</span> tempdata, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file tempdata.dta saved</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      | 年份     newipzlid   申请~号               企业名称        经度        纬度   省       省代码   市       市代码   县       县代码   公开公告号     专利类型   IPC   授权公告日 |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | 2015   20150000221   申请人1   北京比动商贸有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280535S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | 2015   20150000221   申请人2   北京比动广告有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280535S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | 2015   20150000222   申请人1   北京比动商贸有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280536S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   4. | 2015   20150000222   申请人2   北京比动广告有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280536S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 2015   20150000223   申请人1   北京比动商贸有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280537S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | 2015   20150000223   申请人2   北京比动广告有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280537S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | 2015   20150000224   申请人1   北京比动商贸有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280538S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | 2015   20150000224   申请人2   北京比动广告有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280538S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | 2015   20150000225   申请人1   北京比动商贸有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280539S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | 2015   20150000225   申请人2   北京比动广告有限公司   116.40105   39.914867   北京市   110000   北京市   110000   东城区   110101   CN303280539S   外观设计         2015-07-15 |</span></span><br><span class="line"><span class="comment">*&gt;      +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>在循环计算多年的数据前，我们先选择一个年份测试。以 2015 年为例：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 == 2015</span><br><span class="line"><span class="comment">*&gt; (558,651 observations deleted)</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> newipzlid 申请人编号, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of newipzlid 申请人编号</span></span><br><span class="line"><span class="comment">*&gt; (180 observations deleted)</span></span><br><span class="line"><span class="keyword">keep</span> newipzlid 申请人编号 市</span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +--------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      |   newipzlid   申请~号   市     |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | 20150000221   申请人1   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | 20150000221   申请人2   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | 20150000222   申请人1   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   4. | 20150000222   申请人2   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 20150000223   申请人1   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;      |--------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | 20150000223   申请人2   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | 20150000224   申请人1   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | 20150000224   申请人2   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | 20150000225   申请人1   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | 20150000225   申请人2   北京市 |</span></span><br><span class="line"><span class="comment">*&gt;      +--------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>在之前的课程「名师讲堂｜使用 Stata 测算数实融合水平」中我们也介绍了类似的操作，也就是计算 IPC 融合矩阵。因此我们这里也仿照那个课程里面的样子，把数据整理成下面这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>汇总下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract city</span><br></pre></td></tr></table></figure>
+
+<p>由于不需要考虑自引，所以我们可以去除重复城市：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 去除重复的城市</span></span><br><span class="line"><span class="keyword">egen</span> city2 = ipc_unique(city), <span class="keyword">parse</span>(;)</span><br><span class="line"><span class="keyword">drop</span> city</span><br><span class="line"><span class="keyword">ren</span> city2 city</span><br><span class="line"><span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot;;&quot;</span>, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (6,597 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> city = <span class="built_in">strtrim</span>(city)</span><br><span class="line"><span class="comment">*&gt; (7 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot;  &quot;</span>, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (0 real changes made)</span></span><br><span class="line"><span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot; &quot;</span>, <span class="string">&quot;;&quot;</span>, .)</span><br><span class="line"><span class="comment">*&gt; (6,595 real changes made)</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>ipc_unique()</code> 函数来自之前的课程：「名师讲堂｜使用 Stata 处理专利数据的分类号」</p>
+<blockquote>
+<p>名师讲堂｜使用 Stata 处理专利数据的分类号: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/1cfb2e8e8e5f4716959fc78bbaf6d446">https://rstata.duanshu.com/#/brief/course/1cfb2e8e8e5f4716959fc78bbaf6d446</a></p>
+</blockquote>
+<p>对编写过程感兴趣的小伙伴可以回去再看看。</p>
+<p>没有互相合作的也是我们不关心的，直接删除：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 删除没有互相合作的</span><br><span class="line">drop if !index(city, &quot;;&quot;)</span><br><span class="line">*&gt; (321 observations deleted)</span><br><span class="line">order city</span><br><span class="line">save tempdata2, replace</span><br><span class="line">*&gt; file tempdata2.dta saved</span><br></pre></td></tr></table></figure>
+
+<p>然后我们就可以继续借鉴「名师讲堂｜使用 Stata 测算数实融合水平」中的代码统计城市共现数量了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 统计各城市对的合作数量</span></span><br><span class="line"><span class="keyword">use</span> tempdata2, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">    city = st_sdata(., <span class="string">&quot;city&quot;</span>)</span><br><span class="line">    value = st_data(., <span class="string">&quot;_freq&quot;</span>)</span><br><span class="line">    fullcombinations = <span class="built_in">J</span>(0, 3, <span class="string">&quot;&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> (r = 1; r &lt;= rows(city); r++) &#123;</span><br><span class="line">        class_list = colshape(ustrsplit(city[r, 1], <span class="string">&quot;;&quot;</span>), 1)</span><br><span class="line">        n_classes = rows(class_list)</span><br><span class="line">        <span class="keyword">if</span> (n_classes == 2) &#123;</span><br><span class="line">          fullcombinations = fullcombinations  (class_list[1,1], class_list[2,1], <span class="built_in">strofreal</span>(value[r,1]))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (n_classes &gt; 2) &#123;</span><br><span class="line">          combinations = <span class="built_in">J</span>(n_classes * n_classes, 3, <span class="string">&quot;&quot;</span>)</span><br><span class="line">          row_index = 1</span><br><span class="line"></span><br><span class="line">          <span class="keyword">for</span> (i = 1; i &lt;= n_classes; i++) &#123;</span><br><span class="line">              <span class="keyword">for</span> (j = 1; j &lt;= n_classes; j++) &#123;</span><br><span class="line">                  combinations[row_index, 1] = class_list[i,1]</span><br><span class="line">                  combinations[row_index, 2] = class_list[j,1]</span><br><span class="line">                  combinations[row_index, 3] = <span class="built_in">strofreal</span>(value[r,1])</span><br><span class="line">                  row_index++</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          fullcombinations = fullcombinations  combinations</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    st_matrix(<span class="string">&quot;obs&quot;</span>, rows(fullcombinations))</span><br><span class="line">    stata(<span class="string">&quot;clear&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;city1&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;city2&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;value&quot;</span>)</span><br><span class="line">    stata(<span class="string">&quot;set obs `=obs[1,1]&#x27;&quot;</span>)</span><br><span class="line">    st_sstore(., (<span class="string">&quot;city1&quot;</span>, <span class="string">&quot;city2&quot;</span>, <span class="string">&quot;value&quot;</span>), fullcombinations)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">destring</span> value, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> city1 == city2</span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">sum</span>) value, <span class="keyword">by</span>(city1 city2)</span><br><span class="line"><span class="keyword">save</span> tempdata3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br></pre></td></tr></table></figure>
+
+<p>然而稍微仔细检查就会发现，这个数据里面 A-B 的数量和 B-A 的数量不完全一样，也就是说这个数据要是展开成矩阵不是对称的。</p>
+<p>这里之所以有不对称的问题，其实主要是因为，如果申请人有两个，上面的 mata 程序里面只保留了 A-B-Value 的结果，没有同时生成 B-A-Value 的结果。</p>
+<p>可以通过下面的方式把数据转换成对称的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 处理成对称矩阵</span></span><br><span class="line"><span class="keyword">use</span> tempdata3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">drop</span> value</span><br><span class="line">gather city1 city2</span><br><span class="line"><span class="comment">*&gt; id</span></span><br><span class="line"><span class="keyword">keep</span> value</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> value, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of value</span></span><br><span class="line"><span class="comment">*&gt; (10,148 observations deleted)</span></span><br><span class="line"><span class="keyword">save</span> temp1b, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file temp1b.dta saved</span></span><br><span class="line"><span class="keyword">ren</span> value value2</span><br><span class="line"><span class="keyword">cross</span> using temp1b</span><br><span class="line"><span class="keyword">ren</span> value city1</span><br><span class="line"><span class="keyword">ren</span> value2 city2</span><br><span class="line"><span class="keyword">merge</span> 1:1 city1 city2 using tempdata3</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                       117,251</span></span><br><span class="line"><span class="comment">*&gt;         from master                   117,251  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                          0  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                             5,249  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">replace</span> value = 0 <span class="keyword">if</span> <span class="built_in">mi</span>(value)</span><br><span class="line"><span class="comment">*&gt; (117,251 real changes made)</span></span><br><span class="line"><span class="keyword">save</span> temp1c, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file temp1c.dta saved</span></span><br><span class="line"><span class="keyword">ren</span> city1 temp</span><br><span class="line"><span class="keyword">ren</span> city2 city1</span><br><span class="line"><span class="keyword">ren</span> temp city2</span><br><span class="line"><span class="keyword">ren</span> value value2</span><br><span class="line"><span class="keyword">merge</span> 1:1 city1 city2 using tempdata3</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                       117,251</span></span><br><span class="line"><span class="comment">*&gt;         from master                   117,251  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                          0  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                             5,249  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*- 因为对于每个专利，ab ba 的情况都统计了，所以这里选择最大的（统计最全面的）作为共现结果</span></span><br><span class="line"><span class="keyword">egen</span> value3 = rowmax(value value2)</span><br><span class="line"><span class="keyword">replace</span> value = value3</span><br><span class="line"><span class="comment">*&gt; (118,258 real changes made)</span></span><br><span class="line"><span class="keyword">drop</span> value2 _m value3</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> city1 == city2</span><br><span class="line"><span class="comment">*&gt; (350 observations deleted)</span></span><br><span class="line"><span class="keyword">gsort</span> city1 city2</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> value == 0</span><br><span class="line"><span class="comment">*&gt; (115,256 observations deleted)</span></span><br><span class="line"><span class="keyword">ren</span> value 合作申请专利数量</span><br><span class="line"><span class="keyword">save</span> 2015年各城市对合作申请专利数量计算结果, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file 2015年各城市对合作申请专利数量计算结果.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<p>这个也是那个课程里面讲解的方法。不过其实有更好的办法，也就是直接纠正 Mata 程序：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">    city = st_sdata(., <span class="string">&quot;city&quot;</span>)</span><br><span class="line">    value = st_data(., <span class="string">&quot;_freq&quot;</span>)</span><br><span class="line">    fullcombinations = <span class="built_in">J</span>(0, 3, <span class="string">&quot;&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> (r = 1; r &lt;= rows(city); r++) &#123;</span><br><span class="line">        class_list = colshape(ustrsplit(city[r, 1], <span class="string">&quot;;&quot;</span>), 1)</span><br><span class="line">        n_classes = rows(class_list)</span><br><span class="line">        <span class="keyword">if</span> (n_classes == 2) &#123;</span><br><span class="line">          fullcombinations = fullcombinations  (class_list[1,1], class_list[2,1], <span class="built_in">strofreal</span>(value[r,1]))</span><br><span class="line">          fullcombinations = fullcombinations  (class_list[2,1], class_list[1,1], <span class="built_in">strofreal</span>(value[r,1]))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (n_classes &gt; 2) &#123;</span><br><span class="line">          combinations = <span class="built_in">J</span>(n_classes * n_classes, 3, <span class="string">&quot;&quot;</span>)</span><br><span class="line">          row_index = 1</span><br><span class="line"></span><br><span class="line">          <span class="keyword">for</span> (i = 1; i &lt;= n_classes; i++) &#123;</span><br><span class="line">              <span class="keyword">for</span> (j = 1; j &lt;= n_classes; j++) &#123;</span><br><span class="line">                  combinations[row_index, 1] = class_list[i,1]</span><br><span class="line">                  combinations[row_index, 2] = class_list[j,1]</span><br><span class="line">                  combinations[row_index, 3] = <span class="built_in">strofreal</span>(value[r,1])</span><br><span class="line">                  row_index++</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          fullcombinations = fullcombinations  combinations</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    st_matrix(<span class="string">&quot;obs&quot;</span>, rows(fullcombinations))</span><br><span class="line">    stata(<span class="string">&quot;clear&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;city1&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;city2&quot;</span>)</span><br><span class="line">    st_addvar(<span class="string">&quot;str100&quot;</span>, <span class="string">&quot;value&quot;</span>)</span><br><span class="line">    stata(<span class="string">&quot;set obs `=obs[1,1]&#x27;&quot;</span>)</span><br><span class="line">    st_sstore(., (<span class="string">&quot;city1&quot;</span>, <span class="string">&quot;city2&quot;</span>, <span class="string">&quot;value&quot;</span>), fullcombinations)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">destring</span> value, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> city1 == city2</span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">sum</span>) value, <span class="keyword">by</span>(city1 city2)</span><br><span class="line"><span class="keyword">ren</span> value 合作申请专利数量</span><br><span class="line"><span class="keyword">save</span> 2015年各城市对合作申请专利数量计算结果2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们就可以循环所有的年份了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>需要注意由于 Mata 程序以 end 结尾，然而 end 也会结束循环，所以我们不能直接把 Mata 程序放到循环里面，这里我是新建了一个 matacode.do，然后在循环里面使用 <code>do matacode.do</code> 调用。</p>
+<p>这里我给每年保存了一个文件，使用我自编的 appendall 命令可以合并某个文件夹下面的所有 dta 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 合并所有的</span><br><span class="line">appendall res</span><br><span class="line">*&gt; (6,894 observations deleted)</span><br><span class="line">foreach i of varlist _all &#123;</span><br><span class="line">*&gt;   2.     cap format `i&#x27; %10s</span><br><span class="line">*&gt;   3. &#125;</span><br><span class="line">order 年份</span><br><span class="line">gsort 年份</span><br><span class="line">label data &quot;数据计算：微信公众号 RStata&quot;</span><br><span class="line">save data1, replace</span><br><span class="line">*&gt; (file data1.dta not found)</span><br><span class="line">*&gt; file data1.dta saved</span><br></pre></td></tr></table></figure>
+
+<p>类似的代码统计分类型的专利：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 分类型</span></span><br><span class="line"><span class="keyword">foreach</span> v <span class="keyword">in</span> <span class="string">&quot;发明&quot;</span> <span class="string">&quot;外观设计&quot;</span> <span class="string">&quot;实用新型&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;res`v&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">forval</span> y = 2015/2017 &#123;</span><br><span class="line">        <span class="keyword">di</span> <span class="string">&quot;`v&#x27;: `y&#x27;&quot;</span></span><br><span class="line">        <span class="keyword">qui</span> &#123;</span><br><span class="line">            <span class="keyword">use</span> tempdata, <span class="keyword">clear</span></span><br><span class="line">            <span class="keyword">keep</span> <span class="keyword">if</span> 专利类型 == <span class="string">&quot;`v&#x27;&quot;</span></span><br><span class="line">            <span class="keyword">keep</span> <span class="keyword">if</span> 年份 == <span class="symbol">`y&#x27;</span></span><br><span class="line">            <span class="keyword">if</span> `=_N&#x27; &gt; 0 &#123;</span><br><span class="line">                <span class="keyword">duplicates</span> <span class="keyword">drop</span> newipzlid 申请人编号, force</span><br><span class="line">                <span class="keyword">keep</span> newipzlid 申请人编号 市</span><br><span class="line">                spread 申请人编号 市</span><br><span class="line">                unite 申请人*, <span class="keyword">gen</span>(city) sep(<span class="string">&quot; &quot;</span>)</span><br><span class="line">                <span class="keyword">drop</span> 申请人*</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">strtrim</span>(city)</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot;  &quot;</span>, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot; &quot;</span>, <span class="string">&quot;;&quot;</span>, .)</span><br><span class="line">                <span class="keyword">contract</span> city</span><br><span class="line"></span><br><span class="line"><span class="comment">                *- 去除重复的城市</span></span><br><span class="line">                <span class="keyword">egen</span> city2 = ipc_unique(city), <span class="keyword">parse</span>(;)</span><br><span class="line">                <span class="keyword">drop</span> city</span><br><span class="line">                <span class="keyword">ren</span> city2 city</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot;;&quot;</span>, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">strtrim</span>(city)</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot;  &quot;</span>, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line">                <span class="keyword">replace</span> city = <span class="built_in">subinstr</span>(city, <span class="string">&quot; &quot;</span>, <span class="string">&quot;;&quot;</span>, .)</span><br><span class="line"></span><br><span class="line"><span class="comment">                *- 删除没有互相合作的</span></span><br><span class="line">                <span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">index</span>(city, <span class="string">&quot;;&quot;</span>)</span><br><span class="line">                <span class="keyword">order</span> city</span><br><span class="line"></span><br><span class="line">                <span class="keyword">do</span> matacode.<span class="keyword">do</span></span><br><span class="line">                <span class="keyword">destring</span> value, <span class="keyword">replace</span></span><br><span class="line">                <span class="keyword">drop</span> <span class="keyword">if</span> city1 == city2</span><br><span class="line">                <span class="keyword">collapse</span> (<span class="keyword">sum</span>) value, <span class="keyword">by</span>(city1 city2)</span><br><span class="line">                <span class="keyword">ren</span> value 合作申请<span class="symbol">`v&#x27;</span>专利数量</span><br><span class="line">                <span class="keyword">gen</span> 年份 = <span class="symbol">`y&#x27;</span></span><br><span class="line">                <span class="keyword">save</span> res<span class="symbol">`v&#x27;</span>/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">                *- 删除文件</span></span><br><span class="line">                <span class="keyword">cap</span> <span class="keyword">erase</span> tempdata3</span><br><span class="line">                <span class="keyword">cap</span> <span class="keyword">erase</span> tempdata2</span><br><span class="line">                <span class="keyword">cap</span> <span class="keyword">erase</span> temp1b</span><br><span class="line">                <span class="keyword">cap</span> <span class="keyword">erase</span> temp1c</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后合并这四个文件即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就解决了这个问题，区县和省份的计算代码也非常类似。</p>
+<p>后面我们还会讲解如何使用 Stata 绘制合作网络图，类似这样：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/09/14/02b79j1bdbe1b168g4/common/content/1741502488424_553243.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/ba9dc58d311b45e3aed7f2cc5adbd281">名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.747Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/21497/" title="使用 R 语言绘制城市间专利合作申请数量网络图(二)"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/56440/" title="1998~2023 年各省市区县 PM2.5 质量浓度面板数据&amp;栅格数据（华盛顿圣路易斯分校来源）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/41837/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（二）</a><span class="tf-related-meta">2025-03-04 · 约 12 分钟</span></li><li><a href="/posts/62962/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（一）</a><span class="tf-related-meta">2025-03-02 · 约 9 分钟</span></li><li><a href="/posts/99815/">名师讲堂｜使用 Stata 测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 11 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

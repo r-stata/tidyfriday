@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>R 语言绘图展示欧洲各国领导人在任时间 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/83110/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="上次我们使用 Stata 绘制一幅图展示欧洲各国领导人的在任时间，今天我们使用 R 语言试试。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R 语言绘图展示欧洲各国领导人在任时间">
+<meta property="og:url" content="https://tidyfriday.cn/posts/83110/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="上次我们使用 Stata 绘制一幅图展示欧洲各国领导人的在任时间，今天我们使用 R 语言试试。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/83110.png">
+<meta property="article:published_time" content="2022-05-13T15:51:30.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:39.954Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/83110.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="R 语言绘图展示欧洲各国领导人在任时间">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"R 语言绘图展示欧洲各国领导人在任时间","description":"上次我们使用 Stata 绘制一幅图展示欧洲各国领导人的在任时间，今天我们使用 R 语言试试。","url":"https://tidyfriday.cn/posts/83110/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/83110/"},"image":["https://tidyfriday.cn/og/83110.png"],"datePublished":"2022-05-13T15:51:30.000Z","dateModified":"2026-09-26T14:18:39.954Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, R 语言","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"R 语言绘图展示欧洲各国领导人在任时间","item":"https://tidyfriday.cn/posts/83110/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">R 语言绘图展示欧洲各国领导人在任时间</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">R 语言绘图展示欧洲各国领导人在任时间</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-05-13T15:51:30.000Z" itemprop="datePublished">2022-05-13</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1385 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>上次我们使用 Stata 绘制一幅图展示欧洲各国领导人的在任时间，今天我们使用 R 语言试试。</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/05/13/15/02b79j1bdbe1b168g4/common/content/1652428249484_522992.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>首先我们可以使用 <code>hablar::set_wd_to_script_path()</code> 函数把工作目录切换到我们的 R 脚本所在的文件夹里面。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置本脚本文件所在的文件夹为工作目录</span></span><br><span class="line">hablar<span class="operator">::</span>set_wd_to_script_path<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>lubridate<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># devtools::install_github(&quot;coolbutuseless/ggblur&quot;)</span></span><br><span class="line">library<span class="punctuation">(</span>ggblur<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggtext<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>hrbrthemes<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成不重叠的文本</span></span><br><span class="line"><span class="comment"># remotes::install_github(&quot;hms-dbmi/repel&quot;)</span></span><br><span class="line">library<span class="punctuation">(</span>repel<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 ggnlur 包用于生成带有昏影的散点图，repel 包用于生成互不重叠的文本标签坐标。</p>
+<p>然后我们设置字体：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置字体</span></span><br><span class="line">library<span class="punctuation">(</span>showtext<span class="punctuation">)</span></span><br><span class="line">showtext_auto<span class="punctuation">(</span>enable <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">font_add<span class="punctuation">(</span><span class="string">&quot;songti&quot;</span><span class="punctuation">,</span></span><br><span class="line">         regular <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">,</span></span><br><span class="line">         bold <span class="operator">=</span> <span class="string">&quot;思源宋体.otf&quot;</span><span class="punctuation">,</span></span><br><span class="line">         italic <span class="operator">=</span> <span class="string">&quot;腾祥嘉丽超细圆简.ttf&quot;</span><span class="punctuation">)</span></span><br><span class="line">cnfont <span class="operator">&lt;-</span> <span class="string">&quot;songti&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这些字体文件都在附件中。</p>
+<p>读取数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_tsv<span class="punctuation">(</span><span class="string">&quot;data.tsv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>eindate <span class="operator">=</span> startdate<span class="punctuation">,</span></span><br><span class="line">         eoutdate <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>enddate<span class="punctuation">)</span><span class="punctuation">,</span> ymd<span class="punctuation">(</span><span class="string">&quot;2022-1-13&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> enddate<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>leader<span class="punctuation">,</span> eindate<span class="punctuation">,</span> eoutdate<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>gap <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">(</span>eoutdate <span class="operator">-</span> eindate<span class="punctuation">)</span> <span class="operator">/</span> <span class="number">365</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>x0 <span class="operator">=</span> eindate<span class="punctuation">,</span></span><br><span class="line">         y0 <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">         x1 <span class="operator">=</span> eoutdate<span class="punctuation">,</span></span><br><span class="line">         y1 <span class="operator">=</span> gap<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"><span class="comment">#&gt; # A tibble: 382 × 8</span></span><br><span class="line"><span class="comment">#&gt;    leader   eindate    eoutdate     gap x0            y0 x1            y1</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;date&gt;     &lt;date&gt;     &lt;dbl&gt; &lt;date&gt;     &lt;dbl&gt; &lt;date&gt;     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 Thatcher 1979-05-04 1990-11-28 11.6  1979-05-04     0 1990-11-28 11.6</span></span><br><span class="line"><span class="comment">#&gt;  2 Major    1990-11-28 1997-05-02  6.43 1990-11-28     0 1997-05-02  6.43</span></span><br><span class="line"><span class="comment">#&gt;  3 Blair    1997-05-02 2007-06-27 10.2  1997-05-02     0 2007-06-27 10.2</span></span><br><span class="line"><span class="comment">#&gt;  4 Brown    2007-06-27 2010-05-11  2.87 2007-06-27     0 2010-05-11  2.87</span></span><br><span class="line"><span class="comment">#&gt;  5 Cameron  2010-05-11 2016-07-13  6.18 2010-05-11     0 2016-07-13  6.18</span></span><br><span class="line"><span class="comment">#&gt;  6 May      2016-07-13 2019-07-24  3.03 2016-07-13     0 2019-07-24  3.03</span></span><br><span class="line"><span class="comment">#&gt;  7 Johnson  2019-07-24 2022-01-13  2.48 2019-07-24     0 2022-01-13  2.48</span></span><br><span class="line"><span class="comment">#&gt;  8 Haughey  1987-03-10 1992-02-11  4.93 1987-03-10     0 1992-02-11  4.93</span></span><br><span class="line"><span class="comment">#&gt;  9 Reynolds 1992-02-11 1994-12-15  2.84 1992-02-11     0 1994-12-15  2.84</span></span><br><span class="line"><span class="comment">#&gt; 10 Bruton   1994-12-15 1997-06-26  2.53 1994-12-15     0 1997-06-26  2.53</span></span><br><span class="line"><span class="comment">#&gt; # … with 372 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的 x0、y0、x1 和 y1 就是每个领导人在任时间线的起点和终点。</p>
+<p>生成标签：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year0 <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>year<span class="punctuation">(</span>eindate<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         year1 <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>year<span class="punctuation">(</span>eoutdate<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year1 <span class="operator">=</span> if_else<span class="punctuation">(</span>eoutdate <span class="operator">==</span> ymd<span class="punctuation">(</span><span class="string">&quot;2022-1-13&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;至今&quot;</span><span class="punctuation">,</span> year1<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>label <span class="operator">=</span> glue<span class="operator">::</span>glue<span class="punctuation">(</span><span class="string">&quot;&lt;b style=&#x27;font-size:12pt;&#x27;&gt;&#123;leader&#125;&lt;/b&gt;&lt;br&gt;&lt;span style=&#x27;font-size:8pt;&#x27;&gt;(&#123;year0&#125;–&#123;year1&#125;)&lt;/span&gt;&lt;br&gt;&lt;i style=&#x27;color:#646464;font-size:8pt;&#x27;&gt;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>不过如果把所有的标签都标在图上，会非常拥挤，我们可以使用 repel 包计算选择部分标签：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成标签不重叠的文本</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>x1<span class="punctuation">,</span> y1<span class="punctuation">,</span> leader<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;x&quot;</span><span class="punctuation">,</span> <span class="string">&quot;y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;label&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>x <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  repel_text<span class="punctuation">(</span>max.overlaps <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>label<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>x <span class="operator">=</span> lubridate<span class="operator">::</span>as_date<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_cols<span class="punctuation">(</span>df<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>too_many_overlaps <span class="operator">==</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>label <span class="operator">=</span> str_replace_all<span class="punctuation">(</span>label<span class="punctuation">,</span> <span class="string">&quot;ğ&quot;</span><span class="punctuation">,</span> <span class="string">&quot;g&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df_text</span><br><span class="line">df_text</span><br><span class="line"><span class="comment">#&gt; # A tibble: 27 × 14</span></span><br><span class="line"><span class="comment">#&gt;    x              y too_many_overlaps leader    eindate    eoutdate     gap</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;lgl&gt;             &lt;chr&gt;     &lt;date&gt;     &lt;date&gt;     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 1990-08-10  11.4 FALSE             Thatcher  1979-05-04 1990-11-28  11.6</span></span><br><span class="line"><span class="comment">#&gt;  2 2008-05-19  10.9 FALSE             Ahern     1997-06-26 2008-05-07  10.9</span></span><br><span class="line"><span class="comment">#&gt;  3 1994-10-22  11.7 FALSE             Lubbers   1982-11-04 1994-08-22  11.8</span></span><br><span class="line"><span class="comment">#&gt;  4 2022-01-12  11.1 FALSE             Rutte     2010-10-14 2022-01-13  11.3</span></span><br><span class="line"><span class="comment">#&gt;  5 1992-01-31  10.2 FALSE             Martens   1981-12-17 1992-03-07  10.2</span></span><br><span class="line"><span class="comment">#&gt;  6 2013-12-03  18.9 FALSE             Juncker   1995-01-20 2013-12-04  18.9</span></span><br><span class="line"><span class="comment">#&gt;  7 1995-04-11  14.1 FALSE             Mitterand 1981-05-21 1995-05-17  14.0</span></span><br><span class="line"><span class="comment">#&gt;  8 2007-05-16  12.0 FALSE             Chirac    1995-05-17 2007-05-16  12.0</span></span><br><span class="line"><span class="comment">#&gt;  9 1996-07-10  13.3 FALSE             Marquez   1982-12-02 1996-05-05  13.4</span></span><br><span class="line"><span class="comment">#&gt; 10 2016-03-27  10.1 FALSE             Silva     2006-03-09 2016-03-09  10.0</span></span><br><span class="line"><span class="comment">#&gt; # … with 17 more rows, and 7 more variables: x0 &lt;date&gt;, y0 &lt;dbl&gt;, x1 &lt;date&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   y1 &lt;dbl&gt;, year0 &lt;chr&gt;, year1 &lt;chr&gt;, label &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 ggplot2 的 x 轴标签不支持渐变色效果，所以我们等下使用标签图层绘制一个，这里先准备好数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">tibble<span class="punctuation">(</span></span><br><span class="line">  x <span class="operator">=</span> paste0<span class="punctuation">(</span>seq<span class="punctuation">(</span><span class="number">1982</span><span class="punctuation">,</span> <span class="number">2022</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="number">5</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;-01-01&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> ymd<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  y <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">9</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  label <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">1982</span><span class="punctuation">,</span> <span class="number">2022</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="number">5</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> df_labs</span><br><span class="line">df_labs</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 9 × 3</span></span><br><span class="line"><span class="comment">#&gt;   x              y label</span></span><br><span class="line"><span class="comment">#&gt;   &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 1982-01-01    -1  1982</span></span><br><span class="line"><span class="comment">#&gt; 2 1987-01-01    -1  1987</span></span><br><span class="line"><span class="comment">#&gt; 3 1992-01-01    -1  1992</span></span><br><span class="line"><span class="comment">#&gt; 4 1997-01-01    -1  1997</span></span><br><span class="line"><span class="comment">#&gt; 5 2002-01-01    -1  2002</span></span><br><span class="line"><span class="comment">#&gt; 6 2007-01-01    -1  2007</span></span><br><span class="line"><span class="comment">#&gt; 7 2012-01-01    -1  2012</span></span><br><span class="line"><span class="comment">#&gt; 8 2017-01-01    -1  2017</span></span><br><span class="line"><span class="comment">#&gt; 9 2022-01-01    -1  2022</span></span><br></pre></td></tr></table></figure>
+
+<p>另外 ggplot2 的 x 轴也不支持渐变色的效果，所以我们可以使用一个散点图层绘制：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tibble(</span><br><span class="line">  x = ymd(&quot;1979-01-01&quot;) + 1:16000,</span><br><span class="line">  y = rep(0, 16000)</span><br><span class="line">) -&gt; df_points</span><br></pre></td></tr></table></figure>
+
+<p>由于复杂的图表通常会反复使用同种属性的映射，所以还需要使用 ggnewscale 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggnewscale<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以画图了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_segment<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> x0<span class="punctuation">,</span> y <span class="operator">=</span> y0<span class="punctuation">,</span> xend <span class="operator">=</span> x1<span class="punctuation">,</span> yend <span class="operator">=</span> y1<span class="punctuation">,</span></span><br><span class="line">                   color <span class="operator">=</span> gap<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               size <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point_blur<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> x1<span class="punctuation">,</span> y <span class="operator">=</span> y1<span class="punctuation">,</span></span><br><span class="line">                      color <span class="operator">=</span> gap<span class="punctuation">,</span> size <span class="operator">=</span> gap<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> x1<span class="punctuation">,</span> y <span class="operator">=</span> y1<span class="punctuation">,</span></span><br><span class="line">                 color <span class="operator">=</span> gap<span class="punctuation">,</span> size <span class="operator">=</span> gap<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_richtext<span class="punctuation">(</span></span><br><span class="line">    data <span class="operator">=</span> df_text<span class="punctuation">,</span></span><br><span class="line">    aes<span class="punctuation">(</span>x <span class="operator">=</span> x <span class="operator">-</span> <span class="number">500</span><span class="punctuation">,</span> y <span class="operator">=</span> y <span class="operator">-</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">        label <span class="operator">=</span> label<span class="punctuation">,</span> color <span class="operator">=</span> gap<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span></span><br><span class="line">    family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">    label.color <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span></span><br><span class="line">    vjust <span class="operator">=</span> <span class="number">0.85</span><span class="punctuation">,</span> hjust <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_gradientn<span class="punctuation">(</span>colors <span class="operator">=</span> viridis<span class="operator">::</span>cividis<span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> begin <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                        guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_gradientn<span class="punctuation">(</span>colors <span class="operator">=</span> viridis<span class="operator">::</span>cividis<span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> begin <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                       guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_blur_size_continuous<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">15</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                             guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_size<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">.001</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_alpha<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">.33</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_richtext<span class="punctuation">(</span>data <span class="operator">=</span> df_labs<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="punctuation">,</span> y <span class="operator">+</span> <span class="number">0.5</span><span class="punctuation">,</span> label <span class="operator">=</span> label<span class="punctuation">,</span>color <span class="operator">=</span> x<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> label.color <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> vjust <span class="operator">=</span> <span class="number">0.85</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_text<span class="punctuation">(</span>data <span class="operator">=</span> df_labs<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="punctuation">,</span> y <span class="operator">+</span> <span class="number">1</span><span class="punctuation">,</span> color <span class="operator">=</span> x<span class="punctuation">)</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;|&quot;</span><span class="punctuation">,</span></span><br><span class="line">            size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span> vjust <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>data <span class="operator">=</span> df_points<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="punctuation">,</span> y<span class="punctuation">,</span> color <span class="operator">=</span> x<span class="punctuation">)</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.001</span><span class="punctuation">,</span></span><br><span class="line">             shape <span class="operator">=</span> <span class="number">20</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_gradientn<span class="punctuation">(</span>colors <span class="operator">=</span> viridis<span class="operator">::</span>cividis<span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> begin <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                        guide <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_textbox<span class="punctuation">(</span></span><br><span class="line">    data <span class="operator">=</span> tibble<span class="punctuation">(</span></span><br><span class="line">      x <span class="operator">=</span> ymd<span class="punctuation">(</span><span class="string">&quot;1983-01-01&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="number">17</span><span class="punctuation">,</span></span><br><span class="line">      label <span class="operator">=</span> <span class="string">&quot;&lt;span style=&#x27;font-size:20pt;line-height:2pt;&#x27;&gt;欧洲各国领导人的在任时间&lt;/span&gt;&lt;br&gt;&lt;i&gt;数据来源：Archigos database</span></span><br><span class="line"><span class="string">&amp; New York Times&lt;br&gt;绘制：微信公众号 RStata&lt;br&gt;&lt;br&gt;图中展示了 1979 年以来欧洲各国 382 位领导人的上任、&lt;br&gt;卸任时间以及在任时长，其中卢卡申科（Lukashenko）在&lt;br&gt;任时间最长，从 1994 年上台以来，他已经担任了将近 28&lt;br&gt;年的白俄罗斯总统；普京（Puting）在任时长仅次于卢卡申&lt;br&gt;科，其于 1999 年上任，至今已经担任了超过 22 年的俄&lt;br&gt;罗斯总统。也有很多在任时长非常短的总统，例如博鲁塞维&lt;br&gt;奇（Borusewicz）他仅仅在 2020 年 7 月 8 日这天当了&lt;br&gt;一天的波兰领导人。&lt;/i&gt;&quot;</span></span><br><span class="line">    <span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    aes<span class="punctuation">(</span>x<span class="punctuation">,</span> y<span class="punctuation">,</span> label <span class="operator">=</span> label<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    inherit.aes <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">,</span></span><br><span class="line">    family <span class="operator">=</span> cnfont<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;grey70&quot;</span><span class="punctuation">,</span></span><br><span class="line">    lineheight <span class="operator">=</span> <span class="number">1.7</span><span class="punctuation">,</span> width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">6.2</span><span class="punctuation">,</span> <span class="string">&quot;inch&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    hjust <span class="operator">=</span> <span class="number">.2</span><span class="punctuation">,</span> vjust <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">    fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> box.colour <span class="operator">=</span> <span class="literal">NA</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">,</span> grid <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span></span><br><span class="line">    plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    plot.caption <span class="operator">=</span> element_text<span class="punctuation">(</span>family <span class="operator">=</span> cnfont<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;grey50&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                size <span class="operator">=</span> <span class="number">18</span><span class="punctuation">,</span>  hjust <span class="operator">=</span> <span class="number">.5</span><span class="punctuation">,</span> lineheight <span class="operator">=</span> <span class="number">1.1</span><span class="punctuation">,</span></span><br><span class="line">                                margin <span class="operator">=</span> margin<span class="punctuation">(</span>t <span class="operator">=</span> <span class="number">90</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    plot.caption.position <span class="operator">=</span> <span class="string">&quot;plot&quot;</span><span class="punctuation">,</span></span><br><span class="line">    axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;leader.pdf&quot;</span><span class="punctuation">,</span> device <span class="operator">=</span> cairo_pdf<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;leader.png&quot;</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/05/13/15/02b79j1bdbe1b168g4/common/content/1652428249484_522992.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/c44a50e5c7f44acab3785ed44ad4dd26">R 语言绘图展示欧洲各国领导人在任时间</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:39.954Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/20288/" title="Stata 绘制金字塔图"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/32685/" title="月度数据｜中国各省市区县CO2排放量面板数据+栅格数据（2000年1月～2021年12月, CGER来源）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/42594/">如何从论文图表中提取数据重新使用 Stata 或者 R 语言绘图</a><span class="tf-related-meta">2025-09-09 · 约 6 分钟</span></li><li><a href="/posts/21497/">使用 R 语言绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2025-03-08 · 约 6 分钟</span></li><li><a href="/posts/54050/">使用 R 语言绘制城市间专利合作申请数量网络图(一)</a><span class="tf-related-meta">2025-03-08 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

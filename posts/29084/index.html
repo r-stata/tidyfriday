@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/29084/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Stata 测算上市公司人力资本流动、创新产出及流动方向的方法。该指标来源于「空气污染、人力资本流动与创新活力 —— 基于个体专利发明的经验证据」，附件中也提供了该文献的 pdf 文件。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向">
+<meta property="og:url" content="https://tidyfriday.cn/posts/29084/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Stata 测算上市公司人力资本流动、创新产出及流动方向的方法。该指标来源于「空气污染、人力资本流动与创新活力 —— 基于个体专利发明的经验证据」，附件中也提供了该文献的 pdf 文件。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/29084.png">
+<meta property="article:published_time" content="2025-12-16T21:30:46.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.646Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/29084.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向","description":"今天给大家分享使用 Stata 测算上市公司人力资本流动、创新产出及流动方向的方法。该指标来源于「空气污染、人力资本流动与创新活力 —— 基于个体专利发明的经验证据」，附件中也提供了该文献的 pdf 文件。","url":"https://tidyfriday.cn/posts/29084/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/29084/"},"image":["https://tidyfriday.cn/og/29084.png"],"datePublished":"2025-12-16T21:30:46.000Z","dateModified":"2026-09-26T14:18:50.646Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 上市公司, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向","item":"https://tidyfriday.cn/posts/29084/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-12-16T21:30:46.000Z" itemprop="datePublished">2025-12-16</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2505 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 Stata 测算上市公司人力资本流动、创新产出及流动方向的方法。该指标来源于「空气污染、人力资本流动与创新活力 —— 基于个体专利发明的经验证据」，附件中也提供了该文献的 pdf 文件。</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/16/21/02b79j1bdbe1b168g4/common/content/1765891704098_774678.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>在下面的代码中，上市公司专利数据使用的是之前分享的：</p>
+<blockquote>
+<p>1985～2024 年上市公司与专利数据匹配结果（版本3， 含申请、授权信息）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff">https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff</a></p>
+</blockquote>
+<p>论文中提到使用 AQI 作为空气质量的测度，不过这个指标通常只有 2014 年之后的，平台上也有分享：</p>
+<blockquote>
+<p>2014～2024 年中国各省市区县分年、分月、逐日 AQI 面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/aa737515f4234c89bcc593a85ad50bc2">https://rstata.duanshu.com/#/brief/course/aa737515f4234c89bcc593a85ad50bc2</a></p>
+</blockquote>
+<p>如果想进行更长年度的研究，也可以考虑使用 PM2.5 代替，例如这里我使用的就是：</p>
+<blockquote>
+<p>1980 年 1 月～2024 年 12 月各省市区县地表 PM2.5 质量浓度：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/76698bc838ef49c5ab57633aa64b4e06">https://rstata.duanshu.com/#/brief/course/76698bc838ef49c5ab57633aa64b4e06</a></p>
+</blockquote>
+<p>首先我们读取专利数据进行初步处理：</p>
+<ol>
+<li>仅保留授权专利；</li>
+<li>根据公开公告号和申请号去除重复专利（专利数据里面同时包含了很多专利的申请和授权公告）；</li>
+<li>去除外观设计专利；</li>
+<li>只保留需要的变量。</li>
+</ol>
+<p>实际上原论文也保留了外观设计专利。如果想把外观设计专利纳入分析中，可以保留该部分专利，然后外观设计专利分类号采用 LOC 分类，结构为大类（两位数字）-小类（两位数字）。可以使用前两位数字作为下面的 class 变量。另外也有一些论文认为发明专利的创新性更强，仅选择发明专利进行研究，这样也是不错的，更有说服力，也可以节省一些计算量。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/使用 Stata 测算上市公司人力资本流动、创新产出及流动方向&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="comment">*- 1. 读取并清洗专利数据</span></span><br><span class="line">import delimited <span class="string">&quot;2010~2014年上市公司与专利数据匹配结果.csv&quot;</span>, <span class="keyword">clear</span> bindquotes(strict) maxquotedrows(unlimited) stringcols(_all)</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">    <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = <span class="string">&quot;&quot;</span> <span class="keyword">if</span> <span class="symbol">`i&#x27;</span> == <span class="string">&quot;NA&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">destring</span> 年份, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保留授权专利</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(授权公告号) | 授权公告号 == <span class="string">&quot;&quot;</span> | 授权公告号 == <span class="string">&quot;NA&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 选择变量</span></span><br><span class="line"><span class="keyword">keep</span> newipzlid 股票代码 公开公告号 申请号 ipc 年份 专利类型 市 发明人</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保留发明和实用新型专利</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>) | <span class="built_in">index</span>(专利类型, <span class="string">&quot;实用新型&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 清理公开公告号 - 移除末尾字母</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = ustrregexra(公开公告号, <span class="string">&quot;[A-Z]$&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去重</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 股票代码 公开公告号, force</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 申请号, force</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除不需要的变量</span></span><br><span class="line"><span class="keyword">drop</span> 公开公告号 申请号 专利类型</span><br><span class="line"><span class="keyword">save</span> dfall, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>每个专利都可能包含多个 IPC 以及多个申请人，下面使用 split + reshape 进行拆分：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> dfall, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 拆分 IPC（多个分类号）</span></span><br><span class="line"><span class="keyword">split</span> ipc, <span class="keyword">parse</span>(<span class="string">&quot;;&quot;</span>) <span class="keyword">gen</span>(ipc_)</span><br><span class="line"><span class="keyword">drop</span> ipc</span><br><span class="line"><span class="keyword">gen</span> long_id = _n</span><br><span class="line"><span class="keyword">reshape</span> long ipc_, <span class="built_in">i</span>(long_id) <span class="built_in">j</span>(ipc_no)</span><br><span class="line"><span class="comment">*- 这个比 gahter ipc_* 更快，所以这里还是用 reshape long</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(ipc_)</span><br><span class="line"><span class="keyword">ren</span> ipc_ ipc</span><br><span class="line"><span class="keyword">replace</span> ipc = <span class="built_in">subinstr</span>(ipc, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> ipc = <span class="built_in">subinstr</span>(ipc, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(ipc, 1, 3)</span><br><span class="line"><span class="keyword">drop</span> ipc_no long_id</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 拆分发明人（多个发明人）</span></span><br><span class="line"><span class="keyword">split</span> 发明人, <span class="keyword">parse</span>(<span class="string">&quot;;&quot;</span>) <span class="keyword">gen</span>(inventor_)</span><br><span class="line"><span class="keyword">drop</span> 发明人</span><br><span class="line"><span class="keyword">gen</span> long_id = _n</span><br><span class="line"><span class="keyword">reshape</span> long inventor_, <span class="built_in">i</span>(long_id) <span class="built_in">j</span>(inventor_no)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(inventor_)</span><br><span class="line"><span class="keyword">rename</span> inventor_ 发明人</span><br><span class="line"><span class="keyword">replace</span> 发明人 = <span class="built_in">subinstr</span>(发明人, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> inventor_no long_id</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去重</span></span><br><span class="line"><span class="keyword">drop</span> ipc</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">save</span> patent_data, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>再计算创新产出前，我们需要先去除发明人重名的。</p>
+<p>根据原文逻辑：同一年、同一发明人、不同城市、不同IPC大类 -&gt; 视为重名：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 3. 剔除发明人重名问题</span></span><br><span class="line"><span class="keyword">use</span> patent_data, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算每个发明人每年的城市数和大类数</span></span><br><span class="line"><span class="keyword">bysort</span> 年份 发明人: <span class="keyword">egen</span> city_count = nvals(市)</span><br><span class="line"><span class="keyword">bysort</span> 年份 发明人: <span class="keyword">egen</span> class_count = nvals(<span class="keyword">class</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 重名条件：同一年同一发明人，且城市数 &gt; 1，且大类数 &gt; 1</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> city_count &gt; 1 &amp; class_count &gt; 1</span><br><span class="line"></span><br><span class="line"><span class="keyword">drop</span> city_count class_count</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> patent_clean, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 查看剔除情况</span></span><br><span class="line"><span class="keyword">use</span> patent_data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">count</span></span><br><span class="line"><span class="comment">*&gt; 1,408,696</span></span><br><span class="line"><span class="keyword">local</span> original_count = <span class="built_in">r</span>(<span class="keyword">N</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> patent_clean, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">count</span></span><br><span class="line"><span class="comment">*&gt; 1,038,381</span></span><br><span class="line"><span class="keyword">local</span> clean_count = <span class="built_in">r</span>(<span class="keyword">N</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">disp</span> <span class="string">&quot;原始数据量：`original_count&#x27;&quot;</span></span><br><span class="line"><span class="comment">*&gt; 原始数据量：1408696</span></span><br><span class="line"><span class="keyword">disp</span> <span class="string">&quot;剔除重名后数据量：`clean_count&#x27;&quot;</span></span><br><span class="line"><span class="comment">*&gt; 剔除重名后数据量：1038381</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 总发明人数</span></span><br><span class="line"><span class="keyword">use</span> patent_data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 发明人, force</span><br><span class="line"><span class="keyword">count</span></span><br><span class="line"><span class="comment">*&gt; 200,691</span></span><br><span class="line"><span class="keyword">local</span> original_inventors = <span class="built_in">r</span>(<span class="keyword">N</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> patent_clean, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 发明人, force</span><br><span class="line"><span class="keyword">count</span></span><br><span class="line"><span class="comment">*&gt; 197,041</span></span><br><span class="line"><span class="keyword">local</span> clean_inventors = <span class="built_in">r</span>(<span class="keyword">N</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> removed_ratio = (<span class="symbol">`original_inventors&#x27;</span> - <span class="symbol">`clean_inventors&#x27;</span>) / <span class="symbol">`original_inventors&#x27;</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;重名的人占：&quot;</span> <span class="symbol">`removed_ratio&#x27;</span></span><br><span class="line"><span class="comment">*&gt; 重名的人占：.01818716</span></span><br></pre></td></tr></table></figure>
+
+<p>然后分组统计每年每位发明人申请的专利总数即为创新产出：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">list in 1/10</span><br><span class="line"></span><br><span class="line">*&gt;     +------------------------------+</span><br><span class="line">*&gt;     |       发明人   年份   patent |</span><br><span class="line">*&gt;     |------------------------------|</span><br><span class="line">*&gt;  1. | A·R·纳戈帕尔   2012        1 |</span><br><span class="line">*&gt;  2. |   A·仁加萨米   2010        2 |</span><br><span class="line">*&gt;  3. |   A·德特默斯   2013        1 |</span><br><span class="line">*&gt;  4. |   A·德特默斯   2014        3 |</span><br><span class="line">*&gt;  5. |     A·查克拉   2014        3 |</span><br><span class="line">*&gt;     |------------------------------|</span><br><span class="line">*&gt;  6. |       A·米勒   2013        1 |</span><br><span class="line">*&gt;  7. |   A·维斯戈尔   2013        1 |</span><br><span class="line">*&gt;  8. |   A·维斯戈尔   2014        3 |</span><br><span class="line">*&gt;  9. |     A·马赛拉   2011        2 |</span><br><span class="line">*&gt; 10. |   B.A.彼得斯   2014        1 |</span><br><span class="line">*&gt;     +------------------------------+</span><br><span class="line"></span><br><span class="line">save innovation_output, replace</span><br></pre></td></tr></table></figure>
+
+<p>如果同一个发明人在不同的年份（如 2005 年和 2006 年）出现在两个不同的上市公司（A 和 B），如果 2006 年后该发明人不再出现 在 A 企业，同时 2006 年前 B 企业也没有该发明人，则认为发明人在 A 和 B 之间发生了流动：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 5. 识别人力资本流动（Flow）</span></span><br><span class="line"><span class="keyword">use</span> patent_clean, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 过滤不公开的发明人</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">regexm</span>(发明人, <span class="string">&quot;不公开&quot;</span>) | <span class="built_in">regexm</span>(发明人, <span class="string">&quot;不公布&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 构建发明人-年份-企业面板</span></span><br><span class="line"><span class="keyword">keep</span> 发明人 年份 股票代码 市</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按发明人和年份排序</span></span><br><span class="line"><span class="keyword">gsort</span> 发明人 年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 标记流动</span></span><br><span class="line"><span class="keyword">bysort</span> 发明人 (年份): <span class="keyword">gen</span> prev_firm = 股票代码[_n-1]</span><br><span class="line"><span class="keyword">bysort</span> 发明人 (年份): <span class="keyword">gen</span> next_firm = 股票代码[_n+1]</span><br><span class="line"><span class="keyword">bysort</span> 发明人 (年份): <span class="keyword">gen</span> prev_city = 市[_n-1]</span><br><span class="line"><span class="keyword">bysort</span> 发明人 (年份): <span class="keyword">gen</span> next_city = 市[_n+1]</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> flow = 0</span><br><span class="line"><span class="keyword">replace</span> flow = 1 <span class="keyword">if</span> 股票代码 != prev_firm &amp; 股票代码 != next_firm &amp; !<span class="built_in">missing</span>(prev_firm) &amp; !<span class="built_in">missing</span>(next_firm)</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> flow_data, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>结合空气质量数据就可以构造流动方向了。<code>Flow_up</code> 表示发明人 流向空气质量较好的城市，此时 <code>Flow_up</code> 取值为 1，否则为 0：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 6. 构建流动方向变量（Flow_up, Flow_down）</span></span><br><span class="line"><span class="comment">*- 读取城市空气质量数据</span></span><br><span class="line">import excel <span class="string">&quot;1980年1月~2024年12月各城市地表PM2.5质量浓度(微克每立方米).xlsx&quot;</span>, firstrow <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取年份</span></span><br><span class="line"><span class="keyword">gen</span> 年份 = <span class="built_in">year</span>(month)</span><br><span class="line"><span class="comment">*- 计算年度平均</span></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">mean</span>) pm25 = 地表PM25质量浓度, <span class="keyword">by</span>(市 年份)</span><br><span class="line"><span class="keyword">ren</span> 市 merge_city</span><br><span class="line"><span class="comment">*- 只保留研究期间</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 &gt;= 2010 &amp; 年份 &lt;= 2014</span><br><span class="line"><span class="keyword">save</span> city_air_quality, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并空气质量数据到流动数据</span></span><br><span class="line"><span class="keyword">use</span> flow_data, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并前一个城市的空气质量</span></span><br><span class="line"><span class="keyword">rename</span> prev_city merge_city</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 merge_city 年份 using <span class="string">&quot;city_air_quality.dta&quot;</span>, keepusing(pm25) <span class="keyword">keep</span>(match master)</span><br><span class="line"><span class="keyword">rename</span> pm25 prev_pm25</span><br><span class="line"><span class="keyword">rename</span> merge_city prev_city</span><br><span class="line"></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并当前城市的空气质量</span></span><br><span class="line"><span class="keyword">rename</span> 市 merge_city</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 merge_city 年份 using <span class="string">&quot;city_air_quality.dta&quot;</span>, keepusing(pm25) <span class="keyword">keep</span>(match master)</span><br><span class="line"><span class="keyword">rename</span> pm25 curr_pm25</span><br><span class="line"><span class="keyword">rename</span> merge_city 市</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算流动方向</span></span><br><span class="line"><span class="keyword">gen</span> flow_up = 0</span><br><span class="line"><span class="keyword">gen</span> flow_down = 0</span><br><span class="line"><span class="keyword">replace</span> flow_up = 1 <span class="keyword">if</span> flow == 1 &amp; curr_pm25 &lt; prev_pm25 &amp; !<span class="built_in">missing</span>(curr_pm25, prev_pm25)</span><br><span class="line"><span class="keyword">replace</span> flow_down = 1 <span class="keyword">if</span> flow == 1 &amp; curr_pm25 &gt; prev_pm25 &amp; !<span class="built_in">missing</span>(curr_pm25, prev_pm25)</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> flow_up = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(flow_up)</span><br><span class="line"><span class="keyword">replace</span> flow_down = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(flow_down)</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> flow_direction, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>再添加公司信息，方便下面的分公司汇总：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 7. 构建最终数据集</span></span><br><span class="line"><span class="keyword">use</span> patent_clean, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 合并创新产出数据</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 发明人 年份 using innovation_output, <span class="keyword">keep</span>(match master) nogen</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br></pre></td></tr></table></figure>
+
+<p>分公司、年份统计流入流出人员数量。继续使用前面的 flow_data 或 final_data，这里可以根据需要分三种方法汇总：</p>
+<ol>
+<li>基于流动数据直接统计;</li>
+<li>根据发明人进行精确的流动识别；</li>
+<li>按流动方向进一步细分。</li>
+</ol>
+<p>方法一：基于流动数据直接统计</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 统计流入企业的发明人数量</span></span><br><span class="line"><span class="keyword">use</span> flow_data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> flow == 1</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> inflow_count = <span class="keyword">count</span>(发明人)</span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 inflow_count</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span></span><br><span class="line"><span class="keyword">save</span> inflow_by_firm, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 统计流出企业的发明人数量</span></span><br><span class="line"><span class="keyword">use</span> flow_data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> flow == 1</span><br><span class="line"><span class="keyword">rename</span> 股票代码 target_firm</span><br><span class="line"><span class="keyword">rename</span> prev_firm 股票代码</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> outflow_count = <span class="keyword">count</span>(发明人)</span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 outflow_count</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span></span><br><span class="line"><span class="keyword">save</span> outflow_by_firm, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br></pre></td></tr></table></figure>
+
+<p>方法二：使用更精确的流动识别</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 方法二：使用更精确的流动识别</span></span><br><span class="line"><span class="keyword">use</span> flow_data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> flow == 1</span><br><span class="line"><span class="keyword">gen</span> flow_year = 年份</span><br><span class="line"><span class="keyword">gen</span> source_firm = prev_firm</span><br><span class="line"><span class="keyword">gen</span> target_firm = 股票代码</span><br><span class="line"><span class="keyword">keep</span> 发明人 flow_year source_firm target_firm 市 prev_city</span><br><span class="line"><span class="keyword">save</span> precise_flow_records, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br></pre></td></tr></table></figure>
+
+<p>方法三：按流动方向进一步细分</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 方法三：按流动方向进一步细分</span></span><br><span class="line"><span class="comment">*- 按流动方向统计流入</span></span><br><span class="line"><span class="keyword">use</span> flow_direction, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> flow == 1</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> inflow_total = <span class="keyword">count</span>(发明人)</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> inflow_up = <span class="built_in">sum</span>(flow_up)</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> inflow_down = <span class="built_in">sum</span>(flow_down)</span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 inflow_total inflow_up inflow_down</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span></span><br><span class="line"><span class="keyword">save</span> directional_inflow, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按流动方向统计流出</span></span><br><span class="line"><span class="keyword">use</span> flow_direction, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> flow == 1</span><br><span class="line"><span class="keyword">rename</span> 股票代码 target_firm</span><br><span class="line"><span class="keyword">rename</span> prev_firm 股票代码</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> outflow_total = <span class="keyword">count</span>(发明人)</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> outflow_up = <span class="built_in">sum</span>(flow_up)</span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> outflow_down = <span class="built_in">sum</span>(flow_down)</span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 outflow_total outflow_up outflow_down</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span></span><br><span class="line"><span class="keyword">save</span> directional_outflow, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br></pre></td></tr></table></figure>
+
+<p>最后还可以计算一些统计信息：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 9. 输出统计摘要</span></span><br><span class="line"><span class="keyword">use</span> firm_mobility_detailed, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">summarize</span> inflow_count</span><br><span class="line"><span class="keyword">local</span> avg_inflow = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line"><span class="keyword">summarize</span> outflow_count</span><br><span class="line"><span class="keyword">local</span> avg_outflow = <span class="built_in">r</span>(<span class="keyword">mean</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">count</span> <span class="keyword">if</span> net_flow &gt; 0</span><br><span class="line"><span class="keyword">local</span> positive_net_ratio = <span class="built_in">r</span>(<span class="keyword">N</span>)/_N * 100</span><br><span class="line"></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;企业流动统计摘要：&quot;</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;平均每年流入发明人数量：`avg_inflow&#x27;&quot;</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;平均每年流出发明人数量：`avg_outflow&#x27;&quot;</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;净流动为正的企业比例：`positive_net_ratio&#x27;%&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按年份查看流动趋势</span></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">mean</span>) avg_inflow = inflow_count avg_outflow = outflow_count <span class="comment">///</span></span><br><span class="line">         (<span class="keyword">sum</span>) total_inflow = inflow_count total_outflow = outflow_count, <span class="keyword">by</span>(年份)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;    +--------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;    | 年份   avg_in~w   avg_ou~w   to~nflow   to~tflow |</span></span><br><span class="line"><span class="comment">*&gt;    |--------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt; 1. | 2010    .094175    .094175        367        367 |</span></span><br><span class="line"><span class="comment">*&gt; 2. | 2011   .3684886   .3684886       1436       1436 |</span></span><br><span class="line"><span class="comment">*&gt; 3. | 2012   .5545291   .5545291       2161       2161 |</span></span><br><span class="line"><span class="comment">*&gt; 4. | 2013   .5332307   .5332307       2078       2078 |</span></span><br><span class="line"><span class="comment">*&gt; 5. | 2014   .2083654   .2083654        812        812 |</span></span><br><span class="line"><span class="comment">*&gt;    +--------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/5d057dd33c274920b41d196eaed0bb3b">名师讲堂｜使用 Stata 测算上市公司人力资本流动、创新产出及流动方向</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.646Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/78551/" title="2003～2024 年金融机构网点与金融科技专利匹配结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/79060/" title="1988～2024 年金融机构网点与关键数字技术专利匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/79211/">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</a><span class="tf-related-meta">2026-03-30 · 约 12 分钟</span></li><li><a href="/posts/73859/">名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度</a><span class="tf-related-meta">2025-03-24 · 约 11 分钟</span></li><li><a href="/posts/41837/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（二）</a><span class="tf-related-meta">2025-03-04 · 约 12 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

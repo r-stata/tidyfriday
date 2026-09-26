@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 筛选绿色低碳技术相关专利 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/22680/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="视频讲解中有个地方讲解错了，更新后的讲义材料里面已经注明了，以更新后的讲义材料为准。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 筛选绿色低碳技术相关专利">
+<meta property="og:url" content="https://tidyfriday.cn/posts/22680/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="视频讲解中有个地方讲解错了，更新后的讲义材料里面已经注明了，以更新后的讲义材料为准。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/22680.png">
+<meta property="article:published_time" content="2024-04-17T23:09:37.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:45.654Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/22680.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 筛选绿色低碳技术相关专利">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 筛选绿色低碳技术相关专利","description":"视频讲解中有个地方讲解错了，更新后的讲义材料里面已经注明了，以更新后的讲义材料为准。","url":"https://tidyfriday.cn/posts/22680/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/22680/"},"image":["https://tidyfriday.cn/og/22680.png"],"datePublished":"2024-04-17T23:09:37.000Z","dateModified":"2026-09-26T14:18:45.654Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 筛选绿色低碳技术相关专利","item":"https://tidyfriday.cn/posts/22680/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 筛选绿色低碳技术相关专利</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 筛选绿色低碳技术相关专利</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-04-17T23:09:37.000Z" itemprop="datePublished">2024-04-17</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3388 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>视频讲解中有个地方讲解错了，更新后的讲义材料里面已经注明了，以更新后的讲义材料为准。</p>
+<span id="more"></span>
+
+<p>前不久给大家分享过一些绿色低碳技术相关的专利数据。由于绿色低碳专利的分类标准中有全部涉及和部分涉及两种，所以筛选起来很困难，今天的课程中我们将会讲解如何进行这种筛选。</p>
+<h2 id="pdf-转-xlsx" class="article-heading"><a href="#pdf-转-xlsx" class="headerlink" title="pdf 转 xlsx"></a>pdf 转 xlsx<a class="article-anchor" href="#pdf-转-xlsx" aria-label="本节链接" title="复制本节链接"></a></h2><p>筛选绿色低碳专利使用的标准是国家知识产权局印发的《绿色低碳技术专利分类标准》，附件中有 pdf 文件。</p>
+<p>在之前的课程：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b2c71978336b4b39b69f05d6537d9d8f">使用 Stata 提取和处理数字经济核心产业分类与国际专利分类参照关系表</a> 中我们讲解过类似的 pdf 文件转 xlsx 并整理得到规整的 dta 文件的操作。这里就不再赘述了，附件中的 <code>绿色低碳技术专利IPC对照表.dta</code> 就是整理结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 绿色低碳技术专利IPC对照表.dta, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364739496_841567.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>全部涉及的很容易处理，和之前课程中讲解的类似。部分涉及则是指该分类号下只有部分满足条件的专利才是绿色低碳专利。</p>
+<h2 id="检索式翻译成正则表达式" class="article-heading"><a href="#检索式翻译成正则表达式" class="headerlink" title="检索式翻译成正则表达式"></a>检索式翻译成正则表达式<a class="article-anchor" href="#检索式翻译成正则表达式" aria-label="本节链接" title="复制本节链接"></a></h2><p>《绿色低碳技术专利分类标准》文件的后面也提供了检索关键词，也就是在某些分类号下的专利，只有标题和摘要中含特定关键词才能算是绿色低碳专利。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364739011_944882.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>例如其中有一条：</p>
+<p>参考关键词：(煤 OR COAL) (2N) (采 OR  矿 OR  井 OR EXCAVAT* OR MINE OR MINING OR PRODUCTING) 参考检索式：IPC=(E02D17/20 OR E02D19/06) AND TIABC=((煤 OR COAL) (2N) (采 OR  矿 OR  井 OR EXCAVAT* OR MINE OR MINING OR PRODUCTING))</p>
+<p>Stata 中当然是不支持这种参考检索式的，所以我们需要把这些检索式一一翻译成正则表达式。这里有一些注意事项：</p>
+<ol>
+<li>IPC 表示 IPC 专利分类号；</li>
+<li>TIABC 表示标题+摘要；</li>
+<li>检索式中的 N、W 和 S 是检索词的连接关系符号。N 没有顺序的限制，W 有顺序限制，S则是在同一句。1/2/3的数字表示两个检索词之间的隔的字数（小于等于该数字）。如检索“车座”(1N)“车把”,可以检索出“车座和车把”、“车把和车座”、“车座车把”、“车把车座”等将车座与车把间隔小于等于1个字并且没有顺序的语句，但检索“车座”(1W)“车把”仅能检索出“车座和车把”或“车座在车把”、“车座车把”等将车座与车把间隔小于等于1个字并且有顺序的语句。</li>
+</ol>
+<p>因此例如这个翻译成 Stata 支持的正则表达式应该是：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:=&gt; (煤 OR COAL) (2N) (采 OR  矿 OR  井 OR EXCAVAT* OR MINE OR MINING OR</span><br><span class="line">PRODUCTING)</span><br><span class="line">:=&gt; ustrregexm(text, &quot;((煤)|(COAL))(.&#123;0,2&#125;)((采)|(矿)|(井)|(EXCAVAT)|(MINE)|(MINING)|(PRODUCTING))&quot;)|ustrregexm(text, &quot;((采)|(矿)|(井)|(EXCAVAT)|(MINE)|(MINING)|(PRODUCTING))(.&#123;0,2&#125;)((煤)|(COAL))&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>在正则表达式中，<code>()</code> 的一种功能是把被括住的内容视为整体，<code>.&#123;0,2&#125;</code> 表示 &lt;= 两个字符，由于这里使用了 <code>2N</code>，所以需要考虑两种情况。</p>
+<p>可以先测试下这个正则表达式是否有效：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">set</span> obs 6</span><br><span class="line"><span class="keyword">input</span> str100 text</span><br><span class="line"><span class="string">&quot;煤炭开采&quot;</span></span><br><span class="line"><span class="string">&quot;煤采&quot;</span></span><br><span class="line"><span class="string">&quot;煤炭开发开采&quot;</span></span><br><span class="line"><span class="string">&quot;coal-mining&quot;</span></span><br><span class="line">开采煤炭</span><br><span class="line"><span class="string">&quot;co-mining&quot;</span></span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">gen</span> code = <span class="string">`&quot;ustrregexm(text, &quot;((煤)|(COAL))(.&#123;0,2&#125;)((采)|(矿)|(井)|(EXCAVAT)|(MINE)|(MINING)|(PRODUCTING))&quot;)|ustrregexm(text, &quot;((采)|(矿)|(井)|(EXCAVAT)|(MINE)|(MINING)|(PRODUCTING))(.&#123;0,2&#125;)((煤)|(COAL))&quot;)&quot;&#x27;</span></span><br><span class="line"><span class="keyword">gen</span> res = `=code[_n]&#x27;</span><br><span class="line"></span><br><span class="line"><span class="keyword">format</span> code %10s</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> text res <span class="keyword">in</span> 1/6</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +--------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |         text   res |</span></span><br><span class="line"><span class="comment">*&gt;     |--------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. |     煤炭开采     1 |</span></span><br><span class="line"><span class="comment">*&gt;  2. |         煤采     1 |</span></span><br><span class="line"><span class="comment">*&gt;  3. | 煤炭开发开采     0 |</span></span><br><span class="line"><span class="comment">*&gt;  4. |  COAL-MINING     1 |</span></span><br><span class="line"><span class="comment">*&gt;  5. |     开采煤炭     1 |</span></span><br><span class="line"><span class="comment">*&gt;     |--------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. |    CO-MINING     0 |</span></span><br><span class="line"><span class="comment">*&gt;     +--------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到<code>煤炭开发开采</code>不符合，因为“煤”和“采”之间有 4 个字，<code>co-minig</code> 不符合，是因为得有完整的 coal 采可以。</p>
+<p>附件中的 <code>参考检索式_ocr1.xlsx</code> 是对 <code>参考检索式.pdf</code> 进行文本识别得到的。<code>参考检索式_手动调整.xlsx</code> 文件是我手动一条条翻译的正则表达式。</p>
+<p><strong>这些正则表达式里面有三个需要特别注意的：CO、CO2、H2。例如 CO，不能直接写 |CO|，这样是有可能匹配到例如 COOH、CaCO3 之类的，我写的是 <code>|([^a-zA-Z\d](CO)[^a-zA-Z\d])|</code> 也就是 CO 前后不能有其他英文字符和数字，H2 要是直接写的话可能会匹配到 H2O 和 H2O2 之类的。</strong></p>
+<h2 id="筛选逻辑" class="article-heading"><a href="#筛选逻辑" class="headerlink" title="筛选逻辑"></a>筛选逻辑<a class="article-anchor" href="#筛选逻辑" aria-label="本节链接" title="复制本节链接"></a></h2><p>我的想法是按照下面四个步骤筛选：</p>
+<ol>
+<li>首先从总专利里面筛选全部涉及和部分涉及分类下的所有专利。先缩小范围，减少数据的大小；</li>
+<li>筛选全部涉及的部分；</li>
+<li>筛选部分涉及的；</li>
+<li>合并所有筛选的结果。</li>
+</ol>
+<h2 id="筛选所有符合分类号筛选条件的专利" class="article-heading"><a href="#筛选所有符合分类号筛选条件的专利" class="headerlink" title="筛选所有符合分类号筛选条件的专利"></a>筛选所有符合分类号筛选条件的专利<a class="article-anchor" href="#筛选所有符合分类号筛选条件的专利" aria-label="本节链接" title="复制本节链接"></a></h2><p>附件中我准备了一份 2010 年的专利申请数据：<code>2010年专利申请数据.dta</code></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2010年专利申请数据.dta, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364736732_937324.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下面我们根据分类号进行筛选。</p>
+<p>首先我们需要删除设计专利、保留关键变量（减少数据大小）以及拆分分类号：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 2010 年专利数据</span></span><br><span class="line"><span class="keyword">use</span> 2010年专利申请数据, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;设计&quot;</span>)</span><br><span class="line"><span class="keyword">keep</span> newzlid 分类号</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 排好序</span></span><br><span class="line"><span class="keyword">gsort</span> newzlid</span><br><span class="line"><span class="comment">*- 统计可拆分的数量：_gipc_count.ado</span></span><br><span class="line"><span class="keyword">egen</span> <span class="keyword">n</span> = ipc_count(分类号), <span class="keyword">parse</span>(;)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 把数据读入 mata 中处理：</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line"><span class="keyword">mata</span> <span class="keyword">clear</span></span><br><span class="line"><span class="comment">// 把分类号数据读入 mata</span></span><br><span class="line">v1 = st_sdata(., <span class="string">&quot;分类号&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 转换成行向量</span></span><br><span class="line">v2 = rowshape(v1, cols(v1))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 连接起来</span></span><br><span class="line">v3 = invtokens(v2, <span class="string">&quot;;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用分号拆分</span></span><br><span class="line">v4 = ustrsplit(v3, <span class="string">&quot;;&quot;</span>)</span><br><span class="line"><span class="comment">// 转换成列向量</span></span><br><span class="line">v5 = colshape(v4, rows(v4))</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 回到 Stata 中</span></span><br><span class="line"><span class="keyword">expand</span> <span class="keyword">n</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- newzlid 的顺序不能变</span></span><br><span class="line"><span class="keyword">gsort</span> newzlid</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 从 mata 的 v5 再创建变量</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">stata(<span class="string">&quot;cap drop newvar&quot;</span>)</span><br><span class="line">st_addvar(<span class="string">&quot;strL&quot;</span>, <span class="string">&quot;newvar&quot;</span>)</span><br><span class="line">st_sstore(., <span class="string">&quot;newvar&quot;</span>, v5)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">drop</span> 分类号 <span class="keyword">n</span></span><br><span class="line"><span class="keyword">ren</span> newvar IPC</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> IPC = ustrregexs(1) <span class="keyword">if</span> ustrregexm(IPC, <span class="string">&quot;(.*)\(&quot;</span>)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;IPC分类号拆分结果&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>另外一方面处理 <code>绿色低碳技术专利IPC对照表.dta</code> 数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 拆分 IPC 对照表</span></span><br><span class="line"><span class="keyword">use</span> 绿色低碳技术专利IPC对照表, <span class="keyword">clear</span></span><br><span class="line">gather *涉及</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(value)</span><br><span class="line"><span class="keyword">split</span> value, <span class="keyword">parse</span>(, ;)</span><br><span class="line"><span class="keyword">drop</span> value</span><br><span class="line"></span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">var</span> 全部或部分涉及</span><br><span class="line">gather value*</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(value)</span><br><span class="line"><span class="keyword">replace</span> value = ustrregexs(1) <span class="keyword">if</span> ustrregexm(value, <span class="string">&quot;(.*)\(&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> value = ustrregexs(1) <span class="keyword">if</span> ustrregexm(value, <span class="string">&quot;(.*)\)&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">ren</span> value IPC</span><br><span class="line"><span class="keyword">gen</span> len = <span class="built_in">strlen</span>(IPC)</span><br><span class="line"><span class="keyword">gsort</span> 绿色低碳技术ID IPC</span><br><span class="line"><span class="keyword">gen</span> ipcid = _n</span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;data1&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 1. 长度为 3，范围</span></span><br><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 3</span><br><span class="line"><span class="keyword">order</span> 绿色低碳技术ID ipcid</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">save</span> ipcres1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 2. 长度为 4，范围</span></span><br><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 4</span><br><span class="line"><span class="keyword">order</span> 绿色低碳技术ID ipcid</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">save</span> ipcres2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 3. 长度为 8、9、10，具体</span></span><br><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(len, 8, 9, 10)</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">order</span> 绿色低碳技术ID ipcid</span><br><span class="line"><span class="keyword">save</span> ipcres3, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就可以分别根据这三个文件筛选了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- ipcres1</span></span><br><span class="line"><span class="keyword">use</span> IPC分类号拆分结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> IPC = <span class="built_in">substr</span>(IPC, 1, 3)</span><br><span class="line"><span class="keyword">recast</span> str3 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using ipcres1</span><br><span class="line"><span class="keyword">gsort</span> newzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">drop</span> IPC</span><br><span class="line"><span class="keyword">save</span> 第一部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ipcres2</span></span><br><span class="line"><span class="keyword">use</span> IPC分类号拆分结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> IPC = <span class="built_in">substr</span>(IPC, 1, 4)</span><br><span class="line"><span class="keyword">recast</span> str4 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using ipcres2</span><br><span class="line"><span class="keyword">gsort</span> newzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">drop</span> IPC</span><br><span class="line"><span class="keyword">save</span> 第二部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ipcres3</span></span><br><span class="line"><span class="keyword">use</span> IPC分类号拆分结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">joinby</span> IPC using ipcres3</span><br><span class="line"><span class="keyword">gsort</span> newzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">drop</span> IPC</span><br><span class="line"><span class="keyword">save</span> 第三部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并三部分结果</span></span><br><span class="line"><span class="keyword">use</span> 第一部分, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using 第二部分</span><br><span class="line"><span class="keyword">append</span> using 第三部分</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">save</span> 初步筛选结果, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就初步筛选所有可能涉及的绿色低碳专利了。</p>
+<h2 id="从初步筛选结果中提取全部涉及的" class="article-heading"><a href="#从初步筛选结果中提取全部涉及的" class="headerlink" title="从初步筛选结果中提取全部涉及的"></a>从初步筛选结果中提取全部涉及的<a class="article-anchor" href="#从初步筛选结果中提取全部涉及的" aria-label="本节链接" title="复制本节链接"></a></h2><p>全部涉及的就直接保留即可：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 初步筛选结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 全部或部分涉及 == <span class="string">&quot;全部涉及&quot;</span></span><br><span class="line"><span class="keyword">drop</span> 全部或部分涉及</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;全部涉及筛选结果&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="从初步筛选结果中提取部分涉及的" class="article-heading"><a href="#从初步筛选结果中提取部分涉及的" class="headerlink" title="从初步筛选结果中提取部分涉及的"></a>从初步筛选结果中提取部分涉及的<a class="article-anchor" href="#从初步筛选结果中提取部分涉及的" aria-label="本节链接" title="复制本节链接"></a></h2><p>再保留部分涉及的结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 初步筛选结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 全部或部分涉及 == <span class="string">&quot;全部涉及&quot;</span></span><br><span class="line"><span class="keyword">drop</span> 全部或部分涉及</span><br><span class="line"><span class="keyword">keep</span> newzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> newzlid, force</span><br><span class="line"><span class="keyword">merge</span> 1:<span class="keyword">m</span> newzlid using <span class="string">&quot;IPC分类号拆分结果.dta&quot;</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 newzlid using 2010年专利申请数据.dta</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">drop</span> 分类号 主分类号 专利类型 公开公告号</span><br><span class="line"><span class="keyword">gen</span> text = 专利名称 + <span class="string">&quot; &quot;</span> + 摘要</span><br><span class="line"><span class="keyword">drop</span> 专利名称 摘要</span><br><span class="line"><span class="keyword">replace</span> text = <span class="built_in">strupper</span>(text)</span><br><span class="line"><span class="keyword">replace</span> text = <span class="built_in">subinstr</span>(text, <span class="string">&quot;&lt;SUB&gt;&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">ren</span> IPC 分类号</span><br><span class="line"><span class="keyword">save</span> 待筛选部分涉及, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364736274_995182.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>再回到 <code>参考检索式_手动调整.xlsx</code> 结果上，首先把该文件读取并处理下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import excel using <span class="string">&quot;参考检索式_手动调整.xlsx&quot;</span>, <span class="keyword">clear</span> first</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">keep</span> 绿色低碳技术分支 IPC分类 参考关键词</span><br><span class="line"><span class="keyword">ren</span> 参考关键词 筛选表达式</span><br><span class="line"><span class="keyword">gen</span> 技术分支编号 = ustrregexs(1) <span class="keyword">if</span> ustrregexm(绿色低碳技术分支, <span class="string">&quot;(.*\d)\s&quot;</span>)</span><br><span class="line">carryforward 技术分支编号, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> 绿色低碳技术分支</span><br><span class="line"><span class="keyword">gen</span> v1 = ustrregexs(0) <span class="keyword">if</span> ustrregexm(IPC分类, <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> IPC分类 = <span class="built_in">subinstr</span>(IPC分类, v1, <span class="string">&quot; &quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> v1</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC分类) &amp; <span class="built_in">mi</span>(筛选表达式)</span><br><span class="line"><span class="keyword">replace</span> IPC分类 = <span class="built_in">subinstr</span>(IPC分类, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">order</span> 技术分支编号</span><br><span class="line"><span class="keyword">split</span> IPC分类, <span class="keyword">parse</span>(,)</span><br><span class="line"><span class="keyword">drop</span> IPC分类</span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line">gather IPC分类*</span><br><span class="line"><span class="keyword">gsort</span> id</span><br><span class="line"><span class="keyword">replace</span> 筛选表达式 = <span class="string">&quot;&quot;</span> <span class="keyword">if</span> 筛选表达式 == <span class="string">&quot;无&quot;</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(value)</span><br><span class="line"><span class="keyword">order</span> id</span><br><span class="line"><span class="keyword">replace</span> 技术分支编号 = <span class="built_in">subinstr</span>(技术分支编号, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">ren</span> value 分类号</span><br><span class="line"><span class="keyword">replace</span> 筛选表达式 = <span class="string">&quot;1 == 1&quot;</span> <span class="keyword">if</span> <span class="built_in">mi</span>(筛选表达式)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 技术分支编号 using 绿色低碳技术专利IPC对照表</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> 筛选表达式 技术分支编号 分类号 绿色低碳技术ID</span><br><span class="line"><span class="keyword">gen</span> len = <span class="built_in">strlen</span>(分类号)</span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364735748_531177.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>根据 len 拆分：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 3</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">save</span> bfres3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 4</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">save</span> bfres4, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 5</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">save</span> bfres5, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> len == 6</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">save</span> bfres6, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(len, 8, 9, 10)</span><br><span class="line"><span class="keyword">drop</span> len</span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">save</span> bfres7, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以分别把这些 bfres* 文件匹配到 <code>待筛选部分涉及.dta</code> 上了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 待筛选部分涉及, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> IPC = <span class="built_in">substr</span>(分类号, 1, 3)</span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using bfres3</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> `=筛选表达式[_n]&#x27;</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">save</span> 部分涉及第1部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 待筛选部分涉及, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> IPC = <span class="built_in">substr</span>(分类号, 1, 4)</span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using bfres4</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> `=筛选表达式[_n]&#x27;</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">save</span> 部分涉及第2部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 待筛选部分涉及, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> IPC = <span class="built_in">substr</span>(分类号, 1, 5)</span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using bfres5</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> `=筛选表达式[_n]&#x27;</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">save</span> 部分涉及第3部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 待筛选部分涉及, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> IPC = <span class="built_in">substr</span>(分类号, 1, 6)</span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using bfres6</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> `=筛选表达式[_n]&#x27;</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">save</span> 部分涉及第4部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 待筛选部分涉及, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> IPC = 分类号</span><br><span class="line"><span class="keyword">recast</span> str300 IPC</span><br><span class="line"><span class="keyword">joinby</span> IPC using bfres7</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> `=筛选表达式[_n]&#x27;</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">save</span> 部分涉及第5部分, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并结果</span></span><br><span class="line"><span class="keyword">use</span> 部分涉及第1部分, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 2/5 &#123;</span><br><span class="line"> <span class="keyword">append</span> using 部分涉及第<span class="symbol">`i&#x27;</span>部分</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;部分涉及筛选结果&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>合并全部涉及和部分涉及的结果就是所有的绿色低碳专利了。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 全部涉及筛选结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using 部分涉及筛选结果</span><br><span class="line"><span class="keyword">keep</span> newzlid 绿色低碳技术ID</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 绿色低碳技术ID using 绿色低碳技术专利IPC对照表</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> _m == 2</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">drop</span> *涉及</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 newzlid using 2010年专利申请数据</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2010年绿色低碳专利&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>在计算专利申请数量时需要注意，专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况。</p>
+<p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2010年绿色低碳专利, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 去除重复的专利</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*- 使用 duplicates drop 去除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br><span class="line"><span class="keyword">save</span> 2010年绿色低碳专利（去重）, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以统计不同类别的数量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 绿色低碳技术专利IPC对照表, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> !<span class="built_in">index</span>(技术分支编号, <span class="string">&quot;.&quot;</span>)</span><br><span class="line"><span class="keyword">keep</span> 技术*</span><br><span class="line"><span class="keyword">save</span> 技术分支类别, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 2010年绿色低碳专利（去重）, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> 技术分支编号 = <span class="built_in">substr</span>(技术分支编号, 1, 1)</span><br><span class="line"><span class="keyword">drop</span> 技术分支名称</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 技术分支编号 using 技术分支类别</span><br><span class="line"><span class="keyword">contract</span> 技术分支名称</span><br><span class="line"><span class="keyword">gr</span> pie _freq, over(技术分支名称) <span class="comment">///</span></span><br><span class="line"> plabel(_all percent, <span class="keyword">format</span>(%6.2f)) <span class="comment">///</span></span><br><span class="line"> ti(<span class="string">&quot;2010 年绿色低碳专利各类别申请占比&quot;</span>) <span class="comment">///</span></span><br><span class="line"> subti(<span class="string">&quot;数据处理：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line"> caption(<span class="string">&quot;数据来源：国家知识产权局&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/17/22/02b79j1bdbe1b168g4/common/content/1713364734937_514224.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/acd3f8de47484e49a8169b6b83dca0ed">使用 Stata 筛选绿色低碳技术相关专利</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:45.654Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/27696/" title="名师讲堂｜使用 Stata 计算专利知识宽度：Mata 方法"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/11401/" title="名师讲堂｜环境投入产出分析前沿应用"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/44849/">使用 Stata 进行税调专利匹配：超高效的匹配流程</a><span class="tf-related-meta">2025-06-16 · 约 11 分钟</span></li><li><a href="/posts/76069/">使用 Stata 绘制城市间专利合作申请数量网络图</a><span class="tf-related-meta">2025-03-10 · 约 10 分钟</span></li><li><a href="/posts/90643/">使用 Stata 提取和处理数字经济核心产业分类与国际专利分类参照关系表</a><span class="tf-related-meta">2023-10-29 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#pdf-%E8%BD%AC-xlsx"><span class="toc-text">pdf 转 xlsx</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A3%80%E7%B4%A2%E5%BC%8F%E7%BF%BB%E8%AF%91%E6%88%90%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-text">检索式翻译成正则表达式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AD%9B%E9%80%89%E9%80%BB%E8%BE%91"><span class="toc-text">筛选逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AD%9B%E9%80%89%E6%89%80%E6%9C%89%E7%AC%A6%E5%90%88%E5%88%86%E7%B1%BB%E5%8F%B7%E7%AD%9B%E9%80%89%E6%9D%A1%E4%BB%B6%E7%9A%84%E4%B8%93%E5%88%A9"><span class="toc-text">筛选所有符合分类号筛选条件的专利</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E5%88%9D%E6%AD%A5%E7%AD%9B%E9%80%89%E7%BB%93%E6%9E%9C%E4%B8%AD%E6%8F%90%E5%8F%96%E5%85%A8%E9%83%A8%E6%B6%89%E5%8F%8A%E7%9A%84"><span class="toc-text">从初步筛选结果中提取全部涉及的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E5%88%9D%E6%AD%A5%E7%AD%9B%E9%80%89%E7%BB%93%E6%9E%9C%E4%B8%AD%E6%8F%90%E5%8F%96%E9%83%A8%E5%88%86%E6%B6%89%E5%8F%8A%E7%9A%84"><span class="toc-text">从初步筛选结果中提取部分涉及的</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/43368/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天的课程中我们将一起学习如何下载和处理 NASA 的日度夜间灯光栅格数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/43368/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天的课程中我们将一起学习如何下载和处理 NASA 的日度夜间灯光栅格数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/43368.png">
+<meta property="article:published_time" content="2024-07-18T13:53:54.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.456Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="栅格数据">
+<meta property="article:tag" content="夜间灯光">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/43368.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据","description":"今天的课程中我们将一起学习如何下载和处理 NASA 的日度夜间灯光栅格数据。","url":"https://tidyfriday.cn/posts/43368/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/43368/"},"image":["https://tidyfriday.cn/og/43368.png"],"datePublished":"2024-07-18T13:53:54.000Z","dateModified":"2026-09-26T14:18:49.456Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 栅格数据, 夜间灯光","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据","item":"https://tidyfriday.cn/posts/43368/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-07-18T13:53:54.000Z" itemprop="datePublished">2024-07-18</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3726 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 16 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE">栅格数据</a><a href="/tags/#tag=%E5%A4%9C%E9%97%B4%E7%81%AF%E5%85%89">夜间灯光</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天的课程中我们将一起学习如何下载和处理 NASA 的日度夜间灯光栅格数据。</p>
+<span id="more"></span>
+
+<p>日度夜间灯光的原始数据可以从这里下载：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/">https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/</a>。</p>
+<p>关于该数据的介绍可以阅读这个文档：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP46A2/#overview">https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP46A2/#overview</a>。</p>
+<p>该数据把全球根据经纬度划按照 10˚x10˚ 的网格进行了划分，每个分块又包含了 2400x2400 个格点，分辨率大致为 500mx500m，数据均为 HDF5 格式。因此处理该数据的第一步就是要先找到中国所处的区块文件。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/07/18/13/02b79j1bdbe1b168g4/common/content/1721281539058_225827.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>上图来自：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ladsweb.modaps.eosdis.nasa.gov/api/v2/content/archives/Document%20Archive/Science%20Data%20Product%20Documentation/Product%20Generation%20Algorithms/VIIRS_Black_Marble_ATBD_v1.1_July_2020.pdf">https://ladsweb.modaps.eosdis.nasa.gov/api/v2/content/archives/Document%20Archive/Science%20Data%20Product%20Documentation/Product%20Generation%20Algorithms/VIIRS_Black_Marble_ATBD_v1.1_July_2020.pdf</a></p>
+</blockquote>
+<p>所以我们的下载和处理思路是：</p>
+<ol>
+<li>获取所有的 HDF5 文件的链接；</li>
+<li>筛选包含中国范围的文件；</li>
+<li>下载；</li>
+<li>处理 HDF5 文件得到 tiff 格式的栅格数据。</li>
+</ol>
+<h2 id="获取所有的-HDF5-文件的链接" class="article-heading"><a href="#获取所有的-HDF5-文件的链接" class="headerlink" title="获取所有的 HDF5 文件的链接"></a>获取所有的 HDF5 文件的链接<a class="article-anchor" href="#获取所有的-HDF5-文件的链接" aria-label="本节链接" title="复制本节链接"></a></h2><p>这里我们可以通过网络数据爬取的方式获取。</p>
+<p>首先爬取首页：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>rvest<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/</span></span><br><span class="line"><span class="comment"># 爬取第一层：VNP46A2</span></span><br><span class="line">read_html<span class="punctuation">(</span><span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> html</span><br></pre></td></tr></table></figure>
+
+<p>提取所有的子文件夹链接：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">html <span class="operator">%&gt;%</span></span><br><span class="line">  html_elements<span class="punctuation">(</span><span class="string">&quot;tr&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_attr<span class="punctuation">(</span><span class="string">&quot;data-href&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>value<span class="punctuation">,</span> <span class="string">&quot;VNP46A2&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf</span><br><span class="line"></span><br><span class="line">fldf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 13 × 1</span><br><span class="line">#&gt;    value</span><br><span class="line">#&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 /archive/allData/5000/VNP46A2/2012</span><br><span class="line">#&gt;  2 /archive/allData/5000/VNP46A2/2013</span><br><span class="line">#&gt;  3 /archive/allData/5000/VNP46A2/2014</span><br><span class="line">#&gt;  4 /archive/allData/5000/VNP46A2/2015</span><br><span class="line">#&gt;  5 /archive/allData/5000/VNP46A2/2016</span><br><span class="line">#&gt;  6 /archive/allData/5000/VNP46A2/2017</span><br><span class="line">#&gt;  7 /archive/allData/5000/VNP46A2/2018</span><br><span class="line">#&gt;  8 /archive/allData/5000/VNP46A2/2019</span><br><span class="line">#&gt;  9 /archive/allData/5000/VNP46A2/2020</span><br><span class="line">#&gt; 10 /archive/allData/5000/VNP46A2/2021</span><br><span class="line">#&gt; 11 /archive/allData/5000/VNP46A2/2022</span><br><span class="line">#&gt; 12 /archive/allData/5000/VNP46A2/2023</span><br><span class="line">#&gt; 13 /archive/allData/5000/VNP46A2/2024</span><br></pre></td></tr></table></figure>
+
+<p>创建文件夹保存下一轮结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir.create(&quot;htmldir1&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>fldf 中的链接都是相对链接，我们再生成完整的网址链接：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fldf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov&quot;</span><span class="punctuation">,</span> value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf2</span><br></pre></td></tr></table></figure>
+
+<p>下面需要爬取每个链接获取子文件夹的链接：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_html<span class="punctuation">(</span>fldf2<span class="operator">$</span>value<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> html2</span><br><span class="line"></span><br><span class="line">html2 <span class="operator">%&gt;%</span></span><br><span class="line">  html_elements<span class="punctuation">(</span><span class="string">&quot;tr&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_attr<span class="punctuation">(</span><span class="string">&quot;data-href&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 343 × 1</span><br><span class="line">#&gt;    value</span><br><span class="line">#&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 /archive/allData/5000/VNP46A2/2012/019</span><br><span class="line">#&gt;  2 /archive/allData/5000/VNP46A2/2012/020</span><br><span class="line">#&gt;  3 /archive/allData/5000/VNP46A2/2012/021</span><br><span class="line">#&gt;  4 /archive/allData/5000/VNP46A2/2012/022</span><br><span class="line">#&gt;  5 /archive/allData/5000/VNP46A2/2012/023</span><br><span class="line">#&gt;  6 /archive/allData/5000/VNP46A2/2012/024</span><br><span class="line">#&gt;  7 /archive/allData/5000/VNP46A2/2012/025</span><br><span class="line">#&gt;  8 /archive/allData/5000/VNP46A2/2012/026</span><br><span class="line">#&gt;  9 /archive/allData/5000/VNP46A2/2012/027</span><br><span class="line">#&gt; 10 /archive/allData/5000/VNP46A2/2012/028</span><br><span class="line">#&gt; # ℹ 333 more rows</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以循环所有的了，为了更高效，我们可以采用多线程的方式：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;html2&quot;</span><span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>parallel<span class="punctuation">)</span></span><br><span class="line">makeCluster<span class="punctuation">(</span><span class="number">16</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cl</span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> fldf2<span class="operator">$</span>value<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span>stringr<span class="operator">::</span>str_remove<span class="punctuation">(</span>x<span class="punctuation">,</span> <span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;/index.html&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    download.file<span class="punctuation">(</span>x<span class="punctuation">,</span> paste0<span class="punctuation">(</span>stringr<span class="operator">::</span>str_remove<span class="punctuation">(</span>x<span class="punctuation">,</span> <span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;/index.html&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<p>如果有下载失败的可以删除下载不完整的，然后再运行上面的代码，直到所有年份的 html 文件都下载成功。</p>
+<p>然后就可以批量处理这些 html 文件提取下载链接了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;htmldir1&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="built_in">as.character</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf3</span><br><span class="line"></span><br><span class="line">read_html<span class="punctuation">(</span>fldf3<span class="operator">$</span>value<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> html3</span><br><span class="line">html3 <span class="operator">%&gt;%</span></span><br><span class="line">  html_elements<span class="punctuation">(</span><span class="string">&quot;tr&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_attr<span class="punctuation">(</span><span class="string">&quot;data-href&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 343 × 1</span><br><span class="line">#&gt;    value</span><br><span class="line">#&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 /archive/allData/5000/VNP46A2/2012/019</span><br><span class="line">#&gt;  2 /archive/allData/5000/VNP46A2/2012/020</span><br><span class="line">#&gt;  3 /archive/allData/5000/VNP46A2/2012/021</span><br><span class="line">#&gt;  4 /archive/allData/5000/VNP46A2/2012/022</span><br><span class="line">#&gt;  5 /archive/allData/5000/VNP46A2/2012/023</span><br><span class="line">#&gt;  6 /archive/allData/5000/VNP46A2/2012/024</span><br><span class="line">#&gt;  7 /archive/allData/5000/VNP46A2/2012/025</span><br><span class="line">#&gt;  8 /archive/allData/5000/VNP46A2/2012/026</span><br><span class="line">#&gt;  9 /archive/allData/5000/VNP46A2/2012/027</span><br><span class="line">#&gt; 10 /archive/allData/5000/VNP46A2/2012/028</span><br><span class="line">#&gt; # ℹ 333 more rows</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 循环所有的</span></span><br><span class="line">fldf3 <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>a <span class="operator">=</span> value<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>data <span class="operator">=</span> map<span class="punctuation">(</span>a<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    read_html<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      html_elements<span class="punctuation">(</span><span class="string">&quot;tr&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      html_attr<span class="punctuation">(</span><span class="string">&quot;data-href&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      slice<span class="punctuation">(</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>a<span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf4</span><br><span class="line"></span><br><span class="line">fldf4</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 4,520 × 1</span><br><span class="line">#&gt;    value</span><br><span class="line">#&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 /archive/allData/5000/VNP46A2/2012/019</span><br><span class="line">#&gt;  2 /archive/allData/5000/VNP46A2/2012/020</span><br><span class="line">#&gt;  3 /archive/allData/5000/VNP46A2/2012/021</span><br><span class="line">#&gt;  4 /archive/allData/5000/VNP46A2/2012/022</span><br><span class="line">#&gt;  5 /archive/allData/5000/VNP46A2/2012/023</span><br><span class="line">#&gt;  6 /archive/allData/5000/VNP46A2/2012/024</span><br><span class="line">#&gt;  7 /archive/allData/5000/VNP46A2/2012/025</span><br><span class="line">#&gt;  8 /archive/allData/5000/VNP46A2/2012/026</span><br><span class="line">#&gt;  9 /archive/allData/5000/VNP46A2/2012/027</span><br><span class="line">#&gt; 10 /archive/allData/5000/VNP46A2/2012/028</span><br><span class="line">#&gt; # ℹ 4,510 more rows</span><br></pre></td></tr></table></figure>
+
+<p>循环所有的链接再爬取下一层的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fldf4 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov&quot;</span><span class="punctuation">,</span> value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>fid <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf4</span><br><span class="line"></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;htmldir2&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里选择 2023 年的为例进行下载：</span></span><br><span class="line">fldf4 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>value<span class="punctuation">,</span> <span class="string">&quot;2023&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf4_2023</span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;fldf4_2023&quot;</span><span class="punctuation">)</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>fldf4_2023<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;htmldir2/&quot;</span><span class="punctuation">,</span> fldf4_2023<span class="operator">$</span>fid<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;.html&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      download.file<span class="punctuation">(</span>fldf4_2023<span class="operator">$</span>value<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> paste0<span class="punctuation">(</span><span class="string">&quot;htmldir2/&quot;</span><span class="punctuation">,</span> fldf4_2023<span class="operator">$</span>fid<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;.html&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br></pre></td></tr></table></figure>
+
+<p>按照下载得到的文件大小排序，检查哪些是下载不完整的，删除之后再重新运行上面的代码，直到所有的文件都下载成功。</p>
+<p>然后就可以处理得到的 html 文件获取所有的 HDF5 文件的链接了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;htmldir2&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>file <span class="operator">=</span> value<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>data <span class="operator">=</span> map<span class="punctuation">(</span>file<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    read_html<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      html_elements<span class="punctuation">(</span><span class="string">&quot;tr&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      html_attr<span class="punctuation">(</span><span class="string">&quot;data-path&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      slice<span class="punctuation">(</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf5</span><br><span class="line"></span><br><span class="line">fldf5</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">#&gt; # A tibble: 730 × 2</span></span><br><span class="line"><span class="comment">#&gt;    file               data</span></span><br><span class="line"><span class="comment">#&gt;    &lt;fs::path&gt;         &lt;list&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 htmldir2/1059.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  2 htmldir2/1060.html &lt;tibble [345 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  3 htmldir2/1061.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  4 htmldir2/1062.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  5 htmldir2/1063.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  6 htmldir2/1064.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  7 htmldir2/1065.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  8 htmldir2/1066.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  9 htmldir2/1067.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt; 10 htmldir2/1068.html &lt;tibble [346 × 1]&gt;</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 720 more rows</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fldf5 <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>file<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;https://ladsweb.modaps.eosdis.nasa.gov&quot;</span><span class="punctuation">,</span> value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fldf6</span><br><span class="line"></span><br><span class="line">fldf6<span class="operator">$</span>value<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] &quot;https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001/VNP46A2.A2023001.h00v01.001.2023012002938.h5&quot;</span><br></pre></td></tr></table></figure>
+
+<p>下面就可以下载这些文件了，不过这些链接并不能使用 download.file() 直接下载，而是需要使用 NASA 规定的方法。</p>
+<p>先保存下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fldf6 <span class="operator">%&gt;%</span></span><br><span class="line">  write_rds<span class="punctuation">(</span><span class="string">&quot;fldf6.rds&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="筛选含中国范围的文件" class="article-heading"><a href="#筛选含中国范围的文件" class="headerlink" title="筛选含中国范围的文件"></a>筛选含中国范围的文件<a class="article-anchor" href="#筛选含中国范围的文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>正如开头所说，该数据是把全球的数据划分成了一个个小格子，下面我们需要找到与中国范围相交的。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">rast<span class="punctuation">(</span>nrows <span class="operator">=</span> <span class="number">18</span><span class="punctuation">,</span> ncols <span class="operator">=</span> <span class="number">36</span><span class="punctuation">,</span> xmin<span class="operator">=</span><span class="operator">-</span><span class="number">180</span><span class="punctuation">,</span> xmax<span class="operator">=</span><span class="number">180</span><span class="punctuation">,</span></span><br><span class="line">     ymin<span class="operator">=</span><span class="operator">-</span><span class="number">90</span><span class="punctuation">,</span> ymax<span class="operator">=</span><span class="number">90</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="string">&quot;+proj=longlat +datum=WGS84 +no_defs&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line">rst<span class="punctuation">[</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="number">1</span><span class="operator">:</span><span class="number">648</span></span><br><span class="line">rst</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; class       : SpatRaster</span><br><span class="line">#&gt; dimensions  : 18, 36, 1  (nrow, ncol, nlyr)</span><br><span class="line">#&gt; resolution  : 10, 10  (x, y)</span><br><span class="line">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span><br><span class="line">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; source(s)   : memory</span><br><span class="line">#&gt; name        : lyr.1</span><br><span class="line">#&gt; min value   :     1</span><br><span class="line">#&gt; max value   :   648</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">plot(rst)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/07/18/13/02b79j1bdbe1b168g4/common/content/1721281538863_678228.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>一共是 648 个格子，我给每个格子都进行了编号 1～648。</p>
+<p>合并省级数据得到中国的范围：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/省.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> prov</span><br><span class="line">st_union<span class="punctuation">(</span>prov<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  nngeo<span class="operator">::</span>st_remove_holes<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cn</span><br><span class="line">plot<span class="punctuation">(</span>cn<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/07/18/13/02b79j1bdbe1b168g4/common/content/1721281829631_487659.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>把 rst 转换成 polygon 对象：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>raster<span class="punctuation">)</span></span><br><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rasterToPolygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstdf</span><br><span class="line"></span><br><span class="line">rstdf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 648 features and 1 field</span><br><span class="line">#&gt; Geometry type: POLYGON</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 90</span><br><span class="line">#&gt; Geodetic CRS:  +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; First 10 features:</span><br><span class="line">#&gt;    lyr.1                       geometry</span><br><span class="line">#&gt; 1      1 POLYGON ((-180 90, -170 90,...</span><br><span class="line">#&gt; 2      2 POLYGON ((-170 90, -160 90,...</span><br><span class="line">#&gt; 3      3 POLYGON ((-160 90, -150 90,...</span><br><span class="line">#&gt; 4      4 POLYGON ((-150 90, -140 90,...</span><br><span class="line">#&gt; 5      5 POLYGON ((-140 90, -130 90,...</span><br><span class="line">#&gt; 6      6 POLYGON ((-130 90, -120 90,...</span><br><span class="line">#&gt; 7      7 POLYGON ((-120 90, -110 90,...</span><br><span class="line">#&gt; 8      8 POLYGON ((-110 90, -100 90,...</span><br><span class="line">#&gt; 9      9 POLYGON ((-100 90, -90 90, ...</span><br><span class="line">#&gt; 10    10 POLYGON ((-90 90, -80 90, -...</span><br></pre></td></tr></table></figure>
+
+<p>提取和中国相交的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstdf <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>cn<span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<p>这些编号对应的格子组成的范围正好涵盖了中国的区域：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">res <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span>value <span class="operator">=</span> lyr.1<span class="punctuation">)</span> <span class="operator">-&gt;</span> ressf</span><br><span class="line">ressf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 24 features and 1 field</span><br><span class="line">#&gt; Geometry type: GEOMETRY</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: 73.50235 ymin: 3.83703 xmax: 135.0957 ymax: 53.56362</span><br><span class="line">#&gt; Geodetic CRS:  +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; First 10 features:</span><br><span class="line">#&gt;     value                       geometry</span><br><span class="line">#&gt; 138   138 POLYGON ((119.1566 50.03325...</span><br><span class="line">#&gt; 139   139 POLYGON ((120 51.51333, 120...</span><br><span class="line">#&gt; 170   170 MULTIPOLYGON (((74.38025 40...</span><br><span class="line">#&gt; 171   171 POLYGON ((80 42.04188, 80 4...</span><br><span class="line">#&gt; 172   172 POLYGON ((90 47.88057, 90 4...</span><br><span class="line">#&gt; 173   173 POLYGON ((100 42.64699, 100...</span><br><span class="line">#&gt; 174   174 POLYGON ((110 42.63796, 110...</span><br><span class="line">#&gt; 175   175 MULTIPOLYGON (((127.5189 50...</span><br><span class="line">#&gt; 176   176 POLYGON ((130 49.02151, 130...</span><br><span class="line">#&gt; 206   206 POLYGON ((80 30.67492, 80 4...</span><br></pre></td></tr></table></figure>
+
+<p>我们注意到每个 h5 文件的文字里面都有类似 h00v01 的编号：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fldf6$value[1]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] &quot;https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001/VNP46A2.A2023001.h00v01.001.2023012002938.h5&quot;</span><br></pre></td></tr></table></figure>
+
+<p>下面我们还需要找到 ressf 数据中的编号与 hv 的对应关系：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="number">0</span><span class="operator">:</span><span class="number">17</span> <span class="operator">%&gt;%</span></span><br><span class="line">  crossing<span class="punctuation">(</span><span class="number">0</span><span class="operator">:</span><span class="number">35</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;v&quot;</span><span class="punctuation">,</span> <span class="string">&quot;h&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>v<span class="punctuation">,</span> h<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate_all<span class="punctuation">(</span><span class="operator">~</span>sprintf<span class="punctuation">(</span><span class="string">&quot;%02d&quot;</span><span class="punctuation">,</span> .x<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span><span class="built_in">names</span> <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;h&quot;</span><span class="punctuation">,</span> h<span class="punctuation">,</span> <span class="string">&quot;v&quot;</span><span class="punctuation">,</span> v<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">648</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tabdf</span><br><span class="line"></span><br><span class="line">tabdf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 648 × 4</span><br><span class="line">#&gt;    v     h     names  value</span><br><span class="line">#&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt;</span><br><span class="line">#&gt;  1 00    00    h00v00     1</span><br><span class="line">#&gt;  2 00    01    h01v00     2</span><br><span class="line">#&gt;  3 00    02    h02v00     3</span><br><span class="line">#&gt;  4 00    03    h03v00     4</span><br><span class="line">#&gt;  5 00    04    h04v00     5</span><br><span class="line">#&gt;  6 00    05    h05v00     6</span><br><span class="line">#&gt;  7 00    06    h06v00     7</span><br><span class="line">#&gt;  8 00    07    h07v00     8</span><br><span class="line">#&gt;  9 00    08    h08v00     9</span><br><span class="line">#&gt; 10 00    09    h09v00    10</span><br><span class="line">#&gt; # ℹ 638 more rows</span><br></pre></td></tr></table></figure>
+
+<p>所以筛选这些格子的正则表达式就是这个：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ressf <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>tabdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  paste0<span class="punctuation">(</span>collapse <span class="operator">=</span> <span class="string">&quot;|&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> regexp</span><br><span class="line"></span><br><span class="line">regexp</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] &quot;h29v03|h30v03|h25v04|h26v04|h27v04|h28v04|h29v04|h30v04|h31v04|h25v05|h26v05|h27v05|h28v05|h29v05|h30v05|h26v06|h27v06|h28v06|h29v06|h30v06|h28v07|h29v07|h28v08|h29v08&quot;</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以根据这个正则表达式筛选中国的格子了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fldf6 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>value<span class="punctuation">,</span> regexp<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cnfldf6</span><br><span class="line"></span><br><span class="line">cnfldf6</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 17,322 × 1</span><br><span class="line">#&gt;    value</span><br><span class="line">#&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  2 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  3 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  4 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  5 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  7 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  8 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt;  9 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt; 10 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46A2/2023/001…</span><br><span class="line">#&gt; # ℹ 17,312 more rows</span><br></pre></td></tr></table></figure>
+
+<p>由于时间关系，我们只下载前 5 天的数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 提取日期</span></span><br><span class="line">cnfldf6 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>date <span class="operator">=</span> str_extract<span class="punctuation">(</span>value<span class="punctuation">,</span> <span class="string">&quot;A\\d&#123;7&#125;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>date <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="string">&quot;A&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         day <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="number">5</span><span class="punctuation">,</span> <span class="number">7</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         newdate <span class="operator">=</span> ymd<span class="punctuation">(</span>paste0<span class="punctuation">(</span>year<span class="punctuation">,</span> <span class="string">&quot;-01-01&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> day <span class="operator">-</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span><span class="operator">-</span>date<span class="punctuation">,</span> <span class="operator">-</span>year<span class="punctuation">,</span> <span class="operator">-</span>day<span class="punctuation">)</span> <span class="operator">-&gt;</span> cnfldf62</span><br><span class="line"></span><br><span class="line"><span class="comment"># 选择前 5 天的</span></span><br><span class="line">cnfldf62 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>newdate <span class="operator">&lt;=</span> ymd<span class="punctuation">(</span><span class="string">&quot;2023-01-05&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cnfldf7</span><br><span class="line"></span><br><span class="line">cnfldf7</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 240 × 2</span><br><span class="line">#&gt;    value                                                              newdate</span><br><span class="line">#&gt;    &lt;chr&gt;                                                              &lt;date&gt;</span><br><span class="line">#&gt;  1 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  2 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  3 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  4 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  5 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  6 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  7 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  8 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt;  9 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt; 10 https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/5000/VNP46… 2023-01-01</span><br><span class="line">#&gt; # ℹ 230 more rows</span><br></pre></td></tr></table></figure>
+
+<h2 id="下载-HDF5-文件" class="article-heading"><a href="#下载-HDF5-文件" class="headerlink" title="下载 HDF5 文件"></a>下载 HDF5 文件<a class="article-anchor" href="#下载-HDF5-文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面就可以逐一下载这些文件了。</p>
+<p>NASA 推荐的下载方法是使用 wget，Mac 系统自带这个命令，不过 Windows 电脑需要安装，安装方法可以参考：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#wget">https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#wget</a> ，另外也可以百度一下 wget 的使用。这个命令在 Mac 上是在“终端” App 上运行的，在 Windows 上是在命令行工具（按 win+R 输入 cmd 回车就可以打开了）里面运行的。</p>
+<p>另外使用 httr 包下载也是可以的，试试一个：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>httr<span class="punctuation">)</span></span><br><span class="line">GET<span class="punctuation">(</span>cnfldf7<span class="operator">$</span>value<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    add_headers<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">      Authorization <span class="operator">=</span> <span class="string">&quot;Bearer eyJ0eXAiOiJKV1QiLCJvcmlnaW4iOiJFYXJ0aGRhdGEgTG9naW4iLCJzaWciOiJlZGxqd3RwdWJrZXlfb3BzIiwiYWxnIjoiUlMyNTYifQ.eyJ0eXBlIjoiVXNlciIsInVpZCI6ImN6eGEiLCJleHAiOjE3MjI3NTAzNjAsImlhdCI6MTcxNzU2NjM2MCwiaXNzIjoiRWFydGhkYXRhIExvZ2luIn0.nJalDlQx31wHllEyIBsFMMjLhRA8tCEV9zaSC3q5K4JrY5Gem5m622NDRqQoF_R7w1KksN4cLmVJroilLH0zKeLRUX4vHS97jy008zRNuNoBcAhwXBeXue6scUsWsAfYre3Y-u61HNswQy0w6emOa5IbkG11Kc6umbHXh9XOHj2R5eOcXeSkiAHKmFv4LZSQXAkbJV_UIzcE-WLzxI3gyQnNrl_DVyfZonQM2FkZlSpc7Gt--Tn7pL03kKgb_Qz9KGhLxt7RfHqt0icgc4lnHjIaRW1xXS9G490xPyqlKWwuc7tfYL0Ymq7Kky7KP_xft9Jn-wWbuR5bvpFIoafeuw&quot;</span></span><br><span class="line">    <span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> getres</span><br></pre></td></tr></table></figure>
+
+<p>其中 eyJ…afeuw 是我的 token，大家可以从这里生成和查看自己的 token：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://urs.earthdata.nasa.gov/profile">https://urs.earthdata.nasa.gov/profile</a> （Generate Token 页面）</p>
+<p>保存为 h5 文件：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">content<span class="punctuation">(</span>getres<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  writeBin<span class="punctuation">(</span><span class="string">&quot;temp.h5&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以循环下载所有的 h5 文件了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;h5data&quot;</span><span class="punctuation">)</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> cnfldf7<span class="operator">$</span>value<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;h5data/&quot;</span><span class="punctuation">,</span> basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    httr<span class="operator">::</span>GET<span class="punctuation">(</span>x<span class="punctuation">,</span></span><br><span class="line">              httr<span class="operator">::</span>add_headers<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">                Authorization <span class="operator">=</span> <span class="string">&quot;Bearer eyJ0eXAiOiJKV1QiLCJvcmlnaW4iOiJFYXJ0aGRhdGEgTG9naW4iLCJzaWciOiJlZGxqd3RwdWJrZXlfb3BzIiwiYWxnIjoiUlMyNTYifQ.eyJ0eXBlIjoiVXNlciIsInVpZCI6ImN6eGEiLCJleHAiOjE3MjI3NTAzNjAsImlhdCI6MTcxNzU2NjM2MCwiaXNzIjoiRWFydGhkYXRhIExvZ2luIn0.nJalDlQx31wHllEyIBsFMMjLhRA8tCEV9zaSC3q5K4JrY5Gem5m622NDRqQoF_R7w1KksN4cLmVJroilLH0zKeLRUX4vHS97jy008zRNuNoBcAhwXBeXue6scUsWsAfYre3Y-u61HNswQy0w6emOa5IbkG11Kc6umbHXh9XOHj2R5eOcXeSkiAHKmFv4LZSQXAkbJV_UIzcE-WLzxI3gyQnNrl_DVyfZonQM2FkZlSpc7Gt--Tn7pL03kKgb_Qz9KGhLxt7RfHqt0icgc4lnHjIaRW1xXS9G490xPyqlKWwuc7tfYL0Ymq7Kky7KP_xft9Jn-wWbuR5bvpFIoafeuw&quot;</span></span><br><span class="line">              <span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> getres</span><br><span class="line">    writeBin<span class="punctuation">(</span>content<span class="punctuation">(</span>getres<span class="punctuation">)</span><span class="punctuation">,</span> paste0<span class="punctuation">(</span><span class="string">&quot;h5data/&quot;</span><span class="punctuation">,</span> basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br></pre></td></tr></table></figure>
+
+<h2 id="处理-h5-文件得到栅格数据" class="article-heading"><a href="#处理-h5-文件得到栅格数据" class="headerlink" title="处理 h5 文件得到栅格数据"></a>处理 h5 文件得到栅格数据<a class="article-anchor" href="#处理-h5-文件得到栅格数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>h5 文件可以使用 rhdf5 包处理，该包的安装方法：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>require<span class="punctuation">(</span><span class="string">&quot;BiocManager&quot;</span><span class="punctuation">,</span> quietly <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    install.packages<span class="punctuation">(</span><span class="string">&quot;BiocManager&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">BiocManager<span class="operator">::</span>install<span class="punctuation">(</span><span class="string">&quot;rhdf5&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>读取：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>rhdf5<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 查看所有的层</span></span><br><span class="line">rhdf5<span class="operator">::</span>h5ls<span class="punctuation">(</span><span class="string">&quot;temp.h5&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 15 × 5</span><br><span class="line">#&gt;    group                                  name                otype dclass dim</span><br><span class="line">#&gt;    &lt;chr&gt;                                  &lt;chr&gt;               &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;</span><br><span class="line">#&gt;  1 /                                      HDFEOS              H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  2 /HDFEOS                                ADDITIONAL          H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  3 /HDFEOS/ADDITIONAL                     FILE_ATTRIBUTES     H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  4 /HDFEOS                                GRIDS               H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  5 /HDFEOS/GRIDS                          VNP_Grid_DNB        H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  6 /HDFEOS/GRIDS/VNP_Grid_DNB             Data Fields         H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt;  7 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields DNB_BRDF-Corrected… H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt;  8 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields DNB_Lunar_Irradian… H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt;  9 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields Gap_Filled_DNB_BRD… H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt; 10 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields Latest_High_Qualit… H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt; 11 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields Mandatory_Quality_… H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt; 12 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields QF_Cloud_Mask       H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt; 13 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields Snow_Flag           H5I_… &quot;INTE… &quot;240…</span><br><span class="line">#&gt; 14 /                                      HDFEOS INFORMATION  H5I_… &quot;&quot;     &quot;&quot;</span><br><span class="line">#&gt; 15 /HDFEOS INFORMATION                    StructMetadata.0    H5I_… &quot;STRI… &quot;( 0…</span><br></pre></td></tr></table></figure>
+
+<p>我们主要需要的是 Gap-Filled DNB BRDF-Corrected NTL 层，该层的名字是 /HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields/Gap_Filled_DNB_BRDF-Corrected_NTL (group 也要带上)</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取该层的数据</span></span><br><span class="line">rhdf5<span class="operator">::</span>h5read<span class="punctuation">(</span><span class="string">&quot;temp.h5&quot;</span><span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;/HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields/Gap_Filled_DNB_BRDF-Corrected_NTL&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> mat</span><br><span class="line"></span><br><span class="line"><span class="comment"># 得到的是个矩阵下面我们再把它转换成栅格数据</span></span><br><span class="line"><span class="built_in">dim</span><span class="punctuation">(</span>mat<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] 2400 2400</span><br></pre></td></tr></table></figure>
+
+<p>矩阵数据转换成栅格数据需要设定坐标系和范围。所有的数据坐标系都是 <code>+proj=longlat +datum=WGS84 +no_defs</code>，但是范围却是不同的。下面我们再生成各个格子的范围数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算每个格子的 bounding box：</span></span><br><span class="line">rstdf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">648</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>ressf <span class="operator">%&gt;%</span> st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>tabdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>bbox <span class="operator">=</span> map<span class="punctuation">(</span>geometry<span class="punctuation">,</span> <span class="operator">~</span>st_bbox<span class="punctuation">(</span>.x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> bboxdf</span><br><span class="line"></span><br><span class="line">bboxdf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 24 × 2</span><br><span class="line">#&gt;    names  bbox</span><br><span class="line">#&gt;    &lt;chr&gt;  &lt;list&gt;</span><br><span class="line">#&gt;  1 h29v03 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  2 h30v03 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  3 h25v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  4 h26v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  5 h27v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  6 h28v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  7 h29v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  8 h30v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt;  9 h31v04 &lt;bbox [4]&gt;</span><br><span class="line">#&gt; 10 h25v05 &lt;bbox [4]&gt;</span><br><span class="line">#&gt; # ℹ 14 more rows</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 保存</span></span><br><span class="line">bboxdf <span class="operator">%&gt;%</span></span><br><span class="line">  write_rds<span class="punctuation">(</span><span class="string">&quot;bboxdf.rds&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就可以根据 hv 编号给不同的栅格数据设定不同的范围了。</p>
+<h2 id="处理-h5-文件得到栅格数据-1" class="article-heading"><a href="#处理-h5-文件得到栅格数据-1" class="headerlink" title="处理 h5 文件得到栅格数据"></a>处理 h5 文件得到栅格数据<a class="article-anchor" href="#处理-h5-文件得到栅格数据-1" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先索引所有的 h5 文件并生成日期：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;h5data&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="built_in">as.character</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>date <span class="operator">=</span> str_extract<span class="punctuation">(</span>value<span class="punctuation">,</span> <span class="string">&quot;A\\d&#123;7&#125;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>date <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="string">&quot;A&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         day <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>date<span class="punctuation">,</span> <span class="number">5</span><span class="punctuation">,</span> <span class="number">7</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         newdate <span class="operator">=</span> ymd<span class="punctuation">(</span>paste0<span class="punctuation">(</span>year<span class="punctuation">,</span> <span class="string">&quot;-01-01&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> day <span class="operator">-</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span><span class="operator">-</span>date<span class="punctuation">,</span> <span class="operator">-</span>year<span class="punctuation">,</span> <span class="operator">-</span>day<span class="punctuation">)</span> <span class="operator">-&gt;</span> h5fl</span><br></pre></td></tr></table></figure>
+
+<p>例如 2023 年 1 月 1 号的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">h5fl <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>newdate <span class="operator">==</span> ymd<span class="punctuation">(</span><span class="string">&quot;2023-01-01&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span>value<span class="punctuation">)</span> <span class="operator">-&gt;</span> files</span><br></pre></td></tr></table></figure>
+
+<p>读取为栅格数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">lapply<span class="punctuation">(</span>files<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  rhdf5<span class="operator">::</span>h5read<span class="punctuation">(</span>x<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;/HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields/Gap_Filled_DNB_BRDF-Corrected_NTL&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> mat</span><br><span class="line">  mat<span class="punctuation">[</span>mat <span class="operator">&gt;</span> <span class="number">65534</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line">  terra<span class="operator">::</span>rast<span class="punctuation">(</span>mat<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    trans<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    `crs&lt;-`<span class="punctuation">(</span><span class="string">&quot;+proj=longlat +datum=WGS84 +no_defs&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstlist</span><br></pre></td></tr></table></figure>
+
+<p>这里出现了 65534 这个数字。从该数据的介绍文档的第 50 页可以看到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ladsweb.modaps.eosdis.nasa.gov/api/v2/content/archives/Document%20Archive/Science%20Data%20Product%20Documentation/VIIRS_Black_Marble_UG_v1.3_Sep_2022.pdf">https://ladsweb.modaps.eosdis.nasa.gov/api/v2/content/archives/Document%20Archive/Science%20Data%20Product%20Documentation/VIIRS_Black_Marble_UG_v1.3_Sep_2022.pdf</a>，该夜间灯光数据有有效值是 0-65534，所以超过 65534 的被设定为了 NA。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/07/18/13/02b79j1bdbe1b168g4/common/content/1721281539518_862562.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>提取 hv 编号并和 bboxdf 合并：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">str_extract<span class="punctuation">(</span>files<span class="punctuation">,</span> <span class="string">&quot;h\\d&#123;2&#125;v\\d&#123;2&#125;&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;names&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>bboxdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span>bbox<span class="punctuation">)</span> <span class="operator">-&gt;</span> bboxlist</span><br></pre></td></tr></table></figure>
+
+<p>然后循环给 rstlist 里栅格数据设定正确的范围：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="built_in">length</span><span class="punctuation">(</span>files<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="built_in">c</span><span class="punctuation">(</span>bboxlist<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> bboxtmp</span><br><span class="line">  rstlist<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">    `ext&lt;-`<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>bboxtmp<span class="punctuation">[</span><span class="string">&quot;xmin&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> bboxtmp<span class="punctuation">[</span><span class="string">&quot;xmax&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">              bboxtmp<span class="punctuation">[</span><span class="string">&quot;ymin&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> bboxtmp<span class="punctuation">[</span><span class="string">&quot;ymax&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  sprc<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mosaic<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstall</span><br><span class="line"></span><br><span class="line">rstall</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; class       : SpatRaster</span><br><span class="line">#&gt; dimensions  : 14400, 16800, 1  (nrow, ncol, nlyr)</span><br><span class="line">#&gt; resolution  : 0.004166667, 0.004166667  (x, y)</span><br><span class="line">#&gt; extent      : 70, 140, 0, 60  (xmin, xmax, ymin, ymax)</span><br><span class="line">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; source(s)   : memory</span><br><span class="line">#&gt; name        : lyr.1</span><br><span class="line">#&gt; min value   :     0</span><br><span class="line">#&gt; max value   : 60644</span><br></pre></td></tr></table></figure>
+
+<p>sprc() 和 mosaic() 的组合可以列表里面存储的栅格数据们合并成一个大栅格数据（类似拼图），这种操作被称为“镶嵌”。</p>
+<p>rstall 就是合并好的夜间灯光栅格数据了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">plot(log(rstall))</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/07/18/13/02b79j1bdbe1b168g4/common/content/1721281538447_697412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样我们就处理好一天的数据了。循环所有天的数据即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;nightlight&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">unique<span class="punctuation">(</span>h5fl<span class="operator">$</span>newdate<span class="punctuation">)</span> <span class="operator">-&gt;</span> datelist</span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;h5fl&quot;</span><span class="punctuation">)</span></span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;bboxdf&quot;</span><span class="punctuation">)</span></span><br><span class="line">clusterEvalQ<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">  library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">  library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> datelist<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;nightlight/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    h5fl <span class="operator">%&gt;%</span></span><br><span class="line">      filter<span class="punctuation">(</span>newdate <span class="operator">==</span> ymd<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      pull<span class="punctuation">(</span>value<span class="punctuation">)</span> <span class="operator">-&gt;</span> files</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 读取为栅格数据</span></span><br><span class="line">    lapply<span class="punctuation">(</span>files<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">      rhdf5<span class="operator">::</span>h5read<span class="punctuation">(</span>x<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;/HDFEOS/GRIDS/VNP_Grid_DNB/Data Fields/Gap_Filled_DNB_BRDF-Corrected_NTL&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> mat</span><br><span class="line">      mat<span class="punctuation">[</span>mat<span class="operator">&gt;</span><span class="number">65534</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line">      terra<span class="operator">::</span>rast<span class="punctuation">(</span>mat<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        trans<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        `crs&lt;-`<span class="punctuation">(</span><span class="string">&quot;+proj=longlat +datum=WGS84 +no_defs&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstlist</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提取 hv 编号并和 bboxdf 合并</span></span><br><span class="line">    str_extract<span class="punctuation">(</span>files<span class="punctuation">,</span> <span class="string">&quot;h\\d&#123;2&#125;v\\d&#123;2&#125;&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      set_names<span class="punctuation">(</span><span class="string">&quot;names&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      left_join<span class="punctuation">(</span>bboxdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      pull<span class="punctuation">(</span>bbox<span class="punctuation">)</span> <span class="operator">-&gt;</span> bboxlist</span><br><span class="line"></span><br><span class="line">    lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="built_in">length</span><span class="punctuation">(</span>files<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="built_in">c</span><span class="punctuation">(</span>bboxlist<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> bboxtmp</span><br><span class="line">      rstlist<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">        `ext&lt;-`<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>bboxtmp<span class="punctuation">[</span><span class="string">&quot;xmin&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> bboxtmp<span class="punctuation">[</span><span class="string">&quot;xmax&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                  bboxtmp<span class="punctuation">[</span><span class="string">&quot;ymin&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> bboxtmp<span class="punctuation">[</span><span class="string">&quot;ymax&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      sprc<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      mosaic<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      `names&lt;-`<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      writeRaster<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;nightlight/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<p>再读取进来检查下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rast(&quot;nightlight/2023-01-01.tif&quot;) -&gt; rst</span><br><span class="line">rst</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; class       : SpatRaster</span><br><span class="line">#&gt; dimensions  : 14400, 16800, 1  (nrow, ncol, nlyr)</span><br><span class="line">#&gt; resolution  : 0.004166667, 0.004166667  (x, y)</span><br><span class="line">#&gt; extent      : 70, 140, 0, 60  (xmin, xmax, ymin, ymax)</span><br><span class="line">#&gt; coord. ref. : lon/lat WGS 84 (EPSG:4326)</span><br><span class="line">#&gt; source      : 2023-01-01.tif</span><br><span class="line">#&gt; name        : 2023-01-01</span><br><span class="line">#&gt; min value   :          0</span><br><span class="line">#&gt; max value   :      60644</span><br></pre></td></tr></table></figure>
+
+<p>如果只想要中国范围的，可以再用前面的 cn 裁剪下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  terra<span class="operator">::</span>crop<span class="punctuation">(</span>terra<span class="operator">::</span>vect<span class="punctuation">(</span>cn<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  terra<span class="operator">::</span>mask<span class="punctuation">(</span>terra<span class="operator">::</span>vect<span class="punctuation">(</span>cn<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst2</span><br></pre></td></tr></table></figure>
+
+<p>至于计算各省市区县的平均夜间灯光亮度这里就不再讲解了，感兴趣的小伙伴可以学习平台上的一些栅格转面板课程。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/270178a4d6bb4ee2ba8b66ae71de3b8f">名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.456Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/49643/" title="旧版本｜1998 年 1 月~2022 年 12 月中国各省市区县 PM2.5 面板数据（华盛顿大学圣路易斯分校来源）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/19847/" title="使用 Stata 绘制湖北省城市地图"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/23392/">名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异</a><span class="tf-related-meta">2026-05-03 · 约 7 分钟</span></li><li><a href="/posts/54627/">名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数</a><span class="tf-related-meta">2025-02-26 · 约 18 分钟</span></li><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-30 · 约 13 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%89%80%E6%9C%89%E7%9A%84-HDF5-%E6%96%87%E4%BB%B6%E7%9A%84%E9%93%BE%E6%8E%A5"><span class="toc-text">获取所有的 HDF5 文件的链接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AD%9B%E9%80%89%E5%90%AB%E4%B8%AD%E5%9B%BD%E8%8C%83%E5%9B%B4%E7%9A%84%E6%96%87%E4%BB%B6"><span class="toc-text">筛选含中国范围的文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD-HDF5-%E6%96%87%E4%BB%B6"><span class="toc-text">下载 HDF5 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86-h5-%E6%96%87%E4%BB%B6%E5%BE%97%E5%88%B0%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE"><span class="toc-text">处理 h5 文件得到栅格数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86-h5-%E6%96%87%E4%BB%B6%E5%BE%97%E5%88%B0%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE-1"><span class="toc-text">处理 h5 文件得到栅格数据</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

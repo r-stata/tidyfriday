@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/74875/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 R 语言测算中国各城市多中心度与集聚程度的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/74875/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 R 语言测算中国各城市多中心度与集聚程度的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/74875.png">
+<meta property="article:published_time" content="2024-11-08T15:32:26.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.899Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/74875.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度","description":"今天给大家分享使用 R 语言测算中国各城市多中心度与集聚程度的方法。","url":"https://tidyfriday.cn/posts/74875/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/74875/"},"image":["https://tidyfriday.cn/og/74875.png"],"datePublished":"2024-11-08T15:32:26.000Z","dateModified":"2026-09-26T14:18:49.899Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, R 语言","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度","item":"https://tidyfriday.cn/posts/74875/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-11-08T15:32:26.000Z" itemprop="datePublished">2024-11-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2501 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 R 语言测算中国各城市多中心度与集聚程度的方法。</p>
+<span id="more"></span>
+
+<p>该指标在附件中的文献「多中心空间结构对中国城市创新绩效的影响_乔艺波」及「中国城市空间结构演化特征和和路径_袁超君」有提及：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/11/08/15/02b79j1bdbe1b168g4/common/content/1731050686079_295822.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>接下来我们就按照论文介绍的过程进行计算。</p>
+<p>首先加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>spdep<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>raster<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 spdep 用于计算邻接矩阵、空间滞后和局部莫兰指数。</p>
+<p>读取市级行政区划数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/市.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymap</span><br></pre></td></tr></table></figure>
+
+<p>以广州市为例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">citymap <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>市 <span class="operator">==</span> <span class="string">&quot;广州市&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citytemp</span><br></pre></td></tr></table></figure>
+
+<p>使用 raster 包读取栅格数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">raster<span class="operator">::</span>raster<span class="punctuation">(</span><span class="string">&quot;pop-tif/2000.tif&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br></pre></td></tr></table></figure>
+
+<p>虽然现在比较推崇使用 terra 包进行栅格数据计算，不过 spdep 包不支持 terra 包的对象，所以这里还是使用 raster 包。</p>
+<p>裁剪出北京市的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>crop<span class="punctuation">(</span>citytemp<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>mask<span class="punctuation">(</span>citytemp<span class="punctuation">)</span> <span class="operator">-&gt;</span> rsttemp</span><br></pre></td></tr></table></figure>
+
+<p>更改成一个统一的名字：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="built_in">names</span><span class="punctuation">(</span>rsttemp<span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="string">&quot;popden&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>转换成 sf 包的 polygon 对象：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rsttemp <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>rasterToPolygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly</span><br><span class="line">rstpoly</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 9011 features and 1 field</span><br><span class="line">#&gt; Geometry type: POLYGON</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: 112.95 ymin: 22.6 xmax: 114.0583 ymax: 23.93333</span><br><span class="line">#&gt; Geodetic CRS:  +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; First 10 features:</span><br><span class="line">#&gt;    popden                       geometry</span><br><span class="line">#&gt; 1      25 POLYGON ((113.8583 23.93333...</span><br><span class="line">#&gt; 2      19 POLYGON ((113.8667 23.93333...</span><br><span class="line">#&gt; 3      24 POLYGON ((113.8833 23.93333...</span><br><span class="line">#&gt; 4      22 POLYGON ((113.8917 23.93333...</span><br><span class="line">#&gt; 5      22 POLYGON ((113.9167 23.93333...</span><br><span class="line">#&gt; 6      32 POLYGON ((113.925 23.93333,...</span><br><span class="line">#&gt; 7      40 POLYGON ((113.9417 23.93333...</span><br><span class="line">#&gt; 8      36 POLYGON ((113.95 23.93333, ...</span><br><span class="line">#&gt; 9      21 POLYGON ((113.9583 23.93333...</span><br><span class="line">#&gt; 10     21 POLYGON ((113.9667 23.93333...</span><br></pre></td></tr></table></figure>
+
+<p>计算各个多边形的相邻关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">poly2nb(rstpoly, row.names = row.names(rstpoly), queen = TRUE) -&gt; rstnb</span><br><span class="line"></span><br><span class="line">rstnb</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Neighbour list object:</span><br><span class="line">#&gt; Number of regions: 9011</span><br><span class="line">#&gt; Number of nonzero links: 66560</span><br><span class="line">#&gt; Percentage nonzero weights: 0.08197234</span><br><span class="line">#&gt; Average number of links: 7.386528</span><br><span class="line">#&gt; 3 regions with no links:</span><br><span class="line">#&gt; 657, 1753, 5027</span><br><span class="line">#&gt; 16 disjoint connected subgraphs</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>queen = TRUE</code> 表示使用 queen 规则。</p>
+<blockquote>
+<p>QUEEN 规则（共点或共边即视为邻接）；如果设置为 FALSE，则使用 ROOK 规则（仅共边视为邻接）。</p>
+</blockquote>
+<p>将 nb 对象转换为空间权重矩阵：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">w_mat <span class="operator">&lt;-</span> nb2listw<span class="punctuation">(</span>rstnb<span class="punctuation">,</span> style <span class="operator">=</span> <span class="string">&quot;W&quot;</span><span class="punctuation">,</span> zero.policy <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">w_mat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Characteristics of weights list object:</span><br><span class="line">#&gt; Neighbour list object:</span><br><span class="line">#&gt; Number of regions: 9011</span><br><span class="line">#&gt; Number of nonzero links: 66560</span><br><span class="line">#&gt; Percentage nonzero weights: 0.08197234</span><br><span class="line">#&gt; Average number of links: 7.386528</span><br><span class="line">#&gt; 3 regions with no links:</span><br><span class="line">#&gt; 657, 1753, 5027</span><br><span class="line">#&gt; 16 disjoint connected subgraphs</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; Weights style: W</span><br><span class="line">#&gt; Weights constants summary:</span><br><span class="line">#&gt;      n       nn   S0       S1       S2</span><br><span class="line">#&gt; W 9008 81144064 9008 2519.087 36210.48</span><br></pre></td></tr></table></figure>
+
+<p>计算局部莫兰指数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">localmoran<span class="punctuation">(</span>rstpoly<span class="operator">$</span>popden<span class="punctuation">,</span> w_mat<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> local_moran</span><br><span class="line">local_moran</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 9,011 × 5</span><br><span class="line">#&gt;    Ii         E.Ii          Var.Ii      Z.Ii       `Pr(z != E(Ii))`</span><br><span class="line">#&gt;    &lt;localmrn&gt; &lt;localmrn&gt;    &lt;localmrn&gt;  &lt;localmrn&gt; &lt;localmrn&gt;</span><br><span class="line">#&gt;  1 0.04770805 -5.298516e-06 0.023869687 0.3088279  0.7574524</span><br><span class="line">#&gt;  2 0.04875499 -5.382952e-06 0.024250069 0.3131198  0.7541896</span><br><span class="line">#&gt;  3 0.04802408 -5.312542e-06 0.011963781 0.4391096  0.6605822</span><br><span class="line">#&gt;  4 0.04759623 -5.340651e-06 0.012027080 0.4340514  0.6642511</span><br><span class="line">#&gt;  5 0.04748529 -5.340651e-06 0.012027080 0.4330398  0.6649859</span><br><span class="line">#&gt;  6 0.04710991 -5.200850e-06 0.011712253 0.4353515  0.6633073</span><br><span class="line">#&gt;  7 0.03292813 -5.090345e-06 0.011463398 0.3075937  0.7583915</span><br><span class="line">#&gt;  8 0.03598082 -5.145449e-06 0.009268964 0.3737813  0.7085670</span><br><span class="line">#&gt;  9 0.04775099 -5.354733e-06 0.009645963 0.4862485  0.6267910</span><br><span class="line">#&gt; 10 0.04757324 -5.354733e-06 0.009645963 0.4844387  0.6280746</span><br><span class="line">#&gt; # ℹ 9,001 more rows</span><br></pre></td></tr></table></figure>
+
+<p>莫兰指数的取值范围一般在 -1 到 1 之间。</p>
+<ul>
+<li>当莫兰指数为正值时，表示数据呈正相关性，即相似的数据点（高值或低值）在空间上趋于聚集。</li>
+<li>当莫兰指数为负值时，表示数据呈负相关性，即相似的数据点在空间上趋于分散。</li>
+<li>莫兰指数接近 0 时，表示数据之间不存在明显的空间相关性，即数据在空间上随机分布。</li>
+</ul>
+<p>计算空间滞后：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstpoly<span class="operator">$</span>lpopden <span class="operator">&lt;-</span> lag.listw<span class="punctuation">(</span>w_mat<span class="punctuation">,</span> rstpoly<span class="operator">$</span>popden<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>合并 rstpoly 和 局部莫兰指数计算结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_cols(rstpoly, local_moran) -&gt; rstpoly</span><br></pre></td></tr></table></figure>
+
+<p>根据局部莫兰指数及其显著性程度，挑选出市域范围内所有人口密度和人口密度的空间滞后值均高于该城市的相应平均值，且在 0.1 的显著性水平上显著的栅格。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstpoly <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>mean <span class="operator">=</span> mean<span class="punctuation">(</span>popden<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         lmean <span class="operator">=</span> mean<span class="punctuation">(</span>lpopden<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>popden <span class="operator">&gt;=</span> mean <span class="operator">&amp;</span> lpopden <span class="operator">&gt;=</span> lmean <span class="operator">&amp;</span></span><br><span class="line">           `Pr(z != E(Ii))` <span class="operator">&lt;=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly_main</span><br></pre></td></tr></table></figure>
+
+<p>把邻近的融合：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstpoly_main <span class="operator">%&gt;%</span></span><br><span class="line">  st_union<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly_main</span><br></pre></td></tr></table></figure>
+
+<p>拆分 polygons：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstpoly_main <span class="operator">%&gt;%</span></span><br><span class="line">  st_cast<span class="punctuation">(</span><span class="string">&quot;POLYGON&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly_main</span><br><span class="line"></span><br><span class="line"><span class="comment"># plot(rstpoly_main)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/11/08/15/02b79j1bdbe1b168g4/common/content/1731050686898_952565.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstpoly_main <span class="operator">%&gt;%</span></span><br><span class="line">  st_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span>id<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdf</span><br><span class="line"></span><br><span class="line">rmdf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 19 features and 1 field</span><br><span class="line">#&gt; Geometry type: POLYGON</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: 113.1917 ymin: 22.925 xmax: 113.8417 ymax: 23.55833</span><br><span class="line">#&gt; Geodetic CRS:  +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; First 10 features:</span><br><span class="line">#&gt;    id                       geometry</span><br><span class="line">#&gt; 1   1 POLYGON ((113.4917 23.09167...</span><br><span class="line">#&gt; 2   2 POLYGON ((113.4417 22.98333...</span><br><span class="line">#&gt; 3   3 POLYGON ((113.3833 22.975, ...</span><br><span class="line">#&gt; 4   4 POLYGON ((113.4 22.95833, 1...</span><br><span class="line">#&gt; 5   5 POLYGON ((113.375 22.975, 1...</span><br><span class="line">#&gt; 6   6 POLYGON ((113.4 22.94167, 1...</span><br><span class="line">#&gt; 7   7 POLYGON ((113.3833 22.94167...</span><br><span class="line">#&gt; 8   8 POLYGON ((113.3667 22.95, 1...</span><br><span class="line">#&gt; 9   9 POLYGON ((113.5 23.08333, 1...</span><br><span class="line">#&gt; 10 10 POLYGON ((113.4 23.14167, 1...</span><br></pre></td></tr></table></figure>
+
+<p>下面我们需要找到距离在 2km 范围内的区域再合并起来。为此首先计算各个 polygon 间的距离、过滤出距离小于 2km 的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">st_distance<span class="punctuation">(</span>rmdf<span class="punctuation">,</span> rmdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate_all<span class="punctuation">(</span><span class="built_in">as.numeric</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id1 <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span>id1<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  gather<span class="punctuation">(</span>contains<span class="punctuation">(</span><span class="string">&quot;V&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> key <span class="operator">=</span> <span class="string">&quot;id2&quot;</span><span class="punctuation">,</span> value <span class="operator">=</span> <span class="string">&quot;dist&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id2 <span class="operator">=</span> str_remove<span class="punctuation">(</span>id2<span class="punctuation">,</span> <span class="string">&quot;V&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         id2 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>id2<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>dist <span class="operator">&lt;=</span> <span class="number">2000</span> <span class="operator">&amp;</span> id1 <span class="operator">!=</span> id2 <span class="operator">&amp;</span> id2 <span class="operator">&gt;</span> id1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>select<span class="punctuation">(</span><span class="operator">-</span>dist<span class="punctuation">)</span> <span class="operator">-&gt;</span> idpair</span><br><span class="line"></span><br><span class="line">idpair</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 22 × 2</span><br><span class="line">#&gt;      id1   id2</span><br><span class="line">#&gt;    &lt;int&gt; &lt;dbl&gt;</span><br><span class="line">#&gt;  1     3     4</span><br><span class="line">#&gt;  2     3     5</span><br><span class="line">#&gt;  3     4     5</span><br><span class="line">#&gt;  4     4     6</span><br><span class="line">#&gt;  5     5     6</span><br><span class="line">#&gt;  6     4     7</span><br><span class="line">#&gt;  7     5     7</span><br><span class="line">#&gt;  8     6     7</span><br><span class="line">#&gt;  9     4     8</span><br><span class="line">#&gt; 10     5     8</span><br><span class="line">#&gt; # ℹ 12 more rows</span><br></pre></td></tr></table></figure>
+
+<p>这里我们就得到了距离在 2km 内的区域对，下面我们借助网络分析的方法把这些合并起来：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>igraph<span class="punctuation">)</span></span><br><span class="line">g <span class="operator">&lt;-</span> graph_from_data_frame<span class="punctuation">(</span>idpair<span class="punctuation">,</span> directed <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># plot(g)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/11/08/15/02b79j1bdbe1b168g4/common/content/1731050687073_648452.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>我们需要把相连接的这些区域合并起来。</p>
+<p>找到图的连通分量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">components <span class="operator">&lt;-</span> components<span class="punctuation">(</span>g<span class="punctuation">)</span></span><br><span class="line">components<span class="operator">$</span>membership <span class="operator">-&gt;</span> membership</span><br><span class="line"></span><br><span class="line">tibble<span class="punctuation">(</span></span><br><span class="line">  id <span class="operator">=</span> <span class="built_in">names</span><span class="punctuation">(</span>membership<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  group <span class="operator">=</span> membership</span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>id<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> groupdf</span><br><span class="line">groupdf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 15 × 2</span><br><span class="line">#&gt;       id group</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;dbl&gt;</span><br><span class="line">#&gt;  1     3     1</span><br><span class="line">#&gt;  2     4     1</span><br><span class="line">#&gt;  3     5     1</span><br><span class="line">#&gt;  4     6     1</span><br><span class="line">#&gt;  5     7     1</span><br><span class="line">#&gt;  6     1     2</span><br><span class="line">#&gt;  7    10     2</span><br><span class="line">#&gt;  8     8     1</span><br><span class="line">#&gt;  9    11     2</span><br><span class="line">#&gt; 10    12     2</span><br><span class="line">#&gt; 11    16     3</span><br><span class="line">#&gt; 12     9     2</span><br><span class="line">#&gt; 13    15     1</span><br><span class="line">#&gt; 14    17     2</span><br><span class="line">#&gt; 15    18     3</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以分组聚合了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rmdf <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>groupdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>groupmax <span class="operator">=</span> <span class="built_in">max</span><span class="punctuation">(</span>group<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>group <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>group<span class="punctuation">)</span><span class="punctuation">,</span> id <span class="operator">+</span> groupmax<span class="punctuation">,</span> group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>group<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>group <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdf2</span><br><span class="line"></span><br><span class="line">rmdf2</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 7 features and 1 field</span><br><span class="line">#&gt; Geometry type: GEOMETRY</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: 113.1917 ymin: 22.925 xmax: 113.8417 ymax: 23.55833</span><br><span class="line">#&gt; Geodetic CRS:  +proj=longlat +datum=WGS84 +no_defs</span><br><span class="line">#&gt; # A tibble: 7 × 2</span><br><span class="line">#&gt;   group                                                                 geometry</span><br><span class="line">#&gt; * &lt;int&gt;                                                           &lt;GEOMETRY [°]&gt;</span><br><span class="line">#&gt; 1     1 MULTIPOLYGON (((113.375 22.975, 113.3667 22.975, 113.3667 22.96667, 113…</span><br><span class="line">#&gt; 2     2 MULTIPOLYGON (((113.2417 23.05833, 113.25 23.05833, 113.2583 23.05833, …</span><br><span class="line">#&gt; 3     3 MULTIPOLYGON (((113.8333 23.3, 113.8417 23.3, 113.8417 23.30833, 113.83…</span><br><span class="line">#&gt; 4     4 POLYGON ((113.4417 22.98333, 113.45 22.98333, 113.45 22.99167, 113.4417…</span><br><span class="line">#&gt; 5     5 POLYGON ((113.6083 23.125, 113.6 23.125, 113.6 23.11667, 113.5917 23.11…</span><br><span class="line">#&gt; 6     6 POLYGON ((113.5917 23.54167, 113.5917 23.55, 113.5917 23.55833, 113.583…</span><br><span class="line">#&gt; 7     7 POLYGON ((113.2167 23.375, 113.2167 23.38333, 113.2083 23.38333, 113.20…</span><br></pre></td></tr></table></figure>
+
+<p>再检查有没有 &gt; 2km 的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">as.numeric(st_distance(rmdf2, rmdf2)) -&gt; distmat</span><br><span class="line">sum(distmat &lt; 2000 &amp; distmat != 0)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] 0</span><br></pre></td></tr></table></figure>
+
+<p>看来是没有了。</p>
+<p>依据面积大于 1 km2 和总人口大于 5 万人的标准，挑选出最终的城市区域，即市域的主中心及次中心。</p>
+<p>计算每个区域的总人口：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">raster<span class="operator">::</span>extract<span class="punctuation">(</span>raster<span class="operator">::</span>area<span class="punctuation">(</span>rsttemp<span class="punctuation">)</span> <span class="operator">*</span> rsttemp<span class="punctuation">,</span> rmdf2<span class="punctuation">,</span> fun <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> popres</span><br><span class="line"></span><br><span class="line">popres</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 7 × 1</span><br><span class="line">#&gt;         V1</span><br><span class="line">#&gt;      &lt;dbl&gt;</span><br><span class="line">#&gt; 1  125111.</span><br><span class="line">#&gt; 2 3025257.</span><br><span class="line">#&gt; 3   59911.</span><br><span class="line">#&gt; 4     763.</span><br><span class="line">#&gt; 5    6413.</span><br><span class="line">#&gt; 6   39301.</span><br><span class="line">#&gt; 7   86020.</span><br></pre></td></tr></table></figure>
+
+<p>计算面积：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rmdf2 <span class="operator">%&gt;%</span></span><br><span class="line">  st_area<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  units<span class="operator">::</span>set_units<span class="punctuation">(</span>km2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> area</span><br><span class="line"></span><br><span class="line">rmdf2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>pop <span class="operator">=</span> popres<span class="operator">$</span>V1 <span class="operator">/</span> <span class="number">10000</span><span class="punctuation">,</span> area_km2 <span class="operator">=</span> area<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>pop <span class="operator">&gt;=</span> <span class="number">5</span> <span class="operator">&amp;</span> area_km2 <span class="operator">&gt;=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdf3</span><br><span class="line"></span><br><span class="line"><span class="comment"># plot(rmdf3[1])</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/11/08/15/02b79j1bdbe1b168g4/common/content/1731050687331_178531.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>其中主中心为：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rmdf3 <span class="operator">%&gt;%</span></span><br><span class="line">  slice_max<span class="punctuation">(</span>n <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> order_by <span class="operator">=</span> pop<span class="punctuation">)</span> <span class="operator">-&gt;</span> maindf</span><br></pre></td></tr></table></figure>
+
+<p>n 为每个城市市域范围内的中心个数 (包括主中心及次中心)：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">n <span class="operator">&lt;-</span> nrow<span class="punctuation">(</span>rmdf3<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>IMP：为每个中心的重要性 = POP x AREA x DIS：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rmdf3 <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>maindf <span class="operator">%&gt;%</span> st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> dplyr<span class="operator">::</span>select<span class="punctuation">(</span>group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> subdf</span><br><span class="line">subdf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>DIS_km <span class="operator">=</span> st_distance<span class="punctuation">(</span>.<span class="punctuation">,</span> maindf<span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">1</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">           units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="string">&quot;km&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">           <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>IMP <span class="operator">=</span> pop <span class="operator">*</span> area_km2 <span class="operator">*</span> DIS_km<span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdfa</span><br></pre></td></tr></table></figure>
+
+<p>对于主中心而言，其重要性为主中心人口、所有中心中的最大面积（通常即主中心本身的面积）和距主中心最远的次中心与主中心之间的距离三者之乘积：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">maindf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>DIS_km <span class="operator">=</span> st_distance<span class="punctuation">(</span>maindf<span class="punctuation">,</span> subdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">           <span class="built_in">max</span><span class="punctuation">(</span>na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">           units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="string">&quot;km&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">           <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>IMP <span class="operator">=</span> pop <span class="operator">*</span> area_km2 <span class="operator">*</span> DIS_km<span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdfb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并两部分结果</span></span><br><span class="line">bind_rows<span class="punctuation">(</span>rmdfa<span class="punctuation">,</span> rmdfb<span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdf4</span><br></pre></td></tr></table></figure>
+
+<p>σ_Cobs 为市域各中心重要性的标准差：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rmdf4 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>sigma_Cobs <span class="operator">=</span> sd<span class="punctuation">(</span>IMP<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>sigma_Cmax <span class="operator">=</span> sd<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="built_in">max</span><span class="punctuation">(</span>pop<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="built_in">max</span><span class="punctuation">(</span>area_km2<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="built_in">max</span><span class="punctuation">(</span>DIS_km<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>polycentricity <span class="operator">=</span> <span class="number">1</span> <span class="operator">-</span> <span class="punctuation">(</span>sigma_Cobs <span class="operator">/</span> sigma_Cmax<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rmdf5</span><br><span class="line"></span><br><span class="line">rmdf5</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 4 × 8</span><br><span class="line">#&gt;   group    pop area_km2 DIS_km      IMP sigma_Cobs sigma_Cmax polycentricity</span><br><span class="line">#&gt; * &lt;int&gt;  &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;          &lt;dbl&gt;</span><br><span class="line">#&gt; 1     1  12.5     19.8    11.9    2945.   1073098.   1518783.          0.293</span><br><span class="line">#&gt; 2     3   5.99     3.94   38.8     916.   1073098.   1518783.          0.293</span><br><span class="line">#&gt; 3     7   8.60     7.88   17.8    1206.   1073098.   1518783.          0.293</span><br><span class="line">#&gt; 4     2 303.     183.     38.8 2147883.   1073098.   1518783.          0.293</span><br></pre></td></tr></table></figure>
+
+<p>主城区人口在中心区域的集聚程度为主城区中心 区域人口与主城区总人口之比：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">maindf$pop / sum(rmdf5$pop, na.rm = T)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] 0.9177738</span><br></pre></td></tr></table></figure>
+
+<p>最后我们就可以把上面的代码封装成一个函数了：<code>get_polycentricity.R</code>。使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">source(&quot;get_polycentricity.R&quot;, local = T)</span><br><span class="line">get_polycentricity(&quot;北京市&quot;, &quot;pop-tif/2000.tif&quot;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] &quot;pop-tif/2000.tif&quot;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 1 × 5</span><br><span class="line">#&gt;   city   rst              polycentricity N_center pop_cluster</span><br><span class="line">#&gt;   &lt;chr&gt;  &lt;chr&gt;                     &lt;dbl&gt;    &lt;int&gt;       &lt;dbl&gt;</span><br><span class="line">#&gt; 1 北京市 pop-tif/2000.tif          0.294        4       0.905</span><br></pre></td></tr></table></figure>
+
+<p>由于该函数里面没有包的加载和矢量数据读取的代码，所以需要确保加载了相关的 R 包和准备好相关的矢量数据才可以使用。</p>
+<p>再例如计算广州市所有年份的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;广州市&quot;</span> <span class="operator">%&gt;%</span></span><br><span class="line">  tidyr<span class="operator">::</span>crossing<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">(</span>fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;pop-tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;cityname&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rstpath&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>res <span class="operator">=</span> map2<span class="punctuation">(</span>cityname<span class="punctuation">,</span> rstpath<span class="punctuation">,</span> get_polycentricity<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfres</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfres <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>res<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 23 × 7</span><br><span class="line">#&gt;    cityname rstpath          city   rst      polycentricity N_center pop_cluster</span><br><span class="line">#&gt;    &lt;chr&gt;    &lt;chr&gt;            &lt;chr&gt;  &lt;chr&gt;             &lt;dbl&gt;    &lt;int&gt;       &lt;dbl&gt;</span><br><span class="line">#&gt;  1 广州市   pop-tif/2000.tif 广州市 pop-tif…          0.293        4       0.918</span><br><span class="line">#&gt;  2 广州市   pop-tif/2001.tif 广州市 pop-tif…          0.293        4       0.933</span><br><span class="line">#&gt;  3 广州市   pop-tif/2002.tif 广州市 pop-tif…          0.293        4       0.938</span><br><span class="line">#&gt;  4 广州市   pop-tif/2003.tif 广州市 pop-tif…          0.293        4       0.952</span><br><span class="line">#&gt;  5 广州市   pop-tif/2004.tif 广州市 pop-tif…          0.293        4       0.951</span><br><span class="line">#&gt;  6 广州市   pop-tif/2005.tif 广州市 pop-tif…          0.293        4       0.951</span><br><span class="line">#&gt;  7 广州市   pop-tif/2006.tif 广州市 pop-tif…          0.293        4       0.937</span><br><span class="line">#&gt;  8 广州市   pop-tif/2007.tif 广州市 pop-tif…          0.368        5       0.921</span><br><span class="line">#&gt;  9 广州市   pop-tif/2008.tif 广州市 pop-tif…          0.293        4       0.930</span><br><span class="line">#&gt; 10 广州市   pop-tif/2009.tif 广州市 pop-tif…          0.293        4       0.930</span><br><span class="line">#&gt; # ℹ 13 more rows</span><br></pre></td></tr></table></figure>
+
+<p>绘图展示：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfres <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>res<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year <span class="operator">=</span> str_extract<span class="punctuation">(</span>rstpath<span class="punctuation">,</span> <span class="string">&quot;\\d&#123;4&#125;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span>aes<span class="punctuation">(</span>year<span class="punctuation">,</span> polycentricity<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_line<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br><span class="line"><span class="comment"># ggsave(&quot;unnamed-chunk-33-1.png&quot;, device = png, width = 10, height = 6)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/11/08/15/02b79j1bdbe1b168g4/common/content/1731050687583_358215.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样我们就得到了广州历年的计算结果。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4db63085cd024c3eb7a1746af2068498">名师讲堂｜使用 R 语言测算中国各城市多中心度与集聚程度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.899Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/51300/" title="2001~2023 年上市公司年报 PDF &amp; TXT 文件合集"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/39218/" title="旧版本｜2000~2023 年各省市区县、乡镇人口密度与人口数量面板数据（landscan来源）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/75631/">名师讲堂｜使用 R 语言测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 7 分钟</span></li><li><a href="/posts/46876/">名师讲堂｜使用 R 语言测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 9 分钟</span></li><li><a href="/posts/88566/">名师讲堂｜使用 R 语言测算各城市数字产业集聚程度</a><span class="tf-related-meta">2026-06-14 · 约 11 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

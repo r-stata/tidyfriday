@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>如何从论文地图中提取数据重新绘制 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/34440/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享一个邪修技能：从论文地图中提取数据重新绘图。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何从论文地图中提取数据重新绘制">
+<meta property="og:url" content="https://tidyfriday.cn/posts/34440/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享一个邪修技能：从论文地图中提取数据重新绘图。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/34440.png">
+<meta property="article:published_time" content="2025-09-11T16:20:58.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:52.608Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/34440.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="如何从论文地图中提取数据重新绘制">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"如何从论文地图中提取数据重新绘制","description":"今天给大家分享一个邪修技能：从论文地图中提取数据重新绘图。","url":"https://tidyfriday.cn/posts/34440/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/34440/"},"image":["https://tidyfriday.cn/og/34440.png"],"datePublished":"2025-09-11T16:20:58.000Z","dateModified":"2026-09-26T14:18:52.608Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, 地图","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"如何从论文地图中提取数据重新绘制","item":"https://tidyfriday.cn/posts/34440/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">如何从论文地图中提取数据重新绘制</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">如何从论文地图中提取数据重新绘制</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-09-11T16:20:58.000Z" itemprop="datePublished">2025-09-11</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1143 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享一个邪修技能：从论文地图中提取数据重新绘图。</p>
+<span id="more"></span>
+
+<p>经常我们会遇到一个问题，我们想使用参考文献中某个地图的数据，但是作者并不提供数据。这个时候该怎么办呢？</p>
+<p>最近为了解决这个问题，我借助豆包编写了一个网页应用：provmapcolor</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578504896_794295.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>可以使用附件中提供的离线文件访问这个应用。</p>
+<p>首次打开加载速度会较慢，耐心等待即可。</p>
+<p>虽然理论上城市和区县地图也可以用这个方法提取数据，不过由于区域非常小，各个城市难以辨别，所以实操上几乎不能实现，所以这里只能提取省份地图的数据。</p>
+<p>首先我们准备一幅地图：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578510600_575299.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>把图片截取下上传到网站上：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578511192_773581.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>然后按照标记控制里面的省份提示顺序在图片上逐个在各省份区域点击即可。需要注意，标记点并不需要刻意与点击点重合，只要鼠标点击位置准确即可：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578507659_771228.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>对于实在难以点击到的小区域，可以点击颜色相同的其他区域。</p>
+<p>看原图，数据一共是 5 组，我们可以在把最浅处颜色对应的值设定为 1，最深处的设置为 5，然后点击计算：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578509245_125435.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这个时候就给每个省份根据颜色深浅计算得到了一个数值，导出数据看看：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">readr<span class="operator">::</span>read_csv<span class="punctuation">(</span><span class="string">&quot;省份颜色数值数据.csv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>实际值<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 14 × 1</span><br><span class="line">#&gt;    实际值</span><br><span class="line">#&gt;     &lt;dbl&gt;</span><br><span class="line">#&gt;  1   3.71</span><br><span class="line">#&gt;  2   2.79</span><br><span class="line">#&gt;  3   2.08</span><br><span class="line">#&gt;  4   2.99</span><br><span class="line">#&gt;  5   2.00</span><br><span class="line">#&gt;  6   2.02</span><br><span class="line">#&gt;  7   4.12</span><br><span class="line">#&gt;  8   2.98</span><br><span class="line">#&gt;  9   4.00</span><br><span class="line">#&gt; 10   3.76</span><br><span class="line">#&gt; 11   5</span><br><span class="line">#&gt; 12   1</span><br><span class="line">#&gt; 13   1.97</span><br><span class="line">#&gt; 14   4.17</span><br></pre></td></tr></table></figure>
+
+<p>取整：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>实际值 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>实际值<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>实际值<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 5 × 1</span><br><span class="line">#&gt;   实际值</span><br><span class="line">#&gt;    &lt;dbl&gt;</span><br><span class="line">#&gt; 1      4</span><br><span class="line">#&gt; 2      3</span><br><span class="line">#&gt; 3      2</span><br><span class="line">#&gt; 4      5</span><br><span class="line">#&gt; 5      1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>实际值 <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 3 × 5</span><br><span class="line">#&gt;   省份名称       行政区划代码 `颜色值（16进制）` `颜色值（RGB值）` 实际值</span><br><span class="line">#&gt;   &lt;chr&gt;                 &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;              &lt;dbl&gt;</span><br><span class="line">#&gt; 1 西藏自治区           540000 #FFFFFF            rgb(255,255,255)       1</span><br><span class="line">#&gt; 2 香港特别行政区       810000 #FFFFFF            rgb(255,255,255)       1</span><br><span class="line">#&gt; 3 澳门特别行政区       820000 #FFFFFF            rgb(255,255,255)       1</span><br></pre></td></tr></table></figure>
+
+<p>可以看到台湾被错误归类到了 4 类，所以得到的数据还是需要再进行适当的手动调整。不过我们可以先重新绘制下这幅图，然后比照原图再调整。</p>
+<p>使用 R 语言的话，可以学习这个课程：</p>
+<blockquote>
+<p>使用 R 语言绘制历年中国省市区县地图（小地图版本+长版）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c">https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c</a></p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 重命令变量名称</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>省 <span class="operator">=</span> 省份名称<span class="punctuation">,</span> 省代码 <span class="operator">=</span> 行政区划代码<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里的调整是根据后面的绘图结果进行的</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>实际值 <span class="operator">=</span> if_else<span class="punctuation">(</span>省 <span class="operator">==</span> <span class="string">&quot;台湾省&quot;</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> 实际值<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         实际值 <span class="operator">=</span> if_else<span class="punctuation">(</span>省 <span class="operator">==</span> <span class="string">&quot;天津市&quot;</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> 实际值<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         实际值 <span class="operator">=</span> if_else<span class="punctuation">(</span>省 <span class="operator">==</span> <span class="string">&quot;北京市&quot;</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">,</span> 实际值<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         实际值 <span class="operator">=</span> if_else<span class="punctuation">(</span>省 <span class="operator">==</span> <span class="string">&quot;上海市&quot;</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> 实际值<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 中国地图通常使用这样的坐标系：</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取省级行政区划矢量数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/省.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> prov</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;海岸线/海岸线.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> hax</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;九段线.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> jdx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并绘图数据和地图数据</span></span><br><span class="line">prov <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df<span class="punctuation">)</span> <span class="operator">-&gt;</span> mydata</span><br><span class="line"></span><br><span class="line"><span class="comment"># 然后就可以绘图了：</span></span><br><span class="line"><span class="comment"># 颜色选择：&lt;https://tidyfriday.cn/colors&gt;</span></span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line">ggplot<span class="punctuation">(</span>mydata<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> factor<span class="punctuation">(</span>实际值<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> jdx<span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;#A29AC4&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.6</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> hax<span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  stat_sf_coordinates<span class="punctuation">(</span>data <span class="operator">=</span> mydata<span class="punctuation">,</span></span><br><span class="line">                      geom <span class="operator">=</span> <span class="string">&quot;text&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      aes<span class="punctuation">(</span>label <span class="operator">=</span> 省<span class="punctuation">)</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                      fun.geometry <span class="operator">=</span> st_point_on_surface<span class="punctuation">,</span></span><br><span class="line">                      size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_manual<span class="punctuation">(</span>breaks <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">5</span><span class="punctuation">,</span></span><br><span class="line">                    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;white&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#cccccc&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#969696&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#636363&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#252525&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                    labels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;No data&quot;</span><span class="punctuation">,</span> <span class="string">&quot;0~20&quot;</span><span class="punctuation">,</span> <span class="string">&quot;20~50&quot;</span><span class="punctuation">,</span> <span class="string">&quot;50~100&quot;</span><span class="punctuation">,</span> <span class="string">&quot;100~200&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                    name <span class="operator">=</span> <span class="string">&quot;2011年食源性疾病事件数&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggthemes<span class="operator">::</span>theme_map<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position.inside <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">0.15</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.key.height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">6</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.key.width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">16</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.key.spacing.y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">3</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.title <span class="operator">=</span> element_text<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">12</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   text_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span></span><br><span class="line">    which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> p5</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic5.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">8.5</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/11/16/02b79j1bdbe1b168g4/common/content/1757578509670_282374.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样基本就重现了这幅地图。</p>
+<p>如果想要使用 Stata 绘制，感兴趣的小伙伴也可以学习这个课程：</p>
+<blockquote>
+<p>使用 Stata 绘制历年中国省级行政区划（小地图版本 + 长版）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/e194d75fe1674f7c8921daec1ece7f7d">https://rstata.duanshu.com/#/brief/course/e194d75fe1674f7c8921daec1ece7f7d</a></p>
+</blockquote>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/01d05568a5fb4191a677c6cb0694776d">如何从论文地图中提取数据重新绘制</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:52.608Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/51825/" title="1985～2024 年各上市公司各种绿色专利数量及绿色专利知识宽度（WIPO 筛选标准）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/66483/" title="名师讲堂｜使用 Stata 计算地区间技术互补指数"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/41895/">使用 Python 绘制填充地图、栅格地图 + 等降水量线</a><span class="tf-related-meta">2026-05-08 · 约 16 分钟</span></li><li><a href="/posts/89500/">使用 Python 绘制历年中国省市区县地图（小地图版本+长版）</a><span class="tf-related-meta">2026-04-23 · 约 16 分钟</span></li><li><a href="/posts/96491/">使用 Python 绘制带邻国地区的中国地图</a><span class="tf-related-meta">2026-04-23 · 约 11 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

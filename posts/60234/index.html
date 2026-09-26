@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言处理和提取绿色产品 HS6 代码 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/60234/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享一个实用的数据处理案例：使用 R 语言调用百度的「表格文字识别」接口，把一份环境技术产品清单 PDF 批量转换成结构化的绿色产品 HS6 位代码表。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言处理和提取绿色产品 HS6 代码">
+<meta property="og:url" content="https://tidyfriday.cn/posts/60234/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享一个实用的数据处理案例：使用 R 语言调用百度的「表格文字识别」接口，把一份环境技术产品清单 PDF 批量转换成结构化的绿色产品 HS6 位代码表。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/60234.png">
+<meta property="article:published_time" content="2026-07-17T22:07:10.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:43.808Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/60234.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言处理和提取绿色产品 HS6 代码">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言处理和提取绿色产品 HS6 代码","description":"今天给大家分享一个实用的数据处理案例：使用 R 语言调用百度的「表格文字识别」接口，把一份环境技术产品清单 PDF 批量转换成结构化的绿色产品 HS6 位代码表。","url":"https://tidyfriday.cn/posts/60234/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/60234/"},"image":["https://tidyfriday.cn/og/60234.png"],"datePublished":"2026-07-17T22:07:10.000Z","dateModified":"2026-09-26T14:18:43.808Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言处理和提取绿色产品 HS6 代码","item":"https://tidyfriday.cn/posts/60234/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言处理和提取绿色产品 HS6 代码</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言处理和提取绿色产品 HS6 代码</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-07-17T22:07:10.000Z" itemprop="datePublished">2026-07-17</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2066 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享一个实用的数据处理案例：<strong>使用 R 语言调用百度的「表格文字识别」接口，把一份环境技术产品清单 PDF 批量转换成结构化的绿色产品 HS6 位代码表</strong>。</p>
+<span id="more"></span>
+
+<p>这个方法特别适合处理那些”只存在于 PDF 表格里、没有现成电子版”的官方清单。附件中提供了该数据处理的<strong>参考文献</strong>（UNCTAD 的 <em>Trade in Environmentally Sound Technologies</em> 报告、以及蒋灵多等《制度为绿色护航》一文）以及对应的 <strong>R 语言代码</strong>（<code>main.R</code>），本讲义即基于此整理而成。</p>
+<blockquote>
+<p>关于百度接口的认证与调用方式，可参考之前的课程：<br><a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79">https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79</a></p>
+</blockquote>
+<hr>
+<h2 id="一、数据来源与参考文献" class="article-heading"><a href="#一、数据来源与参考文献" class="headerlink" title="一、数据来源与参考文献"></a>一、数据来源与参考文献<a class="article-anchor" href="#一、数据来源与参考文献" aria-label="本节链接" title="复制本节链接"></a></h2><p>本案例要提取的是<strong>环境友好型技术（Environmentally Sound Technologies, EST）对应的 HS 编码（海关商品分类编码）</strong>，也就是通常所说的”绿色产品 HS6 位代码”。这些代码被广泛用于测度绿色贸易、环境产品出口等研究。</p>
+<p>核心数据来源于联合国贸发会议（UNCTAD）的报告：</p>
+<ul>
+<li>UNCTAD (2016). <em>Trade in Environmentally Sound Technologies: Implications for Developing Countries</em>. 该报告附录给出了按 HS 编码归类的大量环境技术产品清单（空气污染控制、可再生与清洁能源、固体废物与危险废物管理、废水与水管理、环境修复等类别）。本次处理所用的 subpdf.pdf（共 16 页）即节选自该报告的产品清单部分。</li>
+</ul>
+<p>作为关联的国内研究，可参考：</p>
+<ul>
+<li>蒋灵多、王孝松 等 (2025).《制度为绿色护航：知识产权制度完善与绿色贸易发展》（附件 制度为绿色护航：知识产权制度完善与绿色贸易发展_蒋灵多.pdf），该文在绿色贸易相关测度中同样涉及环境产品口径的界定。</li>
+</ul>
+<p>百度接口相关：</p>
+<ul>
+<li>百度 AI 开放平台 · 表格文字识别（OCR）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ai.baidu.com/tech/ocr">https://ai.baidu.com/tech/ocr</a></li>
+<li>RStata 百度接口调用课程：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79">https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79</a></li>
+</ul>
+<hr>
+<h2 id="二、整体思路" class="article-heading"><a href="#二、整体思路" class="headerlink" title="二、整体思路"></a>二、整体思路<a class="article-anchor" href="#二、整体思路" aria-label="本节链接" title="复制本节链接"></a></h2><p>PDF 里的表格无法直接用 <code>readxl</code> 读取，但百度 AI 开放平台提供了”表格文字识别”接口，可以把一页 PDF 直接识别成 Excel。整个流程如下：</p>
+<ol>
+<li>获取 <code>access_token</code>：用应用的 API Key 和 Secret Key 通过 OAuth 接口换取调用凭证；</li>
+<li>拆分 PDF：把 subpdf.pdf 按页拆成 pdf_01.pdf … pdf_16.pdf；</li>
+<li>Base64 + URL 编码：把每一页 PDF 读成二进制、做 Base64 编码再做 URL 编码；</li>
+<li>调用表格识别接口：把编码后的 PDF 发给 …/ocr/v1/table?return_excel=true，接口直接返回 Excel 的 Base64；</li>
+<li>解码保存：把返回的 Excel 解码写成本地 xlsx；</li>
+<li>合并整理：把 16 个 xlsx 读入并合并（前 14 页为表 1，后 2 页为表 2），稍作人工整理得到最终的 table1.xlsx 与 table2.xlsx。</li>
+</ol>
+<p>下面按步骤给出完整 R 代码。<strong>注意：第 2–6 步涉及网络请求与本地中间文件，本讲义在编译时仅展示代码、不实际执行</strong>（接口调用需要有效的百度 API 密钥；最终结果已随附件提供）。最后一节的”结果展示”则直接读取已处理好的 <code>table1.xlsx</code> / <code>table2.xlsx</code> 进行演示。</p>
+<hr>
+<h2 id="三、准备工作与-R-包加载" class="article-heading"><a href="#三、准备工作与-R-包加载" class="headerlink" title="三、准备工作与 R 包加载"></a>三、准备工作与 R 包加载<a class="article-anchor" href="#三、准备工作与-R-包加载" aria-label="本节链接" title="复制本节链接"></a></h2><p>需要用到以下 R 包：<code>tidyverse</code>（数据处理）、<code>jsonlite</code>（解析 JSON）、<code>httr</code>（发送 HTTP 请求）、<code>pdftools</code>（拆分 PDF）、<code>base64enc</code>（Base64 编解码）、<code>fs</code>（文件遍历）、<code>readxl</code> / <code>writexl</code>（读写 Excel）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>httr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>pdftools<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>base64enc<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>fs<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>readxl<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>writexl<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、步骤一：获取百度-access-token" class="article-heading"><a href="#四、步骤一：获取百度-access-token" class="headerlink" title="四、步骤一：获取百度 access_token"></a>四、步骤一：获取百度 <code>access_token</code><a class="article-anchor" href="#四、步骤一：获取百度-access-token" aria-label="本节链接" title="复制本节链接"></a></h2><p>百度 AI 开放平台的接口需要先凭 <code>API Key</code> 与 <code>Secret Key</code> 换取 <code>access_token</code>。这两个密钥在<a target="_blank" rel="noopener external nofollow noreferrer" href="https://console.bce.baidu.com/">百度智能云控制台</a>创建”文字识别”应用后获得，替换到下方代码的 <code>client_id</code> 与 <code>client_secret</code> 处即可。</p>
+<blockquote>
+<p>关于密钥申请与接口调用的完整说明，请见之前的课程：<br><a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79">https://rstata.duanshu.com/#/course/901d3f5adacb46c08be568e134289a79</a></p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 用 client_credentials 方式换取 access_token</span></span><br><span class="line">lst <span class="operator">&lt;-</span> jsonlite<span class="operator">::</span>fromJSON<span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&amp;client_id=你的APIKey&amp;client_secret=你的SecretKey&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">lst<span class="operator">$</span>access_token   <span class="comment"># 后续调用接口时拼接到 URL 末尾</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、步骤二：拆分-PDF" class="article-heading"><a href="#五、步骤二：拆分-PDF" class="headerlink" title="五、步骤二：拆分 PDF"></a>五、步骤二：拆分 PDF<a class="article-anchor" href="#五、步骤二：拆分-PDF" aria-label="本节链接" title="复制本节链接"></a></h2><p>用 <code>pdftools::pdf_split()</code> 把多页 PDF 拆成单页文件，便于逐页送识别。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>pdftools<span class="punctuation">)</span></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;pdf&quot;</span><span class="punctuation">)</span></span><br><span class="line">pdf_split<span class="punctuation">(</span><span class="string">&quot;subpdf.pdf&quot;</span><span class="punctuation">,</span> output <span class="operator">=</span> <span class="string">&quot;pdf/pdf&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、步骤三：Base64-URL-编码" class="article-heading"><a href="#六、步骤三：Base64-URL-编码" class="headerlink" title="六、步骤三：Base64 + URL 编码"></a>六、步骤三：Base64 + URL 编码<a class="article-anchor" href="#六、步骤三：Base64-URL-编码" aria-label="本节链接" title="复制本节链接"></a></h2><p>百度表格识别接口接收的是”PDF 文件的 Base64 字符串”。我们读取二进制、做 Base64 编码，再用 <code>URLencode()</code> 处理特殊字符后即可放入请求体。</p>
+<p>以第一页为例：</p>
+<h1 id="此处代码需要下载讲义材料查看～" class="article-heading"><a href="#此处代码需要下载讲义材料查看～" class="headerlink" title="此处代码需要下载讲义材料查看～"></a>此处代码需要下载讲义材料查看～<a class="article-anchor" href="#此处代码需要下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h2 id="七、步骤四：调用百度「表格文字识别」接口" class="article-heading"><a href="#七、步骤四：调用百度「表格文字识别」接口" class="headerlink" title="七、步骤四：调用百度「表格文字识别」接口"></a>七、步骤四：调用百度「表格文字识别」接口<a class="article-anchor" href="#七、步骤四：调用百度「表格文字识别」接口" aria-label="本节链接" title="复制本节链接"></a></h2><p>把编码后的 PDF 通过 <code>httr::POST()</code> 发到表格识别接口，并带上 <code>return_excel=true</code> 让接口直接返回 Excel；返回结果里的 <code>excel_file</code> 字段是 Excel 文件的 Base64 字符串，解码后即得到这一页的表格。</p>
+<h1 id="此处代码需要下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需要下载讲义材料查看～-1" class="headerlink" title="此处代码需要下载讲义材料查看～"></a>此处代码需要下载讲义材料查看～<a class="article-anchor" href="#此处代码需要下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><blockquote>
+<p>如果只想在浏览器里查看识别结果，可以用 <code>listviewer::jsonedit(content(res))</code> 交互式查看返回结构。</p>
+</blockquote>
+<hr>
+<h2 id="八、步骤五：循环所有页面并转换" class="article-heading"><a href="#八、步骤五：循环所有页面并转换" class="headerlink" title="八、步骤五：循环所有页面并转换"></a>八、步骤五：循环所有页面并转换<a class="article-anchor" href="#八、步骤五：循环所有页面并转换" aria-label="本节链接" title="复制本节链接"></a></h2><p>把上面的逻辑套进循环，逐页识别并保存为 <code>xlsx_01.xlsx</code> … <code>xlsx_16.xlsx</code>。</p>
+<h1 id="此处代码需要下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需要下载讲义材料查看～-2" class="headerlink" title="此处代码需要下载讲义材料查看～"></a>此处代码需要下载讲义材料查看～<a class="article-anchor" href="#此处代码需要下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h2 id="九、步骤六：合并与整理" class="article-heading"><a href="#九、步骤六：合并与整理" class="headerlink" title="九、步骤六：合并与整理"></a>九、步骤六：合并与整理<a class="article-anchor" href="#九、步骤六：合并与整理" aria-label="本节链接" title="复制本节链接"></a></h2><p>把 16 个 <code>xlsx</code> 读入、统一加列名后按行合并。<strong>前 14 页</strong>对应表 1（共 153 项环境产品），<strong>第 15–16 页</strong>对应表 2（21 项可再生能源/关键零部件）。合并后先导出为 <code>table1raw.xlsx</code> / <code>table2raw.xlsx</code>，再做少量人工整理（清理换行、统一类别名称等）得到最终成果 <code>table1.xlsx</code> / <code>table2.xlsx</code>。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fls</span><br><span class="line"></span><br><span class="line"><span class="comment"># 表 1：第 1–14 页</span></span><br><span class="line">lapply<span class="punctuation">(</span>fls<span class="punctuation">[</span><span class="number">1</span><span class="operator">:</span><span class="number">14</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span>x<span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate_all<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;X&quot;</span><span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>ncol<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span>file <span class="operator">=</span> x<span class="punctuation">,</span> rowid <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line">df1 <span class="operator">%&gt;%</span> writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;table1raw.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 表 2：第 15–16 页</span></span><br><span class="line">lapply<span class="punctuation">(</span>fls<span class="punctuation">[</span><span class="number">15</span><span class="operator">:</span><span class="number">16</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span>x<span class="punctuation">,</span> col_names <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate_all<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;X&quot;</span><span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>ncol<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span>file <span class="operator">=</span> x<span class="punctuation">,</span> rowid <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;table2raw.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 最后再手动整理下就可以得到 table1 和 table2 了</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;table1.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;table2.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十、结果展示" class="article-heading"><a href="#十、结果展示" class="headerlink" title="十、结果展示"></a>十、结果展示<a class="article-anchor" href="#十、结果展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面直接读取已经处理好的 <code>table1.xlsx</code> 与 <code>table2.xlsx</code>，看看最终提取到的绿色产品 HS6 代码长什么样。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>readxl<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>dplyr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>stringr<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">t1 <span class="operator">&lt;-</span> read_xlsx<span class="punctuation">(</span><span class="string">&quot;table1.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line">t2 <span class="operator">&lt;-</span> read_xlsx<span class="punctuation">(</span><span class="string">&quot;table2.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;表 1（环境产品清单）维度：&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>t1<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;行 ×&quot;</span><span class="punctuation">,</span> ncol<span class="punctuation">(</span>t1<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;列\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;表 2（可再生能源/关键零部件）维度：&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>t2<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;行 ×&quot;</span><span class="punctuation">,</span> ncol<span class="punctuation">(</span>t2<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;列\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">t1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 153 × 6</span><br><span class="line">#&gt;    `HS Code` `HS Code Description` Ex-out/ Additional P…¹ Remarks / Environmen…²</span><br><span class="line">#&gt;    &lt;chr&gt;     &lt;chr&gt;                 &lt;chr&gt;                  &lt;chr&gt;</span><br><span class="line">#&gt;  1 840420    &quot;Condensers for stea…  &lt;NA&gt;                  &quot;Used to cool gas str…</span><br><span class="line">#&gt;  2 840490    &quot;Parts for auxiliary…  &lt;NA&gt;                  &quot;Used to cool gas str…</span><br><span class="line">#&gt;  3 840510    &quot;Producer gas or wat… &quot;Include only those\r… &quot;Purifiers remove con…</span><br><span class="line">#&gt;  4 841410    &quot;Vacuum pumps&quot;         &lt;NA&gt;                  &quot;Air handling equipme…</span><br><span class="line">#&gt;  5 841430    &quot;Compressors of a ki… &quot;Compressors used\r\n… &quot;Lower water use, red…</span><br><span class="line">#&gt;  6 841440    &quot;Air compressors mou… &quot;Air compres-\r\nsors… &quot;Transport or extract…</span><br><span class="line">#&gt;  7 841459    &quot;Fans other than tab… &quot;Fans for the trans-\… &quot;Fans for the transpo…</span><br><span class="line">#&gt;  8 841480    &quot;Air pumps, other th… &quot;Industrial hoods,\r\… &quot;Transport or extract…</span><br><span class="line">#&gt;  9 841490    &quot;Parts of vacuum pum…  &lt;NA&gt;                  &quot;Air handling equipme…</span><br><span class="line">#&gt; 10 841960    &quot;Machinery for lique…  &lt;NA&gt;                  &quot;For separation and r…</span><br><span class="line">#&gt; # ℹ 143 more rows</span><br><span class="line">#&gt; # ℹ abbreviated names: ¹`Ex-out/ Additional Product Specification`,</span><br><span class="line">#&gt; #   ²`Remarks / Environmental Benefit`</span><br><span class="line">#&gt; # ℹ 2 more variables: `Environmental product category` &lt;chr&gt;,</span><br><span class="line">#&gt; #   `Lists/reports` &lt;chr&gt;</span><br></pre></td></tr></table></figure>
+
+<p>t2</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 21 × 4</span><br><span class="line">#&gt;    `HS subheading (6-digit)` HS 6-digit descripti…¹ Classification Justification</span><br><span class="line">#&gt;    &lt;chr&gt;                     &lt;chr&gt;                  &lt;chr&gt;          &lt;chr&gt;</span><br><span class="line">#&gt;  1 854140                    &quot;Electrical apparatus… &quot;Renewable En… &quot;Solar PV ce…</span><br><span class="line">#&gt;  2 850231                    &quot;Electric generating … &quot;Renewable En… &quot;Clear corre…</span><br><span class="line">#&gt;  3 841919                    &quot;Heaters; instantaneo… &quot;Renewable En… &quot;The HS subh…</span><br><span class="line">#&gt;  4 841011                    &quot;Turbines; hydraulic … &quot;Renewable En… &quot;Clear corre…</span><br><span class="line">#&gt;  5 841012                    &quot;Turbines; hydraulic … &quot;Renewable En… &quot;Clear corre…</span><br><span class="line">#&gt;  6 841090                    &quot;Turbines; parts of h… &quot;Spare parts(… &quot;Critical in…</span><br><span class="line">#&gt;  7 730820                    &quot;Iron or steel; struc… &quot;Renewable En… &quot;Critical in…</span><br><span class="line">#&gt;  8 848340                    &quot;Gears and gearing, o… &quot;Renewable En… &quot;Critical in…</span><br><span class="line">#&gt;  9 848210                    &quot;Ball bearings&quot;        &quot;Renewable En… &quot;Critical in…</span><br><span class="line">#&gt; 10 848220                    &quot;Tapered roller beari… &quot;Renewable En… &quot;Critical in…</span><br><span class="line">#&gt; # ℹ 11 more rows</span><br><span class="line">#&gt; # ℹ abbreviated name: ¹`HS 6-digit description`</span><br></pre></td></tr></table></figure>
+
+<p>其中 Table A1.1 是涵盖各类环保技术商品（EST-EGs）的完整分析清单，包含大量多用途产品，用于宏观整体贸易统计；Table A1.2 是从中筛选出 21 项环保终端用途清晰的环保技术商品子集，用于产业竞争力测算与可持续性深度评估。</p>
+<blockquote>
+<p>其中 EST-EGs:<br><strong>EST</strong> = Environmentally Sound Technologies 无害环境技术（环保技术）<br><strong>EGs</strong> = Environmental Goods 环境商品<br><strong>EST-EGs = goods related to environmentally sound technologies</strong><br>直译：与无害环境技术相关的产品，即<strong>环保技术类环境商品</strong></p>
+</blockquote>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4dca1aac87394d52b235985351ed4fa9">使用 R 语言处理和提取绿色产品 HS6 代码</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:43.808Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/86990/" title="2000～2016年海关数据 HS 编码（税号编码）统一对照表及统一结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/55794/" title="名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/98762/">R 语言和 RStudio 的安装、R Profile 的配置</a><span class="tf-related-meta">2026-09-03 · 约 14 分钟</span></li><li><a href="/posts/67980/">使用 R 语言统一海关税号编码</a><span class="tf-related-meta">2026-07-17 · 约 6 分钟</span></li><li><a href="/posts/69633/">如何使用 R 语言计算各省市区县相对湿度面板数据</a><span class="tf-related-meta">2026-04-10 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-text">一、数据来源与参考文献</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B4%E4%BD%93%E6%80%9D%E8%B7%AF"><span class="toc-text">二、整体思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%E4%B8%8E-R-%E5%8C%85%E5%8A%A0%E8%BD%BD"><span class="toc-text">三、准备工作与 R 包加载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%AD%A5%E9%AA%A4%E4%B8%80%EF%BC%9A%E8%8E%B7%E5%8F%96%E7%99%BE%E5%BA%A6-access-token"><span class="toc-text">四、步骤一：获取百度 access_token</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%AD%A5%E9%AA%A4%E4%BA%8C%EF%BC%9A%E6%8B%86%E5%88%86-PDF"><span class="toc-text">五、步骤二：拆分 PDF</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%AD%A5%E9%AA%A4%E4%B8%89%EF%BC%9ABase64-URL-%E7%BC%96%E7%A0%81"><span class="toc-text">六、步骤三：Base64 + URL 编码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E8%A6%81%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需要下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%AD%A5%E9%AA%A4%E5%9B%9B%EF%BC%9A%E8%B0%83%E7%94%A8%E7%99%BE%E5%BA%A6%E3%80%8C%E8%A1%A8%E6%A0%BC%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%E3%80%8D%E6%8E%A5%E5%8F%A3"><span class="toc-text">七、步骤四：调用百度「表格文字识别」接口</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E8%A6%81%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需要下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%AD%A5%E9%AA%A4%E4%BA%94%EF%BC%9A%E5%BE%AA%E7%8E%AF%E6%89%80%E6%9C%89%E9%A1%B5%E9%9D%A2%E5%B9%B6%E8%BD%AC%E6%8D%A2"><span class="toc-text">八、步骤五：循环所有页面并转换</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E8%A6%81%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需要下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%AD%A5%E9%AA%A4%E5%85%AD%EF%BC%9A%E5%90%88%E5%B9%B6%E4%B8%8E%E6%95%B4%E7%90%86"><span class="toc-text">九、步骤六：合并与整理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E7%BB%93%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="toc-text">十、结果展示</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/62613/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="指标背景与文献来源">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化">
+<meta property="og:url" content="https://tidyfriday.cn/posts/62613/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="指标背景与文献来源">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/62613.png">
+<meta property="article:published_time" content="2026-05-25T23:44:02.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.752Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/62613.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化","description":"指标背景与文献来源","url":"https://tidyfriday.cn/posts/62613/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/62613/"},"image":["https://tidyfriday.cn/og/62613.png"],"datePublished":"2026-05-25T23:44:02.000Z","dateModified":"2026-09-26T14:18:49.752Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, R 语言, 上市公司","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化","item":"https://tidyfriday.cn/posts/62613/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-25T23:44:02.000Z" itemprop="datePublished">2026-05-25</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3029 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="指标背景与文献来源" class="article-heading"><a href="#指标背景与文献来源" class="headerlink" title="指标背景与文献来源"></a>指标背景与文献来源<a class="article-anchor" href="#指标背景与文献来源" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<p>技术专业化（Technological Specialization, TSP）和技术多样化（Technological Diversification, TDI）是刻画企业技术布局的两个重要维度。</p>
+<p>王慧扬等（2025）在《知识搜索与科技领军企业关键核心技术突破》（《科学学研究》2025）中系统使用了这两个指标来研究科技领军企业的关键核心技术突破。</p>
+<ul>
+<li>技术专业化（TSP）：衡量企业专利技术是否集中于少数技术类别。TSP 越高，说明企业的专利越集中在少数技术小类上，专业化程度越高。</li>
+<li>技术多样化（TDI）：衡量企业专利在技术大类上的分布广度。TDI 越高，说明企业的专利分布越分散，多样化程度越高。</li>
+</ul>
+<p>这两个指标均基于企业专利的 <strong>IPC（国际专利分类）</strong> 分类号进行计算。</p>
+<h2 id="数据说明" class="article-heading"><a href="#数据说明" class="headerlink" title="数据说明"></a>数据说明<a class="article-anchor" href="#数据说明" aria-label="本节链接" title="复制本节链接"></a></h2><p>本文使用的数据为 <strong>1985~2024 年上市公司与专利数据匹配结果</strong>（含引用与被引用信息），原始数据约 271 万行、70 列，10GB+。</p>
+<p>为了便于演示和加快计算速度，计算时以 <strong>2020 年</strong> 为例进行。如果你需要处理其他年份或全量数据，只需修改读取数据部分的代码即可。</p>
+<p>数据字段主要包括：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>股票代码</td>
+<td>上市公司股票代码</td>
+</tr>
+<tr>
+<td>年份</td>
+<td>专利申请年份</td>
+</tr>
+<tr>
+<td>申请号</td>
+<td>专利申请号</td>
+</tr>
+<tr>
+<td>公开公告号</td>
+<td>专利公开/公告号</td>
+</tr>
+<tr>
+<td>IPC主分类</td>
+<td>IPC 主分类号（如 G06F）</td>
+</tr>
+</tbody></table>
+<h2 id="IPC-分类简介" class="article-heading"><a href="#IPC-分类简介" class="headerlink" title="IPC 分类简介"></a>IPC 分类简介<a class="article-anchor" href="#IPC-分类简介" aria-label="本节链接" title="复制本节链接"></a></h2><p>IPC（International Patent Classification，国际专利分类）是世界知识产权组织（WIPO）制定的专利分类标准，将专利技术领域分为五个层级：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>部（Section）</td>
+<td>8 个大部，用 A~H 表示</td>
+<td>A、G、H</td>
+</tr>
+<tr>
+<td>大类（Class）</td>
+<td>部 + 2 位数字，共 3 位</td>
+<td>G06、H04</td>
+</tr>
+<tr>
+<td>小类（Subclass）</td>
+<td>大类 + 1 位字母，共 4 位</td>
+<td>G06F、H04L</td>
+</tr>
+<tr>
+<td>大组（Main Group）</td>
+<td>小类 + 1~3 位数字</td>
+<td>G06F 1</td>
+</tr>
+<tr>
+<td>小组（Subgroup）</td>
+<td>大组 + “/“ + 数字</td>
+<td>G06F 1/00</td>
+</tr>
+</tbody></table>
+<p>本文计算中使用：</p>
+<ul>
+<li>技术多样化（TDI） → 基于 IPC 大类（前 3 位，如 G06）</li>
+<li>技术专业化（TSP） → 基于 IPC 小类（前 4 位，如 G06F）</li>
+</ul>
+<blockquote>
+<p><strong>为什么这样区分？</strong> 根据王慧扬等（2025）的研究设计，技术专业化关注企业在更细分的<strong>技术小类</strong>上是否集中（用变异系数衡量集中度），而技术多样化关注企业在更宏观的<strong>技术大类</strong>上的分布广度（用熵指数衡量多样性）。</p>
+</blockquote>
+<h2 id="计算方法" class="article-heading"><a href="#计算方法" class="headerlink" title="计算方法"></a>计算方法<a class="article-anchor" href="#计算方法" aria-label="本节链接" title="复制本节链接"></a></h2><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/25/23/02b79j1bdbe1b168g4/common/content/1779723625829_134216.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p><strong>为什么用熵指数？</strong> Shannon 熵是信息论中衡量不确定性的指标，值越大说明分布越均匀。用在技术多样化上，熵越大说明企业技术布局越分散、越多样化。</p>
+</blockquote>
+<h2 id="R-语言完整实现" class="article-heading"><a href="#R-语言完整实现" class="headerlink" title="R 语言完整实现"></a>R 语言完整实现<a class="article-anchor" href="#R-语言完整实现" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面我们对 <code>计算技术专业化与多样化.R</code> 脚本进行逐行解读，完整展示使用 R 语言计算 TSP 和 TDI 的流程。</p>
+<h3 id="第一部分：加载所需-R-包" class="article-heading"><a href="#第一部分：加载所需-R-包" class="headerlink" title="第一部分：加载所需 R 包"></a>第一部分：加载所需 R 包<a class="article-anchor" href="#第一部分：加载所需-R-包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 计算上市公司技术专业化(TSP)与技术多样化(TDI)</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 参考：王慧扬, 刘建华, 赵玉冰.《知识搜索与科技领军企业关键核心技术突破》</span></span><br><span class="line"><span class="comment">#       科学学研究, 2025</span></span><br><span class="line"><span class="comment"># 数据：1985~2024年上市公司与专利数据匹配结果_含引用与被引用信息.csv</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载所需包</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>data.table<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ol>
+<li><strong><code>tidyverse</code></strong> 是一个 R 语言包集合，包含了 <code>dplyr</code>（数据操作）、<code>readr</code>（数据读取）、<code>stringr</code>（字符串处理）等常用包，我们使用它来进行数据清洗和变换。</li>
+<li><strong><code>data.table</code></strong> 提供了 <code>fread()</code> 函数，可以快速读取大型 CSV 文件（支持 10GB+ 数据），比基础 R 的 <code>read.csv()</code> 快很多。</li>
+</ol>
+<blockquote>
+<p><strong>注意</strong>：如果你处理的是全量数据（1985~2024 年），建议使用 <code>data.table::fread()</code> 读取，并配合 <code>dplyr</code> 进行数据操作。</p>
+</blockquote>
+<h3 id="第二部分：读取数据" class="article-heading"><a href="#第二部分：读取数据" class="headerlink" title="第二部分：读取数据"></a>第二部分：读取数据<a class="article-anchor" href="#第二部分：读取数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取数据（2020年样本）</span></span><br><span class="line">df_2020 <span class="operator">&lt;-</span> read_csv<span class="punctuation">(</span><span class="string">&quot;2020年上市公司与专利数据匹配结果.csv&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<p>这里我们使用 <code>readr::read_csv()</code> 读取已经预处理好的 2020 年数据。</p>
+<p>如果你需要处理<strong>全量数据</strong>，可以使用以下代码（取消注释即可）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用 data.table 的 fread 快速读取大数据</span></span><br><span class="line"><span class="comment"># df_raw &lt;- fread(&quot;1985~2024年上市公司与专利数据匹配结果_含引用与被引用信息.csv&quot;,</span></span><br><span class="line"><span class="comment">#                 encoding = &quot;UTF-8&quot;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 筛选 2020 年数据并选择所需变量</span></span><br><span class="line"><span class="comment"># df_2020 &lt;- df_raw[年份 == 2020, .(股票代码, 年份, 申请号, 公开公告号, IPC主分类)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存为 CSV，方便后续使用</span></span><br><span class="line"><span class="comment"># df_2020 %&gt;% write_csv(&quot;2020年上市公司与专利数据匹配结果.csv&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p>读取数据后，我们查看一下数据的维度：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"># 查看数据维度</span><br><span class="line">cat(<span class="built_in">sprintf</span>(<span class="string">&quot;2020年数据维度: %d 行, %d 列\n&quot;</span>, nrow(df_2020), ncol(df_2020)))</span><br><span class="line"></span><br><span class="line"># 查看前几行</span><br><span class="line">head(df_2020)</span><br></pre></td></tr></table></figure>
+
+<h3 id="第三部分：数据去重" class="article-heading"><a href="#第三部分：数据去重" class="headerlink" title="第三部分：数据去重"></a>第三部分：数据去重<a class="article-anchor" href="#第三部分：数据去重" aria-label="本节链接" title="复制本节链接"></a></h3><p>专利数据中存在同一专利被多次记录的情况（例如同一专利有多个公开公告号），需要按一定规则去重。去重分三步：</p>
+<h4 id="3-1-清洗公开公告号" class="article-heading"><a href="#3-1-清洗公开公告号" class="headerlink" title="3.1 清洗公开公告号"></a>3.1 清洗公开公告号<a class="article-anchor" href="#3-1-清洗公开公告号" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: 清洗公开公告号（去掉末尾字母）</span></span><br><span class="line"><span class="comment"># 公开公告号末尾常带有一位字母（如 CN1234567A），需将其去掉</span></span><br><span class="line">df_2020 <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>公开公告号_clean <span class="operator">=</span> str_remove<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看清洗效果</span></span><br><span class="line">table<span class="punctuation">(</span>str_sub<span class="punctuation">(</span>df_2020<span class="operator">$</span>公开公告号<span class="punctuation">,</span> <span class="operator">-</span><span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span> useNA <span class="operator">=</span> <span class="string">&quot;ifany&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="number">1</span><span class="operator">:</span><span class="number">10</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>公开公告号的格式通常为 CN1234567A 或 CN1234567B，末尾的字母表示专利公告的不同阶段</li>
+<li>使用 stringr::str_remove(公开公告号, “[A-Z]$”) 去掉末尾的大写字母</li>
+<li>[A-Z]$ 是正则表达式，表示”末尾的一个大写字母”</li>
+</ul>
+<h4 id="3-2-按公开公告号去重" class="article-heading"><a href="#3-2-按公开公告号去重" class="headerlink" title="3.2 按公开公告号去重"></a>3.2 按公开公告号去重<a class="article-anchor" href="#3-2-按公开公告号去重" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 2: 按 股票代码 + 年份 + 公开公告号_clean 去重</span></span><br><span class="line">df_2020 <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 公开公告号_clean<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;按公开公告号去重后：%d 行\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df_2020<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>distinct(股票代码, 年份, 公开公告号_clean, .keep_all = TRUE) 会保留每个（股票代码、年份、公开公告号_clean）组合的第一行，并保留所有变量</li>
+<li>这样可以去除同一专利的多个公开公告记录</li>
+</ul>
+<h4 id="3-3-按申请号去重" class="article-heading"><a href="#3-3-按申请号去重" class="headerlink" title="3.3 按申请号去重"></a>3.3 按申请号去重<a class="article-anchor" href="#3-3-按申请号去重" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 3: 按 股票代码 + 年份 + 申请号 去重</span></span><br><span class="line">df_2020 <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 申请号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;按申请号去重后：%d 行\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df_2020<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>进一步按「股票代码 + 年份 + 申请号」去重，确保同一专利申请只计算一次</li>
+<li>经过这两步去重，我们获得了干净的企业-专利匹配数据</li>
+</ul>
+<h3 id="第四部分：提取-IPC-分类信息" class="article-heading"><a href="#第四部分：提取-IPC-分类信息" class="headerlink" title="第四部分：提取 IPC 分类信息"></a>第四部分：提取 IPC 分类信息<a class="article-anchor" href="#第四部分：提取-IPC-分类信息" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>代码解读</strong>：</p>
+<ul>
+<li>stringr::str_sub(IPC主分类, 1, 3) 提取 IPC主分类 的前 3 位字符，作为 IPC 大类</li>
+<li>stringr::str_sub(IPC主分类, 1, 4) 提取前 4 位字符，作为 IPC 小类</li>
+<li>例如：IPC主分类 = “G06F 1/00” → IPC大类 = “G06”，IPC小类 = “G06F”</li>
+</ul>
+<p>接下来，我们检查并处理 IPC 分类为 <code>NA</code> 的观测值：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 IPC主分类的 NA 值</span></span><br><span class="line">na_count <span class="operator">&lt;-</span> <span class="built_in">sum</span><span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>df_2020<span class="operator">$</span>IPC主分类<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;IPC主分类的NA值数量: %d (占比%.2f%%)\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">            na_count<span class="punctuation">,</span> na_count<span class="operator">/</span>nrow<span class="punctuation">(</span>df_2020<span class="punctuation">)</span><span class="operator">*</span><span class="number">100</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 移除 IPC 分类为 NA 的观测值（无法归入任何技术类别）</span></span><br><span class="line">df_2020 <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>IPC大类<span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>IPC小类<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;移除IPC为NA后的数据维度: %d 行, %d 列\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">            nrow<span class="punctuation">(</span>df_2020<span class="punctuation">)</span><span class="punctuation">,</span> ncol<span class="punctuation">(</span>df_2020<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>IPC 主分类为 NA 的专利无法归入任何技术类别，需要移除</li>
+<li>根据我们的统计，这部分约占 10.46%</li>
+</ul>
+<h3 id="第五部分：计算技术专业化（TSP）" class="article-heading"><a href="#第五部分：计算技术专业化（TSP）" class="headerlink" title="第五部分：计算技术专业化（TSP）"></a>第五部分：计算技术专业化（TSP）<a class="article-anchor" href="#第五部分：计算技术专业化（TSP）" aria-label="本节链接" title="复制本节链接"></a></h3><p>技术专业化的计算分为四个步骤：</p>
+<h4 id="5-1-计算每个企业在各技术小类的专利数量" class="article-heading"><a href="#5-1-计算每个企业在各技术小类的专利数量" class="headerlink" title="5.1 计算每个企业在各技术小类的专利数量"></a>5.1 计算每个企业在各技术小类的专利数量<a class="article-anchor" href="#5-1-计算每个企业在各技术小类的专利数量" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>代码解读</strong>：</p>
+<ul>
+<li>按「股票代码 + IPC小类」分组，统计每家企业每个技术小类的专利数量</li>
+<li>例如：企业 000001 在 G06F 小类有 10 件专利，在 H04L 小类有 5 件专利</li>
+</ul>
+<h4 id="5-2-计算每个企业的专利总数" class="article-heading"><a href="#5-2-计算每个企业的专利总数" class="headerlink" title="5.2 计算每个企业的专利总数"></a>5.2 计算每个企业的专利总数<a class="article-anchor" href="#5-2-计算每个企业的专利总数" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算每个企业的专利总数</span></span><br><span class="line">firm_total_patents <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>总专利数 <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>firm_total_patents<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>按「股票代码」分组，统计每家企业 2020 年的专利总数</li>
+<li>这个总数将用于计算各技术小类的专利占比</li>
+</ul>
+<h4 id="5-3-计算各技术小类专利占比" class="article-heading"><a href="#5-3-计算各技术小类专利占比" class="headerlink" title="5.3 计算各技术小类专利占比"></a>5.3 计算各技术小类专利占比<a class="article-anchor" href="#5-3-计算各技术小类专利占比" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算各技术小类专利占比</span></span><br><span class="line">tech_small_ratio <span class="operator">&lt;-</span> tech_small_class <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>firm_total_patents<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;股票代码&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>专利占比 <span class="operator">=</span> 专利数 <span class="operator">/</span> 总专利数<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>tech_small_ratio<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>将 tech_small_class 和 firm_total_patents 按「股票代码」内连接</li>
+<li>计算每个技术小类的专利占比：pij=NiNij</li>
+<li>例如：企业总专利 100 件，其中 G06F 小类 30 件，则 G06F 的专利占比 = 0.3</li>
+</ul>
+<h4 id="5-4-计算变异系数（TSP）" class="article-heading"><a href="#5-4-计算变异系数（TSP）" class="headerlink" title="5.4 计算变异系数（TSP）"></a>5.4 计算变异系数（TSP）<a class="article-anchor" href="#5-4-计算变异系数（TSP）" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处代码需下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需下载讲义材料查看～-2" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>代码解读</strong>：</p>
+<ol>
+<li><strong><code>技术小类数量 = n()</code></strong>：统计每家企业有多少个技术小类</li>
+<li><strong><code>技术小类占比均值 = mean(专利占比)</code></strong>：计算专利占比的均值</li>
+<li><strong><code>技术小类占比标准差 = sd(专利占比)</code></strong>：计算专利占比的标准差</li>
+<li><strong><code>TSP = sd / mean</code></strong>：变异系数 = 标准差 / 均值</li>
+<li><strong>边界情况处理</strong>：</li>
+</ol>
+<h3 id="第六部分：计算技术多样化（TDI）" class="article-heading"><a href="#第六部分：计算技术多样化（TDI）" class="headerlink" title="第六部分：计算技术多样化（TDI）"></a>第六部分：计算技术多样化（TDI）<a class="article-anchor" href="#第六部分：计算技术多样化（TDI）" aria-label="本节链接" title="复制本节链接"></a></h3><p>技术多样化的计算分为三个步骤：</p>
+<h4 id="6-1-计算每个企业在各技术大类的专利数量" class="article-heading"><a href="#6-1-计算每个企业在各技术大类的专利数量" class="headerlink" title="6.1 计算每个企业在各技术大类的专利数量"></a>6.1 计算每个企业在各技术大类的专利数量<a class="article-anchor" href="#6-1-计算每个企业在各技术大类的专利数量" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算每个企业在各技术大类的专利数量</span></span><br><span class="line">tech_large_class <span class="operator">&lt;-</span> df_2020 <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> IPC大类<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>专利数 <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>tech_large_class<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>按「股票代码 + IPC大类」分组，统计每家企业每个技术大类的专利数量</li>
+<li>注意：这里用的是 IPC 大类（前 3 位），而不是小类</li>
+</ul>
+<h4 id="6-2-计算各技术大类专利占比" class="article-heading"><a href="#6-2-计算各技术大类专利占比" class="headerlink" title="6.2 计算各技术大类专利占比"></a>6.2 计算各技术大类专利占比<a class="article-anchor" href="#6-2-计算各技术大类专利占比" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算各技术大类专利占比</span></span><br><span class="line">tech_large_ratio <span class="operator">&lt;-</span> tech_large_class <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>firm_total_patents<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;股票代码&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>专利占比 <span class="operator">=</span> 专利数 <span class="operator">/</span> 总专利数<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>tech_large_ratio<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>与计算 TSP 时类似，这里计算的是各技术大类的专利占比</li>
+<li>例如：企业总专利 100 件，其中 G06 大类 40 件，H04 大类 30 件，则 G06 的专利占比 = 0.4</li>
+</ul>
+<h4 id="6-3-计算-Shannon-熵指数（TDI）" class="article-heading"><a href="#6-3-计算-Shannon-熵指数（TDI）" class="headerlink" title="6.3 计算 Shannon 熵指数（TDI）"></a>6.3 计算 Shannon 熵指数（TDI）<a class="article-anchor" href="#6-3-计算-Shannon-熵指数（TDI）" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处代码需下载讲义材料查看～-3" class="article-heading"><a href="#此处代码需下载讲义材料查看～-3" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-3" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>代码解读</strong>：</p>
+<ol>
+<li><strong><code>技术大类数量 = n()</code></strong>：统计每家企业有多少个技术大类</li>
+<li><strong><code>TDI = -sum(专利占比 * log(专利占比))</code></strong>：计算 Shannon 熵指数</li>
+<li><strong>Shannon 熵的性质</strong>：</li>
+</ol>
+<h3 id="第七部分：合并结果并保存" class="article-heading"><a href="#第七部分：合并结果并保存" class="headerlink" title="第七部分：合并结果并保存"></a>第七部分：合并结果并保存<a class="article-anchor" href="#第七部分：合并结果并保存" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并 TSP 和 TDI 结果</span></span><br><span class="line">result <span class="operator">&lt;-</span> TSP <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 技术小类数量<span class="punctuation">,</span> TSP<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>select<span class="punctuation">(</span>TDI<span class="punctuation">,</span> 股票代码<span class="punctuation">,</span> 技术大类数量<span class="punctuation">,</span> TDI<span class="punctuation">)</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;股票代码&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>firm_total_patents<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;股票代码&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>股票代码<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看最终结果</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;=== 最终结果概览 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;结果维度: %d 行, %d 列\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>result<span class="punctuation">)</span><span class="punctuation">,</span> ncol<span class="punctuation">(</span>result<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">head<span class="punctuation">(</span>result<span class="punctuation">,</span> <span class="number">20</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ol>
+<li>将 TSP 和 TDI 两个结果按「股票代码」内连接</li>
+<li>同时保留每家企业的总专利数</li>
+<li>按股票代码排序，便于查看</li>
+</ol>
+<h3 id="第八部分：结果分析与描述性统计" class="article-heading"><a href="#第八部分：结果分析与描述性统计" class="headerlink" title="第八部分：结果分析与描述性统计"></a>第八部分：结果分析与描述性统计<a class="article-anchor" href="#第八部分：结果分析与描述性统计" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-4" class="article-heading"><a href="#此处代码需下载讲义材料查看～-4" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-4" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>计算结果解读</strong>（基于 2020 年数据）：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>最小值</th>
+<th>25% 分位数</th>
+<th>中位数</th>
+<th>均值</th>
+<th>75% 分位数</th>
+<th>最大值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TSP（技术专业化）</td>
+<td>0.0000</td>
+<td>0.4283</td>
+<td>0.7071</td>
+<td>0.8015</td>
+<td>1.0700</td>
+<td>2.8284</td>
+</tr>
+<tr>
+<td>TDI（技术多样化）</td>
+<td>0.0000</td>
+<td>0.5623</td>
+<td>1.1342</td>
+<td>1.1234</td>
+<td>1.5276</td>
+<td>2.0794</td>
+</tr>
+<tr>
+<td>总专利数</td>
+<td>1</td>
+<td>3</td>
+<td>8</td>
+<td>47.1</td>
+<td>28</td>
+<td>5,832</td>
+</tr>
+</tbody></table>
+<ul>
+<li>TSP 中位数为 0.707，均值为 0.802，说明多数企业的技术布局有一定专业化倾向。</li>
+<li>TDI 中位数为 1.134，均值为 1.123，说明多数企业的技术多样化程度处于中等水平。</li>
+</ul>
+<h3 id="第九部分：保存结果" class="article-heading"><a href="#第九部分：保存结果" class="headerlink" title="第九部分：保存结果"></a>第九部分：保存结果<a class="article-anchor" href="#第九部分：保存结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 保存结果</span></span><br><span class="line">output_file <span class="operator">&lt;-</span> <span class="string">&quot;技术专业化与多样化_2020年.csv&quot;</span></span><br><span class="line">fwrite<span class="punctuation">(</span>result<span class="punctuation">,</span> output_file<span class="punctuation">,</span> encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;\n结果已保存至: %s\n&quot;</span><span class="punctuation">,</span> output_file<span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>代码解读</strong>：</p>
+<ul>
+<li>使用 data.table::fwrite() 快速写入 CSV 文件</li>
+<li>指定 encoding = “UTF-8”，确保中文字符正确保存</li>
+</ul>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/e9a58a38ad2f40b2b4fb6f1930f181a0">名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.752Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/71404/" title="名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/45787/" title="名师讲堂｜使用 Stata 测算区域技术专业化"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/75631/">名师讲堂｜使用 R 语言测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 7 分钟</span></li><li><a href="/posts/46876/">名师讲堂｜使用 R 语言测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 9 分钟</span></li><li><a href="/posts/95492/">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-14 · 约 15 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E8%83%8C%E6%99%AF%E4%B8%8E%E6%96%87%E7%8C%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">指标背景与文献来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%AF%B4%E6%98%8E"><span class="toc-text">数据说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IPC-%E5%88%86%E7%B1%BB%E7%AE%80%E4%BB%8B"><span class="toc-text">IPC 分类简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">计算方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#R-%E8%AF%AD%E8%A8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-text">R 语言完整实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E5%8A%A0%E8%BD%BD%E6%89%80%E9%9C%80-R-%E5%8C%85"><span class="toc-text">第一部分：加载所需 R 包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="toc-text">第二部分：读取数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%8E%BB%E9%87%8D"><span class="toc-text">第三部分：数据去重</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-%E6%B8%85%E6%B4%97%E5%85%AC%E5%BC%80%E5%85%AC%E5%91%8A%E5%8F%B7"><span class="toc-text">3.1 清洗公开公告号</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-%E6%8C%89%E5%85%AC%E5%BC%80%E5%85%AC%E5%91%8A%E5%8F%B7%E5%8E%BB%E9%87%8D"><span class="toc-text">3.2 按公开公告号去重</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-%E6%8C%89%E7%94%B3%E8%AF%B7%E5%8F%B7%E5%8E%BB%E9%87%8D"><span class="toc-text">3.3 按申请号去重</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E9%83%A8%E5%88%86%EF%BC%9A%E6%8F%90%E5%8F%96-IPC-%E5%88%86%E7%B1%BB%E4%BF%A1%E6%81%AF"><span class="toc-text">第四部分：提取 IPC 分类信息</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E9%83%A8%E5%88%86%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E4%B8%93%E4%B8%9A%E5%8C%96%EF%BC%88TSP%EF%BC%89"><span class="toc-text">第五部分：计算技术专业化（TSP）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1-%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E4%BC%81%E4%B8%9A%E5%9C%A8%E5%90%84%E6%8A%80%E6%9C%AF%E5%B0%8F%E7%B1%BB%E7%9A%84%E4%B8%93%E5%88%A9%E6%95%B0%E9%87%8F"><span class="toc-text">5.1 计算每个企业在各技术小类的专利数量</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E4%BC%81%E4%B8%9A%E7%9A%84%E4%B8%93%E5%88%A9%E6%80%BB%E6%95%B0"><span class="toc-text">5.2 计算每个企业的专利总数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-%E8%AE%A1%E7%AE%97%E5%90%84%E6%8A%80%E6%9C%AF%E5%B0%8F%E7%B1%BB%E4%B8%93%E5%88%A9%E5%8D%A0%E6%AF%94"><span class="toc-text">5.3 计算各技术小类专利占比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-4-%E8%AE%A1%E7%AE%97%E5%8F%98%E5%BC%82%E7%B3%BB%E6%95%B0%EF%BC%88TSP%EF%BC%89"><span class="toc-text">5.4 计算变异系数（TSP）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E9%83%A8%E5%88%86%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E5%A4%9A%E6%A0%B7%E5%8C%96%EF%BC%88TDI%EF%BC%89"><span class="toc-text">第六部分：计算技术多样化（TDI）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-1-%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E4%BC%81%E4%B8%9A%E5%9C%A8%E5%90%84%E6%8A%80%E6%9C%AF%E5%A4%A7%E7%B1%BB%E7%9A%84%E4%B8%93%E5%88%A9%E6%95%B0%E9%87%8F"><span class="toc-text">6.1 计算每个企业在各技术大类的专利数量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-%E8%AE%A1%E7%AE%97%E5%90%84%E6%8A%80%E6%9C%AF%E5%A4%A7%E7%B1%BB%E4%B8%93%E5%88%A9%E5%8D%A0%E6%AF%94"><span class="toc-text">6.2 计算各技术大类专利占比</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-3-%E8%AE%A1%E7%AE%97-Shannon-%E7%86%B5%E6%8C%87%E6%95%B0%EF%BC%88TDI%EF%BC%89"><span class="toc-text">6.3 计算 Shannon 熵指数（TDI）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-3"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E9%83%A8%E5%88%86%EF%BC%9A%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C%E5%B9%B6%E4%BF%9D%E5%AD%98"><span class="toc-text">第七部分：合并结果并保存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AB%E9%83%A8%E5%88%86%EF%BC%9A%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90%E4%B8%8E%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">第八部分：结果分析与描述性统计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-4"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B9%9D%E9%83%A8%E5%88%86%EF%BC%9A%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">第九部分：保存结果</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

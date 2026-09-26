@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>历年政府采购公告数据（仅含条目数据，停止更新） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/42458/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="一直有小伙伴想爬取中国政府采购网的政府采购公告数据（注意之前分享的是政府采购合同数据），在过去几个月里，我花了很多时间（还有很多钱）来爬取这个数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="历年政府采购公告数据（仅含条目数据，停止更新）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/42458/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="一直有小伙伴想爬取中国政府采购网的政府采购公告数据（注意之前分享的是政府采购合同数据），在过去几个月里，我花了很多时间（还有很多钱）来爬取这个数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/42458.png">
+<meta property="article:published_time" content="2023-01-18T18:33:18.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.111Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="政策与制度">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/42458.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="历年政府采购公告数据（仅含条目数据，停止更新）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"历年政府采购公告数据（仅含条目数据，停止更新）","description":"一直有小伙伴想爬取中国政府采购网的政府采购公告数据（注意之前分享的是政府采购合同数据），在过去几个月里，我花了很多时间（还有很多钱）来爬取这个数据。","url":"https://tidyfriday.cn/posts/42458/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/42458/"},"image":["https://tidyfriday.cn/og/42458.png"],"datePublished":"2023-01-18T18:33:18.000Z","dateModified":"2026-09-26T14:18:48.111Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"政策与制度, 文本数据","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"历年政府采购公告数据（仅含条目数据，停止更新）","item":"https://tidyfriday.cn/posts/42458/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">历年政府采购公告数据（仅含条目数据，停止更新）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">历年政府采购公告数据（仅含条目数据，停止更新）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-01-18T18:33:18.000Z" itemprop="datePublished">2023-01-18</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>912 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 3 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E6%94%BF%E7%AD%96%E4%B8%8E%E5%88%B6%E5%BA%A6">政策与制度</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>一直有小伙伴想爬取中国政府采购网的政府采购公告数据（注意之前分享的是政府采购合同数据），在过去几个月里，我花了很多时间（还有很多钱）来爬取这个数据。</p>
+<span id="more"></span>
+
+<p>该数据的爬取分成两部分，首先需要爬取整理所有的目录页面：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944453_775257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样可以得到每一条政府采购公告数据的标题、链接、年份等信息。我爬取的是 2001 年到 2022 年 6 月 30 日的，经过爬取和整理一共得到了大约 1400 万条公告链接数据。</p>
+<p>第二部是循环爬取这 1300 万个链接，得到每个公告的详细信息。这部分工作又得分成两部分：1. 2013 年之前的爬取过程是反爬的；2. 2013 年之后的爬取过程不反爬。因此我先爬取了 2013 年之后的网页，大概是 1100 万个。</p>
+<p>各年、各种类型的政府采购公告样式千奇百怪，难以整理，所以详细数据的整理还在进行中。因此今天先分享第一步的结果，2001～2022 年 6 月全部的 1400 万条采购公告的基础信息，包含如下变量：</p>
+<ol>
+<li>年份</li>
+<li>链接</li>
+<li>标题</li>
+<li>文本</li>
+<li>日期</li>
+<li>采购人</li>
+<li>代理机构</li>
+<li>类型</li>
+<li>地区</li>
+<li>类别</li>
+</ol>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfa <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>desc<span class="punctuation">(</span>年份<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 14,007,770 × 10</span></span><br><span class="line"><span class="comment">#&gt;     年份 链接                                                标题  文本  日期       采购人 代理…¹  类型  地区  类别</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;                                               &lt;chr&gt; &lt;chr&gt; &lt;date&gt;     &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2022 http://www.ccgp.gov.cn/cggg/dfgg/gkzb/202201/t2022… 辉县… NA    2022-01-01 辉县…  河南嘉… 公开… 河南… &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  2  2022 http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202201/t2022… 新疆… NA    2022-01-01 新疆…  新疆普… 中标… 新疆… &quot;货…</span></span><br><span class="line"><span class="comment">#&gt;  3  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  4  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  5  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  6  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  7  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  8  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  9  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt; 10  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt; # … with 14,007,760 more rows, and abbreviated variable name ¹代理机构</span></span><br><span class="line"><span class="comment">#&gt; # ℹ Use `print(n = ...)` to see more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>其中文本变量是指有些公告目录上有这样的一些描述：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037945058_287742.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>由于数据非常大，所以我拆分成了逐年的文件，包括下面两种格式：</p>
+<ol>
+<li>供 Stata 读取的 dta 格式；</li>
+<li>供 Excel 读取的 xlsx 格式。</li>
+</ol>
+<p>大家可以根据自己的需要选择使用。</p>
+<p>详细的公告数据还在处理中。考虑到公告的样式各种个样，难以处理，所以只选择处理含有公告摘要的：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944813_222549.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>没有公告摘要信息的公告会直接使用“公告文本”变量保存公告的内容方便有需要的小伙伴进行文本分析。</p>
+<p>详细的公告数据处理完成之后也会分享给大家，耐心等待即可～</p>
+<p>下图展示了历年各种类型的公告数量以及占比：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978637_158934.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async">)<img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978946_523562.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fda64385deef47afb972d7a360b6bd64">历年政府采购公告数据（仅含条目数据，停止更新）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.111Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/12072/" title="Markdown 与 RMarkdown"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/68853/" title="历年各省市区县邻接矩阵、质心距离矩阵、质心距离倒数矩阵数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/22578/">2000～2024年3月政府采购合同公告数据</a><span class="tf-related-meta">2024-03-13 · 约 2 分钟</span></li><li><a href="/posts/70204/">旧版本｜2000～2024年3月政府采购合同公告数据</a><span class="tf-related-meta">2024-03-13 · 约 2 分钟</span></li><li><a href="/posts/81123/">2013～2025 年上市公司与政府采购数据匹配结果</a><span class="tf-related-meta">2026-09-07 · 约 3 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

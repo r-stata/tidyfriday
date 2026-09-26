@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/94374/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Python 提取城市共同边界、识别边界相交乡镇并计算各乡镇到边界距离的完整方法。该指标可用于研究城市交界地区的经济发展、人口流动、环境溢出等空间边界效应，是空间计量与城市经济学研究中的重要变量。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算">
+<meta property="og:url" content="https://tidyfriday.cn/posts/94374/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Python 提取城市共同边界、识别边界相交乡镇并计算各乡镇到边界距离的完整方法。该指标可用于研究城市交界地区的经济发展、人口流动、环境溢出等空间边界效应，是空间计量与城市经济学研究中的重要变量。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/94374.png">
+<meta property="article:published_time" content="2026-05-26T23:22:47.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.974Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/94374.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算","description":"今天给大家分享使用 Python 提取城市共同边界、识别边界相交乡镇并计算各乡镇到边界距离的完整方法。该指标可用于研究城市交界地区的经济发展、人口流动、环境溢出等空间边界效应，是空间计量与城市经济学研究中的重要变量。","url":"https://tidyfriday.cn/posts/94374/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/94374/"},"image":["https://tidyfriday.cn/og/94374.png"],"datePublished":"2026-05-26T23:22:47.000Z","dateModified":"2026-09-26T14:18:48.974Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, Python","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算","item":"https://tidyfriday.cn/posts/94374/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-26T23:22:47.000Z" itemprop="datePublished">2026-05-26</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3425 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 <strong>Python</strong> 提取城市共同边界、识别边界相交乡镇并计算各乡镇到边界距离的完整方法。该指标可用于研究城市交界地区的经济发展、人口流动、环境溢出等空间边界效应，是空间计量与城市经济学研究中的重要变量。</p>
+<span id="more"></span>
+
+<p>处理过程基于 2021 年行政区划矢量数据，识别出全国 955 对相邻城市，提取其共同边界，并计算出各边界乡镇到共同边界的距离。最终产出包括：城市共同边界矢量文件、边界相交乡镇列表及距离矩阵，可直接用于 Stata 或 Python 的实证分析。</p>
+<h2 id="指标介绍" class="article-heading"><a href="#指标介绍" class="headerlink" title="指标介绍"></a>指标介绍<a class="article-anchor" href="#指标介绍" aria-label="本节链接" title="复制本节链接"></a></h2><p><strong>城市共同边界</strong>：指两个相邻城市行政区划多边形相交形成的线段（shared border）。例如成都市与德阳市相邻，两者的行政边界相交形成一条共同边界线。</p>
+<p><strong>边界相交乡镇</strong>：指行政边界多边形与城市共同边界线相交的乡镇（街道）。这些乡镇位于城市交界处，是研究”边界效应”（border effect）的核心样本。</p>
+<p><strong>距边界距离</strong>：指乡镇行政中心（质心）到最近的城市共同边界线的直线距离（米），用于构造连续的空间边界距离变量。</p>
+<p><strong>乡镇对-城市对距离矩阵</strong>：对于每一对相邻城市，分别列出两侧所有边界乡镇及其到共同边界的距离，形成”乡镇对”级别的分析数据。</p>
+<p>整个处理流程分为九个步骤，下面逐一介绍。</p>
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;shapely&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;pyproj&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyogrio&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看已安装的包" class="article-heading"><a href="#查看已安装的包" class="headerlink" title="查看已安装的包"></a>查看已安装的包<a class="article-anchor" href="#查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;shapely&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">virtualenv_list()</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)              # 删除虚拟环境</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, &quot;geopandas&quot;, ignore_installed = TRUE)  # 升级包</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="数据准备：将-town-rds-转为-GeoPackage" class="article-heading"><a href="#数据准备：将-town-rds-转为-GeoPackage" class="headerlink" title="数据准备：将 town.rds 转为 GeoPackage"></a>数据准备：将 town.rds 转为 GeoPackage<a class="article-anchor" href="#数据准备：将-town-rds-转为-GeoPackage" aria-label="本节链接" title="复制本节链接"></a></h2><p>Python 无法直接读取 R 的 <code>.rds</code> 格式，需在 R 中先将乡镇矢量数据转出为通用格式（GeoPackage）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">town_rds_path  <span class="operator">&lt;-</span> <span class="string">&quot;town.rds&quot;</span></span><br><span class="line">town_gpkg_path <span class="operator">&lt;-</span> <span class="string">&quot;town.gpkg&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>town_gpkg_path<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  town_r <span class="operator">&lt;-</span> readRDS<span class="punctuation">(</span>town_rds_path<span class="punctuation">)</span></span><br><span class="line">  st_write<span class="punctuation">(</span>town_r<span class="punctuation">,</span> town_gpkg_path<span class="punctuation">,</span> delete_dsn <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;✓ town.gpkg 已生成（%d 个乡镇）&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>town_r<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;town.gpkg 已存在，跳过转换&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第-1-步：读取数据" class="article-heading"><a href="#第-1-步：读取数据" class="headerlink" title="第 1 步：读取数据"></a>第 1 步：读取数据<a class="article-anchor" href="#第-1-步：读取数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先加载 Python 包，读取 2021 年城市级和乡镇级行政区划矢量数据，并统一投影坐标系（Albers 等面积投影）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import os</span><br><span class="line">import math</span><br><span class="line">import warnings</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import geopandas <span class="keyword">as</span> gpd</span><br><span class="line">from shapely.ops import unary_union</span><br><span class="line"></span><br><span class="line">warnings.filterwarnings(<span class="string">&quot;ignore&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 全局参数</span><br><span class="line">MAX_TOWNS_PER_SIDE = 500</span><br><span class="line">GRID_SIZE          = 400000</span><br><span class="line"></span><br><span class="line">SRC_DIR = os.getcwd()</span><br><span class="line">RES_DIR = os.path.join(SRC_DIR, <span class="string">&quot;res&quot;</span>)</span><br><span class="line">os.makedirs(RES_DIR, exist_ok=True)</span><br><span class="line"></span><br><span class="line"># 读取数据</span><br><span class="line">city_raw = gpd.read_file(os.path.join(SRC_DIR, <span class="string">&quot;2021行政区划/市.shp&quot;</span>))</span><br><span class="line">town_raw = gpd.read_file(os.path.join(SRC_DIR, <span class="string">&quot;town.gpkg&quot;</span>))</span><br><span class="line">town_raw = town_raw.<span class="keyword">rename</span>(columns=&#123;<span class="string">&quot;code&quot;</span>: <span class="string">&quot;乡镇代码&quot;</span>, <span class="string">&quot;Name&quot;</span>: <span class="string">&quot;乡镇名称&quot;</span>&#125;)</span><br><span class="line">town_raw[<span class="string">&quot;乡镇代码&quot;</span>] = town_raw[<span class="string">&quot;乡镇代码&quot;</span>].astype(str)</span><br><span class="line"></span><br><span class="line">proj_crs = town_raw.crs</span><br><span class="line">city_raw = city_raw.to_crs(proj_crs)</span><br><span class="line">city = city_raw[[<span class="string">&quot;市代码&quot;</span>,<span class="string">&quot;市&quot;</span>,<span class="string">&quot;省&quot;</span>,<span class="string">&quot;geometry&quot;</span>]].<span class="keyword">rename</span>(</span><br><span class="line">    columns=&#123;<span class="string">&quot;市&quot;</span>: <span class="string">&quot;市名称&quot;</span>, <span class="string">&quot;省&quot;</span>: <span class="string">&quot;省名称&quot;</span>&#125;</span><br><span class="line">).reset_index(<span class="keyword">drop</span>=True)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;CRS: &#123;proj_crs&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;城市数：&#123;len(city)&#125;，乡镇数：&#123;len(town_raw)&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>关键说明：</p>
+<ul>
+<li>town.gpkg 为从 town.rds 转换而来的乡镇级矢量数据（含 43,366 个乡镇多边形），已使用 Albers 等面积投影；</li>
+<li>城市数据同步转换到相同 CRS，确保后续空间运算准确无误；</li>
+<li>MAX_TOWNS_PER_SIDE = 500 控制每侧最多保留的乡镇数量；</li>
+<li>GRID_SIZE = 400000 为格网大小（400 km），用于后续空间索引加速。</li>
+</ul>
+<hr>
+<h2 id="第-2-步：预计算乡镇质心坐标" class="article-heading"><a href="#第-2-步：预计算乡镇质心坐标" class="headerlink" title="第 2 步：预计算乡镇质心坐标"></a>第 2 步：预计算乡镇质心坐标<a class="article-anchor" href="#第-2-步：预计算乡镇质心坐标" aria-label="本节链接" title="复制本节链接"></a></h2><p>为提高后续大规模距离计算的速度，先一次性计算所有乡镇的质心坐标并存入数据框：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 预计算乡镇质心坐标</span><br><span class="line">town_base = town_raw[[&quot;乡镇代码&quot;,&quot;乡镇名称&quot;]].copy()</span><br><span class="line">town_base[&quot;cx&quot;] = town_raw.geometry.centroid.x.values</span><br><span class="line">town_base[&quot;cy&quot;] = town_raw.geometry.centroid.y.values</span><br><span class="line"></span><br><span class="line">print(f&quot;质心计算完成：&#123;len(town_base)&#125; 个乡镇&quot;)</span><br><span class="line">print(town_base.head())</span><br></pre></td></tr></table></figure>
+
+<p>关键说明：</p>
+<ul>
+<li>geometry.centroid 计算每个乡镇多边形的质心（几何中心）；</li>
+<li>.x 和 .y 属性直接提取质心坐标；</li>
+<li>将几何信息转为普通数据框列（cx、cy），为后续格网索引和空间匹配做准备。</li>
+</ul>
+<hr>
+<h2 id="第-3-步：判断乡镇所属城市" class="article-heading"><a href="#第-3-步：判断乡镇所属城市" class="headerlink" title="第 3 步：判断乡镇所属城市"></a>第 3 步：判断乡镇所属城市<a class="article-anchor" href="#第-3-步：判断乡镇所属城市" aria-label="本节链接" title="复制本节链接"></a></h2><p>乡镇矢量数据本身不包含”所属城市”字段，用空间连接（<code>sjoin within</code>）将乡镇质心与城市多边形匹配：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 构造质心 GeoDataFrame</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第-4-步：构建格网空间索引（加速查询）" class="article-heading"><a href="#第-4-步：构建格网空间索引（加速查询）" class="headerlink" title="第 4 步：构建格网空间索引（加速查询）"></a>第 4 步：构建格网空间索引（加速查询）<a class="article-anchor" href="#第-4-步：构建格网空间索引（加速查询）" aria-label="本节链接" title="复制本节链接"></a></h2><p>将整个研究区域划分为 400 km × 400 km 的网格，每个乡镇根据其质心归入对应格网，大幅缩短候选乡镇的筛查时间：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">town_tbl[<span class="string">&quot;gx&quot;</span>] = (town_tbl[<span class="string">&quot;cx&quot;</span>] / GRID_SIZE).apply(math.floor).astype(<span class="built_in">int</span>)</span><br><span class="line">town_tbl[<span class="string">&quot;gy&quot;</span>] = (town_tbl[<span class="string">&quot;cy&quot;</span>] / GRID_SIZE).apply(math.floor).astype(<span class="built_in">int</span>)</span><br><span class="line"></span><br><span class="line">grid_dict = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> _, row <span class="keyword">in</span> town_tbl.iterrows():</span><br><span class="line">    key = (<span class="built_in">int</span>(row[<span class="string">&quot;gx&quot;</span>]), <span class="built_in">int</span>(row[<span class="string">&quot;gy&quot;</span>]))</span><br><span class="line">    grid_dict.setdefault(key, []).append(row[<span class="string">&quot;乡镇代码&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_candidates_by_bbox</span>(<span class="params">bbox_m</span>):</span><br><span class="line">    xmin, ymin, xmax, ymax = bbox_m</span><br><span class="line">    gx_lo = math.floor(xmin / GRID_SIZE)</span><br><span class="line">    gx_hi = math.floor(xmax / GRID_SIZE)</span><br><span class="line">    gy_lo = math.floor(ymin / GRID_SIZE)</span><br><span class="line">    gy_hi = math.floor(ymax / GRID_SIZE)</span><br><span class="line">    cand_codes = []</span><br><span class="line">    <span class="keyword">for</span> gx <span class="keyword">in</span> <span class="built_in">range</span>(gx_lo, gx_hi + <span class="number">1</span>):</span><br><span class="line">        <span class="keyword">for</span> gy <span class="keyword">in</span> <span class="built_in">range</span>(gy_lo, gy_hi + <span class="number">1</span>):</span><br><span class="line">            cand_codes.extend(grid_dict.get((gx, gy), []))</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> cand_codes:</span><br><span class="line">        <span class="keyword">return</span> town_tbl.iloc[<span class="number">0</span>:<span class="number">0</span>].copy()</span><br><span class="line">    <span class="keyword">return</span> town_tbl[town_tbl[<span class="string">&quot;乡镇代码&quot;</span>].isin(cand_codes)]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;格网数：<span class="subst">&#123;<span class="built_in">len</span>(grid_dict)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第-5-步：识别相邻城市对" class="article-heading"><a href="#第-5-步：识别相邻城市对" class="headerlink" title="第 5 步：识别相邻城市对"></a>第 5 步：识别相邻城市对<a class="article-anchor" href="#第-5-步：识别相邻城市对" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用 <code>Shapely</code> 的 <code>.touches()</code> 方法识别哪些城市多边形在空间上相邻（存在公共边界）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">city_geom = city.geometry.values</span><br><span class="line">n_cities  = len(city)</span><br><span class="line"></span><br><span class="line">adj_rows = []</span><br><span class="line">for i in range(n_cities):</span><br><span class="line">    for j in range(i + 1, n_cities):</span><br><span class="line">        if city_geom[i].touches(city_geom[j]):</span><br><span class="line">            adj_rows.append(&#123;</span><br><span class="line">                &quot;idx1&quot;: i, &quot;idx2&quot;: j,</span><br><span class="line">                &quot;市代码1&quot;: city.iloc[i][&quot;市代码&quot;],</span><br><span class="line">                &quot;市名称1&quot;: city.iloc[i][&quot;市名称&quot;],</span><br><span class="line">                &quot;市代码2&quot;: city.iloc[j][&quot;市代码&quot;],</span><br><span class="line">                &quot;市名称2&quot;: city.iloc[j][&quot;市名称&quot;],</span><br><span class="line">                &quot;城市对&quot;:  f&quot;&#123;city.iloc[i][&#x27;市代码&#x27;]&#125;-&#123;city.iloc[j][&#x27;市代码&#x27;]&#125;&quot;</span><br><span class="line">            &#125;)</span><br><span class="line"></span><br><span class="line">adj_df = pd.DataFrame(adj_rows)</span><br><span class="line">print(f&quot;相邻城市对：&#123;len(adj_df)&#125;&quot;)</span><br><span class="line">print(adj_df.head())</span><br></pre></td></tr></table></figure>
+
+<p>关键说明：</p>
+<ul>
+<li>.touches() 判断两个几何对象是否有公共边界但不重叠，等价于 R 的 st_touches()；</li>
+<li>range(i+1, n_cities) 确保每个城市对只记录一次；</li>
+<li>最终得到 955 对相邻城市。</li>
+</ul>
+<hr>
+<h2 id="第-6-步：提取城市共同边界" class="article-heading"><a href="#第-6-步：提取城市共同边界" class="headerlink" title="第 6 步：提取城市共同边界"></a>第 6 步：提取城市共同边界<a class="article-anchor" href="#第-6-步：提取城市共同边界" aria-label="本节链接" title="复制本节链接"></a></h2><p>对每一对相邻城市，用 <code>intersection()</code> 计算两个城市多边形的几何交集，并从中提取线要素：</p>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><p>关键说明：</p>
+<ul>
+<li>intersection() 计算两个几何对象的交集，等价于 R 的 st_intersection()；</li>
+<li>从 GeometryCollection 中提取线要素，等价于 R 的 st_collection_extract(…, “LINESTRING”)；</li>
+<li>unary_union() 合并多段边界，等价于 R 的 st_union()。</li>
+</ul>
+<hr>
+<h2 id="第-6b-步：保存城市对共同边界矢量数据" class="article-heading"><a href="#第-6b-步：保存城市对共同边界矢量数据" class="headerlink" title="第 6b 步：保存城市对共同边界矢量数据"></a>第 6b 步：保存城市对共同边界矢量数据<a class="article-anchor" href="#第-6b-步：保存城市对共同边界矢量数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>将所有城市对的共同边界几何数据导出为 shp 矢量文件：</p>
+<h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><p>关键说明：</p>
+<ul>
+<li>GeoDataFrame() 构造包含属性和几何数据的空间数据框，等价于 R 的 st_sf()；</li>
+<li>city_pair 字段为”市代码1-市代码2”格式，可直接与其他数据关联；</li>
+<li>shp 格式字段名不超过 10 字符，因此使用短英文名。</li>
+</ul>
+<p>输出文件说明：</p>
+<table>
+<thead>
+<tr>
+<th>文件名</th>
+<th>内容</th>
+<th>行数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>城市对共同边界.shp</code></td>
+<td>所有城市对的共同边界线要素</td>
+<td>955 条</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="第-7-步：构建乡镇空间数据（含所属城市）" class="article-heading"><a href="#第-7-步：构建乡镇空间数据（含所属城市）" class="headerlink" title="第 7 步：构建乡镇空间数据（含所属城市）"></a>第 7 步：构建乡镇空间数据（含所属城市）<a class="article-anchor" href="#第-7-步：构建乡镇空间数据（含所属城市）" aria-label="本节链接" title="复制本节链接"></a></h2><p>将乡镇矢量数据与城市匹配结果合并，为后续相交判断做准备：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">town_sf = town_raw[[&quot;乡镇代码&quot;,&quot;乡镇名称&quot;,&quot;geometry&quot;]].copy()</span><br><span class="line">town_sf = town_sf.merge(</span><br><span class="line">    town_tbl[[&quot;乡镇代码&quot;,&quot;市代码&quot;,&quot;市名称&quot;]],</span><br><span class="line">    on=&quot;乡镇代码&quot;, how=&quot;left&quot;</span><br><span class="line">)</span><br><span class="line">print(f&quot;乡镇空间数据：&#123;len(town_sf)&#125; 行&quot;)</span><br><span class="line">print(town_sf.head())</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="第-8-步：查找边界相交乡镇并计算距离" class="article-heading"><a href="#第-8-步：查找边界相交乡镇并计算距离" class="headerlink" title="第 8 步：查找边界相交乡镇并计算距离"></a>第 8 步：查找边界相交乡镇并计算距离<a class="article-anchor" href="#第-8-步：查找边界相交乡镇并计算距离" aria-label="本节链接" title="复制本节链接"></a></h2><p>这是整个流程的核心步骤。对每对城市，用格网索引快速筛选候选乡镇，再用 <code>.intersects()</code> 精确判断，最后计算各乡镇质心到共同边界的距离：</p>
+<h1 id="此处代码需下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需下载讲义材料查看～-2" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><p>找到相交乡镇后，用 <code>.distance()</code> 计算每个相交乡镇质心到共同边界的最短距离，然后将两侧乡镇交叉配对，形成”乡镇对”级别的分析数据。最终得到 <strong>82,497 对</strong>乡镇对，涉及 <strong>14,789 个</strong>边界相交乡镇。</p>
+<hr>
+<h2 id="第-9-步：输出结果文件" class="article-heading"><a href="#第-9-步：输出结果文件" class="headerlink" title="第 9 步：输出结果文件"></a>第 9 步：输出结果文件<a class="article-anchor" href="#第-9-步：输出结果文件" aria-label="本节链接" title="复制本节链接"></a></h2><p>所有结果均输出为 Stata <code>.dta</code> 格式（<code>version=118</code> 支持 UTF-8 中文），并添加了详细的变量标签：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">LABELS = &#123;</span><br><span class="line">    <span class="string">&quot;乡镇对&quot;</span>:       <span class="string">&quot;乡镇对（乡镇代码1-乡镇代码2）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;城市对&quot;</span>:       <span class="string">&quot;所在城市对（市代码1-市代码2）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;乡镇代码1&quot;</span>:    <span class="string">&quot;乡镇1行政区划代码（12位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;乡镇名称1&quot;</span>:    <span class="string">&quot;乡镇1名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;乡镇代码2&quot;</span>:    <span class="string">&quot;乡镇2行政区划代码（12位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;乡镇名称2&quot;</span>:    <span class="string">&quot;乡镇2名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市代码1&quot;</span>:<span class="string">&quot;乡镇1所在城市代码（6位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市代码2&quot;</span>:<span class="string">&quot;乡镇2所在城市代码（6位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市名称1&quot;</span>:<span class="string">&quot;乡镇1所在城市名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市名称2&quot;</span>:<span class="string">&quot;乡镇2所在城市名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;距离1_米&quot;</span>:     <span class="string">&quot;乡镇1质心到城市对共同边界距离（米）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;距离2_米&quot;</span>:     <span class="string">&quot;乡镇2质心到城市对共同边界距离（米）&quot;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">write_dta</span>(<span class="params">df, path, labels=<span class="literal">None</span></span>):</span><br><span class="line">    df2 = df.copy()</span><br><span class="line">    <span class="keyword">for</span> col <span class="keyword">in</span> df2.select_dtypes(include=<span class="string">&quot;object&quot;</span>).columns:</span><br><span class="line">        df2[col] = df2[col].astype(<span class="built_in">str</span>)</span><br><span class="line">    variable_labels = &#123;k: v <span class="keyword">for</span> k, v <span class="keyword">in</span> (labels <span class="keyword">or</span> &#123;&#125;).items() <span class="keyword">if</span> k <span class="keyword">in</span> df2.columns&#125;</span><br><span class="line">    df2.to_stata(path, write_index=<span class="literal">False</span>, version=<span class="number">118</span>,</span><br><span class="line">                 variable_labels=variable_labels)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 乡镇对边界距离</span></span><br><span class="line">write_dta(result_df, os.path.join(RES_DIR, <span class="string">&quot;乡镇对边界距离.dta&quot;</span>), LABELS)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;✓ res/乡镇对边界距离.dta（<span class="subst">&#123;<span class="built_in">len</span>(result_df)&#125;</span> 行）&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 边界相交乡镇</span></span><br><span class="line">side1 = result_df[[<span class="string">&quot;乡镇代码1&quot;</span>,<span class="string">&quot;乡镇名称1&quot;</span>,<span class="string">&quot;所在城市代码1&quot;</span>,<span class="string">&quot;所在城市名称1&quot;</span>,<span class="string">&quot;距离1_米&quot;</span>,<span class="string">&quot;城市对&quot;</span>]].copy()</span><br><span class="line">side1.columns = [<span class="string">&quot;乡镇代码&quot;</span>,<span class="string">&quot;乡镇名称&quot;</span>,<span class="string">&quot;所在城市代码&quot;</span>,<span class="string">&quot;所在城市名称&quot;</span>,<span class="string">&quot;距离_米&quot;</span>,<span class="string">&quot;城市对&quot;</span>]</span><br><span class="line">side2 = result_df[[<span class="string">&quot;乡镇代码2&quot;</span>,<span class="string">&quot;乡镇名称2&quot;</span>,<span class="string">&quot;所在城市代码2&quot;</span>,<span class="string">&quot;所在城市名称2&quot;</span>,<span class="string">&quot;距离2_米&quot;</span>,<span class="string">&quot;城市对&quot;</span>]].copy()</span><br><span class="line">side2.columns = [<span class="string">&quot;乡镇代码&quot;</span>,<span class="string">&quot;乡镇名称&quot;</span>,<span class="string">&quot;所在城市代码&quot;</span>,<span class="string">&quot;所在城市名称&quot;</span>,<span class="string">&quot;距离_米&quot;</span>,<span class="string">&quot;城市对&quot;</span>]</span><br><span class="line">touching_towns = pd.concat([side1, side2], ignore_index=<span class="literal">True</span>).drop_duplicates()</span><br><span class="line"></span><br><span class="line">town_labels = &#123;</span><br><span class="line">    <span class="string">&quot;乡镇代码&quot;</span>:   <span class="string">&quot;与共同边界相交的乡镇代码（12位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;乡镇名称&quot;</span>:   <span class="string">&quot;乡镇名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市代码&quot;</span>:<span class="string">&quot;所在城市代码（6位）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;所在城市名称&quot;</span>:<span class="string">&quot;所在城市名称&quot;</span>,</span><br><span class="line">    <span class="string">&quot;距离_米&quot;</span>:    <span class="string">&quot;乡镇质心到共同边界距离（米）&quot;</span>,</span><br><span class="line">    <span class="string">&quot;城市对&quot;</span>:     <span class="string">&quot;所在城市对&quot;</span>,</span><br><span class="line">&#125;</span><br><span class="line">write_dta(touching_towns, os.path.join(RES_DIR, <span class="string">&quot;边界相交乡镇.dta&quot;</span>), town_labels)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;✓ res/边界相交乡镇.dta（<span class="subst">&#123;<span class="built_in">len</span>(touching_towns)&#125;</span> 个乡镇）&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 乡镇代码名称</span></span><br><span class="line">town_lookup = (</span><br><span class="line">    town_raw[[<span class="string">&quot;乡镇代码&quot;</span>,<span class="string">&quot;乡镇名称&quot;</span>]].drop_duplicates()</span><br><span class="line">    .sort_values(<span class="string">&quot;乡镇代码&quot;</span>).reset_index(drop=<span class="literal">True</span>)</span><br><span class="line">)</span><br><span class="line">write_dta(town_lookup, os.path.join(RES_DIR, <span class="string">&quot;乡镇代码名称.dta&quot;</span>),</span><br><span class="line">          &#123;<span class="string">&quot;乡镇代码&quot;</span>:<span class="string">&quot;乡镇行政区划代码（12位）&quot;</span>,<span class="string">&quot;乡镇名称&quot;</span>:<span class="string">&quot;乡镇名称&quot;</span>&#125;)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;✓ res/乡镇代码名称.dta（<span class="subst">&#123;<span class="built_in">len</span>(town_lookup)&#125;</span> 行）&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 城市代码名称</span></span><br><span class="line">city_lookup = (</span><br><span class="line">    city_raw[[<span class="string">&quot;市代码&quot;</span>,<span class="string">&quot;市&quot;</span>,<span class="string">&quot;省&quot;</span>]].rename(columns=&#123;<span class="string">&quot;市&quot;</span>:<span class="string">&quot;市名称&quot;</span>,<span class="string">&quot;省&quot;</span>:<span class="string">&quot;省名称&quot;</span>&#125;)</span><br><span class="line">    .drop_duplicates().sort_values(<span class="string">&quot;市代码&quot;</span>).reset_index(drop=<span class="literal">True</span>)</span><br><span class="line">)</span><br><span class="line">write_dta(city_lookup, os.path.join(RES_DIR, <span class="string">&quot;城市代码名称.dta&quot;</span>),</span><br><span class="line">          &#123;<span class="string">&quot;市代码&quot;</span>:<span class="string">&quot;城市行政区划代码（6位）&quot;</span>,<span class="string">&quot;市名称&quot;</span>:<span class="string">&quot;城市名称&quot;</span>,<span class="string">&quot;省名称&quot;</span>:<span class="string">&quot;所属省份&quot;</span>&#125;)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;✓ res/城市代码名称.dta（<span class="subst">&#123;<span class="built_in">len</span>(city_lookup)&#125;</span> 行）&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n======== 统计摘要 ========&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;相邻城市对数量：<span class="subst">&#123;n_valid&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;边界相交乡镇：<span class="subst">&#123;<span class="built_in">len</span>(touching_towns)&#125;</span> 个&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;乡镇对总数：<span class="subst">&#123;<span class="built_in">len</span>(result_df)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>输出文件说明：</p>
+<table>
+<thead>
+<tr>
+<th>文件名</th>
+<th>内容</th>
+<th>行数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>乡镇对边界距离.dta</code></td>
+<td>乡镇对-城市对距离矩阵</td>
+<td>82,497 行</td>
+</tr>
+<tr>
+<td><code>边界相交乡镇.dta</code></td>
+<td>所有边界相交乡镇及距离</td>
+<td>14,789 行</td>
+</tr>
+<tr>
+<td><code>乡镇代码名称.dta</code></td>
+<td>乡镇代码-名称对照表</td>
+<td>43,366 行</td>
+</tr>
+<tr>
+<td><code>城市代码名称.dta</code></td>
+<td>城市代码-名称-省份对照表</td>
+<td>371 行</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="专题地图展示" class="article-heading"><a href="#专题地图展示" class="headerlink" title="专题地图展示"></a>专题地图展示<a class="article-anchor" href="#专题地图展示" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="全国城市共同边界及边界乡镇分布图" class="article-heading"><a href="#全国城市共同边界及边界乡镇分布图" class="headerlink" title="全国城市共同边界及边界乡镇分布图"></a>全国城市共同边界及边界乡镇分布图<a class="article-anchor" href="#全国城市共同边界及边界乡镇分布图" aria-label="本节链接" title="复制本节链接"></a></h3><p>代码文件：<code>china_border_map_touching.py</code></p>
+<p>该图使用 <code>draw_china_map.py</code> 的辅助函数绘制专业级中国地图，包含南海小地图、省名标注、九段线/海岸线、比例尺和指北针等标准地图元素。乡镇多边形按距边界距离用 Lipari 渐变色填色。</p>
+<h1 id="此处代码需下载讲义材料查看～-3" class="article-heading"><a href="#此处代码需下载讲义材料查看～-3" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-3" aria-label="本节链接" title="复制本节链接"></a></h1><p>输出图件：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/26/23/02b79j1bdbe1b168g4/common/content/1779808908494_736123.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="成都-德阳城市对专题放大图" class="article-heading"><a href="#成都-德阳城市对专题放大图" class="headerlink" title="成都-德阳城市对专题放大图"></a>成都-德阳城市对专题放大图<a class="article-anchor" href="#成都-德阳城市对专题放大图" aria-label="本节链接" title="复制本节链接"></a></h3><p>代码文件：<code>chengdu_deyang_map.py</code></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import subprocess, os</span><br><span class="line">SRC_DIR = os.getcwd()</span><br><span class="line">result = subprocess.<span class="keyword">run</span>(</span><br><span class="line">    [<span class="string">&quot;python&quot;</span>, <span class="string">&quot;chengdu_deyang_map.py&quot;</span>],</span><br><span class="line">    cwd=SRC_DIR, capture_output=True, text=True</span><br><span class="line">)</span><br><span class="line"><span class="keyword">print</span>(result.stdout)</span><br><span class="line"><span class="keyword">if</span> result.returncode != 0:</span><br><span class="line">    <span class="keyword">print</span>(<span class="string">&quot;STDERR:&quot;</span>, result.stderr)</span><br></pre></td></tr></table></figure>
+
+<p>输出图件：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/26/23/02b79j1bdbe1b168g4/common/content/1779808913384_296765.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fd6b33d0630545daafa61ecd607a55f5">名师讲堂｜使用 Python 提取城市共同边界、边界乡镇识别及距离计算</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.974Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/11789/" title="名师讲堂｜使用 R 语言提取城市共同边界、边界乡镇识别及距离计算"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/45600/" title="名师讲堂｜使用 R 语言计算专利文本相似度及城市间知识溢出指标"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/93989/">1990～2025 年中国城市边界矢量数据及各省市区县总城市区域面积面板数据</a><span class="tf-related-meta">2026-09-09 · 约 5 分钟</span></li><li><a href="/posts/92997/">2001～2024 年上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-09 · 约 3 分钟</span></li><li><a href="/posts/90457/">2007～2020 年税调企业与所在区县税务局的距离</a><span class="tf-related-meta">2026-03-21 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E4%BB%8B%E7%BB%8D"><span class="toc-text">指标介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87%EF%BC%9A%E5%B0%86-town-rds-%E8%BD%AC%E4%B8%BA-GeoPackage"><span class="toc-text">数据准备：将 town.rds 转为 GeoPackage</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-1-%E6%AD%A5%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="toc-text">第 1 步：读取数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-2-%E6%AD%A5%EF%BC%9A%E9%A2%84%E8%AE%A1%E7%AE%97%E4%B9%A1%E9%95%87%E8%B4%A8%E5%BF%83%E5%9D%90%E6%A0%87"><span class="toc-text">第 2 步：预计算乡镇质心坐标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-3-%E6%AD%A5%EF%BC%9A%E5%88%A4%E6%96%AD%E4%B9%A1%E9%95%87%E6%89%80%E5%B1%9E%E5%9F%8E%E5%B8%82"><span class="toc-text">第 3 步：判断乡镇所属城市</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-4-%E6%AD%A5%EF%BC%9A%E6%9E%84%E5%BB%BA%E6%A0%BC%E7%BD%91%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%EF%BC%88%E5%8A%A0%E9%80%9F%E6%9F%A5%E8%AF%A2%EF%BC%89"><span class="toc-text">第 4 步：构建格网空间索引（加速查询）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-5-%E6%AD%A5%EF%BC%9A%E8%AF%86%E5%88%AB%E7%9B%B8%E9%82%BB%E5%9F%8E%E5%B8%82%E5%AF%B9"><span class="toc-text">第 5 步：识别相邻城市对</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-6-%E6%AD%A5%EF%BC%9A%E6%8F%90%E5%8F%96%E5%9F%8E%E5%B8%82%E5%85%B1%E5%90%8C%E8%BE%B9%E7%95%8C"><span class="toc-text">第 6 步：提取城市共同边界</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-6b-%E6%AD%A5%EF%BC%9A%E4%BF%9D%E5%AD%98%E5%9F%8E%E5%B8%82%E5%AF%B9%E5%85%B1%E5%90%8C%E8%BE%B9%E7%95%8C%E7%9F%A2%E9%87%8F%E6%95%B0%E6%8D%AE"><span class="toc-text">第 6b 步：保存城市对共同边界矢量数据</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-7-%E6%AD%A5%EF%BC%9A%E6%9E%84%E5%BB%BA%E4%B9%A1%E9%95%87%E7%A9%BA%E9%97%B4%E6%95%B0%E6%8D%AE%EF%BC%88%E5%90%AB%E6%89%80%E5%B1%9E%E5%9F%8E%E5%B8%82%EF%BC%89"><span class="toc-text">第 7 步：构建乡镇空间数据（含所属城市）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-8-%E6%AD%A5%EF%BC%9A%E6%9F%A5%E6%89%BE%E8%BE%B9%E7%95%8C%E7%9B%B8%E4%BA%A4%E4%B9%A1%E9%95%87%E5%B9%B6%E8%AE%A1%E7%AE%97%E8%B7%9D%E7%A6%BB"><span class="toc-text">第 8 步：查找边界相交乡镇并计算距离</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC-9-%E6%AD%A5%EF%BC%9A%E8%BE%93%E5%87%BA%E7%BB%93%E6%9E%9C%E6%96%87%E4%BB%B6"><span class="toc-text">第 9 步：输出结果文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%93%E9%A2%98%E5%9C%B0%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="toc-text">专题地图展示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E5%9B%BD%E5%9F%8E%E5%B8%82%E5%85%B1%E5%90%8C%E8%BE%B9%E7%95%8C%E5%8F%8A%E8%BE%B9%E7%95%8C%E4%B9%A1%E9%95%87%E5%88%86%E5%B8%83%E5%9B%BE"><span class="toc-text">全国城市共同边界及边界乡镇分布图</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-3"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%88%90%E9%83%BD-%E5%BE%B7%E9%98%B3%E5%9F%8E%E5%B8%82%E5%AF%B9%E4%B8%93%E9%A2%98%E6%94%BE%E5%A4%A7%E5%9B%BE"><span class="toc-text">成都-德阳城市对专题放大图</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

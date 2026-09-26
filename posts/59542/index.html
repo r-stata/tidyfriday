@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/59542/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="R 4.1.0 版本新增了 |&gt; 操作符，该操作符的功能类似 %&gt;%，但是又有所不同，另外速度更快了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化">
+<meta property="og:url" content="https://tidyfriday.cn/posts/59542/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="R 4.1.0 版本新增了 |&gt; 操作符，该操作符的功能类似 %&gt;%，但是又有所不同，另外速度更快了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/59542.png">
+<meta property="article:published_time" content="2021-06-01T22:39:58.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:39.685Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="数据爬取">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/59542.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化","description":"R 4.1.0 版本新增了 |\u0026gt; 操作符，该操作符的功能类似 %\u0026gt;%，但是又有所不同，另外速度更快了。","url":"https://tidyfriday.cn/posts/59542/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/59542/"},"image":["https://tidyfriday.cn/og/59542.png"],"datePublished":"2021-06-01T22:39:58.000Z","dateModified":"2026-09-26T14:18:39.685Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, R 语言, 数据爬取, 编程技巧","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化","item":"https://tidyfriday.cn/posts/59542/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-06-01T22:39:58.000Z" itemprop="datePublished">2021-06-01</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3253 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a><a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>R 4.1.0 版本新增了 |&gt; 操作符，该操作符的功能类似 %&gt;%，但是又有所不同，另外速度更快了。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>R 和 RStudio 的安装是非常简单的，这里提供一些安装 Tips。在文章的最后我还通过一个案例带大家走进奇幻的 R 世界。</p>
+<h2 id="安装-R" class="article-heading"><a href="#安装-R" class="headerlink" title="安装 R"></a>安装 R<a class="article-anchor" href="#安装-R" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>下载页面：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/">https://mirrors.tuna.tsinghua.edu.cn/CRAN/</a></p>
+</blockquote>
+<p>我安装的 R 语言是 <code>r version$version.string</code>，该发行版的名字是 <code>r version$nickname</code>（不是最新版的）。</p>
+<p>如果你已经安装了 R 和 RStudio，可以运行下面的语句查看自己 R 版本的版本名称：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看自己 R 版本</span><br><span class="line">version$version.string</span><br><span class="line">#&gt; [1] &quot;R version 4.1.0 (2021-05-18)&quot;</span><br><span class="line"></span><br><span class="line"># 查看自己 R 版本的名称</span><br><span class="line">version$nickname</span><br><span class="line">#&gt; [1] &quot;Camp Pontanezen&quot;</span><br></pre></td></tr></table></figure>
+
+<p>根据自己的版本点击下面的链接即可直接下载 R 软件了(使用迅雷下载会很快)：</p>
+<p>Mac 系统: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/macosx/base/R-4.1.0.pkg">https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/macosx/base/R-4.1.0.pkg</a><br>Windows 系统：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/base/R-4.1.0-win.exe">https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/base/R-4.1.0-win.exe</a></p>
+<p>下载好之后一路安装即可。（如果你的电脑（Windows系统）是 32 位的，注意选择 32 位的安装）。</p>
+<blockquote>
+<p>注意安装路径中不要有中文文件夹。</p>
+</blockquote>
+<h2 id="Windows-用户：安装-Rtools：Windows-构建工具（Mac-用户请跳过）" class="article-heading"><a href="#Windows-用户：安装-Rtools：Windows-构建工具（Mac-用户请跳过）" class="headerlink" title="Windows 用户：安装 Rtools：Windows 构建工具（Mac 用户请跳过）"></a>Windows 用户：安装 Rtools：Windows 构建工具（Mac 用户请跳过）<a class="article-anchor" href="#Windows-用户：安装-Rtools：Windows-构建工具（Mac-用户请跳过）" aria-label="本节链接" title="复制本节链接"></a></h2><p>只有 Windows 用户需要安装这个工具：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/Rtools/rtools40v2-x86_64.exe">https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/Rtools/rtools40v2-x86_64.exe</a></p>
+<p>如果你的电脑是 32 位的，下载这个安装：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/Rtools/rtools40-i686.exe">https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/Rtools/rtools40-i686.exe</a></p>
+<p>安装完成之后还需要进行环境变量的配置，稍后我再介绍。</p>
+<h2 id="Mac-用户：安装-XQuartz-和-homebrew（Windows-用户请跳过）" class="article-heading"><a href="#Mac-用户：安装-XQuartz-和-homebrew（Windows-用户请跳过）" class="headerlink" title="Mac 用户：安装 XQuartz 和 homebrew（Windows 用户请跳过）"></a>Mac 用户：安装 XQuartz 和 homebrew（Windows 用户请跳过）<a class="article-anchor" href="#Mac-用户：安装-XQuartz-和-homebrew（Windows-用户请跳过）" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="下载安装-XQuartz" class="article-heading"><a href="#下载安装-XQuartz" class="headerlink" title="下载安装 XQuartz"></a>下载安装 XQuartz<a class="article-anchor" href="#下载安装-XQuartz" aria-label="本节链接" title="复制本节链接"></a></h3><p>下载链接：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-2.8.1/XQuartz-2.8.1.dmg">https://github.com/XQuartz/XQuartz/releases/download/XQuartz-2.8.1/XQuartz-2.8.1.dmg</a></p>
+<p>可以使用迅雷下载，另外附件中也提供了下载好的安装文件。</p>
+<p>下载完之后记得安装！</p>
+<h3 id="安装-homebrew-（如果实在安装不上，可以跳过）" class="article-heading"><a href="#安装-homebrew-（如果实在安装不上，可以跳过）" class="headerlink" title="安装 homebrew （如果实在安装不上，可以跳过）"></a>安装 homebrew （如果实在安装不上，可以跳过）<a class="article-anchor" href="#安装-homebrew-（如果实在安装不上，可以跳过）" aria-label="本节链接" title="复制本节链接"></a></h3><p>打开终端（Terminal）输入如下命令安装 homebrew:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/bin/zsh -c &quot;$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)&quot;</span><br></pre></td></tr></table></figure>
+
+<p>运行过程中根据提示操作即可，完成之后重启下终端。</p>
+<h3 id="安装-Xcode-工具" class="article-heading"><a href="#安装-Xcode-工具" class="headerlink" title="安装 Xcode 工具"></a>安装 Xcode 工具<a class="article-anchor" href="#安装-Xcode-工具" aria-label="本节链接" title="复制本节链接"></a></h3><p>打开终端（Terminal）输入如下命令安装 Xcode:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">xcode-select --install</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装-pkg-config-和-gdal（一些-R-包的依赖，在终端运行）" class="article-heading"><a href="#安装-pkg-config-和-gdal（一些-R-包的依赖，在终端运行）" class="headerlink" title="安装 pkg-config 和 gdal（一些 R 包的依赖，在终端运行）"></a>安装 pkg-config 和 gdal（一些 R 包的依赖，在终端运行）<a class="article-anchor" href="#安装-pkg-config-和-gdal（一些-R-包的依赖，在终端运行）" aria-label="本节链接" title="复制本节链接"></a></h3><p>打开终端（Terminal）输入如下命令安装 pkg-config 和 gdal（一些 R 包的依赖，在终端运行）:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">brew install pkg-config</span><br><span class="line">brew install gdal</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装-RStudio-Desktop（用迅雷下载会很快）" class="article-heading"><a href="#安装-RStudio-Desktop（用迅雷下载会很快）" class="headerlink" title="安装 RStudio Desktop（用迅雷下载会很快）"></a>安装 RStudio Desktop（用迅雷下载会很快）<a class="article-anchor" href="#安装-RStudio-Desktop（用迅雷下载会很快）" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>下载页面：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstudio.com/products/rstudio/download/">https://rstudio.com/products/rstudio/download/</a></p>
+</blockquote>
+<p>最新版的 RStudio（稳定版）是 1.4.1106 版本的，各个系统的下载链接为（这个建议使用迅雷下载）：</p>
+<ol>
+<li>Windows 系统：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://download1.rstudio.org/desktop/windows/RStudio-1.4.1106.exe">https://download1.rstudio.org/desktop/windows/RStudio-1.4.1106.exe</a></li>
+<li>Mac 系统：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://download1.rstudio.org/desktop/macos/RStudio-1.4.1106.dmg">https://download1.rstudio.org/desktop/macos/RStudio-1.4.1106.dmg</a></li>
+</ol>
+<blockquote>
+<p>注意安装路径中不要有中文文件夹。</p>
+</blockquote>
+<h2 id="注意" class="article-heading"><a href="#注意" class="headerlink" title="注意"></a>注意<a class="article-anchor" href="#注意" aria-label="本节链接" title="复制本节链接"></a></h2><p>一定要先安装 R 再安装 RStudio！</p>
+<h2 id="安装常用的一些-R-包" class="article-heading"><a href="#安装常用的一些-R-包" class="headerlink" title="安装常用的一些 R 包"></a>安装常用的一些 R 包<a class="article-anchor" href="#安装常用的一些-R-包" aria-label="本节链接" title="复制本节链接"></a></h2><p>可以运行下面的几句命令快速的安装一些 R 包，如果第一次安装失败，可以尝试把 dependencies = TRUE 参数删除重新运行一次试试。</p>
+<p>为了安装包更快些，我们可以把镜像源设置成国内的：点击 RStudio 界面上的 Tools -&gt; Global Options -&gt; Packages -&gt; Change… 然后选择清华镜像源：</p>
+<table>
+<thead>
+<tr>
+<th>选择清华镜像源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210530172854.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后 OK。</p>
+<p>另外还可以在 General 里面设置默认的工作目录（这样之后每次 RStudio 打开的工作目录都会是这个文件夹）：</p>
+<table>
+<thead>
+<tr>
+<th>另外还可以在 General 里面设置默认的工作目录（这样之后每次 RStudio 打开的工作目录都会是这个文件夹）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210530172917.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>在 Code -&gt; Saving 界面设置默认文本编码为 UTF-8：</p>
+<table>
+<thead>
+<tr>
+<th>在 Code -&gt; Saving 界面设置默认文本编码为 UTF-8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210530172959.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>下面我们开始安装 R 包：</p>
+<p>安装 usethis 包:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装 usethis</span><br><span class="line">install.packages(&quot;usethis&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>安装的过程中注意阅读代码的反馈信息，例如我安装的时候就遇到了下面的错误：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning in install.packages :</span><br><span class="line">  downloaded length 32768 != reported length 503020</span><br><span class="line">Warning in install.packages :</span><br><span class="line">  URL &#x27;https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/macosx/contrib/4.1/httr_1.4.2.tgz&#x27;: Timeout of 60 seconds was reached</span><br><span class="line">Error in download.file(url, destfile, method, mode = &quot;wb&quot;, ...) :</span><br><span class="line">  download from &#x27;https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/macosx/contrib/4.1/httr_1.4.2.tgz&#x27; failed</span><br><span class="line">Warning in install.packages :</span><br><span class="line">  download of package ‘httr’ failed</span><br></pre></td></tr></table></figure>
+
+<p>显然这个是 httr 包安装失败了，我们再试试安装 httr：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">install.packages(&#x27;httr&#x27;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>配置 Rtools（仅 Windows 用户需要，Mac 用户请跳过）。</p>
+<p>首先打开 RStudio Desktop：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 运行</span></span><br><span class="line">usethis<span class="operator">::</span>edit_r_environ<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 在打开的 .Renviron 文件中输入下面的代码（注意不需要运行）：</span></span><br><span class="line">PATH<span class="operator">=</span><span class="string">&quot;$&#123;RTOOLS40_HOME&#125;\usr\bin;$&#123;PATH&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>随后按 Ctrl + S 保存(Mac 电脑是 Cmd + S)，然后重启 RStudio。</p>
+<p>有些 Windows 小伙伴的电脑用户名是中文的，这种情况下往往会出现中文乱码的错误，这个时候建议尽早重装电脑系统然后给电脑设置个英文的用户名，另外一种临时的解决办法是使用下面的代码替代上面的 <code>usethis::edit_r_environ()</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 运行</span><br><span class="line">file.edit(&quot;~/.Renviron&quot;)</span><br><span class="line"></span><br><span class="line"># 在打开的 .Renviron 文件中输入下面的代码（注意不需要运行）：</span><br><span class="line">PATH=&quot;$&#123;RTOOLS40_HOME&#125;\usr\bin;$&#123;PATH&#125;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>随后按 Ctrl + S 保存(Mac 电脑是 Cmd + S)，然后重启 RStudio。如果依然不行就只能建议重装系统了。</p>
+<p>可以检查 make 命令的位置来检查上述配置是否成功：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Sys.which(&quot;make&quot;)</span><br><span class="line">## &quot;C:\\rtools40\\usr\\bin\\make.exe&quot;</span><br></pre></td></tr></table></figure>
+
+<p>如果没有问题，可以试试安装：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">install.packages(&quot;jsonlite&quot;, type = &quot;source&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>如果安装成功了就说明配置成功了。</p>
+<hr>
+<p>下面我们继续安装一些 R 包，部分包如果安装失败可以直接跳过，以后需要的时候再安装。安装过程中如果弹出对话框让选择是否，一律选择否或者 No：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 devtools</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;devtools&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># tidyverse 系列的 R 包</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;tidyverse&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 安装 tinytex</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;tinytex&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 安装完成之后运行（实在无法成功可跳过，过程中出现的小错误可以忽略）</span></span><br><span class="line">tinytex<span class="operator">::</span>install_tinytex<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装一些 RMarkdown 模板</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;rticles&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;xaringan&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 Shiny</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;shiny&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装一些经常用到的包</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;sf&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;hrbrthemes&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;patchwork&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;manipulateWidget&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;ggthemes&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;tidyquant&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;rvest&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;DT&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;basetheme&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&quot;pacman&quot;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;corrplot&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;formattable&#x27;</span><span class="punctuation">,</span> dependencies <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;paletteer&#x27;</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;reprex&#x27;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这些包是从我的服务器上安装的，如果安装失败就多试几次</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;https://mdniceczx.oss-cn-beijing.aliyuncs.com/ggchicklet_0.5.2.tar.gz&#x27;</span><span class="punctuation">,</span> type <span class="operator">=</span> <span class="string">&quot;source&quot;</span><span class="punctuation">,</span> repos <span class="operator">=</span> <span class="literal">NULL</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;https://mdniceczx.oss-cn-beijing.aliyuncs.com/awtools_0.2.1.tar.gz&#x27;</span><span class="punctuation">,</span> type <span class="operator">=</span> <span class="string">&quot;source&quot;</span><span class="punctuation">,</span> repos <span class="operator">=</span> <span class="literal">NULL</span><span class="punctuation">)</span></span><br><span class="line">install.packages<span class="punctuation">(</span><span class="string">&#x27;https://mdniceczx.oss-cn-beijing.aliyuncs.com/ggrapid_0.0.1.0.tar.gz&#x27;</span><span class="punctuation">,</span> type <span class="operator">=</span> <span class="string">&quot;source&quot;</span><span class="punctuation">,</span> repos <span class="operator">=</span> <span class="literal">NULL</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>用一段时间之后你的电脑上就会安装一大堆 R 包，例如我电脑上安装的 R 包有 1905 个（截止 2020年7月10号）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">installed.packages<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  paste<span class="punctuation">(</span><span class="string">&quot;该电脑一共有&quot;</span><span class="punctuation">,</span> .<span class="punctuation">,</span> <span class="string">&quot;个 R 包！&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; 该电脑一共有 267 个 R 包！</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="安装字体" class="article-heading"><a href="#安装字体" class="headerlink" title="安装字体"></a>安装字体<a class="article-anchor" href="#安装字体" aria-label="本节链接" title="复制本节链接"></a></h2><p>附件中有个 font 文件夹，里面存放了一些字体安装文件。</p>
+<p>全选所有的字体文件，然后右键选择安装即可。</p>
+<h2 id="设置-R-Profile" class="article-heading"><a href="#设置-R-Profile" class="headerlink" title="设置 R Profile"></a>设置 R Profile<a class="article-anchor" href="#设置-R-Profile" aria-label="本节链接" title="复制本节链接"></a></h2><p>设置 R Profile 是把自己经常用到的代码放到 .Profile 文件里面，这样在 RStudio 启动的时候这些代码就会自动运行，很方便。</p>
+<p>创建 R Profile 文件可以使用：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">usethis<span class="operator">::</span>edit_r_profile<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>类似，有些 Windows 小伙伴的电脑用户名是中文的，这种情况下往往会出现中文乱码的错误，这个时候建议尽早重装电脑系统然后给电脑设置个英文的用户名，另外一种临时的解决办法是使用下面的代码替代上面的 <code>usethis::edit_r_profile()</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 运行</span><br><span class="line">file.edit(&quot;~/.Rprofile&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果仍然无法解决可以重装系统或者跳过 Profile 的设置，之后如果遇到课程里面的代码里出现 cnfont、enfont 之类的可以删除相关参数。</p>
+</blockquote>
+<p>运行之后自动会打开一个文件，在里面输入你想要在 R 启动的时候自动运行的代码即可，可以参考我的：</p>
+<blockquote>
+<p>注意如果字体设置没有生效可以重启下 RStudio 再试试。</p>
+</blockquote>
+<p>Windows 系统：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载包</span></span><br><span class="line">pacman<span class="operator">::</span>p_load<span class="punctuation">(</span>ggplot2<span class="punctuation">,</span> dplyr<span class="punctuation">,</span> RColorBrewer<span class="punctuation">,</span> hrbrthemes<span class="punctuation">,</span> grDevices<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定字体，特别注意里面有一个 enfont 和 cnfont 是我最常用的两个字体。</span></span><br><span class="line">windowsFonts<span class="punctuation">(</span></span><br><span class="line">  enfont <span class="operator">=</span> windowsFont<span class="punctuation">(</span><span class="string">&quot;Cascadia Code&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  cnfont <span class="operator">=</span> windowsFont<span class="punctuation">(</span><span class="string">&quot;思源宋体&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">enfont <span class="operator">=</span> <span class="string">&quot;enfont&quot;</span></span><br><span class="line">cnfont <span class="operator">=</span> <span class="string">&quot;cnfont&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定 ggplot2 绘图主题</span></span><br><span class="line">theme_set<span class="punctuation">(</span>theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> <span class="string">&#x27;cnfont&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这是设定 R 的基础绘图系统的绘图主题</span></span><br><span class="line">library<span class="punctuation">(</span>basetheme<span class="punctuation">)</span></span><br><span class="line">pars <span class="operator">&lt;-</span> basetheme<span class="punctuation">(</span><span class="string">&quot;default&quot;</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>palette <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#2A363B&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#019875&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#99B898&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FECEA8&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FF847C&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#E84A5F&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#C0392B&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#96281B&quot;</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>bg  <span class="operator">&lt;-</span> <span class="string">&quot;white&quot;</span></span><br><span class="line">pars<span class="operator">$</span>fg  <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.main <span class="operator">&lt;-</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.axis <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.lab  <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>family   <span class="operator">&lt;-</span>  <span class="string">&quot;cnfont&quot;</span></span><br><span class="line">pars<span class="operator">$</span>lab      <span class="operator">&lt;-</span>  <span class="built_in">c</span><span class="punctuation">(</span><span class="number">10</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">,</span> <span class="number">7</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>cex.axis <span class="operator">&lt;-</span>  0.8</span><br><span class="line">pars<span class="operator">$</span>las      <span class="operator">&lt;-</span>  0</span><br><span class="line">pars<span class="operator">$</span>rect.border <span class="operator">&lt;-</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">pars<span class="operator">$</span>rect.lwd    <span class="operator">&lt;-</span> 4</span><br><span class="line">basetheme<span class="punctuation">(</span>pars<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消科学计数法的显示</span></span><br><span class="line">options<span class="punctuation">(</span>scipen <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定 ggplot2 的默认调色板</span></span><br><span class="line">options<span class="punctuation">(</span></span><br><span class="line">  ggplot2.continuous.colour <span class="operator">=</span> <span class="string">&quot;viridis&quot;</span><span class="punctuation">,</span></span><br><span class="line">  ggplot2.continuous.fill <span class="operator">=</span> <span class="string">&quot;viridis&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>Mac 系统参考：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载包</span></span><br><span class="line">pacman<span class="operator">::</span>p_load<span class="punctuation">(</span>ggplot2<span class="punctuation">,</span> dplyr<span class="punctuation">,</span> RColorBrewer<span class="punctuation">,</span> hrbrthemes<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;已加载 ggplot2、dplyr、hrbrthemes 和 RColorBrewer!&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 为了以后方便以后调用这些字体，我把我喜欢用的一些字体存储成一些简单的单词。</span></span><br><span class="line">enfont <span class="operator">=</span> <span class="string">&quot;CascadiaCode-Regular&quot;</span></span><br><span class="line">cnfont <span class="operator">=</span> <span class="string">&quot;SourceHanSerifSC-Medium&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定 ggplot2 绘图主题</span></span><br><span class="line">theme_set<span class="punctuation">(</span>theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;已 ggplot2 绘图主题为 theme_ipsum()!&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这是设定 R 的基础绘图系统的绘图主题</span></span><br><span class="line">library<span class="punctuation">(</span>basetheme<span class="punctuation">)</span></span><br><span class="line">pars <span class="operator">&lt;-</span> basetheme<span class="punctuation">(</span><span class="string">&quot;default&quot;</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>palette <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#2A363B&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#019875&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#99B898&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FECEA8&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FF847C&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#E84A5F&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#C0392B&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#96281B&quot;</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>bg  <span class="operator">&lt;-</span> <span class="string">&quot;white&quot;</span></span><br><span class="line">pars<span class="operator">$</span>fg  <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.main <span class="operator">&lt;-</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.axis <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>col.lab  <span class="operator">&lt;-</span> <span class="string">&quot;gray20&quot;</span></span><br><span class="line">pars<span class="operator">$</span>family   <span class="operator">&lt;-</span>  cnfont</span><br><span class="line">pars<span class="operator">$</span>lab      <span class="operator">&lt;-</span>  <span class="built_in">c</span><span class="punctuation">(</span><span class="number">10</span><span class="punctuation">,</span><span class="number">10</span><span class="punctuation">,</span><span class="number">7</span><span class="punctuation">)</span></span><br><span class="line">pars<span class="operator">$</span>cex.axis <span class="operator">&lt;-</span>  0.8</span><br><span class="line">pars<span class="operator">$</span>las      <span class="operator">&lt;-</span>  0</span><br><span class="line">pars<span class="operator">$</span>rect.border <span class="operator">&lt;-</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">pars<span class="operator">$</span>rect.lwd    <span class="operator">&lt;-</span> 4</span><br><span class="line">basetheme<span class="punctuation">(</span>pars<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消科学计数法的显示</span></span><br><span class="line">options<span class="punctuation">(</span>scipen <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定 ggplot2 的默认调色板</span></span><br><span class="line">options<span class="punctuation">(</span></span><br><span class="line">  ggplot2.continuous.colour <span class="operator">=</span> <span class="string">&quot;viridis&quot;</span><span class="punctuation">,</span></span><br><span class="line">  ggplot2.continuous.fill <span class="operator">=</span> <span class="string">&quot;viridis&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>注意上面的 <code>pars$family &lt;- cnfont</code> 里面的字体应该使用你设置好的字体。</p>
+<p>这样设定好之后再重启 R 即可生效。</p>
+<p>基于这种设定，使用 R 基础绘图系统绘图的结果将会是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hist(iris$Sepal.Length)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>base R</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-05-30%20%E4%B8%8B%E5%8D%885.31.17_20210530173120.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>使用 ggplot2 绘图的结果是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line">ggplot<span class="punctuation">(</span>iris<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_col<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> Sepal.Length<span class="punctuation">,</span></span><br><span class="line">               y <span class="operator">=</span> Sepal.Width<span class="punctuation">,</span></span><br><span class="line">               fill <span class="operator">=</span> Species<span class="punctuation">,</span></span><br><span class="line">               color <span class="operator">=</span> Species<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  tidyquant<span class="operator">::</span>scale_fill_tq<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  tidyquant<span class="operator">::</span>scale_color_tq<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>ggplot2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-05-30%20%E4%B8%8B%E5%8D%885.31.33_20210530173136.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="设置-RStudio-的样式" class="article-heading"><a href="#设置-RStudio-的样式" class="headerlink" title="设置 RStudio 的样式"></a>设置 RStudio 的样式<a class="article-anchor" href="#设置-RStudio-的样式" aria-label="本节链接" title="复制本节链接"></a></h2><p>我比较喜欢暗黑一些的样式，在 Console 运行下面的代码即可更换为我推荐的主题：Yule-RStudio</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rstudioapi<span class="operator">::</span>addTheme<span class="punctuation">(</span><span class="string">&quot;https://mdniceczx.oss-cn-beijing.aliyuncs.com/Yule-RStudio.rstheme&quot;</span><span class="punctuation">,</span> apply <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span> force <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这个主题是这样的：</p>
+<table>
+<thead>
+<tr>
+<th>Yule RStudio 主题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210530173153.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="一个小的练习：爬取-CRAN-上的所有-R-包的名称、发布日期和标题" class="article-heading"><a href="#一个小的练习：爬取-CRAN-上的所有-R-包的名称、发布日期和标题" class="headerlink" title="一个小的练习：爬取 CRAN 上的所有 R 包的名称、发布日期和标题"></a>一个小的练习：爬取 CRAN 上的所有 R 包的名称、发布日期和标题<a class="article-anchor" href="#一个小的练习：爬取-CRAN-上的所有-R-包的名称、发布日期和标题" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>大家可以先不用急着理解下面的代码。只想想通过下面的案例让大家感受 R 语言的语法逻辑和绘图的精美。</p>
+</blockquote>
+<p>可以爬清华镜像源的列表：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mirrors.tuna.tsinghua.edu.cn/CRAN/web/packages/available_packages_by_date.html">https://mirrors.tuna.tsinghua.edu.cn/CRAN/web/packages/available_packages_by_date.html</a></p>
+<p>显然，这是个表格，很容易爬取：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>rvest<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># lubridate 是处理日期的一个 R 包</span></span><br><span class="line">library<span class="punctuation">(</span>lubridate<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>hrbrthemes<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 需要耐心地等待一会儿</span></span><br><span class="line">pkg <span class="operator">&lt;-</span> <span class="string">&quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/web/packages/available_packages_by_date.html&quot;</span> <span class="operator">%&gt;%</span></span><br><span class="line">  read_html<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_table<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  .<span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    Date <span class="operator">=</span> ymd<span class="punctuation">(</span>Date<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    Year <span class="operator">=</span> year<span class="punctuation">(</span>Date<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    Month <span class="operator">=</span> month<span class="punctuation">(</span>Date<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>ggchicklet<span class="punctuation">)</span></span><br><span class="line">pkg <span class="operator">%&gt;%</span></span><br><span class="line">  subset<span class="punctuation">(</span>Year <span class="operator">&gt;</span> <span class="number">2013</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>Year<span class="punctuation">,</span> Month<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> factor<span class="punctuation">(</span>Year<span class="punctuation">)</span><span class="punctuation">,</span> y <span class="operator">=</span> n<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_chicklet<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> factor<span class="punctuation">(</span>Month<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                width <span class="operator">=</span> <span class="number">0.75</span><span class="punctuation">,</span></span><br><span class="line">                radius <span class="operator">=</span> grid<span class="operator">::</span>unit<span class="punctuation">(</span><span class="number">3</span><span class="punctuation">,</span> <span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">              grid <span class="operator">=</span> <span class="string">&quot;X&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_flip<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_manual<span class="punctuation">(</span>name <span class="operator">=</span> <span class="string">&quot;Month&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#4E79A7FF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#A0CBE8FF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#F28E2BFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FFBE7DFF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#59A14FFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8CD17DFF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#B6992DFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#F1CE63FF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#499894FF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#86BCB6FF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#E15759FF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FF9D9AFF&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                    breaks <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">12</span><span class="punctuation">,</span></span><br><span class="line">                    labels <span class="operator">=</span> <span class="built_in">month.name</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>axis.text.x <span class="operator">=</span> element_text<span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">&quot;gray60&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                   size <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;right&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>fill <span class="operator">=</span> guide_legend<span class="punctuation">(</span>ncol <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span></span><br><span class="line">    title <span class="operator">=</span> <span class="string">&quot;CRAN 上 R 包的数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">    subtitle <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">    caption <span class="operator">=</span> <span class="string">&quot;数据来源：CRAN: \nhttps://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;</span><span class="punctuation">,</span></span><br><span class="line">    x <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    y <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>每年每月 CRAN 上 R 包的数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-05-30%20%E4%B8%8B%E5%8D%885.32.17_20210530173219.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>按年统计：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">pkg <span class="operator">%&gt;%</span></span><br><span class="line">  subset<span class="punctuation">(</span>Year <span class="operator">&gt;</span> <span class="number">2013</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>Year<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_chicklet<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> factor<span class="punctuation">(</span>Year<span class="punctuation">)</span><span class="punctuation">,</span> y <span class="operator">=</span> n<span class="punctuation">,</span></span><br><span class="line">                    fill <span class="operator">=</span> factor<span class="punctuation">(</span>Year<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_label<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> factor<span class="punctuation">(</span>Year<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                 y <span class="operator">=</span> n <span class="operator">+</span> <span class="number">300</span><span class="punctuation">,</span></span><br><span class="line">                 label <span class="operator">=</span> n<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             family <span class="operator">=</span> enfont<span class="punctuation">,</span></span><br><span class="line">             color <span class="operator">=</span> <span class="string">&#x27;#444444&#x27;</span><span class="punctuation">,</span></span><br><span class="line">             label.size <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">             size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#4E79A7FF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#A0CBE8FF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#F28E2BFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#FFBE7DFF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#59A14FFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8CD17DFF&quot;</span><span class="punctuation">,</span></span><br><span class="line">                               <span class="string">&quot;#B6992DFF&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#F1CE63FF&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span></span><br><span class="line">    title <span class="operator">=</span> <span class="string">&quot;CRAN 上 R 包的数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">    subtitle <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">    caption <span class="operator">=</span> <span class="string">&quot;数据来源：CRAN: \nhttps://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;</span><span class="punctuation">,</span></span><br><span class="line">    x <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    y <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>每年CRAN 上 R 包的数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-05-30%20%E4%B8%8B%E5%8D%885.32.34_20210530173237.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>可以看到，今年截止到今天，CRAN 上一共有 17636 个 R 包，今年新发布的 + 更新的有 4905 个！</p>
+<h2 id="使用-hotkeys-包设置输入快捷键" class="article-heading"><a href="#使用-hotkeys-包设置输入快捷键" class="headerlink" title="使用 hotkeys 包设置输入快捷键"></a>使用 hotkeys 包设置输入快捷键<a class="article-anchor" href="#使用-hotkeys-包设置输入快捷键" aria-label="本节链接" title="复制本节链接"></a></h2><p>R 语言中经常会使用 <code>%&gt;%</code>、<code>-&gt;</code>、<code>&lt;-</code> 等符号，为了输入的更快，我们编写了一些小 R 包用来设置输入快捷键，可以使用下面的方法安装：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 从 GitHub 上安装：</span></span><br><span class="line">devtools<span class="operator">::</span>install_github<span class="punctuation">(</span><span class="string">&#x27;r-stata/hotkeys&#x27;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 从附件中的源码安装：</span></span><br><span class="line">devtools<span class="operator">::</span>install_local<span class="punctuation">(</span><span class="string">&#x27;hotkeys_0.2.0.tar.gz&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以从 RStudio 界面上点击 Tools -&gt; Modify Keyboard Shortcuts 进入快捷键设置界面，输入 insert 找到输入类快捷键的设置：</p>
+<table>
+<thead>
+<tr>
+<th>快捷键设置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210530172927.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后就可以设置自己喜欢的快捷键了。例如 <code>%&gt;%</code> 设置为 <code>Ctrl + Shift + M</code>、<code>|&gt;</code> 的快捷键设置成 <code>Ctrl + Shift + .</code> 等等。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/f6910a666b984d5eb5e2d6ca162f7783">旧版本｜R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:39.685Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/21839/" title="旧版本｜R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/18614/" title="R 4.1.0 的新特性 &amp; 使用 hotkeys 配置输入快捷键"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21839/">旧版本｜R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化</a><span class="tf-related-meta">2021-06-02 · 约 11 分钟</span></li><li><a href="/posts/10618/">mdthemes：在 ggplot2 绘图中应用 Markdown 语法</a><span class="tf-related-meta">2021-06-04 · 约 5 分钟</span></li><li><a href="/posts/89643/">Stata 和 R 语言绘图中如何快速的使用调色板？（新）</a><span class="tf-related-meta">2026-08-19 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-R"><span class="toc-text">安装 R</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Windows-%E7%94%A8%E6%88%B7%EF%BC%9A%E5%AE%89%E8%A3%85-Rtools%EF%BC%9AWindows-%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7%EF%BC%88Mac-%E7%94%A8%E6%88%B7%E8%AF%B7%E8%B7%B3%E8%BF%87%EF%BC%89"><span class="toc-text">Windows 用户：安装 Rtools：Windows 构建工具（Mac 用户请跳过）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mac-%E7%94%A8%E6%88%B7%EF%BC%9A%E5%AE%89%E8%A3%85-XQuartz-%E5%92%8C-homebrew%EF%BC%88Windows-%E7%94%A8%E6%88%B7%E8%AF%B7%E8%B7%B3%E8%BF%87%EF%BC%89"><span class="toc-text">Mac 用户：安装 XQuartz 和 homebrew（Windows 用户请跳过）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85-XQuartz"><span class="toc-text">下载安装 XQuartz</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-homebrew-%EF%BC%88%E5%A6%82%E6%9E%9C%E5%AE%9E%E5%9C%A8%E5%AE%89%E8%A3%85%E4%B8%8D%E4%B8%8A%EF%BC%8C%E5%8F%AF%E4%BB%A5%E8%B7%B3%E8%BF%87%EF%BC%89"><span class="toc-text">安装 homebrew （如果实在安装不上，可以跳过）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Xcode-%E5%B7%A5%E5%85%B7"><span class="toc-text">安装 Xcode 工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-pkg-config-%E5%92%8C-gdal%EF%BC%88%E4%B8%80%E4%BA%9B-R-%E5%8C%85%E7%9A%84%E4%BE%9D%E8%B5%96%EF%BC%8C%E5%9C%A8%E7%BB%88%E7%AB%AF%E8%BF%90%E8%A1%8C%EF%BC%89"><span class="toc-text">安装 pkg-config 和 gdal（一些 R 包的依赖，在终端运行）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-RStudio-Desktop%EF%BC%88%E7%94%A8%E8%BF%85%E9%9B%B7%E4%B8%8B%E8%BD%BD%E4%BC%9A%E5%BE%88%E5%BF%AB%EF%BC%89"><span class="toc-text">安装 RStudio Desktop（用迅雷下载会很快）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F"><span class="toc-text">注意</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B-R-%E5%8C%85"><span class="toc-text">安装常用的一些 R 包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%AD%97%E4%BD%93"><span class="toc-text">安装字体</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE-R-Profile"><span class="toc-text">设置 R Profile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE-RStudio-%E7%9A%84%E6%A0%B7%E5%BC%8F"><span class="toc-text">设置 RStudio 的样式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%B0%8F%E7%9A%84%E7%BB%83%E4%B9%A0%EF%BC%9A%E7%88%AC%E5%8F%96-CRAN-%E4%B8%8A%E7%9A%84%E6%89%80%E6%9C%89-R-%E5%8C%85%E7%9A%84%E5%90%8D%E7%A7%B0%E3%80%81%E5%8F%91%E5%B8%83%E6%97%A5%E6%9C%9F%E5%92%8C%E6%A0%87%E9%A2%98"><span class="toc-text">一个小的练习：爬取 CRAN 上的所有 R 包的名称、发布日期和标题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-hotkeys-%E5%8C%85%E8%AE%BE%E7%BD%AE%E8%BE%93%E5%85%A5%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="toc-text">使用 hotkeys 包设置输入快捷键</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

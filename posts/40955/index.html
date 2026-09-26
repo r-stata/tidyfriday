@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算各区县鸟类丰度指数 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/40955/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Python 测算各区县鸟类相对丰度指数的方法。配套的数据来自中国观鸟记录中心（RStata 数据中心爬取），核心方法是复现 Liang et al. (2020, PNAS) 提出的「努力量校正后的相对鸟类丰度」指数。本次以 2015–2020 年 的观鸟数据为例进行演示——样本窗口是出于示例目的选定的，并非参照某篇论文来确定。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算各区县鸟类丰度指数">
+<meta property="og:url" content="https://tidyfriday.cn/posts/40955/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Python 测算各区县鸟类相对丰度指数的方法。配套的数据来自中国观鸟记录中心（RStata 数据中心爬取），核心方法是复现 Liang et al. (2020, PNAS) 提出的「努力量校正后的相对鸟类丰度」指数。本次以 2015–2020 年 的观鸟数据为例进行演示——样本窗口是出于示例目的选定的，并非参照某篇论文来确定。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/40955.png">
+<meta property="article:published_time" content="2026-08-31T21:29:56.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.128Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="生态环境">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/40955.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算各区县鸟类丰度指数">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算各区县鸟类丰度指数","description":"今天给大家分享使用 Python 测算各区县鸟类相对丰度指数的方法。配套的数据来自中国观鸟记录中心（RStata 数据中心爬取），核心方法是复现 Liang et al. (2020, PNAS) 提出的「努力量校正后的相对鸟类丰度」指数。本次以 2015–2020 年 的观鸟数据为例进行演示——样本窗口是出于示例目的选定的，并非参照某篇论文来确定。","url":"https://tidyfriday.cn/posts/40955/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/40955/"},"image":["https://tidyfriday.cn/og/40955.png"],"datePublished":"2026-08-31T21:29:56.000Z","dateModified":"2026-09-26T14:18:49.128Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"生态环境, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算各区县鸟类丰度指数","item":"https://tidyfriday.cn/posts/40955/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算各区县鸟类丰度指数</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算各区县鸟类丰度指数</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-08-31T21:29:56.000Z" itemprop="datePublished">2026-08-31</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>5150 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 18 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E7%94%9F%E6%80%81%E7%8E%AF%E5%A2%83">生态环境</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享<strong>使用 Python 测算各区县鸟类相对丰度指数</strong>的方法。配套的数据来自中国观鸟记录中心（RStata 数据中心爬取），核心方法是复现 Liang et al. (2020, <em>PNAS</em>) 提出的「努力量校正后的相对鸟类丰度」指数。本次以 <strong>2015–2020 年</strong> 的观鸟数据为例进行演示——样本窗口是出于示例目的选定的，并非参照某篇论文来确定。</p>
+<span id="more"></span>
+
+<p>在 R 中我们直接用 <code>fixest</code> 包；<strong>本讲义改用 Python 实现</strong>：用 <code>pandas</code> 做数据整理、用 <code>pyfixest</code> 的 <code>fepois</code> 跑带大量固定效应的泊松回归（对应 R 的 <code>fixest::fepois</code>），用 <code>matplotlib</code> 出图，再用 <code>reticulate</code> 在 R Markdown 里管理一个专属 Python 虚拟环境来运行这些代码。</p>
+<p>完整的观鸟数据可以从下面的链接获取：</p>
+<blockquote>
+<p>1980~2025 年观鸟记录、经纬度及其所处的省市区县数据(2026年3月爬取)：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/0005692119984a0b90677782a8f0a333">https://rstata.duanshu.com/#/brief/course/0005692119984a0b90677782a8f0a333</a></p>
+</blockquote>
+<p>下面先讲清楚<strong>这个指标到底是怎么算出来的</strong>，再<strong>逐行讲解计算代码</strong>。</p>
+<h2 id="一、指标来源与计算过程" class="article-heading"><a href="#一、指标来源与计算过程" class="headerlink" title="一、指标来源与计算过程"></a>一、指标来源与计算过程<a class="article-anchor" href="#一、指标来源与计算过程" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-1-论文背景：从空气污染管制到鸟类保护" class="article-heading"><a href="#1-1-论文背景：从空气污染管制到鸟类保护" class="headerlink" title="1.1 论文背景：从空气污染管制到鸟类保护"></a>1.1 论文背景：从空气污染管制到鸟类保护<a class="article-anchor" href="#1-1-论文背景：从空气污染管制到鸟类保护" aria-label="本节链接" title="复制本节链接"></a></h3><p>Liang et al. (2020) 发表在 <em>PNAS</em> 的论文 *”Conservation cobenefits from air pollution regulation: Evidence from birds”* 想回答一个问题：<strong>美国《清洁空气法》削减空气污染，是否顺带保护了鸟类？</strong></p>
+<p>论文用的是 eBird 公民科学观鸟数据，覆盖全美各县。它的核心因变量不是「鸟类丰富度（species richness）」，而是 <strong>「努力量校正后的相对鸟类丰度」</strong>。这个指数把「观察者有多努力」「当时好不好看见」这些干扰剥离掉，只留下真正反映鸟类数量的信号，再用来和臭氧、PM2.5 做回归。</p>
+<blockquote>
+<p>一句话：论文要的是「相对」丰度，不是「绝对」有多少只鸟——它只能告诉你 A 地比 B 地、今年比去年多还是少。</p>
+</blockquote>
+<h3 id="1-2-两步法（Methods-Bird-Abundance-Estimation）" class="article-heading"><a href="#1-2-两步法（Methods-Bird-Abundance-Estimation）" class="headerlink" title="1.2 两步法（Methods: Bird Abundance Estimation）"></a>1.2 两步法（Methods: Bird Abundance Estimation）<a class="article-anchor" href="#1-2-两步法（Methods-Bird-Abundance-Estimation）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182880893_223342.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-3-本讲义如何用中国观鸟数据复现" class="article-heading"><a href="#1-3-本讲义如何用中国观鸟数据复现" class="headerlink" title="1.3 本讲义如何用中国观鸟数据复现"></a>1.3 本讲义如何用中国观鸟数据复现<a class="article-anchor" href="#1-3-本讲义如何用中国观鸟数据复现" aria-label="本节链接" title="复制本节链接"></a></h3><p>数据来自 RStata 数据中心「1980～2025 年观鸟记录、经纬度及其所处的省市区县数据」，这里选择 2015～2020 年的数据样本演示。包含两份核心 dta：</p>
+<ul>
+<li>观鸟记录表（report 级）：约等于论文的 “checklist”；</li>
+<li>鸟种观测统计报告（report×物种级）：约等于 eBird Reference Dataset；</li>
+</ul>
+<blockquote>
+<p>关键：两份数据里 <code>鸟种数量</code> 含义不同！report 级是「物种数」，report×物种级是「个体数」。论文 Eq.1 左边的 <code>#birds observed</code> = 明细表按 <code>reportId</code> 求和的<strong>个体数</strong>。</p>
+</blockquote>
+<p>论文分类群划分（Rosenberg et al. 2019 口径，映射到中文目名）如下：</p>
+<ul>
+<li>水禽 waterfowl：雁形目；</li>
+<li>涉禽 shorebirds：鸻形目；</li>
+<li>水鸟 waterbirds：鹈形目、鹤形目、䴙䴘目、鲣鸟目、鹳形目、潜鸟目、鹱形目、鹲形目、红鹳目；</li>
+<li>其余目 = 陆鸟 landbirds。</li>
+</ul>
+<p>本讲义以 <strong>2015–2020</strong> 年的数据为例进行演示。更早年份（2015 之前）数据极稀疏，县×月×年固定效应难以识别，故不纳入本示例窗口。</p>
+<h2 id="二、使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#二、使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="二、使用 reticulate 创建与管理 Python 虚拟环境"></a>二、使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#二、使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。本文档的 <code>setup</code> chunk 已经抢先锁定了 <code>.venv</code> 的 Python；下面再展示安装与验证过程。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话（或 knit 过程）中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错。因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装，避免每次 knit 都重装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyarrow&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;pyreadstat&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyfixest&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scipy&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span>.venv_path<span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span>.venv_path<span class="punctuation">,</span> packages <span class="operator">=</span> need<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>说明：<code>pyfixest</code> 是 Python 里对应 R <code>fixest</code> 的包，提供 <code>fepois</code>（带高维固定效应的泊松回归）；<code>pyreadstat</code> 用于写回带中文变量标签的 Stata dta；<code>matplotlib</code> 负责出图。</p>
+</blockquote>
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、详细讲解计算代码" class="article-heading"><a href="#三、详细讲解计算代码" class="headerlink" title="三、详细讲解计算代码"></a>三、详细讲解计算代码<a class="article-anchor" href="#三、详细讲解计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>整套计算分三步，对应三个 Python 脚本：<code>01_筛选样本</code> → <code>02_测算丰度指数</code> → <code>03_对照刘钊论文</code>。下面逐段给出<strong>完整代码</strong>并讲解。所有 Python 代码都在 <code>.venv</code> 中运行。</p>
+<h3 id="3-1-步骤-1：筛选-2015–2020-样本" class="article-heading"><a href="#3-1-步骤-1：筛选-2015–2020-样本" class="headerlink" title="3.1 步骤 1：筛选 2015–2020 样本"></a>3.1 步骤 1：筛选 2015–2020 样本<a class="article-anchor" href="#3-1-步骤-1：筛选-2015–2020-样本" aria-label="本节链接" title="复制本节链接"></a></h3><p>观鸟记录表按 <code>观测时间_起始</code> 的年份直接筛选；鸟种观测统计报告本身无时间字段，需按 2015–2020 的 <code>reportId</code> 集合回连筛选。</p>
+<blockquote>
+<p>1980~2025年观鸟记录、经纬度及其所处的省市区县数据(2026年3月爬取) 文件夹在附件中未提供，如需要可以从前述链接获取。</p>
+</blockquote>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># ==============================================================================</span><br><span class="line"># 步骤 1：从原始数据中筛选 2015–2020 年样本，导出到本项目文件夹</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># 数据来源：RStata 数据中心「1980–2025 年观鸟记录、经纬度及其所处的省市区县数据」</span><br><span class="line">#   - 观鸟记录表(<span class="keyword">report</span> 级)：直接按 观测时间_起始 的年份筛选</span><br><span class="line">#   - 鸟种观测统计报告(<span class="keyword">report</span>×物种级)：本身无时间字段，需按 2015–2020 的</span><br><span class="line">#     reportId 集合回连筛选</span><br><span class="line"># 产出：本项目文件夹下的两个样本 dta</span><br><span class="line">#   - 观鸟记录_2015_2020.dta</span><br><span class="line">#   - 鸟种观测统计报告_2015_2020.dta</span><br><span class="line"># ==============================================================================</span><br><span class="line"></span><br><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line">import sys <span class="keyword">as</span> _sys</span><br><span class="line"><span class="keyword">class</span> _AsciiOut:</span><br><span class="line">    def __init__(self, raw):</span><br><span class="line">        self._raw = raw</span><br><span class="line">    def write(self, s):</span><br><span class="line">        <span class="keyword">if</span> isinstance(s, str):</span><br><span class="line">            s = s.<span class="keyword">encode</span>(<span class="string">&quot;ascii&quot;</span>, <span class="string">&quot;replace&quot;</span>).<span class="keyword">decode</span>(<span class="string">&quot;ascii&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self._raw.write(s)</span><br><span class="line">    def flush(self):</span><br><span class="line">        <span class="keyword">return</span> self._raw.flush()</span><br><span class="line">    def __getattr__(self, <span class="keyword">n</span>):</span><br><span class="line">        <span class="keyword">return</span> getattr(self._raw, <span class="keyword">n</span>)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stdout, _AsciiOut):</span><br><span class="line">    _sys.stdout = _AsciiOut(_sys.stdout)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stderr, _AsciiOut):</span><br><span class="line">    _sys.stderr = _AsciiOut(_sys.stderr)</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import pyreadstat  # 写回 dta 时用 UTF-8，保留中文列名（pandas 原生 to_stata 默认 latin-1 会破坏中文列名）</span><br><span class="line"></span><br><span class="line">dir_in = <span class="string">&quot;/Users/ac/Desktop/计算地区生物多样性/1980~2025年观鸟记录、经纬度及其所处的省市区县数据(2026年3月爬取)&quot;</span></span><br><span class="line">dir_out = <span class="string">&quot;/Users/ac/Desktop/使用 Python 测算各区县鸟类丰度指数&quot;</span></span><br><span class="line">os.makedirs(dir_out, exist_ok=True)</span><br><span class="line"></span><br><span class="line">f_rep = os.path.join(dir_in, <span class="string">&quot;1980～2025年观鸟记录、经纬度及其所处的省市区县数据(2026年3月爬取).dta&quot;</span>)</span><br><span class="line">f_sp = os.path.join(dir_in, <span class="string">&quot;1980～2025年鸟种观测统计报告(2026年3月爬取).dta&quot;</span>)</span><br><span class="line"></span><br><span class="line">YEAR_MIN = 2015</span><br><span class="line">YEAR_MAX = 2020</span><br><span class="line"></span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 1) 观鸟记录表：按年份筛选</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;== Step 1: read checklist data and filter by year ==&quot;</span>)</span><br><span class="line">rep_all = pd.read_stata(f_rep)</span><br><span class="line"># 观测时间_起始 在 read_stata 后通常为 datetime64，用 .dt.year 取年份</span><br><span class="line">rep_all[<span class="string">&quot;year&quot;</span>] = pd.to_datetime(rep_all[<span class="string">&quot;观测时间_起始&quot;</span>]).dt.year</span><br><span class="line">rep_all = rep_all[rep_all[<span class="string">&quot;year&quot;</span>].between(YEAR_MIN, YEAR_MAX)]</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;reports after filtering:&quot;</span>, len(rep_all))</span><br><span class="line"><span class="keyword">print</span>(rep_all.groupby(<span class="string">&quot;year&quot;</span>).size().sort_index())</span><br><span class="line"></span><br><span class="line">out_rep = os.path.join(dir_out, <span class="string">&quot;观鸟记录_2015_2020.dta&quot;</span>)</span><br><span class="line">pyreadstat.write_dta(rep_all, out_rep)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;written -&gt; sample checklist dta (2015-2020)&quot;</span>)</span><br><span class="line"></span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 2) 鸟种观测统计报告：按 reportId 关联筛选 （2015–2020 的报告才保留）</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\n== Step 2: filter species-report by joining on reportId ==&quot;</span>)</span><br><span class="line">rep_ids = rep_all[[<span class="string">&quot;reportId&quot;</span>]].drop_duplicates()</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;unique reportId count (2015-2020):&quot;</span>, len(rep_ids))</span><br><span class="line"></span><br><span class="line">sp_all = pd.read_stata(f_sp).<span class="keyword">merge</span>(rep_ids, <span class="keyword">on</span>=<span class="string">&quot;reportId&quot;</span>, how=<span class="string">&quot;inner&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;species-report rows after filtering:&quot;</span>, len(sp_all))</span><br><span class="line"></span><br><span class="line">out_sp = os.path.join(dir_out, <span class="string">&quot;鸟种观测统计报告_2015_2020.dta&quot;</span>)</span><br><span class="line">pyreadstat.write_dta(sp_all, out_sp)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;written -&gt; sample species-report dta (2015-2020)&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\nSample filtering done. Two sample dta files saved to the project folder.&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>筛选结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;reports after filtering:&quot;, len(rep_all))</span><br><span class="line">print(&quot;species-report rows after filtering:&quot;, len(sp_all))</span><br><span class="line">print(rep_all.groupby(&quot;year&quot;).size().sort_index())</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-步骤-2（上）：报告级计数与努力量变量" class="article-heading"><a href="#3-2-步骤-2（上）：报告级计数与努力量变量" class="headerlink" title="3.2 步骤 2（上）：报告级计数与努力量变量"></a>3.2 步骤 2（上）：报告级计数与努力量变量<a class="article-anchor" href="#3-2-步骤-2（上）：报告级计数与努力量变量" aria-label="本节链接" title="复制本节链接"></a></h3><p>读取样本后，先把鸟种明细（report×物种级）按 <code>reportId</code> 汇总成「报告级」的总个体数 <code>n_ind_all</code> 与物种数 <code>n_sp_all</code>，并切出四个分类群；再把报告表整理出努力量（<code>hours</code>、<code>n_observers</code>）与地理时间维度，最后按 <code>reportId</code> 合并。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># 步骤 2：基于 2015–2020 样本数据，测算各区县鸟类相对丰度指数</span></span><br><span class="line"><span class="comment"># 数据处理：微信公众号 RStata</span></span><br><span class="line"><span class="comment"># 复现 Liang, Rudik, Zou, Johnston, Rodewald &amp; Kling (2020, PNAS)</span></span><br><span class="line"><span class="comment">#       &quot;Conservation cobenefits from air pollution regulation: Evidence from birds&quot;</span></span><br><span class="line"><span class="comment"># 的核心因变量：努力量校正后的「相对鸟类丰度」std(Γ̂)_cmy</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># 此处代码需要下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 合并 + 样本筛选</span></span><br><span class="line"><span class="comment"># ------------------------------------------------------------------------------</span></span><br><span class="line">chk = checklist_counts.merge(</span><br><span class="line">    rep_raw[[<span class="string">&quot;reportId&quot;</span>, <span class="string">&quot;date&quot;</span>, <span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;hour_day&quot;</span>, <span class="string">&quot;hours&quot;</span>, <span class="string">&quot;n_observers&quot;</span>,</span><br><span class="line">             <span class="string">&quot;user_id&quot;</span>, <span class="string">&quot;site_id&quot;</span>, <span class="string">&quot;lon&quot;</span>, <span class="string">&quot;lat&quot;</span>, <span class="string">&quot;prov&quot;</span>, <span class="string">&quot;prov_code&quot;</span>, <span class="string">&quot;city&quot;</span>,</span><br><span class="line">             <span class="string">&quot;city_code&quot;</span>, <span class="string">&quot;county&quot;</span>, <span class="string">&quot;county_code&quot;</span>, <span class="string">&quot;n_sp_report&quot;</span>]],</span><br><span class="line">    on=<span class="string">&quot;reportId&quot;</span>, how=<span class="string">&quot;inner&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(chk.groupby(<span class="string">&quot;year&quot;</span>).size())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更早年份的数据非常少，不值得使用和计算。</span></span><br><span class="line">chk = chk[</span><br><span class="line">    chk[<span class="string">&quot;county_code&quot;</span>].notna() &amp; chk[<span class="string">&quot;year&quot;</span>].notna() &amp;</span><br><span class="line">    chk[<span class="string">&quot;year&quot;</span>].between(YEAR_MIN, YEAR_MAX) &amp;</span><br><span class="line">    chk[<span class="string">&quot;hours&quot;</span>].notna() &amp; (chk[<span class="string">&quot;hours&quot;</span>] &gt; <span class="number">0</span>) &amp; (chk[<span class="string">&quot;hours&quot;</span>] &lt;= HOURS_MAX) &amp;</span><br><span class="line">    (chk[<span class="string">&quot;n_ind_all&quot;</span>] &gt;= <span class="number">1</span>)</span><br><span class="line">].copy()</span><br><span class="line"></span><br><span class="line">chk[<span class="string">&quot;cmy&quot;</span>] = (chk[<span class="string">&quot;county_code&quot;</span>].astype(<span class="string">&quot;int64&quot;</span>).astype(<span class="built_in">str</span>) + <span class="string">&quot;_&quot;</span> +</span><br><span class="line">              chk[<span class="string">&quot;year&quot;</span>].astype(<span class="string">&quot;int64&quot;</span>).astype(<span class="built_in">str</span>) + <span class="string">&quot;_&quot;</span> +</span><br><span class="line">              chk[<span class="string">&quot;month&quot;</span>].astype(<span class="string">&quot;int64&quot;</span>).astype(<span class="built_in">str</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">season</span>(<span class="params">m</span>):</span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">in</span> (<span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;spring&quot;</span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">in</span> (<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;summer&quot;</span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">in</span> (<span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;autumn&quot;</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;winter&quot;</span></span><br><span class="line"></span><br><span class="line">chk[<span class="string">&quot;season&quot;</span>] = chk[<span class="string">&quot;month&quot;</span>].<span class="built_in">map</span>(season)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;sample:&quot;</span>, <span class="built_in">len</span>(chk), <span class="string">&quot;checklists;&quot;</span>,</span><br><span class="line">      chk[<span class="string">&quot;county_code&quot;</span>].nunique(), <span class="string">&quot;counties;&quot;</span>,</span><br><span class="line">      chk[<span class="string">&quot;cmy&quot;</span>].nunique(), <span class="string">&quot;county-month-year units&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line">import sys <span class="keyword">as</span> _sys</span><br><span class="line"><span class="keyword">class</span> _AsciiOut:</span><br><span class="line">    def __init__(self, raw):</span><br><span class="line">        self._raw = raw</span><br><span class="line">    def write(self, s):</span><br><span class="line">        <span class="keyword">if</span> isinstance(s, str):</span><br><span class="line">            s = s.<span class="keyword">encode</span>(<span class="string">&quot;ascii&quot;</span>, <span class="string">&quot;replace&quot;</span>).<span class="keyword">decode</span>(<span class="string">&quot;ascii&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self._raw.write(s)</span><br><span class="line">    def flush(self):</span><br><span class="line">        <span class="keyword">return</span> self._raw.flush()</span><br><span class="line">    def __getattr__(self, <span class="keyword">n</span>):</span><br><span class="line">        <span class="keyword">return</span> getattr(self._raw, <span class="keyword">n</span>)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stdout, _AsciiOut):</span><br><span class="line">    _sys.stdout = _AsciiOut(_sys.stdout)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stderr, _AsciiOut):</span><br><span class="line">    _sys.stderr = _AsciiOut(_sys.stderr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;sample:&quot;</span>, len(chk), <span class="string">&quot;checklists;&quot;</span>,</span><br><span class="line">      chk[<span class="string">&quot;county_code&quot;</span>].nunique(), <span class="string">&quot;counties;&quot;</span>,</span><br><span class="line">      chk[<span class="string">&quot;cmy&quot;</span>].nunique(), <span class="string">&quot;county-month-year units&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;1 SD individuals per checklist (paper reports 98.4):&quot;</span>, <span class="built_in">round</span>(float(chk[<span class="string">&quot;n_ind_all&quot;</span>].std()), 1),</span><br><span class="line">      <span class="string">&quot;; median:&quot;</span>, float(chk[<span class="string">&quot;n_ind_all&quot;</span>].<span class="keyword">median</span>()))</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-步骤-2（中）：Poisson-努力量校正（复现-Eq-1）" class="article-heading"><a href="#3-3-步骤-2（中）：Poisson-努力量校正（复现-Eq-1）" class="headerlink" title="3.3 步骤 2（中）：Poisson 努力量校正（复现 Eq.1）"></a>3.3 步骤 2（中）：Poisson 努力量校正（复现 Eq.1）<a class="article-anchor" href="#3-3-步骤-2（中）：Poisson-努力量校正（复现-Eq-1）" aria-label="本节链接" title="复制本节链接"></a></h3><p>这是整个方法的核心。<code>fit_gamma()</code> 把「对一个被解释变量跑一次固定效应泊松回归、取出 cmy 固定效应估计值 Γ^」封装成可复用函数，再用循环批量生成全样本与四个分类群的指数。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 4. 第一步：Poisson 努力量校正（复现论文 Eq.1）</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 原式:</span><br><span class="line">#   #birds_&#123;cohdmy&#125; = exp(β_d·hours + β_n·n_observers + ζ_h + Γ_&#123;cmy&#125; + e)</span><br><span class="line"># 用 pyfixest.fepois 把 ζ_h 与 Γ_&#123;cmy&#125; 都放进固定效应，</span><br><span class="line"># 再用 fit.fixef() 取出 C(cmy) 这一组估计值（dict: cmy -&gt; Γ̂）。</span><br><span class="line"># Γ̂ 只被识别到相差一个常数，但下一步做 z 标准化后不影响结论。</span><br><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line"># 此处代码需要下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182881277_894163.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line">import sys <span class="keyword">as</span> _sys</span><br><span class="line"><span class="keyword">class</span> _AsciiOut:</span><br><span class="line">    def __init__(self, raw):</span><br><span class="line">        self._raw = raw</span><br><span class="line">    def write(self, s):</span><br><span class="line">        <span class="keyword">if</span> isinstance(s, str):</span><br><span class="line">            s = s.<span class="keyword">encode</span>(<span class="string">&quot;ascii&quot;</span>, <span class="string">&quot;replace&quot;</span>).<span class="keyword">decode</span>(<span class="string">&quot;ascii&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self._raw.write(s)</span><br><span class="line">    def flush(self):</span><br><span class="line">        <span class="keyword">return</span> self._raw.flush()</span><br><span class="line">    def __getattr__(self, <span class="keyword">n</span>):</span><br><span class="line">        <span class="keyword">return</span> getattr(self._raw, <span class="keyword">n</span>)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stdout, _AsciiOut):</span><br><span class="line">    _sys.stdout = _AsciiOut(_sys.stdout)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stderr, _AsciiOut):</span><br><span class="line">    _sys.stderr = _AsciiOut(_sys.stderr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;=== Eq.1 Poisson (all species) coefficients ===&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(m_all)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-步骤-2（下）：面板合并、中文标签与诊断" class="article-heading"><a href="#3-4-步骤-2（下）：面板合并、中文标签与诊断" class="headerlink" title="3.4 步骤 2（下）：面板合并、中文标签与诊断"></a>3.4 步骤 2（下）：面板合并、中文标签与诊断<a class="article-anchor" href="#3-4-步骤-2（下）：面板合并、中文标签与诊断" aria-label="本节链接" title="复制本节链接"></a></h3><blockquote>
+<p>此处内容需要下载讲义材料查看～</p>
+</blockquote>
+<h3 id="3-5-步骤-2（图）：三张诊断图" class="article-heading"><a href="#3-5-步骤-2（图）：三张诊断图" class="headerlink" title="3.5 步骤 2（图）：三张诊断图"></a>3.5 步骤 2（图）：三张诊断图<a class="article-anchor" href="#3-5-步骤-2（图）：三张诊断图" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 8. 图 1：全国相对丰度趋势（校正 vs 未校正）</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line">tr_rows = []</span><br><span class="line">for year, g in panel[panel[&quot;gstd_all&quot;].notna()].groupby(&quot;year&quot;):</span><br><span class="line">    z1 = (np.log(g[&quot;raw_ind_mean&quot;]) - np.log(g[&quot;raw_ind_mean&quot;]).mean()) / np.log(g[&quot;raw_ind_mean&quot;]).std(ddof=1)</span><br><span class="line">    z2 = (np.log(g[&quot;sp_richness&quot;]) - np.log(g[&quot;sp_richness&quot;]).mean()) / np.log(g[&quot;sp_richness&quot;]).std(ddof=1)</span><br><span class="line">    tr_rows.append(&#123;</span><br><span class="line">        &quot;year&quot;: year,</span><br><span class="line">        &quot;努力量校正后 std(Γ̂)&quot;: wmean(g[&quot;gstd_all&quot;], g[&quot;n_checklist&quot;]),</span><br><span class="line">        &quot;未校正: log(平均个体数)&quot;: wmean(z1, g[&quot;n_checklist&quot;]),</span><br><span class="line">        &quot;未校正: log(累计物种数)&quot;: wmean(z2, g[&quot;n_checklist&quot;]),</span><br><span class="line">    &#125;)</span><br><span class="line">tr = pd.DataFrame(tr_rows)</span><br><span class="line">tr_long = tr.melt(id_vars=&quot;year&quot;, var_name=&quot;variable&quot;, value_name=&quot;value&quot;)</span><br><span class="line"></span><br><span class="line">fig1, ax = plt.subplots(figsize=(12, 6))</span><br><span class="line">colors = &#123;&quot;努力量校正后 std(Γ̂)&quot;: &quot;#D7263D&quot;, &quot;未校正: log(平均个体数)&quot;: &quot;#1B98E0&quot;,</span><br><span class="line">          &quot;未校正: log(累计物种数)&quot;: &quot;#4C9F70&quot;&#125;</span><br><span class="line">for var, grp in tr_long.groupby(&quot;variable&quot;):</span><br><span class="line">    ax.plot(grp[&quot;year&quot;], grp[&quot;value&quot;], label=var, color=colors.get(var, None),</span><br><span class="line">            linewidth=1, marker=&quot;o&quot;, markersize=2.2)</span><br><span class="line">ax.axhline(0, color=&quot;grey&quot;, linewidth=0.3)</span><br><span class="line">ax.set_xticks(range(2015, 2021))</span><br><span class="line">ax.set_xlabel(&quot;&quot;)</span><br><span class="line">ax.set_ylabel(&quot;标准化指数（z 分数）&quot;)</span><br><span class="line">add_title_and_subtitle(</span><br><span class="line">    ax,</span><br><span class="line">    title=&quot;中国县级相对鸟类丰度：努力量校正前后对比（2015–2020）&quot;,</span><br><span class="line">    subtitle=&quot;复现 Liang et al. (2020, PNAS) Eq.1 的 Poisson 努力量校正；按县×月×年报告数加权&quot;,</span><br><span class="line">    title_fontsize=28, subtitle_fontsize=20)</span><br><span class="line">ax.legend(frameon=False)</span><br><span class="line">fig1.savefig(os.path.join(dir_out, &quot;fig1_校正前后趋势_2015_2020.png&quot;), dpi=300, bbox_inches=&quot;tight&quot;)</span><br><span class="line">add_caption(ax, &quot;数据来源：1980–2025 年观鸟记录（RStata 数据中心，2026 年 3 月爬取）；复现 Liang et al. (2020, PNAS)&quot;, fig=fig1)</span><br><span class="line">plt.close(fig1)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071170_895225.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 9. 图 2：为什么必须做努力量校正</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line">e1 = chk.copy()</span><br><span class="line">e1[&quot;h&quot;] = np.minimum(np.round(e1[&quot;hours&quot;] * 2) / 2, 8)</span><br><span class="line">e1 = e1.groupby(&quot;h&quot;)[&quot;n_ind_all&quot;].agg([&quot;mean&quot;, &quot;size&quot;]).reset_index()</span><br><span class="line">e1 = e1[e1[&quot;size&quot;] &gt;= 200]</span><br><span class="line">e2 = chk.groupby(&quot;hour_day&quot;)[&quot;n_ind_all&quot;].mean().rename(&quot;m&quot;).reset_index().sort_values(&quot;hour_day&quot;)</span><br><span class="line"></span><br><span class="line">fig2, axes = plt.subplots(1, 2, figsize=(15, 7.5))</span><br><span class="line">axes[0].plot(e1[&quot;h&quot;], e1[&quot;mean&quot;], color=&quot;#D7263D&quot;, marker=&quot;o&quot;)</span><br><span class="line">add_title_and_subtitle(axes[0], title=&quot;A  努力量：时长&quot;,</span><br><span class="line">                       subtitle=&quot;单次观测越久，报告内平均个体数越多&quot;,</span><br><span class="line">                       title_fontsize=26, subtitle_fontsize=18)</span><br><span class="line">axes[0].set_xlabel(&quot;单次观鸟时长（小时）&quot;)</span><br><span class="line">axes[0].set_ylabel(&quot;报告内平均个体数&quot;)</span><br><span class="line">axes[1].bar(e2[&quot;hour_day&quot;], e2[&quot;m&quot;], color=&quot;#1B98E0&quot;)</span><br><span class="line">axes[1].set_xticks(range(0, 24, 3))</span><br><span class="line">add_title_and_subtitle(axes[1], title=&quot;B  可探测性：时刻&quot;,</span><br><span class="line">                       subtitle=&quot;白天（尤其上午）更易观测到鸟，计数偏高&quot;,</span><br><span class="line">                       title_fontsize=26, subtitle_fontsize=18)</span><br><span class="line">axes[1].set_xlabel(&quot;开始观测时刻&quot;)</span><br><span class="line">axes[1].set_ylabel(&quot;报告内平均个体数&quot;)</span><br><span class="line">fig2.suptitle(&quot;原始观鸟计数被「观察者努力量」和「可探测性」严重污染&quot;, fontsize=28)</span><br><span class="line">fig2.supxlabel(&quot;这正是 Liang et al. (2020) 先用 Poisson 模型剥离 hours 与 hour-of-day 的原因&quot;, fontsize=20, color=&quot;grey&quot;)</span><br><span class="line">fig2.tight_layout(rect=[0, 0.04, 1, 0.90])</span><br><span class="line">fig2.savefig(os.path.join(dir_out, &quot;fig2_努力量与可探测性_2015_2020.png&quot;), dpi=300, bbox_inches=&quot;tight&quot;)</span><br><span class="line">add_caption(axes[0], &quot;数据来源：1980–2025 年观鸟记录（RStata 数据中心，2026 年 3 月爬取）；复现 Liang et al. (2020, PNAS)&quot;, fig=fig2)</span><br><span class="line">plt.close(fig2)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071402_681428.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 10. 图 3：论文口径的分类群指数</span><br><span class="line"># ------------------------------------------------------------------------------</span><br><span class="line"># 此处代码需要下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h4 id="三张诊断图（图-1–3）" class="article-heading"><a href="#三张诊断图（图-1–3）" class="headerlink" title="三张诊断图（图 1–3）"></a>三张诊断图（图 1–3）<a class="article-anchor" href="#三张诊断图（图-1–3）" aria-label="本节链接" title="复制本节链接"></a></h4><p>图 1 展示全国县级相对鸟类丰度在努力量校正前后的对比：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071170_895225.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>图 2 从「努力量（时长）」和「可探测性（观测时刻）」两个角度说明为什么必须做努力量校正：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071402_681428.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>图 3 展示论文口径的四个分类群（水禽 / 涉禽 / 水鸟 / 陆鸟）相对丰度指数：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071656_472928.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="3-6-步骤-3：与刘钊等（2025）论文趋势对照" class="article-heading"><a href="#3-6-步骤-3：与刘钊等（2025）论文趋势对照" class="headerlink" title="3.6 步骤 3：与刘钊等（2025）论文趋势对照"></a>3.6 步骤 3：与刘钊等（2025）论文趋势对照<a class="article-anchor" href="#3-6-步骤-3：与刘钊等（2025）论文趋势对照" aria-label="本节链接" title="复制本节链接"></a></h3><p>刘钊等 (2025, <em>经济学（季刊）</em>) 以「绿色金融改革创新试验区（2017）」为准自然实验，核心结论是试验区鸟类丰富度显著提升；其被解释变量明确「借鉴 Liang et al. (2020) 计算得到并标准化」。下面用我们产出的面板做方向性（naive DiD）检验，看趋势是否一致。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># 对照刘钊等 (2025, 经济学季刊) 的趋势一致性检验</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># 论文：绿色金融改革创新试验区(2017)显著提升鸟类丰富度(借鉴 Liang et al.2020 方法)</span><br><span class="line"># 本脚本用「02_测算鸟类丰度指数_2015_2020.py」产出的县×月×年面板（样本 2015–2020），</span><br><span class="line"># 做方向性(naive DiD)与生态学合理性检验。</span><br><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line">import sys <span class="keyword">as</span> _sys</span><br><span class="line"><span class="keyword">class</span> _AsciiOut:</span><br><span class="line">    def __init__(self, raw):</span><br><span class="line">        self._raw = raw</span><br><span class="line">    def write(self, s):</span><br><span class="line">        <span class="keyword">if</span> isinstance(s, str):</span><br><span class="line">            s = s.<span class="keyword">encode</span>(<span class="string">&quot;ascii&quot;</span>, <span class="string">&quot;replace&quot;</span>).<span class="keyword">decode</span>(<span class="string">&quot;ascii&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self._raw.write(s)</span><br><span class="line">    def flush(self):</span><br><span class="line">        <span class="keyword">return</span> self._raw.flush()</span><br><span class="line">    def __getattr__(self, <span class="keyword">n</span>):</span><br><span class="line">        <span class="keyword">return</span> getattr(self._raw, <span class="keyword">n</span>)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stdout, _AsciiOut):</span><br><span class="line">    _sys.stdout = _AsciiOut(_sys.stdout)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stderr, _AsciiOut):</span><br><span class="line">    _sys.stderr = _AsciiOut(_sys.stderr)</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import matplotlib</span><br><span class="line">matplotlib.<span class="keyword">use</span>(<span class="string">&quot;Agg&quot;</span>)</span><br><span class="line">import matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"># 统一绘图样式（中文字体 + 标题/副标题/数据来源说明），参考 python-china-map skill</span><br><span class="line">_sys.path.insert(0, os.getcwd())</span><br><span class="line">from plot_style import setup_chinese_font, add_title_and_subtitle, add_caption</span><br><span class="line">setup_chinese_font()</span><br><span class="line"></span><br><span class="line">def wmean(x, w):</span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;加权平均（对应 R 的 weighted.mean，na.rm=TRUE 会先剔除缺失）&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    x = np.asarray(x, dtype=float)</span><br><span class="line">    w = np.asarray(w, dtype=float)</span><br><span class="line">    mask = ~np.isnan(x)</span><br><span class="line">    <span class="keyword">if</span> mask.<span class="built_in">sum</span>() == 0:</span><br><span class="line">        <span class="keyword">return</span> float(<span class="string">&quot;nan&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> float(np.average(x[mask], weights=w[mask]))</span><br><span class="line"></span><br><span class="line">dir_in = <span class="string">&quot;/Users/ac/Desktop/使用 Python 测算各区县鸟类丰度指数&quot;</span></span><br><span class="line">dir_out = os.path.join(dir_in, <span class="string">&quot;output&quot;</span>)</span><br><span class="line"></span><br><span class="line">panel = pd.read_parquet(os.path.join(dir_out, <span class="string">&quot;panel_county_month_year_2015_2020.parquet&quot;</span>))</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;panel:&quot;</span>, len(panel), <span class="string">&quot;county-month-year units; years&quot;</span>, int(panel[<span class="string">&quot;year&quot;</span>].<span class="built_in">min</span>()), <span class="string">&quot;-&quot;</span>, int(panel[<span class="string">&quot;year&quot;</span>].<span class="built_in">max</span>()))</span><br><span class="line"></span><br><span class="line">## ---- 1. 试验区定义（首批准试验区，2017年6月）----</span><br><span class="line">## 赣江新区→南昌/九江；贵安新区→贵阳；花都→广州。整市视为处理组（偏保守，稀释效应）。</span><br><span class="line">pilot_cities = [<span class="string">&quot;湖州市&quot;</span>, <span class="string">&quot;衢州市&quot;</span>, <span class="string">&quot;南昌市&quot;</span>, <span class="string">&quot;九江市&quot;</span>,</span><br><span class="line">                <span class="string">&quot;广州市&quot;</span>, <span class="string">&quot;贵阳市&quot;</span>, <span class="string">&quot;兰州市&quot;</span>, <span class="string">&quot;哈密市&quot;</span>]</span><br><span class="line">panel[<span class="string">&quot;treat&quot;</span>] = panel[<span class="string">&quot;city&quot;</span>].isin(pilot_cities)</span><br><span class="line">panel[<span class="string">&quot;post&quot;</span>] = panel[<span class="string">&quot;year&quot;</span>] &gt;= 2017</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\nTreated-city units:&quot;</span>, int(panel[<span class="string">&quot;treat&quot;</span>].<span class="built_in">sum</span>()), <span class="string">&quot; Control units:&quot;</span>, int((~panel[<span class="string">&quot;treat&quot;</span>]).<span class="built_in">sum</span>()))</span><br><span class="line"></span><br><span class="line">## ---- 2. 朴素双重差分 (2015-2020, 政策前=2015-2016, 后=2017-2020) ----</span><br><span class="line">dd = panel[panel[<span class="string">&quot;year&quot;</span>].between(2015, 2020)].<span class="keyword">copy</span>()</span><br><span class="line">dd[<span class="string">&quot;period&quot;</span>] = np.where(dd[<span class="string">&quot;year&quot;</span>] &lt;= 2016, <span class="string">&quot;pre&quot;</span>, <span class="string">&quot;post&quot;</span>)</span><br><span class="line"><span class="keyword">tab</span> = dd.groupby([<span class="string">&quot;treat&quot;</span>, <span class="string">&quot;period&quot;</span>]).apply(</span><br><span class="line">    lambda <span class="keyword">g</span>: pd.Series(&#123;<span class="string">&quot;g&quot;</span>: wmean(<span class="keyword">g</span>[<span class="string">&quot;gstd_all&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>])&#125;), include_groups=False</span><br><span class="line">).reset_index()</span><br><span class="line"><span class="keyword">print</span>(<span class="keyword">tab</span>.to_string(index=False))</span><br><span class="line"></span><br><span class="line"># 2×2 -&gt; DiD = (<span class="keyword">post</span>-pilot - pre-pilot) - (<span class="keyword">post</span>-non - pre-non)</span><br><span class="line">wide_tab = <span class="keyword">tab</span>.pivot(index=<span class="string">&quot;treat&quot;</span>, columns=<span class="string">&quot;period&quot;</span>, values=<span class="string">&quot;g&quot;</span>).reset_index()</span><br><span class="line">g_post_pilot = wide_tab.<span class="keyword">loc</span>[wide_tab[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;post&quot;</span>].iloc[0]</span><br><span class="line">g_pre_pilot = wide_tab.<span class="keyword">loc</span>[wide_tab[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;pre&quot;</span>].iloc[0]</span><br><span class="line">g_post_non = wide_tab.<span class="keyword">loc</span>[~wide_tab[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;post&quot;</span>].iloc[0]</span><br><span class="line">g_pre_non = wide_tab.<span class="keyword">loc</span>[~wide_tab[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;pre&quot;</span>].iloc[0]</span><br><span class="line">naive_did = (g_post_pilot - g_pre_pilot) - (g_post_non - g_pre_non)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;\nnaive DiD (abundance index) = &#123;naive_did:.4f&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;Paper Table 1 DID coef beta1 is significantly positive -&gt; if our index direction matches, it should be &gt; 0.&quot;</span>)</span><br><span class="line"># 这个数据印证结论：试验区设立后鸟类相对丰度更高。</span><br><span class="line"></span><br><span class="line"># 物种丰富度口径的朴素 DiD (对应论文表3中的“鸟种丰富度&quot;)</span><br><span class="line">dd_sp = panel[panel[<span class="string">&quot;year&quot;</span>].between(2015, 2020)].<span class="keyword">copy</span>()</span><br><span class="line">dd_sp[<span class="string">&quot;period&quot;</span>] = np.where(dd_sp[<span class="string">&quot;year&quot;</span>] &lt;= 2016, <span class="string">&quot;pre&quot;</span>, <span class="string">&quot;post&quot;</span>)</span><br><span class="line">tab_sp = dd_sp.groupby([<span class="string">&quot;treat&quot;</span>, <span class="string">&quot;period&quot;</span>]).apply(</span><br><span class="line">    lambda <span class="keyword">g</span>: pd.Series(&#123;<span class="string">&quot;s&quot;</span>: wmean(<span class="keyword">g</span>[<span class="string">&quot;sp_richness&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>])&#125;), include_groups=False</span><br><span class="line">).reset_index()</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\nSpecies-richness 2x2 means:&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(tab_sp.to_string(index=False))</span><br><span class="line">wide_sp = tab_sp.pivot(index=<span class="string">&quot;treat&quot;</span>, columns=<span class="string">&quot;period&quot;</span>, values=<span class="string">&quot;s&quot;</span>).reset_index()</span><br><span class="line">s_post_pilot = wide_sp.<span class="keyword">loc</span>[wide_sp[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;post&quot;</span>].iloc[0]</span><br><span class="line">s_pre_pilot = wide_sp.<span class="keyword">loc</span>[wide_sp[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;pre&quot;</span>].iloc[0]</span><br><span class="line">s_post_non = wide_sp.<span class="keyword">loc</span>[~wide_sp[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;post&quot;</span>].iloc[0]</span><br><span class="line">s_pre_non = wide_sp.<span class="keyword">loc</span>[~wide_sp[<span class="string">&quot;treat&quot;</span>], <span class="string">&quot;pre&quot;</span>].iloc[0]</span><br><span class="line">naive_did_sp = (s_post_pilot - s_pre_pilot) - (s_post_non - s_pre_non)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;\nnaive DiD (species richness) = &#123;naive_did_sp:.4f&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;Note: this species count is raw (uncorrected); the paper usually also applies Liang correction for heterogeneity.&quot;</span>)</span><br><span class="line"></span><br><span class="line">## ---- 3. 事件研究式年度轨迹 (2015-2020) ----</span><br><span class="line"># 此处代码需要下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\n=== descriptive trend summary ===&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;National annual raw abundance mean (gamma_hat, log scale):&quot;</span>)</span><br><span class="line">yr_rows = []</span><br><span class="line"><span class="keyword">for</span> year, <span class="keyword">g</span> <span class="keyword">in</span> panel.groupby(<span class="string">&quot;year&quot;</span>):</span><br><span class="line">    yr_rows.<span class="keyword">append</span>(&#123;<span class="string">&quot;year&quot;</span>: year, <span class="string">&quot;raw&quot;</span>: wmean(<span class="keyword">g</span>[<span class="string">&quot;gamma_hat&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>])&#125;)</span><br><span class="line"><span class="keyword">print</span>(pd.DataFrame(yr_rows).to_string(index=False))</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;\nGroup 2015 vs 2020 change (standardized index):&quot;</span>)</span><br><span class="line">cmp = panel[panel[<span class="string">&quot;year&quot;</span>].isin([2015, 2020])].groupby(<span class="string">&quot;year&quot;</span>).apply(</span><br><span class="line">    lambda <span class="keyword">g</span>: pd.Series(&#123;</span><br><span class="line">        <span class="string">&quot;gstd_all&quot;</span>: <span class="built_in">round</span>(wmean(<span class="keyword">g</span>[<span class="string">&quot;gstd_all&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>]), 4),</span><br><span class="line">        <span class="string">&quot;gstd_waterbird&quot;</span>: <span class="built_in">round</span>(wmean(<span class="keyword">g</span>[<span class="string">&quot;gstd_waterbird&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>]), 4),</span><br><span class="line">        <span class="string">&quot;gstd_landbird&quot;</span>: <span class="built_in">round</span>(wmean(<span class="keyword">g</span>[<span class="string">&quot;gstd_landbird&quot;</span>], <span class="keyword">g</span>[<span class="string">&quot;n_checklist&quot;</span>]), 4),</span><br><span class="line">    &#125;), include_groups=False</span><br><span class="line">).reset_index()</span><br><span class="line"><span class="keyword">print</span>(cmp.to_string(index=False))</span><br></pre></td></tr></table></figure>
+
+<h4 id="与刘钊等（2025）论文趋势对照图" class="article-heading"><a href="#与刘钊等（2025）论文趋势对照图" class="headerlink" title="与刘钊等（2025）论文趋势对照图"></a>与刘钊等（2025）论文趋势对照图<a class="article-anchor" href="#与刘钊等（2025）论文趋势对照图" aria-label="本节链接" title="复制本节链接"></a></h4><p>下图把我们的指数与刘钊等 (2025) 论文做趋势一致性对照（年度轨迹、季节模式、分类群趋势、区域基线）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182071916_728813.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># 强制 stdout/stderr 走 ASCII：reticulate/knitr 捕获 Python 输出时硬编码 latin-1，</span><br><span class="line"># 任何中文打印都会抛 UnicodeEncodeError 中断 knit。这里把输出中的非 ASCII 字符替换为</span><br><span class="line"># &#x27;?&#x27;，作为兜底；正文讲解与 .py 源文件注释仍保留中文。</span><br><span class="line">import sys <span class="keyword">as</span> _sys</span><br><span class="line"><span class="keyword">class</span> _AsciiOut:</span><br><span class="line">    def __init__(self, raw):</span><br><span class="line">        self._raw = raw</span><br><span class="line">    def write(self, s):</span><br><span class="line">        <span class="keyword">if</span> isinstance(s, str):</span><br><span class="line">            s = s.<span class="keyword">encode</span>(<span class="string">&quot;ascii&quot;</span>, <span class="string">&quot;replace&quot;</span>).<span class="keyword">decode</span>(<span class="string">&quot;ascii&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self._raw.write(s)</span><br><span class="line">    def flush(self):</span><br><span class="line">        <span class="keyword">return</span> self._raw.flush()</span><br><span class="line">    def __getattr__(self, <span class="keyword">n</span>):</span><br><span class="line">        <span class="keyword">return</span> getattr(self._raw, <span class="keyword">n</span>)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stdout, _AsciiOut):</span><br><span class="line">    _sys.stdout = _AsciiOut(_sys.stdout)</span><br><span class="line"><span class="keyword">if</span> not isinstance(_sys.stderr, _AsciiOut):</span><br><span class="line">    _sys.stderr = _AsciiOut(_sys.stderr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="keyword">tab</span>.to_string(index=False))</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;naive DiD (abundance index) = &#123;naive_did:.4f&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;naive DiD (species richness) = &#123;naive_did_sp:.4f&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>解读：丰度指数口径的朴素 DiD = <code>r round(py$naive_did, 4)</code> &gt; 0，与刘钊等 (2025) 表 1 中 DID 系数 β1 显著为正的<strong>方向一致</strong>；而未校正物种数口径的 DiD 为负，是因为非试验区观测基数增长更快——这正说明必须用努力量校正后的指数做比较，不能拿原始物种数直接比。</p>
+<h2 id="四、小结" class="article-heading"><a href="#四、小结" class="headerlink" title="四、小结"></a>四、小结<a class="article-anchor" href="#四、小结" aria-label="本节链接" title="复制本节链接"></a></h2><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/31/21/02b79j1bdbe1b168g4/common/content/1788182881455_776251.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/ea8db64b57fd4ebcb2f2c7262e5b96df">名师讲堂｜使用 Python 测算各区县鸟类丰度指数</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.128Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/21098/" title="名师讲堂｜使用 Stata 测算各区县鸟类丰度指数"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/98762/" title="R 语言和 RStudio 的安装、R Profile 的配置"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21098/">名师讲堂｜使用 Stata 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-09-01 · 约 13 分钟</span></li><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 13 分钟</span></li><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">一、指标来源与计算过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%AE%BA%E6%96%87%E8%83%8C%E6%99%AF%EF%BC%9A%E4%BB%8E%E7%A9%BA%E6%B0%94%E6%B1%A1%E6%9F%93%E7%AE%A1%E5%88%B6%E5%88%B0%E9%B8%9F%E7%B1%BB%E4%BF%9D%E6%8A%A4"><span class="toc-text">1.1 论文背景：从空气污染管制到鸟类保护</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%A4%E6%AD%A5%E6%B3%95%EF%BC%88Methods-Bird-Abundance-Estimation%EF%BC%89"><span class="toc-text">1.2 两步法（Methods: Bird Abundance Estimation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%9C%AC%E8%AE%B2%E4%B9%89%E5%A6%82%E4%BD%95%E7%94%A8%E4%B8%AD%E5%9B%BD%E8%A7%82%E9%B8%9F%E6%95%B0%E6%8D%AE%E5%A4%8D%E7%8E%B0"><span class="toc-text">1.3 本讲义如何用中国观鸟数据复现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">二、使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%AF%A6%E7%BB%86%E8%AE%B2%E8%A7%A3%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">三、详细讲解计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%AD%A5%E9%AA%A4-1%EF%BC%9A%E7%AD%9B%E9%80%89-2015%E2%80%932020-%E6%A0%B7%E6%9C%AC"><span class="toc-text">3.1 步骤 1：筛选 2015–2020 样本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%AD%A5%E9%AA%A4-2%EF%BC%88%E4%B8%8A%EF%BC%89%EF%BC%9A%E6%8A%A5%E5%91%8A%E7%BA%A7%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%8A%AA%E5%8A%9B%E9%87%8F%E5%8F%98%E9%87%8F"><span class="toc-text">3.2 步骤 2（上）：报告级计数与努力量变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%AD%A5%E9%AA%A4-2%EF%BC%88%E4%B8%AD%EF%BC%89%EF%BC%9APoisson-%E5%8A%AA%E5%8A%9B%E9%87%8F%E6%A0%A1%E6%AD%A3%EF%BC%88%E5%A4%8D%E7%8E%B0-Eq-1%EF%BC%89"><span class="toc-text">3.3 步骤 2（中）：Poisson 努力量校正（复现 Eq.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%AD%A5%E9%AA%A4-2%EF%BC%88%E4%B8%8B%EF%BC%89%EF%BC%9A%E9%9D%A2%E6%9D%BF%E5%90%88%E5%B9%B6%E3%80%81%E4%B8%AD%E6%96%87%E6%A0%87%E7%AD%BE%E4%B8%8E%E8%AF%8A%E6%96%AD"><span class="toc-text">3.4 步骤 2（下）：面板合并、中文标签与诊断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%AD%A5%E9%AA%A4-2%EF%BC%88%E5%9B%BE%EF%BC%89%EF%BC%9A%E4%B8%89%E5%BC%A0%E8%AF%8A%E6%96%AD%E5%9B%BE"><span class="toc-text">3.5 步骤 2（图）：三张诊断图</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E5%BC%A0%E8%AF%8A%E6%96%AD%E5%9B%BE%EF%BC%88%E5%9B%BE-1%E2%80%933%EF%BC%89"><span class="toc-text">三张诊断图（图 1–3）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%AD%A5%E9%AA%A4-3%EF%BC%9A%E4%B8%8E%E5%88%98%E9%92%8A%E7%AD%89%EF%BC%882025%EF%BC%89%E8%AE%BA%E6%96%87%E8%B6%8B%E5%8A%BF%E5%AF%B9%E7%85%A7"><span class="toc-text">3.6 步骤 3：与刘钊等（2025）论文趋势对照</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8E%E5%88%98%E9%92%8A%E7%AD%89%EF%BC%882025%EF%BC%89%E8%AE%BA%E6%96%87%E8%B6%8B%E5%8A%BF%E5%AF%B9%E7%85%A7%E5%9B%BE"><span class="toc-text">与刘钊等（2025）论文趋势对照图</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B0%8F%E7%BB%93"><span class="toc-text">四、小结</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

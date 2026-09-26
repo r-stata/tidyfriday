@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/54627/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在论文「超时加班与劳动收入份额：基于卫星夜间灯光的经验证据」中，作者提出了这么一种判断企业是否加班的方法：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数">
+<meta property="og:url" content="https://tidyfriday.cn/posts/54627/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在论文「超时加班与劳动收入份额：基于卫星夜间灯光的经验证据」中，作者提出了这么一种判断企业是否加班的方法：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/54627.png">
+<meta property="article:published_time" content="2025-02-26T13:36:17.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.558Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="夜间灯光">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/54627.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数","description":"在论文「超时加班与劳动收入份额：基于卫星夜间灯光的经验证据」中，作者提出了这么一种判断企业是否加班的方法：","url":"https://tidyfriday.cn/posts/54627/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/54627/"},"image":["https://tidyfriday.cn/og/54627.png"],"datePublished":"2025-02-26T13:36:17.000Z","dateModified":"2026-09-26T14:18:49.558Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 夜间灯光, 上市公司","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数","item":"https://tidyfriday.cn/posts/54627/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-02-26T13:36:17.000Z" itemprop="datePublished">2025-02-26</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4878 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 18 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E5%A4%9C%E9%97%B4%E7%81%AF%E5%85%89">夜间灯光</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在论文「超时加班与劳动收入份额：基于卫星夜间灯光的经验证据」中，作者提出了这么一种判断企业是否加班的方法：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/25/16/02b79j1bdbe1b168g4/common/content/1740470410079_913623.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>简单来说就是有三种标准：</p>
+<ol>
+<li>时间维度标准：该公司处的夜间灯光亮度大于该年节假日夜间灯光亮度的中位数；</li>
+<li>空间维度标准：该公司处的夜间灯光亮度大于周边8个网格的中位数；</li>
+<li>时空双维度：同时满足上面的时间和空间标准的日子才被视为加班日。</li>
+</ol>
+<p>今天的课程中我们将会讲解如何使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数。</p>
+<p>在之前的课程中我们讲解过如何使用 R 语言爬取和处理 VNP46A2 的日度夜间灯光亮度数据：</p>
+<blockquote>
+<p>名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/270178a4d6bb4ee2ba8b66ae71de3b8f">https://rstata.duanshu.com/#/brief/course/270178a4d6bb4ee2ba8b66ae71de3b8f</a></p>
+</blockquote>
+<p>基于该课程讲解的方法处理得到的栅格数据可以从这里下载到：</p>
+<blockquote>
+<p>2012～2024 年 VNP46A2 日度夜间灯光亮度栅格数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/ae5198d142b944108bcdecbd56e1fe36">https://rstata.duanshu.com/#/brief/course/ae5198d142b944108bcdecbd56e1fe36</a><br>注意：该夜间灯光亮度的单位是 0.1 nWatts/(cm^2 sr) 如果想转换成 nWatts/(cm^2 sr)，需要把数值乘以 0.1 。</p>
+</blockquote>
+<p>今天我们将会在该课程的基础上讲解。</p>
+<p>除了日度夜间灯光栅格数据外，还会需要下面两个数据：</p>
+<ol>
+<li>2000～2023 年上市公司注册地址与办公地址（含经纬度及其所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/90fa75897e564a45beb32f7840be0787">https://rstata.duanshu.com/#/brief/course/90fa75897e564a45beb32f7840be0787</a></li>
+<li>2007~2024 年法定节假日及星期数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/63147c1f06924ddb89b152d1df84b78c">https://rstata.duanshu.com/#/brief/course/63147c1f06924ddb89b152d1df84b78c</a></li>
+</ol>
+<p>附件中我也给大家提供了示例数据：</p>
+<ul>
+<li>2024年日度夜间灯光数据（日度夜间灯光栅格数据）</li>
+<li>2024年法定节假日及星期数据.dta</li>
+<li>2023年上市公司办公地址经纬度.dta</li>
+</ul>
+<p>由于截止讲义材料编写的时候还没有 2024 年的上市公司办公地址数据，所以我们只能假设 2023～2024 年上市公司没有搬家，也就是使用 23 年的数据作为 24 年的数据替代。</p>
+<h2 id="提取上市公司所在位置和周边-8-个相邻格点的夜光亮度" class="article-heading"><a href="#提取上市公司所在位置和周边-8-个相邻格点的夜光亮度" class="headerlink" title="提取上市公司所在位置和周边 8 个相邻格点的夜光亮度"></a>提取上市公司所在位置和周边 8 个相邻格点的夜光亮度<a class="article-anchor" href="#提取上市公司所在位置和周边-8-个相邻格点的夜光亮度" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先加载所需 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>索引所有的日度夜间灯光栅格数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;2024年日度夜间灯光数据&quot;</span><span class="punctuation">,</span> regexp <span class="operator">=</span> <span class="string">&quot;tif$&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fls</span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>fls<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; 2024年日度夜间灯光数据/2024-12-01.tif 2024年日度夜间灯光数据/2024-12-02.tif</span></span><br><span class="line"><span class="comment">#&gt; 2024年日度夜间灯光数据/2024-12-03.tif 2024年日度夜间灯光数据/2024-12-04.tif</span></span><br><span class="line"><span class="comment">#&gt; 2024年日度夜间灯光数据/2024-12-05.tif 2024年日度夜间灯光数据/2024-12-06.tif</span></span><br></pre></td></tr></table></figure>
+
+<p>不过 <code>fs::dir_ls()</code> 函数在 Windows 电脑上使用可能会遇到中文乱码问题，可以通过下面两种方法解决：</p>
+<ol>
+<li>把文件夹的名字还有文件的名字都换成不带中文的；</li>
+<li>改用 list.files();</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">paste0(&quot;2024年日度夜间灯光数据/&quot;, list.files(&quot;2024年日度夜间灯光数据&quot;)) -&gt; fls</span><br><span class="line">head(fls)</span><br><span class="line"></span><br><span class="line">#&gt; [1] &quot;2024年日度夜间灯光数据/2024-12-01.tif&quot;</span><br><span class="line">#&gt; [2] &quot;2024年日度夜间灯光数据/2024-12-02.tif&quot;</span><br><span class="line">#&gt; [3] &quot;2024年日度夜间灯光数据/2024-12-03.tif&quot;</span><br><span class="line">#&gt; [4] &quot;2024年日度夜间灯光数据/2024-12-04.tif&quot;</span><br><span class="line">#&gt; [5] &quot;2024年日度夜间灯光数据/2024-12-05.tif&quot;</span><br><span class="line">#&gt; [6] &quot;2024年日度夜间灯光数据/2024-12-06.tif&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这样效果也是一样的，不过麻烦一些。</p>
+<p>读取一个栅格数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rast(fls[length(fls)]) -&gt; rst1</span><br><span class="line">rst1</span><br><span class="line"></span><br><span class="line">#&gt; class       : SpatRaster</span><br><span class="line">#&gt; dimensions  : 14400, 16800, 1  (nrow, ncol, nlyr)</span><br><span class="line">#&gt; resolution  : 0.004166667, 0.004166667  (x, y)</span><br><span class="line">#&gt; extent      : 70, 140, 0, 60  (xmin, xmax, ymin, ymax)</span><br><span class="line">#&gt; coord. ref. : lon/lat WGS 84 (EPSG:4326)</span><br><span class="line">#&gt; source      : 2024-12-31.tif</span><br><span class="line">#&gt; name        : 2024-12-31</span><br><span class="line">#&gt; min value   :          0</span><br><span class="line">#&gt; max value   :      30000</span><br></pre></td></tr></table></figure>
+
+<p>绘图展示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">read_sf(&quot;九段线.geojson&quot;) -&gt; jdx</span><br><span class="line">plot(log(rst1))</span><br><span class="line">plot(jdx, add = T)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/26/13/02b79j1bdbe1b168g4/common/content/1740548130703_288839.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>读取上市公司办公地址经纬度数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2023年上市公司办公地址经纬度.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>年份 <span class="operator">=</span> <span class="number">2024</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 5,354 × 5</span></span><br><span class="line"><span class="comment">#&gt;     年份 股票代码 股票简称 办公地址_纬度 办公地址_经度</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;            &lt;dbl&gt;         &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2024 000001   平安银行          22.5          114.</span></span><br><span class="line"><span class="comment">#&gt;  2  2024 000002   万科A             22.6          114.</span></span><br><span class="line"><span class="comment">#&gt;  3  2024 000004   国华网安          22.6          114.</span></span><br><span class="line"><span class="comment">#&gt;  4  2024 000006   深振业A           22.5          114.</span></span><br><span class="line"><span class="comment">#&gt;  5  2024 000007   *ST 全新          22.6          114.</span></span><br><span class="line"><span class="comment">#&gt;  6  2024 000008   神州高铁          39.9          116.</span></span><br><span class="line"><span class="comment">#&gt;  7  2024 000009   中国宝安          22.6          114.</span></span><br><span class="line"><span class="comment">#&gt;  8  2024 000010   美丽生态          22.6          114.</span></span><br><span class="line"><span class="comment">#&gt;  9  2024 000011   深物业A           22.5          114.</span></span><br><span class="line"><span class="comment">#&gt; 10  2024 000012   南玻A             22.5          114.</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 5,344 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 terra 包里面并没有提供直接计算周边 8 个格点亮度中位数的方法，所以我们还是得手动编程解决。</p>
+<p>一种办法是下面这样：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个示例栅格数据</span></span><br><span class="line">r <span class="operator">&lt;-</span> rast<span class="punctuation">(</span>nrows<span class="operator">=</span><span class="number">10</span><span class="punctuation">,</span> ncols<span class="operator">=</span><span class="number">10</span><span class="punctuation">,</span> vals<span class="operator">=</span><span class="number">1</span><span class="operator">:</span><span class="number">100</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义函数：计算周围 8 个格点的中位数（排除中心点）</span></span><br><span class="line">median_8_neighbors <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="comment"># 将中心点（第 5 个值）设为 NA</span></span><br><span class="line">  x<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line">  <span class="comment"># 计算剩余 8 个值的中位数</span></span><br><span class="line">  median<span class="punctuation">(</span>x<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义 3x3 的窗口</span></span><br><span class="line">w <span class="operator">&lt;-</span> matrix<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> nrow<span class="operator">=</span><span class="number">3</span><span class="punctuation">,</span> ncol<span class="operator">=</span><span class="number">3</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 focal() 函数，应用自定义函数</span></span><br><span class="line">r_median_8 <span class="operator">&lt;-</span> focal<span class="punctuation">(</span>r<span class="punctuation">,</span> w<span class="operator">=</span>w<span class="punctuation">,</span> fun<span class="operator">=</span>median_8_neighbors<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看结果</span></span><br><span class="line">print<span class="punctuation">(</span>r_median_8<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; class       : SpatRaster</span></span><br><span class="line"><span class="comment">#&gt; dimensions  : 10, 10, 1  (nrow, ncol, nlyr)</span></span><br><span class="line"><span class="comment">#&gt; resolution  : 36, 18  (x, y)</span></span><br><span class="line"><span class="comment">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span></span><br><span class="line"><span class="comment">#&gt; coord. ref. : lon/lat WGS 84 (CRS84) (OGC:CRS84)</span></span><br><span class="line"><span class="comment">#&gt; source(s)   : memory</span></span><br><span class="line"><span class="comment">#&gt; name        : lyr.1</span></span><br><span class="line"><span class="comment">#&gt; min value   :    11</span></span><br><span class="line"><span class="comment">#&gt; max value   :    90</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 获取某个特定点的值（例如第 5 行第 5 列的点）</span></span><br><span class="line">point_value <span class="operator">&lt;-</span> r_median_8<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">,</span> <span class="number">5</span><span class="punctuation">]</span></span><br><span class="line">print<span class="punctuation">(</span>point_value<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt;   lyr.1</span></span><br><span class="line"><span class="comment">#&gt; 1    45</span></span><br></pre></td></tr></table></figure>
+
+<p><code>focal()</code>函数是用来进行邻域计算的，这个方法看起来很方便，不过实际上我也这么做了，结果程序运行了半个月才运行完。</p>
+<blockquote>
+<p>最初我以为 <code>focal(r, w=3, median, na.rm)</code>就可以了，后来发现这是计算是计算九个格点共同中位数的。</p>
+</blockquote>
+<p>由于上述的方法极度低效，所以我们还是得更换方法。最后我发现还是使用矩阵进行提取最快。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/26/13/02b79j1bdbe1b168g4/common/content/1740548148724_261521.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>这个图和分享的数据里面的不太一样是因为那个图绘制的时候给平安银行的经纬度设置成了早年的。</p>
+</blockquote>
+<p>上图展示了「平安银行」的经纬度及周边的夜光栅格。假设我们的栅格数据就这么大，我们可以数一下，这个栅格的列数为：</p>
+<ul>
+<li>ncol = 6;</li>
+</ul>
+<p>如果从左到右对每个格子进行编号，那么可以数一数，平安银行所在格点的编号是：</p>
+<ul>
+<li>平安银行所在格点的编号是: 16;</li>
+</ul>
+<p>那么它周边 8 个格点的编号分别为：</p>
+<ul>
+<li>grid1: 16 - 6 - 1 = 9</li>
+<li>grid2: 16 - 6 = 10</li>
+<li>grid3: 16 - 6 + 1 = 11</li>
+<li>grid4: 16 - 1 = 15</li>
+<li>grid5: 16 = 16</li>
+<li>grid6: 16 + 1 = 17</li>
+<li>grid7: 16 + 6 - 1 = 21</li>
+<li>grid8: 16 + 6 = 22</li>
+<li>grid9: 16 + 6 + 1 = 23</li>
+</ul>
+<p>因此我们只需要知道栅格数据的列数以及某个格点的索引就可以推出其周边 8 个格点的索引。</p>
+<p>那么在整个栅格数据里面，平安银行所在格点为：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">xy <span class="operator">=</span> cbind<span class="punctuation">(</span>lon <span class="operator">=</span> df<span class="operator">$</span>办公地址_经度<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> lat <span class="operator">=</span> df<span class="operator">$</span>办公地址_纬度<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">terra<span class="operator">::</span>cellFromXY<span class="punctuation">(</span>rst1<span class="punctuation">,</span> xy<span class="punctuation">)</span> <span class="operator">-&gt;</span> centerid</span><br><span class="line"></span><br><span class="line">centerid</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [1] 151059373</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 栅格数据转换成一维的矩阵</span><br><span class="line">as.matrix(rst1) -&gt; r_mat</span><br><span class="line"></span><br><span class="line">dim(r_mat)</span><br><span class="line"></span><br><span class="line">#&gt; [1] 241920000         1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 该处的值为</span><br><span class="line">r_mat[centerid]</span><br><span class="line"></span><br><span class="line">#&gt; [1] 432</span><br></pre></td></tr></table></figure>
+
+<p>其周边 8 个格点的索引分别为：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 栅格数据的列是</span></span><br><span class="line"><span class="built_in">c</span> <span class="operator">&lt;-</span> ncol<span class="punctuation">(</span>rst1<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 所以周边 8 个网格分别是</span></span><br><span class="line">id1 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span> <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">id2 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span></span><br><span class="line">id3 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span> <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">id4 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">id5 <span class="operator">=</span> centerid</span><br><span class="line">id6 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">id7 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span> <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">id8 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span></span><br><span class="line">id9 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span> <span class="operator">+</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>所以所有经纬度及周边网格的索引是：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>z <span class="operator">=</span> map2<span class="punctuation">(</span>办公地址_经度<span class="punctuation">,</span> 办公地址_纬度<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">,</span> y<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    xy <span class="operator">=</span> cbind<span class="punctuation">(</span>lon <span class="operator">=</span> x<span class="punctuation">,</span> lat <span class="operator">=</span> y<span class="punctuation">)</span></span><br><span class="line">    terra<span class="operator">::</span>cellFromXY<span class="punctuation">(</span>rst1<span class="punctuation">,</span> xy<span class="punctuation">)</span> <span class="operator">-&gt;</span> centerid</span><br><span class="line">    id1 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span> <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">    id2 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span></span><br><span class="line">    id3 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="built_in">c</span> <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    id4 <span class="operator">=</span> centerid <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">    id5 <span class="operator">=</span> centerid</span><br><span class="line">    id6 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    id7 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span> <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">    id8 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span></span><br><span class="line">    id9 <span class="operator">=</span> centerid <span class="operator">+</span> <span class="built_in">c</span> <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    <span class="built_in">return</span><span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>id1<span class="punctuation">,</span> id2<span class="punctuation">,</span> id3<span class="punctuation">,</span> id4<span class="punctuation">,</span> id5<span class="punctuation">,</span> id6<span class="punctuation">,</span> id7<span class="punctuation">,</span> id8<span class="punctuation">,</span> id9<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 5,354 × 6</span></span><br><span class="line"><span class="comment">#&gt;     年份 股票代码 股票简称 办公地址_纬度 办公地址_经度 z</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;            &lt;dbl&gt;         &lt;dbl&gt; &lt;list&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2024 000001   平安银行          22.5          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  2  2024 000002   万科A             22.6          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  3  2024 000004   国华网安          22.6          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  4  2024 000006   深振业A           22.5          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  5  2024 000007   *ST 全新          22.6          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  6  2024 000008   神州高铁          39.9          116. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  7  2024 000009   中国宝安          22.6          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  8  2024 000010   美丽生态          22.6          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  9  2024 000011   深物业A           22.5          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt; 10  2024 000012   南玻A             22.5          114. &lt;dbl [9]&gt;</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 5,344 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>提取所有上市公司该日 9 个格点的夜光亮度：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> map<span class="punctuation">(</span>z<span class="punctuation">,</span> <span class="operator">~</span>tibble<span class="punctuation">(</span>index <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">9</span><span class="punctuation">,</span> nightlight <span class="operator">=</span> r_mat<span class="punctuation">[</span>unlist<span class="punctuation">(</span>.x<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>z<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>value<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 48,186 × 7</span></span><br><span class="line"><span class="comment">#&gt;     年份 股票代码 股票简称 办公地址_纬度 办公地址_经度 index nightlight</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;            &lt;dbl&gt;         &lt;dbl&gt; &lt;int&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2024 000001   平安银行          22.5          114.     1        355</span></span><br><span class="line"><span class="comment">#&gt;  2  2024 000001   平安银行          22.5          114.     2        409</span></span><br><span class="line"><span class="comment">#&gt;  3  2024 000001   平安银行          22.5          114.     3        410</span></span><br><span class="line"><span class="comment">#&gt;  4  2024 000001   平安银行          22.5          114.     4        431</span></span><br><span class="line"><span class="comment">#&gt;  5  2024 000001   平安银行          22.5          114.     5        432</span></span><br><span class="line"><span class="comment">#&gt;  6  2024 000001   平安银行          22.5          114.     6        493</span></span><br><span class="line"><span class="comment">#&gt;  7  2024 000001   平安银行          22.5          114.     7        381</span></span><br><span class="line"><span class="comment">#&gt;  8  2024 000001   平安银行          22.5          114.     8        381</span></span><br><span class="line"><span class="comment">#&gt;  9  2024 000001   平安银行          22.5          114.     9        493</span></span><br><span class="line"><span class="comment">#&gt; 10  2024 000002   万科A             22.6          114.     1         86</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 48,176 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们就可以循环所有的日子了，为了更高效，这里我用的是多线程循环：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;res&quot;</span><span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>parallel<span class="punctuation">)</span></span><br><span class="line">makeCluster<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cl</span><br><span class="line">clusterEvalQ<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">  library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">  library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;df2&quot;</span><span class="punctuation">)</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> fls<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res/&quot;</span><span class="punctuation">,</span> tools<span class="operator">::</span>file_path_sans_ext<span class="punctuation">(</span>basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    rast<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line">    as.matrix<span class="punctuation">(</span>rst<span class="punctuation">)</span> <span class="operator">-&gt;</span> r_mat</span><br><span class="line">    df2 <span class="operator">%&gt;%</span></span><br><span class="line">      filter<span class="punctuation">(</span>年份 <span class="operator">==</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      mutate<span class="punctuation">(</span>value <span class="operator">=</span> map<span class="punctuation">(</span>z<span class="punctuation">,</span> <span class="operator">~</span>tibble<span class="punctuation">(</span>index <span class="operator">=</span> <span class="number">1</span><span class="operator">:</span><span class="number">9</span><span class="punctuation">,</span> nightlight <span class="operator">=</span> r_mat<span class="punctuation">[</span>unlist<span class="punctuation">(</span>.x<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      select<span class="punctuation">(</span><span class="operator">-</span>z<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      unnest<span class="punctuation">(</span>value<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      mutate<span class="punctuation">(</span>date <span class="operator">=</span> ymd<span class="punctuation">(</span>tools<span class="operator">::</span>file_path_sans_ext<span class="punctuation">(</span>basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res/&quot;</span><span class="punctuation">,</span> tools<span class="operator">::</span>file_path_sans_ext<span class="punctuation">(</span>basename<span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br></pre></td></tr></table></figure>
+
+<p>合并提取结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;res&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> .<span class="punctuation">,</span> readr<span class="operator">::</span>read_rds<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># lapply(readr::read_rds) %&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 日期提到前面</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>日期 <span class="operator">=</span> date<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,493,766 × 8</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 办公地址_纬度 办公地址_经度 index</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;            &lt;dbl&gt;         &lt;dbl&gt; &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行          22.5          114.     1</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000001   平安银行          22.5          114.     2</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000001   平安银行          22.5          114.     3</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000001   平安银行          22.5          114.     4</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000001   平安银行          22.5          114.     5</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000001   平安银行          22.5          114.     6</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000001   平安银行          22.5          114.     7</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000001   平安银行          22.5          114.     8</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000001   平安银行          22.5          114.     9</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000002   万科A             22.6          114.     1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,493,756 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: nightlight &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="计算中位数与比较是否加班" class="article-heading"><a href="#计算中位数与比较是否加班" class="headerlink" title="计算中位数与比较是否加班"></a>计算中位数与比较是否加班<a class="article-anchor" href="#计算中位数与比较是否加班" aria-label="本节链接" title="复制本节链接"></a></h2><p>计算周边 8 个网格的中位数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>index <span class="operator">!=</span> <span class="number">5</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>日期<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 股票代码<span class="punctuation">,</span> 股票简称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>median8 <span class="operator">=</span> median<span class="punctuation">(</span>nightlight<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 5</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 median8</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行   1320.</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A       412</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安    478</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A     518.</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新    536.</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁    502.</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安    542.</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态    678.</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A    1354.</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A       450</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>上市公司所在位置的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>index <span class="operator">==</span> <span class="number">5</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>index<span class="punctuation">,</span> <span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line">df1</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 5</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 nightlight</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行       1407</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A           413</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安        478</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A         633</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新        478</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁        567</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安        547</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态        622</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A        1355</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A           602</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>读取节假日数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2024年法定节假日及星期数据.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>is_legal_holidays <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span><span class="operator">!</span>is_work<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>年份 <span class="operator">=</span> year<span class="punctuation">,</span> 日期 <span class="operator">=</span> date<span class="punctuation">,</span> 法定假日 <span class="operator">=</span> is_legal_holidays<span class="punctuation">)</span> <span class="operator">-&gt;</span> df3</span><br><span class="line"></span><br><span class="line">df3</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 366 × 3</span></span><br><span class="line"><span class="comment">#&gt;     年份 日期       法定假日</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;date&gt;        &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2024 2024-01-01        1</span></span><br><span class="line"><span class="comment">#&gt;  2  2024 2024-01-02        0</span></span><br><span class="line"><span class="comment">#&gt;  3  2024 2024-01-03        0</span></span><br><span class="line"><span class="comment">#&gt;  4  2024 2024-01-04        0</span></span><br><span class="line"><span class="comment">#&gt;  5  2024 2024-01-05        0</span></span><br><span class="line"><span class="comment">#&gt;  6  2024 2024-01-06        1</span></span><br><span class="line"><span class="comment">#&gt;  7  2024 2024-01-07        1</span></span><br><span class="line"><span class="comment">#&gt;  8  2024 2024-01-08        0</span></span><br><span class="line"><span class="comment">#&gt;  9  2024 2024-01-09        0</span></span><br><span class="line"><span class="comment">#&gt; 10  2024 2024-01-10        0</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 356 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>合并上面的三个数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df3<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 7</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 nightlight median8 法定假日</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行       1407   1320.        1</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A           413    412         1</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安        478    478         1</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A         633    518.        1</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新        478    536.        1</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁        567    502.        1</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安        547    542.        1</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态        622    678.        1</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A        1355   1354.        1</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A           602    450         1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="空间维度上的比较" class="article-heading"><a href="#空间维度上的比较" class="headerlink" title="空间维度上的比较"></a>空间维度上的比较<a class="article-anchor" href="#空间维度上的比较" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>是否加班_空间维度 <span class="operator">=</span> if_else<span class="punctuation">(</span>nightlight <span class="operator">&gt;</span> median8<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall2</span><br><span class="line"></span><br><span class="line">dfall2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 8</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 nightlight median8 法定假日</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行       1407   1320.        1</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A           413    412         1</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安        478    478         1</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A         633    518.        1</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新        478    536.        1</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁        567    502.        1</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安        547    542.        1</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态        622    678.        1</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A        1355   1354.        1</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A           602    450         1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: 是否加班_空间维度 &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="时间维度上的比较" class="article-heading"><a href="#时间维度上的比较" class="headerlink" title="时间维度上的比较"></a>时间维度上的比较<a class="article-anchor" href="#时间维度上的比较" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算年度法定节假日灯光亮度中位数</span></span><br><span class="line">dfall2 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>法定假日 <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">,</span> 股票代码<span class="punctuation">,</span> 股票简称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>yearly_median <span class="operator">=</span> median<span class="punctuation">(</span>nightlight<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df4</span><br><span class="line"></span><br><span class="line">dfall2 <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df4<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>是否加班_时间维度 <span class="operator">=</span> if_else<span class="punctuation">(</span>nightlight <span class="operator">&gt;</span> yearly_median<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall3</span><br><span class="line"></span><br><span class="line">dfall3</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 10</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 nightlight median8 法定假日</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行       1407   1320.        1</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A           413    412         1</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安        478    478         1</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A         633    518.        1</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新        478    536.        1</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁        567    502.        1</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安        547    542.        1</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态        622    678.        1</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A        1355   1354.        1</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A           602    450         1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 3 more variables: 是否加班_空间维度 &lt;dbl&gt;, yearly_median &lt;dbl&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   是否加班_时间维度 &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="同时满足两个维度" class="article-heading"><a href="#同时满足两个维度" class="headerlink" title="同时满足两个维度"></a>同时满足两个维度<a class="article-anchor" href="#同时满足两个维度" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall3 <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>夜间灯光亮度 <span class="operator">=</span> nightlight<span class="punctuation">,</span> 周边<span class="number">8</span>个网格夜光亮度中位数 <span class="operator">=</span> median8<span class="punctuation">,</span> 是否法定假日 <span class="operator">=</span> 法定假日<span class="punctuation">,</span> 法定节假日的年夜光亮度中位数 <span class="operator">=</span> yearly_median<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>同时满足时间和空间维度标准 <span class="operator">=</span> if_else<span class="punctuation">(</span>是否加班_时间维度 <span class="operator">==</span> <span class="number">1</span> <span class="operator">&amp;</span> 是否加班_空间维度 <span class="operator">==</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall3</span><br><span class="line"></span><br><span class="line">dfall3</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 165,974 × 11</span></span><br><span class="line"><span class="comment">#&gt;    日期        年份 股票代码 股票简称 夜间灯光亮度 周边8个网格夜光亮度中位数</span></span><br><span class="line"><span class="comment">#&gt;    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;                     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2024-12-01  2024 000001   平安银行         1407                     1320.</span></span><br><span class="line"><span class="comment">#&gt;  2 2024-12-01  2024 000002   万科A             413                      412</span></span><br><span class="line"><span class="comment">#&gt;  3 2024-12-01  2024 000004   国华网安          478                      478</span></span><br><span class="line"><span class="comment">#&gt;  4 2024-12-01  2024 000006   深振业A           633                      518.</span></span><br><span class="line"><span class="comment">#&gt;  5 2024-12-01  2024 000007   *ST 全新          478                      536.</span></span><br><span class="line"><span class="comment">#&gt;  6 2024-12-01  2024 000008   神州高铁          567                      502.</span></span><br><span class="line"><span class="comment">#&gt;  7 2024-12-01  2024 000009   中国宝安          547                      542.</span></span><br><span class="line"><span class="comment">#&gt;  8 2024-12-01  2024 000010   美丽生态          622                      678.</span></span><br><span class="line"><span class="comment">#&gt;  9 2024-12-01  2024 000011   深物业A          1355                     1354.</span></span><br><span class="line"><span class="comment">#&gt; 10 2024-12-01  2024 000012   南玻A             602                      450</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 165,964 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 5 more variables: 是否法定假日 &lt;dbl&gt;, 是否加班_空间维度 &lt;dbl&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   法定节假日的年夜光亮度中位数 &lt;dbl&gt;, 是否加班_时间维度 &lt;dbl&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   同时满足时间和空间维度标准 &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果想统计加班天数，分年汇总即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall3 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>同时满足时间和空间维度标准 <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 股票简称<span class="punctuation">,</span> 年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>年加班天数 <span class="operator">=</span> n<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall4</span><br></pre></td></tr></table></figure>
+
+<p>如果想计算加班天数的比例，再计算一个各年的天数即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall3 <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 股票简称<span class="punctuation">,</span> 年份<span class="punctuation">)</span> <span class="operator">-&gt;</span> dayscount</span><br><span class="line"></span><br><span class="line">dfall4 <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>dayscount<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ratio <span class="operator">=</span> 年加班天数 <span class="operator">/</span> n<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 5,272 × 6</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 股票简称  年份 年加班天数     n ratio</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000001   平安银行  2024          8    31 0.258</span></span><br><span class="line"><span class="comment">#&gt;  2 000004   国华网安  2024          9    31 0.290</span></span><br><span class="line"><span class="comment">#&gt;  3 000006   深振业A   2024          7    31 0.226</span></span><br><span class="line"><span class="comment">#&gt;  4 000007   *ST 全新  2024          4    31 0.129</span></span><br><span class="line"><span class="comment">#&gt;  5 000008   神州高铁  2024          7    31 0.226</span></span><br><span class="line"><span class="comment">#&gt;  6 000009   中国宝安  2024          8    31 0.258</span></span><br><span class="line"><span class="comment">#&gt;  7 000010   美丽生态  2024          6    31 0.194</span></span><br><span class="line"><span class="comment">#&gt;  8 000011   深物业A   2024          7    31 0.226</span></span><br><span class="line"><span class="comment">#&gt;  9 000012   南玻A     2024          6    31 0.194</span></span><br><span class="line"><span class="comment">#&gt; 10 000014   沙河股份  2024         10    31 0.323</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 5,262 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就计算得到了这个指标～</p>
+<p>最后再补充下上面图表的绘制代码：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">rast<span class="punctuation">(</span><span class="string">&quot;2024年日度夜间灯光数据/2024-12-31.tif&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line"></span><br><span class="line"><span class="comment"># 平安银行</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">tibble<span class="punctuation">(</span>name <span class="operator">=</span> <span class="string">&quot;平安银行&quot;</span><span class="punctuation">,</span> lon <span class="operator">=</span> <span class="number">114.0503</span><span class="punctuation">,</span> lat <span class="operator">=</span> <span class="number">22.53655</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;lon&quot;</span><span class="punctuation">,</span> <span class="string">&quot;lat&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 平安银行周围 3km</span></span><br><span class="line">dfsf <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">1.2</span><span class="punctuation">,</span> <span class="string">&quot;km&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfbuffer</span><br><span class="line"></span><br><span class="line"><span class="comment"># 裁剪</span></span><br><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  terra<span class="operator">::</span>crop<span class="punctuation">(</span>terra<span class="operator">::</span>vect<span class="punctuation">(</span>dfbuffer<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> smallrst</span><br><span class="line"></span><br><span class="line">smallrst <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>raster<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  raster<span class="operator">::</span>rasterToPolygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rstpoly</span><br><span class="line"></span><br><span class="line"><span class="comment"># 平安银行周边的 9 个</span></span><br><span class="line">rstpoly <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">9</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">,</span> <span class="number">11</span><span class="punctuation">,</span> <span class="number">15</span><span class="punctuation">,</span> <span class="number">16</span><span class="punctuation">,</span> <span class="number">17</span><span class="punctuation">,</span> <span class="number">21</span><span class="punctuation">,</span> <span class="number">22</span><span class="punctuation">,</span> <span class="number">23</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;grid&quot;</span><span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span><span class="number">9</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">-&gt;</span> rstpoly2</span><br><span class="line"></span><br><span class="line">ggplot<span class="punctuation">(</span>rstpoly<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> `X2024.12.31`<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scico<span class="operator">::</span>scale_fill_scico<span class="punctuation">(</span>palette <span class="operator">=</span> <span class="string">&quot;lajolla&quot;</span><span class="punctuation">,</span></span><br><span class="line">                          direction <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> dfsf<span class="punctuation">,</span> shape <span class="operator">=</span> <span class="number">17</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;red&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggforce<span class="operator">::</span>geom_mark_circle<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> <span class="number">114.0503</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="number">22.53655</span><span class="punctuation">,</span></span><br><span class="line">                                label <span class="operator">=</span> <span class="string">&quot;平安银行&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                            label.family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                            label.fontsize <span class="operator">=</span> <span class="number">8</span><span class="punctuation">,</span></span><br><span class="line">                            label.fill <span class="operator">=</span> <span class="string">&quot;#fff5e3&quot;</span><span class="punctuation">,</span></span><br><span class="line">                            label.colour <span class="operator">=</span> <span class="string">&quot;#f39b7f&quot;</span><span class="punctuation">,</span></span><br><span class="line">                            con.size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span></span><br><span class="line">                            con.colour <span class="operator">=</span> <span class="string">&quot;#e64b35&quot;</span><span class="punctuation">,</span></span><br><span class="line">                            expand <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                            con.cap <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> st_union<span class="punctuation">(</span>rstpoly2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span></span><br><span class="line">          linewidth <span class="operator">=</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf_text<span class="punctuation">(</span>data <span class="operator">=</span> rstpoly2<span class="punctuation">,</span> aes<span class="punctuation">(</span>label <span class="operator">=</span> paste0<span class="punctuation">(</span>id<span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">,</span> `X2024.12.31`<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggtext<span class="operator">::</span>geom_textbox<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> <span class="number">114.065</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="number">22.54</span><span class="punctuation">,</span></span><br><span class="line">                label <span class="operator">=</span> <span class="string">&quot;周边夜光亮度中位数：&lt;br&gt;median(c(331, 331, 380, 342, &lt;br&gt;380, 342, 415, 415)) = 361&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            family <span class="operator">=</span> cnfont<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">            vjust <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span> hjust <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">            fill <span class="operator">=</span> <span class="string">&quot;#fff5e3&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggtext<span class="operator">::</span>geom_textbox<span class="punctuation">(</span>aes<span class="punctuation">(</span>x <span class="operator">=</span> <span class="number">114.065</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="number">22.53</span><span class="punctuation">,</span></span><br><span class="line">                           label <span class="operator">=</span> <span class="string">&quot;平安银行所在格点：416&lt;br&gt;按照空间维度标准，这天平安银行在&lt;br&gt;加班...&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                       family <span class="operator">=</span> cnfont<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">                       hjust <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span> vjust <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                       fill <span class="operator">=</span> <span class="string">&quot;#fff5e3&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggthemes<span class="operator">::</span>theme_solarized_2<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;#fff5e3&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.margin <span class="operator">=</span> grid<span class="operator">::</span>unit<span class="punctuation">(</span><span class="built_in">rep</span><span class="punctuation">(</span><span class="number">0.8</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.position <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_x_continuous<span class="punctuation">(</span>limits <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">114.035</span><span class="punctuation">,</span> <span class="number">114.075</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;2024年12月31号这天平安银行及周边的夜间灯光亮度&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：VNP46A2 - VIIRS/NPP Gap-Filled Lunar BRDF\nAdjusted Nighttime Lights Daily L3 Global 500m Linear Lat Lon Grid\n&lt;https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP46A2/#overview&gt;&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;2024年12月31号这天平安银行及周边的夜间灯光亮度.png&quot;</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">12</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">7.2</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="如何参加课程？" class="article-heading"><a href="#如何参加课程？" class="headerlink" title="如何参加课程？"></a>如何参加课程？<a class="article-anchor" href="#如何参加课程？" aria-label="本节链接" title="复制本节链接"></a></h2><p>购买 RStata 名师讲堂会员即可参加该课程啦（之前的和未来的都可以参加）！</p>
+<blockquote>
+<p><strong>价格：2800/年 或者 4800/长期</strong></p>
+<p>购买会员可以从这里下单：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/card/list/">https://rstata.duanshu.com/#/card/list/</a></p>
+</blockquote>
+<p>名师讲堂会员权益：</p>
+<ol>
+<li>参加每个月 3～4 次的名师讲堂课程；</li>
+<li>参加平台上的其他 R 语言和 Stata 的课程；</li>
+<li>以会员折扣价购买我们分享的数据资料（10 元/份）；</li>
+<li>课程内外的提问解答服务（课程外的尽量帮忙解决）。</li>
+</ol>
+<blockquote>
+<p>* 如果发票可添加小编微信 r_stata （RStata 李老师）开具。如需数据资料，购买后可添加小编微信免费领取数据折扣卡。</p>
+</blockquote>
+<p>更多关于 RStata 会员的更多信息可添加微信号 r_stata 咨询：</p>
+<blockquote>
+<p>课程主页（点击文末的阅读原文即可跳转）：</p>
+</blockquote>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/67bafc55f61348a9810243202ff49479">名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.558Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/63304/" title="2012～2024 年 VNP46A2 日度夜间灯光亮度栅格数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/62962/" title="名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（一）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/95492/">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-14 · 约 15 分钟</span></li><li><a href="/posts/62613/">名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化</a><span class="tf-related-meta">2026-05-25 · 约 9 分钟</span></li><li><a href="/posts/97319/">名师讲堂｜使用 R 语言计算上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-08 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8%E6%89%80%E5%9C%A8%E4%BD%8D%E7%BD%AE%E5%92%8C%E5%91%A8%E8%BE%B9-8-%E4%B8%AA%E7%9B%B8%E9%82%BB%E6%A0%BC%E7%82%B9%E7%9A%84%E5%A4%9C%E5%85%89%E4%BA%AE%E5%BA%A6"><span class="toc-text">提取上市公司所在位置和周边 8 个相邻格点的夜光亮度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E4%B8%AD%E4%BD%8D%E6%95%B0%E4%B8%8E%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8A%A0%E7%8F%AD"><span class="toc-text">计算中位数与比较是否加班</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E9%97%B4%E7%BB%B4%E5%BA%A6%E4%B8%8A%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-text">空间维度上的比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E7%BB%B4%E5%BA%A6%E4%B8%8A%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-text">时间维度上的比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8C%E6%97%B6%E6%BB%A1%E8%B6%B3%E4%B8%A4%E4%B8%AA%E7%BB%B4%E5%BA%A6"><span class="toc-text">同时满足两个维度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%8F%82%E5%8A%A0%E8%AF%BE%E7%A8%8B%EF%BC%9F"><span class="toc-text">如何参加课程？</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

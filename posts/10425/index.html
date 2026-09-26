@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/10425/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近一个小伙伴给我发了一个数据集，是 2001 年到 2018 年所有上市公司的经纬度数据。她想知道每个公司所处的省份，我就帮她计算了一下。之前我讲解过使用 R 语言的解决办法，但是她表示不会 R 语言，所以这次课程的结尾也有 Stata 的解决办法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法">
+<meta property="og:url" content="https://tidyfriday.cn/posts/10425/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近一个小伙伴给我发了一个数据集，是 2001 年到 2018 年所有上市公司的经纬度数据。她想知道每个公司所处的省份，我就帮她计算了一下。之前我讲解过使用 R 语言的解决办法，但是她表示不会 R 语言，所以这次课程的结尾也有 Stata 的解决办法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/10425.png">
+<meta property="article:published_time" content="2021-07-28T14:49:45.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:53.328Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="地形与地理">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/10425.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法","description":"最近一个小伙伴给我发了一个数据集，是 2001 年到 2018 年所有上市公司的经纬度数据。她想知道每个公司所处的省份，我就帮她计算了一下。之前我讲解过使用 R 语言的解决办法，但是她表示不会 R 语言，所以这次课程的结尾也有 Stata 的解决办法。","url":"https://tidyfriday.cn/posts/10425/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/10425/"},"image":["https://tidyfriday.cn/og/10425.png"],"datePublished":"2021-07-28T14:49:45.000Z","dateModified":"2026-09-26T14:18:53.328Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"地形与地理, Stata","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法","item":"https://tidyfriday.cn/posts/10425/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-07-28T14:49:45.000Z" itemprop="datePublished">2021-07-28</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2363 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%9C%B0%E5%BD%A2%E4%B8%8E%E5%9C%B0%E7%90%86">地形与地理</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近一个小伙伴给我发了一个数据集，是 2001 年到 2018 年所有上市公司的经纬度数据。她想知道每个公司所处的省份，我就帮她计算了一下。之前我讲解过使用 R 语言的解决办法，但是她表示不会 R 语言，所以这次课程的结尾也有 Stata 的解决办法。</p>
+<span id="more"></span>
+
+<p>另外除了本文讲解的方法，还可以使用调用高德地图地理逆编码接口的方法，大家感兴趣的话可以自行尝试，可以参考之前的调用高德地图地理编码接口的方法。</p>
+<h2 id="R-语言：sf-包" class="article-heading"><a href="#R-语言：sf-包" class="headerlink" title="R 语言：sf 包"></a>R 语言：sf 包<a class="article-anchor" href="#R-语言：sf-包" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先我们先把加载相关的 R 包、设定绘图主题和读取一份中国省份地图数据，读入之后将坐标系转换为 laea 坐标系：</p>
+<blockquote>
+<p>注意代码里面的 cnfont 是我在 Profile 里面配置的代码，如果没有配置可以删除相关参数或者根据「R 数据科学」系列课程的第一课进行配置。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>readxl<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggtext<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设定绘图主题</span></span><br><span class="line">source<span class="punctuation">(</span><span class="string">&quot;theme.R&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 由于在地理计算中各个对象的坐标参考系需要保持一致，所以统一使用下面的坐标参考系</span></span><br><span class="line">crs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=laea +lat_0=23 +lon_0=113 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取一份中国省级地图数据</span></span><br><span class="line">cnmap <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&#x27;2019行政区划SHP/省.shp&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs <span class="operator">=</span> crs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">0.02</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 cnmap 的 crs</span></span><br><span class="line">st_crs<span class="punctuation">(</span>cnmap<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Coordinate Reference System:</span></span><br><span class="line"><span class="comment">#&gt;   User input: +proj=laea +lat_0=23 +lon_0=113 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs</span></span><br><span class="line"><span class="comment">#&gt;   wkt:</span></span><br><span class="line"><span class="comment">#&gt; PROJCRS[&quot;unknown&quot;,</span></span><br><span class="line"><span class="comment">#&gt;     BASEGEOGCRS[&quot;unknown&quot;,</span></span><br><span class="line"><span class="comment">#&gt;         DATUM[&quot;Unknown based on GRS80 ellipsoid&quot;,</span></span><br><span class="line"><span class="comment">#&gt; ......</span></span><br><span class="line"><span class="comment">#&gt;                 ID[&quot;EPSG&quot;,9001]]]]</span></span><br><span class="line"></span><br><span class="line">st_crs<span class="punctuation">(</span>cnmap<span class="punctuation">)</span><span class="operator">$</span>proj4string</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [1] &quot;+proj=laea +lat_0=23 +lon_0=113 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>theme.R</code> 的文件内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">theme_set(</span><br><span class="line">  theme_minimal(base_family = cnfont) +</span><br><span class="line">    theme(</span><br><span class="line">      plot.background = element_rect(fill = &quot;white&quot;,</span><br><span class="line">                                     color = &quot;grey50&quot;,</span><br><span class="line">                                     size = 3),</span><br><span class="line">      panel.background = element_rect(fill = &quot;#cbe6f0&quot;, color = &quot;#cbe6f0&quot;),</span><br><span class="line">      axis.text = element_blank(),</span><br><span class="line">      axis.title = element_blank(),</span><br><span class="line">      axis.ticks = element_blank(),</span><br><span class="line">      legend.text = element_markdown(size = 13,</span><br><span class="line">                                     color = &quot;grey50&quot;),</span><br><span class="line">      plot.title = element_text(size = 24,</span><br><span class="line">                                color = &quot;grey50&quot;,</span><br><span class="line">                                face = &quot;bold&quot;,</span><br><span class="line">                                hjust = 0.5,</span><br><span class="line">                                margin = margin(0, 0, 10, 0)),</span><br><span class="line">      plot.subtitle = element_text(size = 12,</span><br><span class="line">                                   color = &quot;grey50&quot;,</span><br><span class="line">                                   face = &quot;bold&quot;,</span><br><span class="line">                                   hjust = 0.5,</span><br><span class="line">                                   margin = margin(0, 0, 10, 0)),</span><br><span class="line">      plot.caption = element_text(size = 10,</span><br><span class="line">                                  color = &quot;grey50&quot;,</span><br><span class="line">                                  hjust = 0.5),</span><br><span class="line">      plot.margin = margin(30, 30, 30, 30),</span><br><span class="line">      panel.grid = element_line(color = &quot;grey95&quot;)</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>最新版本的 sf 包在打印 crs 的时候采用上面的形式，不过对 crs 的设置依然支持 proj4strings（也就是这个：<code>+proj=laea +lat_0=23 +lon_0=113 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs</code>）。</p>
+<p>再读取待处理的上市公司经纬度数据以及将这个数据转换成和 cnmap 同样 crs 的 sf 对象：</p>
+<blockquote>
+<p>st_transform() 是用来进行投影转换的，进行地理计算的时候，各对象的 crs 要保持一致。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取九段线的数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;九段线.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> jdx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取待处理的数据以及将这个数据转换成和 cnmap 同样 crs 的 sf 对象</span></span><br><span class="line">read_xlsx<span class="punctuation">(</span><span class="string">&#x27;geo.xlsx&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>lng<span class="punctuation">)</span><span class="punctuation">,</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>lat<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;lng&quot;</span><span class="punctuation">,</span> <span class="string">&quot;lat&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 39166 features and 2 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: POINT</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 18.32654 ymin: 18.21693 xmax: 132.9816 ymax: 132.9816</span></span><br><span class="line"><span class="comment">#&gt; Geodetic CRS:  WGS 84</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 39,166 x 3</span></span><br><span class="line"><span class="comment">#&gt;     code  year            geometry</span></span><br><span class="line"><span class="comment">#&gt;  * &lt;dbl&gt; &lt;dbl&gt;         &lt;POINT [°]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     1  2013 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  2     1  2014 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  3     1  2015 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  4     1  2000  (114.1157 22.5424)</span></span><br><span class="line"><span class="comment">#&gt;  5     1  2003 (114.1253 22.53967)</span></span><br><span class="line"><span class="comment">#&gt;  6     1  2004 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  7     1  2005 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  8     1  2006 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt;  9     1  2007 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt; 10     1  2008 (114.1077 22.54068)</span></span><br><span class="line"><span class="comment">#&gt; # … with 39,156 more rows</span></span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以进行省份归类啦，需要注意，进行地理计算的时候，各个 sf 对象应该是同一 crs 的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>cnmap<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 37616 features and 5 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: POINT</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 1207495 ymin: 2685282 xmax: 5890910 ymax: 6124680</span></span><br><span class="line"><span class="comment">#&gt; CRS:           +proj=laea +lat_0=23 +lon_0=113 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 37,616 x 6</span></span><br><span class="line"><span class="comment">#&gt;     code  year 省代码 省     类型            geometry</span></span><br><span class="line"><span class="comment">#&gt;  * &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;        &lt;POINT [m]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     8  2015 110000 北京市 直辖市 (4610367 5085602)</span></span><br><span class="line"><span class="comment">#&gt;  2     8  2016 110000 北京市 直辖市 (4610367 5085602)</span></span><br><span class="line"><span class="comment">#&gt;  3     8  2017 110000 北京市 直辖市 (4610367 5085602)</span></span><br><span class="line"><span class="comment">#&gt;  4    10  2010 110000 北京市 直辖市 (4577116 5139321)</span></span><br><span class="line"><span class="comment">#&gt;  5    10  2011 110000 北京市 直辖市 (4577116 5139321)</span></span><br><span class="line"><span class="comment">#&gt;  6    10  2013 110000 北京市 直辖市 (4610763 5084248)</span></span><br><span class="line"><span class="comment">#&gt;  7    10  2012 110000 北京市 直辖市 (4610763 5084248)</span></span><br><span class="line"><span class="comment">#&gt;  8    10  2015 110000 北京市 直辖市 (4610763 5084248)</span></span><br><span class="line"><span class="comment">#&gt;  9    10  2014 110000 北京市 直辖市 (4610763 5084248)</span></span><br><span class="line"><span class="comment">#&gt; 10    18  2015 110000 北京市 直辖市 (4625515 5068770)</span></span><br><span class="line"><span class="comment">#&gt; # … with 37,606 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>绘图展示：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> cnmap<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;gray90&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> jdx<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.4</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>df<span class="punctuation">,</span> year <span class="operator">==</span> <span class="number">2018</span><span class="punctuation">)</span><span class="punctuation">,</span> aes<span class="punctuation">(</span>color <span class="operator">=</span> 省<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          shape <span class="operator">=</span> <span class="number">15</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.8</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#D7BA9F&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#800080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1C3181&quot;</span><span class="punctuation">,</span>  <span class="string">&quot;#1BB6AF&quot;</span><span class="punctuation">,</span>  <span class="string">&quot;#FFAD0A&quot;</span><span class="punctuation">,</span>  <span class="string">&quot;#EE6100&quot;</span><span class="punctuation">,</span>  <span class="string">&quot;#D72000&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">5</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中国上市公司的分布&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       color <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;根据上市公司的经纬度判断所处的省份，然后绘图展示。&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;right&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> guide_legend<span class="punctuation">(</span>nrow <span class="operator">=</span> <span class="number">28</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span></span><br><span class="line">    width_hint <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">    text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">    pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span> which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.6</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">2</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic1.png&quot;</span><span class="punctuation">,</span> plot <span class="operator">=</span> p<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">18</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">9</span><span class="punctuation">)</span></span><br><span class="line">knitr<span class="operator">::</span>plot_crop<span class="punctuation">(</span><span class="string">&#x27;pic1.png&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>pic1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210728142347.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>是不是觉得绘图区域有点窄？可以使用下面的方法调整：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看 cnmap 的 bbox</span><br><span class="line">st_bbox(cnmap)</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以根据 xmin 和 xmax 设定绘图区域了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">p <span class="operator">+</span></span><br><span class="line">  coord_sf<span class="punctuation">(</span>xlim <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">985595.1</span><span class="punctuation">,</span> <span class="number">5976026.9</span><span class="punctuation">)</span> <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="operator">-</span><span class="number">80</span><span class="punctuation">,</span> <span class="number">80</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="number">10000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p1</span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic2.png&quot;</span><span class="punctuation">,</span> plot <span class="operator">=</span> p1<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">18</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">9</span><span class="punctuation">)</span></span><br><span class="line">knitr<span class="operator">::</span>plot_crop<span class="punctuation">(</span><span class="string">&#x27;pic2.png&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>pic2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210728142400.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后选择我们需要的几个变量保存即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 保存数据</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>code<span class="punctuation">,</span> year<span class="punctuation">,</span> 省<span class="punctuation">,</span> 省代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;省份归类.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>再例如深圳各个区的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 再例如深圳各个区的</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2019行政区划SHP/县.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  subset<span class="punctuation">(</span>市 <span class="operator">==</span> <span class="string">&quot;深圳市&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs<span class="punctuation">)</span> <span class="operator">-&gt;</span> sz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取出深圳市的上市公司</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>sz<span class="punctuation">)</span> <span class="operator">-&gt;</span> szdf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘图展示</span></span><br><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> sz<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;gray90&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>szdf<span class="punctuation">,</span> year <span class="operator">==</span> <span class="number">2018</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> NAME<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          shape <span class="operator">=</span> <span class="number">15</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.8</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#fed439&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8a9197&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d2af81&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#fd7446&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d5e4a2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#197ec0&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#f05c3b&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#46732e&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;深圳上市公司的分布&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       color <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;根据上市公司的经纬度判断所处的省份，然后绘图展示。&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;right&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> guide_legend<span class="punctuation">(</span>nrow <span class="operator">=</span> <span class="number">28</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span></span><br><span class="line">    width_hint <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">    text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">    pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span> which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.6</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">2</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> p2</span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic3.png&quot;</span><span class="punctuation">,</span> plot <span class="operator">=</span> p2<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">16</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">9</span><span class="punctuation">)</span></span><br><span class="line">knitr<span class="operator">::</span>plot_crop<span class="punctuation">(</span><span class="string">&#x27;pic3.png&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>pic3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210728142433.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后就可以选择想要的变量保存了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 保存</span></span><br><span class="line">szdf <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>code<span class="punctuation">,</span> year<span class="punctuation">,</span> 县代码 <span class="operator">=</span> PAC<span class="punctuation">,</span> 县 <span class="operator">=</span> NAME<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>city <span class="operator">=</span> <span class="string">&quot;深圳&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;深圳的上市公司.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="R-语言：使用我们编写的一个小-Shiny-应用" class="article-heading"><a href="#R-语言：使用我们编写的一个小-Shiny-应用" class="headerlink" title="R 语言：使用我们编写的一个小 Shiny 应用"></a>R 语言：使用我们编写的一个小 Shiny 应用<a class="article-anchor" href="#R-语言：使用我们编写的一个小-Shiny-应用" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了方便大家把经纬度解析成省市区县，我们编写了一个 Shiny 应用，可以使用下面两种方式运行：</p>
+<ol>
+<li>在线：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://czxb.shinyapps.io/lonlat2county/">https://czxb.shinyapps.io/lonlat2county/</a></li>
+<li>本地：shiny::runApp(“lonlat2county”)</li>
+</ol>
+<p>为了让这个 shiny 应用足够简单，所以没有设计太多复杂的功能，就是上传一个 csv 文件、运行、下载结果数据（复杂的功能往往会导致运行很慢）。</p>
+<p>首先准备 csv 文件：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 准备数据</span></span><br><span class="line"><span class="comment"># 我们需要准备一个 csv 文件，这个文件应该包含数值型的 lon lat 变量，不能有缺失值：</span></span><br><span class="line">read_xlsx<span class="punctuation">(</span><span class="string">&#x27;geo.xlsx&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>lng<span class="punctuation">)</span><span class="punctuation">,</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>lat<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>lon <span class="operator">=</span> lng<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">1000</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  write_csv<span class="punctuation">(</span><span class="string">&quot;temp.csv&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后运行 shiny app：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">shiny<span class="operator">::</span>runApp<span class="punctuation">(</span><span class="string">&quot;lonlat2county&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>选择刚刚保存的 “temp.csv” 文件然后耐心等待界面右侧出现预览结果即可下载（可能要等数分钟）</p>
+<table>
+<thead>
+<tr>
+<th>这个时候再下载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210728142442.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>如果使用 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://czxb.shinyapps.io/lonlat2county/">https://czxb.shinyapps.io/lonlat2county/</a> 网站进行解析，建议每次不要解析超过 1 万个观测值，否则网站可能会崩溃。</p>
+<p>结果如下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_csv<span class="punctuation">(</span><span class="string">&quot;结果数据.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 962 x 11</span></span><br><span class="line"><span class="comment">#&gt;      lon   lat  code  year 县代码 县     省代码 省     市代码 市     类型</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  116.  39.9    46  2010 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  2  116.  39.9    46  2011 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  3  116.  39.9    46  2013 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  4  116.  39.9    46  2012 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  5  116.  39.9    46  2014 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  6  116.  39.9    46  2015 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  7  116.  39.9    46  2016 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  8  116.  39.9    46  2017 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt;  9  116.  39.9    46  2018 110101 东城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt; 10  116.  39.9     8  2015 110102 西城区 110000 北京市 110000 北京市 市辖区</span></span><br><span class="line"><span class="comment">#&gt; # … with 952 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Stata：如何使用-lonlat2county-应用？" class="article-heading"><a href="#Stata：如何使用-lonlat2county-应用？" class="headerlink" title="Stata：如何使用 lonlat2county 应用？"></a>Stata：如何使用 lonlat2county 应用？<a class="article-anchor" href="#Stata：如何使用-lonlat2county-应用？" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先对数据进行初步的处理：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/如何根据经纬度判断该地点所处的省份？&quot;</span></span><br><span class="line">import excel using <span class="string">&quot;geo.xlsx&quot;</span>, <span class="keyword">clear</span> first</span><br><span class="line"><span class="keyword">ren</span> lng lon</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(lon) | <span class="built_in">missing</span>(lat)</span><br><span class="line"><span class="comment">* 使用前 1000 个演示</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">in</span> 1/1000</span><br><span class="line">export delimited using <span class="string">&quot;temp2.csv&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>打开网站：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://czxb.shinyapps.io/lonlat2county/">https://czxb.shinyapps.io/lonlat2county/</a></p>
+<blockquote>
+<p>网站打开较慢，耐心等待即可。</p>
+</blockquote>
+<p>上传刚刚保存的 temp2.csv 文件，然后耐心等待界面右侧出现预览结果即可下载（可能要等数分钟）。建议每次不要解析超过 1 万个观测值，否则网站可能会崩溃。</p>
+<table>
+<thead>
+<tr>
+<th>这个时候再下载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210728142442.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>查看结果数据:</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using <span class="string">&quot;结果数据.csv&quot;</span>, <span class="keyword">clear</span> encoding(utf8)</span><br></pre></td></tr></table></figure>
+
+<p>也就是把解析的过程用这个 Shiny 应用完成，其它的都可以用 Stata 处理。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/5718f2c42ac047e1950d4e7630c6a344">如何根据经纬度判断该地点所处的省市区县？也有 Stata 的解决办法</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:53.328Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/47625/" title="中国各城市空气质量面板数据（2014-05-13～2023-07-22）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/85897/" title="1980 ～ 2020 年中国各省、各市、各区县分年、分月、逐日平均风速数据（气象资料日值数据集来源）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/94957/">如何计算区县质心的地理距离：R 语言和 Stata 的对比使用</a><span class="tf-related-meta">2024-04-13 · 约 5 分钟</span></li><li><a href="/posts/57142/">使用 Stata 绘制中国乡镇地图及根据经纬度判断所处的乡镇</a><span class="tf-related-meta">2024-03-18 · 约 5 分钟</span></li><li><a href="/posts/61630/">使用 Stata 绘制长三角城市群高程地图</a><span class="tf-related-meta">2024-02-24 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#R-%E8%AF%AD%E8%A8%80%EF%BC%9Asf-%E5%8C%85"><span class="toc-text">R 语言：sf 包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#R-%E8%AF%AD%E8%A8%80%EF%BC%9A%E4%BD%BF%E7%94%A8%E6%88%91%E4%BB%AC%E7%BC%96%E5%86%99%E7%9A%84%E4%B8%80%E4%B8%AA%E5%B0%8F-Shiny-%E5%BA%94%E7%94%A8"><span class="toc-text">R 语言：使用我们编写的一个小 Shiny 应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stata%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8-lonlat2county-%E5%BA%94%E7%94%A8%EF%BC%9F"><span class="toc-text">Stata：如何使用 lonlat2county 应用？</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

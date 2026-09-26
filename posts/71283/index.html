@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>2010～2023 年各省市区县平均动态生境指数面板数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/71283/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享一份 2010～2023 年各省市区县平均动态生境指数面板数据。该数据基于中国 500m 分辨率动态生境指数（DHI）栅格数据集处理得到，使用 R 语言的 terra 包按 2021 年行政区划（省 &#x2F; 市 &#x2F; 县）分区统计汇总为三级面板数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2010～2023 年各省市区县平均动态生境指数面板数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/71283/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享一份 2010～2023 年各省市区县平均动态生境指数面板数据。该数据基于中国 500m 分辨率动态生境指数（DHI）栅格数据集处理得到，使用 R 语言的 terra 包按 2021 年行政区划（省 &#x2F; 市 &#x2F; 县）分区统计汇总为三级面板数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/71283.png">
+<meta property="article:published_time" content="2026-09-11T10:04:44.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:36.177Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="面板数据">
+<meta property="article:tag" content="生态环境">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/71283.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="2010～2023 年各省市区县平均动态生境指数面板数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"2010～2023 年各省市区县平均动态生境指数面板数据","description":"今天给大家分享一份 2010～2023 年各省市区县平均动态生境指数面板数据。该数据基于中国 500m 分辨率动态生境指数（DHI）栅格数据集处理得到，使用 R 语言的 terra 包按 2021 年行政区划（省 / 市 / 县）分区统计汇总为三级面板数据。","url":"https://tidyfriday.cn/posts/71283/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/71283/"},"image":["https://tidyfriday.cn/og/71283.png"],"datePublished":"2026-09-11T10:04:44.000Z","dateModified":"2026-09-26T14:18:36.177Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"面板数据, 生态环境","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"2010～2023 年各省市区县平均动态生境指数面板数据","item":"https://tidyfriday.cn/posts/71283/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">2010～2023 年各省市区县平均动态生境指数面板数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">2010～2023 年各省市区县平均动态生境指数面板数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-09-11T10:04:44.000Z" itemprop="datePublished">2026-09-11</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2216 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E9%9D%A2%E6%9D%BF%E6%95%B0%E6%8D%AE">面板数据</a><a href="/tags/#tag=%E7%94%9F%E6%80%81%E7%8E%AF%E5%A2%83">生态环境</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享一份 <code>2010～2023 年各省市区县平均动态生境指数面板数据</code>。该数据基于中国 500m 分辨率动态生境指数（DHI）栅格数据集处理得到，使用 R 语言的 terra 包按 2021 年行政区划（省 / 市 / 县）分区统计汇总为三级面板数据。</p>
+<span id="more"></span>
+
+<h2 id="数据来源与处理方法" class="article-heading"><a href="#数据来源与处理方法" class="headerlink" title="数据来源与处理方法"></a>数据来源与处理方法<a class="article-anchor" href="#数据来源与处理方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>动态生境指数（Dynamic Habitat Indices, DHIs）从<strong>可用能量、环境稳定性、环境压力</strong>三个方面刻画生境生产力的年内物候特征，与生物多样性密切相关。本数据使用的原始栅格数据来自段昊玮等（2026）发表在《生态学报》上的《中国陆地生态系统动态生境指数格局及时空动态分析》一文所构建的数据集，其处理流程为：</p>
+<ol>
+<li>基于 Google Earth Engine 平台获取 PML_V2_v0.1.8 蒸散发产品反演的 2010—2023 年全国总初级生产力（GPP）数据集，空间分辨率 500m，Albers 等积投影；</li>
+<li>逐 8 天中位数合成月度 GPP，再计算逐年的三个动态生境指数（已排除沙漠、永久冰雪覆盖、水体等无生产力区域）；</li>
+<li>该文的研究结论显示：空间上我国东南沿海向西北内陆累积生产力逐步递减、环境压力增加，东南沿海环境稳定性高于西北内陆；14 年间全国 58.49% 的地区 DHIcum 呈上升趋势。</li>
+</ol>
+<p>在上述栅格数据的基础上，本数据所做的处理为<strong>分区域汇总</strong>：以 2021 年行政区划（省 / 市 / 县三级）为面要素，提取落入面要素范围内全部有效像元的算术平均值。需要注意：</p>
+<ul>
+<li>省 / 市 / 县三级是各自独立提取的（分别用对应层级的面要素直接统计），因此市级、省级结果是真实的像元加权均值，而不是由县级结果简单平均得到；</li>
+<li>统计口径为像元中心点落入面要素（exact = FALSE），区域面积过小（如部分市辖区）时可能没有任何像元中心点落入，结果记为缺失值 NA；</li>
+<li>原始栅格中被排除的沙漠、永久冰雪、水体等无生产力区域同样为缺失值。</li>
+</ul>
+<h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了方便大家使用，我把栅格数据汇总成了省、市、县三级的 2010～2023 年平衡面板数据，包含 3 个指标：<code>DHIcum</code>（累计动态生境指数，年内 GPP 累积量）、<code>DHImin</code>（最小动态生境指数，年内 GPP 最小值）、<code>DHIvar</code>（动态生境指数变异度，年内 GPP 变异程度）。</p>
+<p>三个文件的规模如下：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>观测值行数</th>
+<th>区域单元数</th>
+<th>时间范围</th>
+<th>缺失观测数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2010～2023 年各省份平均动态生境指数.dta</td>
+<td>476</td>
+<td>34 个省份</td>
+<td>2010～2023 年</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2010～2023 年各城市平均动态生境指数.dta</td>
+<td>5,194</td>
+<td>371 个城市</td>
+<td>2010～2023 年</td>
+<td>14</td>
+</tr>
+<tr>
+<td>2010～2023 年各区县平均动态生境指数.dta</td>
+<td>40,278</td>
+<td>2,877 个区县</td>
+<td>2010～2023 年</td>
+<td>238</td>
+</tr>
+</tbody></table>
+<p>变量说明：</p>
+<ul>
+<li>县级文件：省 省代码 市 市代码 县 县代码 年份 DHIcum DHImin DHIvar</li>
+<li>市级文件：省 省代码 市 市代码 年份 DHIcum DHImin DHIvar</li>
+<li>省级文件：省 省代码 年份 DHIcum DHImin DHIvar</li>
+</ul>
+<p>缺失值含义：该年份该区域内没有落入任何有效像元（无生产力区域，或区域过小无像元中心点落入），例如北京市东城区这类面积较小的中心城区各年份均为缺失。</p>
+<p>在用途上，DHIs 在生态环境质量监测、生物多样性管理与评估中具有不同的侧重和互补的重要意义；这类县域面板数据也可直接用于区域层面的实证分析，例如参考文献中以中国光伏扶贫项目为准自然实验、基于 2010—2024 年全国县域面板数据采用多时点双重差分模型评估光伏项目建设对县域生物多样性影响的研究。</p>
+<p>数据预览如下（依次为区县、城市、省份三级）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092098169_669589.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092097799_329336.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092097395_778129.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下图展示了 2023 年各省份累计动态生境指数（DHIcum）的分布：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092091378_724927.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下图展示了 2023 年各区县动态生境指数变异度（DHIvar）的分布：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092091785_662958.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下图展示了 2010—2023 年三个 DHI 指标的时间趋势（灰色细线为各省份，红色粗线为全国均值，蓝色虚线为全国均值的 OLS 线性趋势，左上角标注了年均变化量）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092092411_891322.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下图展示了 2023 年县级 DHIcum 与 DHIvar 的关系（散点按 DHImin 着色，并给出 OLS 拟合线、R² 与 Pearson 相关系数）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092093333_228673.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="处理代码" class="article-heading"><a href="#处理代码" class="headerlink" title="处理代码"></a>处理代码<a class="article-anchor" href="#处理代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>汇总过程使用 R 语言的 <code>terra</code>、<code>sf</code>、<code>tidyverse</code>、<code>haven</code> 包完成：先把同一年份的 3 个指标合并为一个三波段 SpatRaster 一次读入，再对省 / 市 / 县三组面要素分别做分区统计，最后加上变量标签写出 Stata 15 格式的 dta 文件。关键代码如下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span>; library<span class="punctuation">(</span>terra<span class="punctuation">)</span>; library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span>; library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 逐年分区统计：三个指标合成一个三波段栅格，一次读入同时提取</span></span><br><span class="line"><span class="keyword">for</span> <span class="punctuation">(</span>y <span class="keyword">in</span> years<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  r <span class="operator">&lt;-</span> rast<span class="punctuation">(</span>sapply<span class="punctuation">(</span>dhi_vars<span class="punctuation">,</span> dhi_path<span class="punctuation">,</span> y <span class="operator">=</span> y<span class="punctuation">)</span><span class="punctuation">)</span>   <span class="comment"># DHIcum / DHImin / DHIvar</span></span><br><span class="line">  <span class="built_in">names</span><span class="punctuation">(</span>r<span class="punctuation">)</span> <span class="operator">&lt;-</span> dhi_vars</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> <span class="punctuation">(</span>lv <span class="keyword">in</span> <span class="built_in">names</span><span class="punctuation">(</span>levels_def<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    ld <span class="operator">&lt;-</span> levels_def<span class="punctuation">[[</span>lv<span class="punctuation">]</span><span class="punctuation">]</span></span><br><span class="line">    <span class="comment"># 以像元中心点落入面要素统计区域内有效像元的算术均值</span></span><br><span class="line">    e  <span class="operator">&lt;-</span> terra<span class="operator">::</span>extract<span class="punctuation">(</span>r<span class="punctuation">,</span> ld<span class="operator">$</span>v<span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span> ID <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span></span><br><span class="line">                         exact <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line">    <span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>e<span class="punctuation">)</span> <span class="operator">!=</span> nrow<span class="punctuation">(</span>ld<span class="operator">$</span>key<span class="punctuation">)</span><span class="punctuation">)</span> stop<span class="punctuation">(</span><span class="string">&quot;提取结果与要素数量不一致：&quot;</span><span class="punctuation">,</span> lv<span class="punctuation">,</span> <span class="string">&quot; &quot;</span><span class="punctuation">,</span> y<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    res_list<span class="punctuation">[[</span><span class="built_in">length</span><span class="punctuation">(</span>res_list<span class="punctuation">)</span> <span class="operator">+</span> <span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> bind_cols<span class="punctuation">(</span>ld<span class="operator">$</span>key<span class="punctuation">,</span> as_tibble<span class="punctuation">(</span>e<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">|&gt;</span></span><br><span class="line">      mutate<span class="punctuation">(</span>年份 <span class="operator">=</span> y<span class="punctuation">,</span> 层级 <span class="operator">=</span> lv<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line">  rm<span class="punctuation">(</span>r<span class="punctuation">)</span>; <span class="built_in">invisible</span><span class="punctuation">(</span>gc<span class="punctuation">(</span>verbose <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># NaN 统一转为 NA，然后拆分为省 / 市 / 县三个数据集</span></span><br><span class="line">res_all <span class="operator">&lt;-</span> bind_rows<span class="punctuation">(</span>res_list<span class="punctuation">)</span> <span class="operator">|&gt;</span></span><br><span class="line">  mutate<span class="punctuation">(</span>across<span class="punctuation">(</span>all_of<span class="punctuation">(</span>dhi_vars<span class="punctuation">)</span><span class="punctuation">,</span> <span class="operator">~</span> ifelse<span class="punctuation">(</span><span class="built_in">is.nan</span><span class="punctuation">(</span>.x<span class="punctuation">)</span><span class="punctuation">,</span> <span class="literal">NA_real_</span><span class="punctuation">,</span> .x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         年份 <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>年份<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 加变量标签并写出 dta（Stata 15 格式）</span></span><br><span class="line">write_dta<span class="punctuation">(</span>add_var_labels<span class="punctuation">(</span>df_cnty<span class="punctuation">)</span><span class="punctuation">,</span> f_cnty<span class="punctuation">,</span> version <span class="operator">=</span> <span class="number">15</span><span class="punctuation">,</span></span><br><span class="line">          label <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>图表绘制使用 <code>ggplot2</code> + <code>sf</code> 完成，地图底图来自 2021 年行政区划 mini 版，配色使用 ColorBrewer 的 YlGnBu / YlOrRd 色带，并添加了比例尺与指北针：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 按分位数分组 + 生成配色（含“无数据”灰色组）</span></span><br><span class="line">make_breaks <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">,</span> n <span class="operator">=</span> <span class="number">6</span><span class="punctuation">,</span> digits <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  qs   <span class="operator">&lt;-</span> unique<span class="punctuation">(</span>quantile<span class="punctuation">(</span>x<span class="punctuation">,</span> probs <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> length.out <span class="operator">=</span> n <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  n2   <span class="operator">&lt;-</span> <span class="built_in">length</span><span class="punctuation">(</span>qs<span class="punctuation">)</span> <span class="operator">-</span> <span class="number">1</span></span><br><span class="line">  labs <span class="operator">&lt;-</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s ~ %s&quot;</span><span class="punctuation">,</span></span><br><span class="line">                  sprintf<span class="punctuation">(</span><span class="string">&quot;%.3f&quot;</span><span class="punctuation">,</span> qs<span class="punctuation">[</span><span class="number">1</span><span class="operator">:</span>n2<span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%.3f&quot;</span><span class="punctuation">,</span> qs<span class="punctuation">[</span><span class="number">2</span><span class="operator">:</span><span class="punctuation">(</span>n2 <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  g <span class="operator">&lt;-</span> <span class="built_in">as.character</span><span class="punctuation">(</span>cut<span class="punctuation">(</span>x<span class="punctuation">,</span> breaks <span class="operator">=</span> qs<span class="punctuation">,</span> include.lowest <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span> labels <span class="operator">=</span> labs<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  g<span class="punctuation">[</span><span class="built_in">is.na</span><span class="punctuation">(</span>g<span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="built_in">is.na</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="string">&quot;无数据&quot;</span>     <span class="comment"># NA 归为“无数据”组，配色为灰色</span></span><br><span class="line">  factor<span class="punctuation">(</span>g<span class="punctuation">,</span> levels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span>labs<span class="punctuation">,</span> <span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">any</span><span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="string">&quot;无数据&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">ggplot<span class="punctuation">(</span>provmap_data<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> plotbbox<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#BBD1EB&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> DHIcum_g<span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;grey30&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.15</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> china_neighboring<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#EDEDED&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;grey70&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_manual<span class="punctuation">(</span>name <span class="operator">=</span> <span class="string">&quot;2023 年 DHIcum&quot;</span><span class="punctuation">,</span> values <span class="operator">=</span> pal1<span class="punctuation">,</span> na.value <span class="operator">=</span> <span class="string">&quot;grey85&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    drop <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span> width_hint <span class="operator">=</span> <span class="number">0.25</span><span class="punctuation">,</span> text_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span> which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span>text_family <span class="operator">=</span> cnfont<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;2023 年中国各省份累计动态生境指数（DHIcum）&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据处理&amp;绘制：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：RStata 数据中心: 2010～2023 年各省市区县平均动态生境指数面板数据. 2026. https://tidyfriday.cn/rsdb2/&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p1</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;picdir/图1_2023年各省份累计动态生境指数DHIcum分布.png&quot;</span><span class="punctuation">,</span></span><br><span class="line">       plot <span class="operator">=</span> p1<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">8</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">,</span> bg <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>附件中也提供了该数据的处理代码供参考：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/11/10/02b79j1bdbe1b168g4/common/content/1789092085056_413275.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="数据引用格式" class="article-heading"><a href="#数据引用格式" class="headerlink" title="数据引用格式"></a>数据引用格式<a class="article-anchor" href="#数据引用格式" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于该数据包含较多 RStata 处理的内容，在研究中使用该数据请使用清晰的方式注明数据来源于 <code>RStata</code> 或者 <code>RStata 数据中心</code>，并使用如下格式引用：</p>
+<blockquote>
+<p>RStata 数据中心: 2010～2023 年各省市区县平均动态生境指数面板数据. 2026. <a href="https://tidyfriday.cn/rsdb2/">https://tidyfriday.cn/rsdb2/</a></p>
+</blockquote>
+<p>英文文献可以使用下面的格式引用：</p>
+<blockquote>
+<p>RStata Data Center: Panel Data on Average Dynamic Habitat Indices (DHI) across Provinces, Cities, and Districts/Counties in China, 2010–2023. 2026. <a href="https://tidyfriday.cn/rsdb2/">https://tidyfriday.cn/rsdb2/</a></p>
+</blockquote>
+<p>原始栅格数据集的参考文献：</p>
+<blockquote>
+<p>段昊玮, 杨莹莹, 万华伟, 等. 中国陆地生态系统动态生境指数格局及时空动态分析[J]. 生态学报, 2026, 46(2): 691-704. DOI: 10.20103/j.stxb.202505191229</p>
+</blockquote>
+<h2 id="关联课程-数据推荐" class="article-heading"><a href="#关联课程-数据推荐" class="headerlink" title="关联课程/数据推荐"></a>关联课程/数据推荐<a class="article-anchor" href="#关联课程-数据推荐" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>1985～2025 年各城市核心绿色生境景观破碎化指标面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bdfd89c258af4b2bad8d9e73b75d2176">https://rstata.duanshu.com/#/course/bdfd89c258af4b2bad8d9e73b75d2176</a></p>
+<p>2001～2023 年中国各省市区县生态环境质量面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/865c987f170c4bc48debe58c610fdd7a">https://rstata.duanshu.com/#/course/865c987f170c4bc48debe58c610fdd7a</a></p>
+<p>2000 年 2 月～2024 年 12 月各省市区县平均植被覆盖度：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8da9d36689d6465896ce298a77c34156">https://rstata.duanshu.com/#/course/8da9d36689d6465896ce298a77c34156</a></p>
+<p>RStata 定制｜栅格数据转面板数据或时间序列数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/839afebb01d54457b42b94e87e7dc085">https://rstata.duanshu.com/#/course/839afebb01d54457b42b94e87e7dc085</a></p>
+<p>如何将栅格数据处理成面板数据或时间序列数据？以 PM2.5 浓度数据处理为例（含并行计算内容）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/109dfcdfd1174d1eb2d00c621df4f047">https://rstata.duanshu.com/#/course/109dfcdfd1174d1eb2d00c621df4f047</a></p>
+</blockquote>
+<p>如果有相关需要可以联系李老师付费定制。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fdc89bc93b3c4056833932a783122e59">2010～2023 年各省市区县平均动态生境指数面板数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:36.177Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/88113/" title="2001～2025 年各省市区县月度与年度NDVI面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/41074/" title="2007～2020 年税调企业周边的卫星反演年度污染物数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/63080/">2001～2025 年上市公司周边的 NDVI 面板数据</a><span class="tf-related-meta">2026-09-13 · 约 6 分钟</span></li><li><a href="/posts/38228/">1992～2025 年各省市区县乡镇类 NPP-VIIRS 夜间灯光面板数据 &amp; 栅格数据（余柏蒗版本2）</a><span class="tf-related-meta">2026-09-13 · 约 3 分钟</span></li><li><a href="/posts/88113/">2001～2025 年各省市区县月度与年度NDVI面板数据</a><span class="tf-related-meta">2026-09-11 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="toc-text">数据来源与处理方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%A6%82%E8%A7%88"><span class="toc-text">数据概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%BE%E8%A1%A8%E5%B1%95%E7%A4%BA"><span class="toc-text">图表展示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E4%BB%A3%E7%A0%81"><span class="toc-text">处理代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BC%95%E7%94%A8%E6%A0%BC%E5%BC%8F"><span class="toc-text">数据引用格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E8%AF%BE%E7%A8%8B-%E6%95%B0%E6%8D%AE%E6%8E%A8%E8%8D%90"><span class="toc-text">关联课程&#x2F;数据推荐</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

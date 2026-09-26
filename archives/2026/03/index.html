@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>文章归档 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/archives/2026/03/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="一起来学习 R 语言和 Stata 吧！">
+<meta property="og:type" content="website">
+<meta property="og:title" content="文章归档">
+<meta property="og:url" content="https://tidyfriday.cn/archives/2026/03/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="一起来学习 R 语言和 Stata 吧！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/site.png">
+<meta property="article:author" content="RStata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/site.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="文章归档">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"文章归档","url":"https://tidyfriday.cn/archives/2026/03/","inLanguage":"zh-Hans-CN","isPartOf":{"@type":"WebSite","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"文章归档","item":"https://tidyfriday.cn/archives/2026/03/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+
+<div id="content-wrap">
+  <div class="wrapper">
+    <div class="inner" id="tf-archive">
+
+      <header class="tf-page-head">
+        <h1 class="tf-page-title">文章归档</h1>
+        <p class="tf-page-sub">
+          按年份浏览全部文章，共 49 篇，时间跨度 2026–2026 年。
+          支持关键词检索与排序；点击条目直接进入文章，点击左侧年份可快速定位。
+        </p>
+      </header>
+
+      <div class="tf-stats">
+        <div class="tf-stat">
+          <span class="tf-stat-num">49<small>篇</small></span>
+          <span class="tf-stat-label">文章总数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">5.5 万字</span>
+          <span class="tf-stat-label">累计字数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">184<small>分钟</small></span>
+          <span class="tf-stat-label">预估总阅读时间</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">1118<small>字</small></span>
+          <span class="tf-stat-label">篇均字数</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">3<small>个</small></span>
+          <span class="tf-stat-label">分类数量</span>
+        </div>
+        <div class="tf-stat">
+          <span class="tf-stat-num">25<small>个</small></span>
+          <span class="tf-stat-label">标签数量</span>
+        </div>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">历年发文量
+          <span class="tf-block-extra">2026–2026 年 · 年均 49 篇</span>
+        </h2>
+        <div class="tf-chart"><div class="tf-chart-row" data-year-jump="2026" title="跳转到 2026 年"><span class="tf-chart-year">2026</span><span class="tf-chart-track"><span class="tf-chart-bar" style="width:100%"></span></span><span class="tf-chart-value">49 篇</span></div></div>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">分类分布<span class="tf-block-extra">点击可筛选</span></h2>
+        <ul class="tf-tag-list">
+          
+          <li><button type="button" class="tf-tag" data-fill="数据资料">数据资料<span class="tf-tag-count">44</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="名师讲堂">名师讲堂<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="课程">课程<span class="tf-tag-count">2</span></button></li>
+          
+        </ul>
+      </div>
+
+      <div class="tf-block">
+        <h2 class="tf-block-title">热门标签<span class="tf-block-extra">点击可筛选</span></h2>
+        <ul class="tf-tag-list">
+          
+          <li><button type="button" class="tf-tag" data-fill="面板数据">面板数据<span class="tf-tag-count">32</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="气象">气象<span class="tf-tag-count">12</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="空气质量">空气质量<span class="tf-tag-count">10</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="上市公司">上市公司<span class="tf-tag-count">10</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="数据匹配">数据匹配<span class="tf-tag-count">4</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="专利">专利<span class="tf-tag-count">4</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="创新与知识">创新与知识<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="农业与作物">农业与作物<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="企业数据">企业数据<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="生态环境">生态环境<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="土地">土地<span class="tf-tag-count">3</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="旧版本">旧版本<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="距离与边界">距离与边界<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="人口">人口<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="生活与工具">生活与工具<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="政策与制度">政策与制度<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="R 语言">R 语言<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="Stata">Stata<span class="tf-tag-count">2</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="编程技巧">编程技巧<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="地图">地图<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="可视化与绘图">可视化与绘图<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="能源">能源<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="区域经济">区域经济<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="已失效">已失效<span class="tf-tag-count">1</span></button></li>
+          
+          <li><button type="button" class="tf-tag" data-fill="栅格数据">栅格数据<span class="tf-tag-count">1</span></button></li>
+          
+        </ul>
+      </div>
+
+      <div class="tf-archive-toolbar">
+        <span class="tf-archive-search">
+          <i class="fa fa-search"></i>
+          <input type="search" id="tf-archive-search-input" placeholder="搜索标题、分类、标签或摘要…" autocomplete="off">
+          <button type="button" id="tf-archive-clear" class="tf-archive-clear" aria-label="清空">&#10005;</button>
+        </span>
+        <select id="tf-archive-sort" class="tf-archive-sort" aria-label="排序方式">
+          <option value="date">按时间排序</option>
+          <option value="words">按字数排序</option>
+          <option value="title">按标题排序</option>
+        </select>
+        <span class="tf-archive-count" id="tf-archive-count">共 49 篇</span>
+      </div>
+
+      
+      <section class="tf-year" data-year="2026">
+        <h2 class="tf-year-title">
+          <span class="tf-year-num">2026</span>
+          <span class="tf-year-count" data-base="49 篇 · 5.5 万字 · 约 184 分钟">49 篇 · 5.5 万字 · 约 184 分钟</span>
+        </h2>
+        <ul class="tf-post-list">
+          
+          <li class="tf-post-item" data-title="名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）" data-search="名师讲堂｜使用 stata 测算专利的创新突破度 cd 指数：以上市公司专利数据为例（更新） 名师讲堂 stata 专利 上市公司 创新与知识 上次课程的代码里面计算的时候忽略了”如果某个专利 j 没有引用专利 i 但是引用了其后项引用，则 cd = 0” 的情况，导致计算结果里面 1 和 -1 出现的太多。所以赶紧更正了下。同时本次使用 mata 重写了核心计算函数，大幅提升了运" data-words="3374" data-date="2026-03-30">
+            <a class="tf-post-link" href="/posts/79211/">
+              <span class="tf-post-title">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">名师讲堂</span>
+                <span class="tf-post-date">2026-03-30</span>
+                <span class="tf-post-words">3374 字</span>
+                <span>12 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="使用 WorkBuddy 自己动手开发一款 MacOS 应用～" data-search="使用 workbuddy 自己动手开发一款 macos 应用～ 课程 生活与工具 之前一直使用的是 markdown nice 编写微信推文，不过存在一些不方便的地方，一个是后来 markdown nice 改收费了，免费用户新建文档数量限制，不能直接复制上传图片。二个是 markdown nice 不支持 stata " data-words="953" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/86288/">
+              <span class="tf-post-title">使用 WorkBuddy 自己动手开发一款 MacOS 应用～</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">953 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007～2020 年税调与上市公司参控股公司数据匹配结果" data-search="2007～2020 年税调与上市公司参控股公司数据匹配结果 数据资料 企业数据 上市公司 数据匹配 今天给大家分享一份 2007～2020 年税调与上市公司参控股公司数据匹配结果 。" data-words="1723" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/64789/">
+              <span class="tf-post-title">2007～2020 年税调与上市公司参控股公司数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">1723 字</span>
+                <span>5 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007～2020 年上市公司注册地址与办公地址周边的税调企业数量" data-search="2007～2020 年上市公司注册地址与办公地址周边的税调企业数量 数据资料 企业数据 上市公司 今天给大家分享一份 2007～2020 年上市公司注册地址与办公地址周边的税调企业数量数据 。由 rstata 数据中心基于国泰安数据库中的上市公司地址经纬度信息与国家税务总局工商注册税调企业数据处理匹配得到。" data-words="1273" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/99938/">
+              <span class="tf-post-title">2007～2020 年上市公司注册地址与办公地址周边的税调企业数量</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">1273 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1999～2014 年上市公司子公司与污染数据匹配结果（版本2）" data-search="1999～2014 年上市公司子公司与污染数据匹配结果（版本2） 数据资料 上市公司 数据匹配 之前给大家分享过上市公司子公司与污染数据匹配结果（旧版本），使用旧年份的子公司数据匹配：" data-words="2115" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/40702/">
+              <span class="tf-post-title">1999～2014 年上市公司子公司与污染数据匹配结果（版本2）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">2115 字</span>
+                <span>6 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998～2014 年上市公司参控股公司与污染数据匹配结果" data-search="1998～2014 年上市公司参控股公司与污染数据匹配结果 数据资料 上市公司 数据匹配 今天给大家分享一份 1998～2014 年上市公司参控股公司与污染数据匹配结果 。数据来源于国泰安数据库与中国制造业排污整合数据库，由 rstata 数据中心处理整合得到。" data-words="2000" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/86082/">
+              <span class="tf-post-title">1998～2014 年上市公司参控股公司与污染数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">2000 字</span>
+                <span>6 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1993～2020 年各省市区县交通质量面板数据" data-search="1993～2020 年各省市区县交通质量面板数据 数据资料 面板数据 今天给大家分享一份 1993～2020 年各省市区县交通质量面板数据。原始数据来源于 davis, qian &amp; zeng (2025) 发表于美国国家经济研究局（nber）的工作论文「a comprehensive gis databas" data-words="830" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/32536/">
+              <span class="tf-post-title">1993～2020 年各省市区县交通质量面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">830 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2024 年各省市区县、各行业、各类型专利申请与授权量面板数据" data-search="1985～2024 年各省市区县、各行业、各类型专利申请与授权量面板数据 数据资料 面板数据 专利 今天给大家分享一份 1985～2024 年各省市区县、各行业、各类型专利申请与授权量面板数据。数据基于「1985～2024 年专利申请与授权数据（版本 3，含申请人所处的省市区县）」处理得到，按照专利申请人所在省市区县和所属国民经济行业（门" data-words="1028" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/11145/">
+              <span class="tf-post-title">1985～2024 年各省市区县、各行业、各类型专利申请与授权量面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">1028 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1980～2021 年各省市区县土地利用覆盖和变化面板数据" data-search="1980～2021 年各省市区县土地利用覆盖和变化面板数据 数据资料 面板数据 土地 今天给大家分享一份 1980-2021 年各省市区县土地利用覆盖和变化面板数据。原始数据来源于国家生态科学数据中心发布的「1980-2021年中国土地利用覆盖和变化数据集」（夏晓圣、夏江周、袁文平，2023），该数据集以 500m×500m" data-words="1089" data-date="2026-03-26">
+            <a class="tf-post-link" href="/posts/85345/">
+              <span class="tf-post-title">1980～2021 年各省市区县土地利用覆盖和变化面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-26</span>
+                <span class="tf-post-words">1089 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数" data-search="名师讲堂｜使用 r 语言测算专利的创新突破度：cd 指数 名师讲堂 r 语言 专利 创新与知识 在《nature》论文：「papers and patents are becoming less disruptive over time」 中使用了 cd 指数数据，该指标的计算公式如下：" data-words="2524" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/19061/">
+              <span class="tf-post-title">名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">名师讲堂</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">2524 字</span>
+                <span>9 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="名师讲堂｜使用 R 语言测算专利的创新突破度：CD指数（更新）" data-search="名师讲堂｜使用 r 语言测算专利的创新突破度：cd指数（更新） 名师讲堂 r 语言 专利 创新与知识 上次课程的代码里面计算的时候忽略了“如果某个专利 j 没有引用专利 i 但是引用了其后项引用，则 cd = 0” 的情况，导致计算结果里面 1 和 -1 出现的太多。所以赶紧更正了下。" data-words="2516" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/30312/">
+              <span class="tf-post-title">名师讲堂｜使用 R 语言测算专利的创新突破度：CD指数（更新）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">名师讲堂</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">2516 字</span>
+                <span>8 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2010～2022 年各省市区县各类型农业光伏面积及装机容量" data-search="2010～2022 年各省市区县各类型农业光伏面积及装机容量 数据资料 农业与作物 能源 今天给大家分享一份 2010～2022 年各省市区县各类型农业光伏面积及装机容量 面板数据。原始数据来源于：" data-words="1057" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/89539/">
+              <span class="tf-post-title">2010～2022 年各省市区县各类型农业光伏面积及装机容量</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">1057 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000～2024 年上市公司周边一定范围内的空气污染指标面板数据（CHAP来源）" data-search="2000～2024 年上市公司周边一定范围内的空气污染指标面板数据（chap来源） 数据资料 面板数据 空气质量 上市公司 今天给大家分享一份 2000～2024 年上市公司周边一定范围内的空气污染指标面板数据（chap来源） 。原始数据来源于 chap（china high air pollutants）数据集（ https://data.tpdc.ac.cn" data-words="988" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/39894/">
+              <span class="tf-post-title">2000～2024 年上市公司周边一定范围内的空气污染指标面板数据（CHAP来源）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">988 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1990～2024 年上市公司周边的卫星反演污染物面板数据" data-search="1990～2024 年上市公司周边的卫星反演污染物面板数据 数据资料 面板数据 栅格数据 空气质量 上市公司 今天给大家分享一份 1990～2024 年上市公司周边的卫星反演污染物面板数据 。原始污染物栅格数据来源于 nasa merra-2 大气再分析数据集（ https://disc.gsfc.nasa.gov/ ），涵盖多种卫星反演污染物指标" data-words="950" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/13813/">
+              <span class="tf-post-title">1990～2024 年上市公司周边的卫星反演污染物面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">950 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2025 年各乡镇各类型土地覆盖面积面板数据" data-search="1985～2025 年各乡镇各类型土地覆盖面积面板数据 数据资料 面板数据 土地 今天给大家分享一份 1985～2025年各乡镇各类型土地覆盖面积面板数据 。原始数据为栅格数据：「the 30m annual land cover datasets and its dynamics in china from 1985 " data-words="809" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/61206/">
+              <span class="tf-post-title">1985～2025 年各乡镇各类型土地覆盖面积面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">809 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2025 年各省市区县不同土地覆盖类型的土地面积" data-search="1985～2025 年各省市区县不同土地覆盖类型的土地面积 数据资料 土地 今天给大家分享一份 1985～2025年各省市区县不同土地覆盖类型的土地面积 面板数据。原始数据为栅格数据：「the 30m annual land cover datasets and its dynamics in china from" data-words="825" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/98522/">
+              <span class="tf-post-title">1985～2025 年各省市区县不同土地覆盖类型的土地面积</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">825 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2025 年各城市核心绿色生境景观破碎化指标面板数据" data-search="1985～2025 年各城市核心绿色生境景观破碎化指标面板数据 数据资料 面板数据 生态环境 今天给大家分享一份 1985～2025年各城市核心绿色生境景观破碎化指标面板数据 。该数据基于 clcd 土地覆盖栅格数据处理得到，将森林（forest）、灌丛（shrub）、草地（grassland）、水体（water）、湿地（wetla" data-words="941" data-date="2026-03-25">
+            <a class="tf-post-link" href="/posts/78075/">
+              <span class="tf-post-title">1985～2025 年各城市核心绿色生境景观破碎化指标面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-25</span>
+                <span class="tf-post-words">941 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1985～2025 年各区县核心绿色生境景观破碎化指标面板数据" data-search="1985～2025 年各区县核心绿色生境景观破碎化指标面板数据 数据资料 面板数据 生态环境 今天给大家分享一份 1985～2025年各区县核心绿色生境景观破碎化指标 面板数据。该数据基于 clcd 土地覆盖栅格数据处理得到，将森林（forest）、灌丛（shrub）、草地（grassland）、水体（water）、湿地（wetla" data-words="973" data-date="2026-03-24">
+            <a class="tf-post-link" href="/posts/65925/">
+              <span class="tf-post-title">1985～2025 年各区县核心绿色生境景观破碎化指标面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-24</span>
+                <span class="tf-post-words">973 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="暂不分享｜1985～2025 年各区县核心绿色生境景观破碎化指标面板数据" data-search="暂不分享｜1985～2025 年各区县核心绿色生境景观破碎化指标面板数据 数据资料 面板数据 已失效 生态环境 今天给大家分享一份 1985～2025年各区县核心绿色生境景观破碎化指标 面板数据。该数据基于 clcd 土地覆盖栅格数据处理得到，将森林（forest）、灌丛（shrub）、草地（grassland）、水体（water）、湿地（wetla" data-words="973" data-date="2026-03-24">
+            <a class="tf-post-link" href="/posts/28931/">
+              <span class="tf-post-title">暂不分享｜1985～2025 年各区县核心绿色生境景观破碎化指标面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-24</span>
+                <span class="tf-post-words">973 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="Mac OS 使用技巧及常用软件下载安装教程" data-search="mac os 使用技巧及常用软件下载安装教程 数据资料 编程技巧 生活与工具 最近由于 ai agent 的爆火，估计有不少小伙伴从 windows 更换成了 mac，作为一位使用了 15 年的老 mac 用户，今天我给大家分享一些 mac os 使用技巧及常用软件下载安装方法。" data-words="2818" data-date="2026-03-24">
+            <a class="tf-post-link" href="/posts/96797/">
+              <span class="tf-post-title">Mac OS 使用技巧及常用软件下载安装教程</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-24</span>
+                <span class="tf-post-words">2818 字</span>
+                <span>9 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2003～2024 年上市公司注册地址与办公地址周边一定范围的平均云量灰度值面板数据" data-search="2003～2024 年上市公司注册地址与办公地址周边一定范围的平均云量灰度值面板数据 数据资料 气象 面板数据 上市公司 云量是影响光照、太阳能发电效率及卫星遥感等的外生冲击。在某些情况下，云量数据或许比降水量数据作为空气污染研究工具变量更为合适。另外云量数据还可能可以作为降水量数据的工具变量（相关且外生）。" data-words="1024" data-date="2026-03-24">
+            <a class="tf-post-link" href="/posts/31725/">
+              <span class="tf-post-title">2003～2024 年上市公司注册地址与办公地址周边一定范围的平均云量灰度值面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-24</span>
+                <span class="tf-post-words">1024 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="如何编写一个使用 Stata 绘制地图的 SKILLS？" data-search="如何编写一个使用 stata 绘制地图的 skills？ 课程 可视化与绘图 地图 stata 前不久给大家推荐了腾讯出品的 workbuddy，现在注册还是可以免费领取 5000 积分，每天登陆也能领取 100 积分，正是薅羊毛的好时刻！" data-words="1440" data-date="2026-03-22">
+            <a class="tf-post-link" href="/posts/31379/">
+              <span class="tf-post-title">如何编写一个使用 Stata 绘制地图的 SKILLS？</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">课程</span>
+                <span class="tf-post-date">2026-03-22</span>
+                <span class="tf-post-words">1440 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1998～2023 年上市公司注册地址与办公地址周边一定范围的平均 PM2.5 质量浓度面板数据" data-search="1998～2023 年上市公司注册地址与办公地址周边一定范围的平均 pm2.5 质量浓度面板数据 数据资料 面板数据 空气质量 上市公司 之前给大家分享了工企周边 1～5km 范围内的 pm2.5 浓度数据：" data-words="1093" data-date="2026-03-22">
+            <a class="tf-post-link" href="/posts/16768/">
+              <span class="tf-post-title">1998～2023 年上市公司注册地址与办公地址周边一定范围的平均 PM2.5 质量浓度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-22</span>
+                <span class="tf-post-words">1093 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2013～2024 年上市公司子公司与政府采购数据匹配结果" data-search="2013～2024 年上市公司子公司与政府采购数据匹配结果 数据资料 上市公司 政策与制度 数据匹配 之前给大家分享过一份爬取自中国政府采购网的政府采购数据：" data-words="912" data-date="2026-03-21">
+            <a class="tf-post-link" href="/posts/56077/">
+              <span class="tf-post-title">2013～2024 年上市公司子公司与政府采购数据匹配结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-21</span>
+                <span class="tf-post-words">912 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2002-07-04～2025-12-31 中国各省市区县平均云量日度面板数据" data-search="2002-07-04～2025-12-31 中国各省市区县平均云量日度面板数据 数据资料 气象 面板数据 在某些情况下，云量数据或许比降水量数据作为空气污染研究工具变量更为合适。另外云量数据还可能可以作为降水量数据的工具变量（相关且外生）。 原始数据是来自 nasa earth observation（ https://neo.gsfc.nas" data-words="849" data-date="2026-03-21">
+            <a class="tf-post-link" href="/posts/69188/">
+              <span class="tf-post-title">2002-07-04～2025-12-31 中国各省市区县平均云量日度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-21</span>
+                <span class="tf-post-words">849 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2007～2020 年税调企业与所在区县税务局的距离" data-search="2007～2020 年税调企业与所在区县税务局的距离 数据资料 距离与边界 企业数据 政策与制度 之前给大家分享过 2007～2020 年税调企业的地理位置数据：" data-words="646" data-date="2026-03-20">
+            <a class="tf-post-link" href="/posts/90457/">
+              <span class="tf-post-title">2007～2020 年税调企业与所在区县税务局的距离</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-20</span>
+                <span class="tf-post-words">646 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1980年1月1日～2025年12月31日各省市区县相对湿度、比湿、地表高度、气压、风速和气温日度数据" data-search="1980年1月1日～2025年12月31日各省市区县相对湿度、比湿、地表高度、气压、风速和气温日度数据 数据资料 气象 之前给大家分享过一份相对湿度的数据：" data-words="1197" data-date="2026-03-20">
+            <a class="tf-post-link" href="/posts/65713/">
+              <span class="tf-post-title">1980年1月1日～2025年12月31日各省市区县相对湿度、比湿、地表高度、气压、风速和气温日度数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-20</span>
+                <span class="tf-post-words">1197 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1980～2025 年各省市区县日度主导风向及平均风向计算结果" data-search="1980～2025 年各省市区县日度主导风向及平均风向计算结果 数据资料 气象 今天给大家分享一份 1980～2025 年各省市区县日度主导风向及平均风向计算结果 ，原始数据来源于 nasa 的 merra-2（tavg1_2d_flx_nx (m2t1nxflx): surface flux diagnostics）" data-words="835" data-date="2026-03-20">
+            <a class="tf-post-link" href="/posts/42205/">
+              <span class="tf-post-title">1980～2025 年各省市区县日度主导风向及平均风向计算结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-20</span>
+                <span class="tf-post-words">835 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1980～2025 年各省市区县 PM10 质量浓度日度面板数据" data-search="1980～2025 年各省市区县 pm10 质量浓度日度面板数据 数据资料 面板数据 空气质量 之前给大家分享过根据卫星反演数据计算的 pm2.5、so2、黑碳、粉尘、so4、二甲硫醚等指标，这些指标都是 merra-2 数据可以直接计算出来的。那么 pm1 和 pm10 质量浓度如何计算呢？ merra-2 的常见问题中给出了 pm" data-words="784" data-date="2026-03-19">
+            <a class="tf-post-link" href="/posts/34171/">
+              <span class="tf-post-title">1980～2025 年各省市区县 PM10 质量浓度日度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-19</span>
+                <span class="tf-post-words">784 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1980～2025 年各省市区县 PM1 质量浓度日度面板数据" data-search="1980～2025 年各省市区县 pm1 质量浓度日度面板数据 数据资料 面板数据 空气质量 之前给大家分享过根据卫星反演数据计算的 pm2.5、so2、黑碳、粉尘、so4、二甲硫醚等指标，这些指标都是 merra-2 数据可以直接计算出来的。那么 pm1 和 pm10 质量浓度如何计算呢？ merra-2 的常见问题中给出了 pm" data-words="784" data-date="2026-03-19">
+            <a class="tf-post-link" href="/posts/32396/">
+              <span class="tf-post-title">1980～2025 年各省市区县 PM1 质量浓度日度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-19</span>
+                <span class="tf-post-words">784 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据" data-search="1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据 数据资料 气象 面板数据 「国家青藏高原数据中心」提供了 1901～2024 年中国逐月平均温度、最高温度、最低温度数据，三份数据均为 netcdf 格式的栅格数据，空间分辨率为 1km×1km。" data-words="749" data-date="2026-03-18">
+            <a class="tf-post-link" href="/posts/63592/">
+              <span class="tf-post-title">1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-18</span>
+                <span class="tf-post-words">749 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据" data-search="旧版本｜1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据 数据资料 气象 面板数据 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/875ed4a883cd4126ac48135dafd822bc" data-words="762" data-date="2026-03-18">
+            <a class="tf-post-link" href="/posts/47118/">
+              <span class="tf-post-title">旧版本｜1901～2024 年各省市区县乡镇月度最低温、最高温、平均气温面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-18</span>
+                <span class="tf-post-words">762 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1901～2024 年各省市区县乡镇月度降水量面板数据" data-search="1901～2024 年各省市区县乡镇月度降水量面板数据 数据资料 气象 面板数据 今天给大家分享一份 1901～2024 年各省市区县乡镇月度降水量面板数据。" data-words="707" data-date="2026-03-18">
+            <a class="tf-post-link" href="/posts/16891/">
+              <span class="tf-post-title">1901～2024 年各省市区县乡镇月度降水量面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-18</span>
+                <span class="tf-post-words">707 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="旧版本｜1901～2024 年各省市区县乡镇月度降水量面板数据" data-search="旧版本｜1901～2024 年各省市区县乡镇月度降水量面板数据 数据资料 气象 面板数据 旧版本 新版本在这里： https://rstata.duanshu.com/#/brief/course/bb42fa8b6b8e4ac987b35884d66a1a37" data-words="720" data-date="2026-03-18">
+            <a class="tf-post-link" href="/posts/34271/">
+              <span class="tf-post-title">旧版本｜1901～2024 年各省市区县乡镇月度降水量面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-18</span>
+                <span class="tf-post-words">720 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000～2024 年各省市区县、乡镇人口密度与人口数量面板数据（Landscan 来源）" data-search="2000～2024 年各省市区县、乡镇人口密度与人口数量面板数据（landscan 来源） 数据资料 面板数据 人口 今天给大家分享一份 2000～2024 年各省市区县、乡镇人口密度与人口数量面板数据 。原始数据来源于美国能源部橡树岭国家实验室提供的陆地扫描（landscan）全球人口数据库，为全球范围的人口密度栅格数据，使用 r 语言分区域汇总即可得到" data-words="860" data-date="2026-03-18">
+            <a class="tf-post-link" href="/posts/31963/">
+              <span class="tf-post-title">2000～2024 年各省市区县、乡镇人口密度与人口数量面板数据（Landscan 来源）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-18</span>
+                <span class="tf-post-words">860 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000～2024 年各城市多中心程度和人口集聚程度面板数据（Landscan 来源）" data-search="2000～2024 年各城市多中心程度和人口集聚程度面板数据（landscan 来源） 数据资料 面板数据 人口 区域经济 最近给大家讲解过如何使用 r 语言测算中国各城市多中心度与集聚程度：" data-words="651" data-date="2026-03-17">
+            <a class="tf-post-link" href="/posts/50044/">
+              <span class="tf-post-title">2000～2024 年各城市多中心程度和人口集聚程度面板数据（Landscan 来源）</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-17</span>
+                <span class="tf-post-words">651 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1940 年 1 月～2025 年 12 月各省市区县地表净太阳辐射面板数据" data-search="1940 年 1 月～2025 年 12 月各省市区县地表净太阳辐射面板数据 数据资料 气象 面板数据 今天给大家分享一份 1940 年 1 月～2025 年 12 月各省市区县地表净太阳辐射 面板数据。" data-words="848" data-date="2026-03-17">
+            <a class="tf-post-link" href="/posts/86030/">
+              <span class="tf-post-title">1940 年 1 月～2025 年 12 月各省市区县地表净太阳辐射面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-17</span>
+                <span class="tf-post-words">848 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1940～2025 年各省市区县 10 米高度的风速、边界层高度及通风系数月度与年度面板数据" data-search="1940～2025 年各省市区县 10 米高度的风速、边界层高度及通风系数月度与年度面板数据 数据资料 气象 面板数据 距离与边界 今天给大家分享一份 1940～2025 年各省市区县 10 米高度的风速、边界层高度及通风系数 月度与年度面板数据。" data-words="1349" data-date="2026-03-17">
+            <a class="tf-post-link" href="/posts/69131/">
+              <span class="tf-post-title">1940～2025 年各省市区县 10 米高度的风速、边界层高度及通风系数月度与年度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-17</span>
+                <span class="tf-post-words">1349 字</span>
+                <span>4 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1990～2024 年各省市区县区县水稻种植面积面板数据" data-search="1990～2024 年各省市区县区县水稻种植面积面板数据 数据资料 农业与作物 面板数据 今天给大家分享一份 1990～2024 年各省市区县区县水稻种植面积面板数据 。" data-words="576" data-date="2026-03-16">
+            <a class="tf-post-link" href="/posts/97428/">
+              <span class="tf-post-title">1990～2024 年各省市区县区县水稻种植面积面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-16</span>
+                <span class="tf-post-words">576 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2000～2022 年各省市区县大豆种植面积面板数据" data-search="2000～2022 年各省市区县大豆种植面积面板数据 数据资料 农业与作物 面板数据 今天给大家分享一份 2000～2022 年各省市区县大豆种植面积面板数据 。" data-words="544" data-date="2026-03-15">
+            <a class="tf-post-link" href="/posts/67533/">
+              <span class="tf-post-title">2000～2022 年各省市区县大豆种植面积面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-15</span>
+                <span class="tf-post-words">544 字</span>
+                <span>2 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1940～2025 年各省市区县乡镇各月 100m 高空平均风速及风向角计算结果" data-search="1940～2025 年各省市区县乡镇各月 100m 高空平均风速及风向角计算结果 数据资料 气象 今天给大家分享一份 1940～2025 年各省市区县乡镇各月 100m 高空平均风速及风向角计算结果 。可以用于风电相关的研究使用。" data-words="742" data-date="2026-03-14">
+            <a class="tf-post-link" href="/posts/31391/">
+              <span class="tf-post-title">1940～2025 年各省市区县乡镇各月 100m 高空平均风速及风向角计算结果</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-14</span>
+                <span class="tf-post-words">742 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="1901～2024 年各省市区县、乡镇潜在蒸散发月度面板数据" data-search="1901～2024 年各省市区县、乡镇潜在蒸散发月度面板数据 数据资料 气象 面板数据 根据中国逐月最低温、最高温、平均气温栅格数据集，采用潜在蒸散发计算式可以得到中国逐月潜在蒸散发栅格数据集（ https://data.tpdc.ac.cn/zh-hans/data/8b11da09-1a40-4014-bd3d-2b86e" data-words="780" data-date="2026-03-14">
+            <a class="tf-post-link" href="/posts/39582/">
+              <span class="tf-post-title">1901～2024 年各省市区县、乡镇潜在蒸散发月度面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-14</span>
+                <span class="tf-post-words">780 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 PM10 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 pm10 面板数据 数据资料 面板数据 空气质量 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 pm10 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提" data-words="883" data-date="2026-03-10">
+            <a class="tf-post-link" href="/posts/46845/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 PM10 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-10</span>
+                <span class="tf-post-words">883 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 PM2.5 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 pm2.5 面板数据 数据资料 面板数据 空气质量 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 pm2.5 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站" data-words="919" data-date="2026-03-10">
+            <a class="tf-post-link" href="/posts/60148/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 PM2.5 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-10</span>
+                <span class="tf-post-words">919 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 SO2 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 so2 面板数据 数据资料 面板数据 空气质量 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 so2 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提供" data-words="879" data-date="2026-03-06">
+            <a class="tf-post-link" href="/posts/89448/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 SO2 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-06</span>
+                <span class="tf-post-words">879 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 O3 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 o3 面板数据 数据资料 面板数据 空气质量 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 o3 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提供了" data-words="881" data-date="2026-03-06">
+            <a class="tf-post-link" href="/posts/75963/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 O3 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-06</span>
+                <span class="tf-post-words">881 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 NO2 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 no2 面板数据 数据资料 面板数据 空气质量 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 no2 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提供" data-words="882" data-date="2026-03-06">
+            <a class="tf-post-link" href="/posts/55198/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 NO2 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-06</span>
+                <span class="tf-post-words">882 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 CO 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 co 面板数据 数据资料 面板数据 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 co 浓度数据 ，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提供了" data-words="892" data-date="2026-03-04">
+            <a class="tf-post-link" href="/posts/53114/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 CO 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-04</span>
+                <span class="tf-post-words">892 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+          <li class="tf-post-item" data-title="2014～2025 年中国各省市区县分年、分月、逐日 AQI 面板数据" data-search="2014～2025 年中国各省市区县分年、分月、逐日 aqi 面板数据 数据资料 面板数据 今天给大家分享一份 2014～2025 年中国各省市区县分年、分月、逐日的 aqi 浓度数据，原始数据来自中国环境监测总站的全国城市空气质量实时发布平台（ http://106.37.208.233:20035/ ）的日度更新。该网站提供了" data-words="858" data-date="2026-03-04">
+            <a class="tf-post-link" href="/posts/64363/">
+              <span class="tf-post-title">2014～2025 年中国各省市区县分年、分月、逐日 AQI 面板数据</span>
+              <span class="tf-post-meta">
+                <span class="tf-post-tag">数据资料</span>
+                <span class="tf-post-date">2026-03-04</span>
+                <span class="tf-post-words">858 字</span>
+                <span>3 分钟</span>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+      </section>
+      
+
+      <div class="tf-archive-empty" style="display:none">
+        <i class="fa fa-search"></i><br>没有匹配的文章，换个关键词试试
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+<!-- 归档页交互 -->
+<script src="/assets/tf-archive.js"></script>
+
+
+</body>
+</html>

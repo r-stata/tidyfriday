@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/61229/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="指标来源">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离">
+<meta property="og:url" content="https://tidyfriday.cn/posts/61229/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="指标来源">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/61229.png">
+<meta property="article:published_time" content="2026-05-08T23:52:28.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.287Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/61229.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离","description":"指标来源","url":"https://tidyfriday.cn/posts/61229/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/61229/"},"image":["https://tidyfriday.cn/og/61229.png"],"datePublished":"2026-05-08T23:52:28.000Z","dateModified":"2026-09-26T14:18:51.287Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, Stata, 上市公司","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离","item":"https://tidyfriday.cn/posts/61229/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-08T23:52:28.000Z" itemprop="datePublished">2026-05-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2213 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="指标来源" class="article-heading"><a href="#指标来源" class="headerlink" title="指标来源"></a>指标来源<a class="article-anchor" href="#指标来源" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<p>供应链地理加权距离指标来自邹颖、石福安、祁亚发表在《世界经济》2026 年第 1 期的论文《以数促联：公共数据开放与企业供应链地理布局》。</p>
+<p>该论文采用堆叠双重差分模型考察公共数据开放对企业供应链地理布局的影响，其中核心被解释变量即为<strong>供应链地理加权距离</strong>，包括两个维度：</p>
+<ul>
+<li>供应商加权距离（Disws）：衡量上市企业与主要供应商之间的地理距离（加权）；</li>
+<li>客户加权距离（Diswc）：衡量上市企业与主要客户之间的地理距离（加权）。</li>
+</ul>
+<p>论文发现，公共数据开放能打破地理距离约束，拓宽企业供应链分布范围。</p>
+<h2 id="指标定义与计算公式" class="article-heading"><a href="#指标定义与计算公式" class="headerlink" title="指标定义与计算公式"></a>指标定义与计算公式<a class="article-anchor" href="#指标定义与计算公式" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据来源" class="article-heading"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源<a class="article-anchor" href="#数据来源" aria-label="本节链接" title="复制本节链接"></a></h3><p>该指标的测算需要三类数据：</p>
+<ol>
+<li>上市公司注册地址与办公地址数据：包含 2000～2024 年所有沪深 A 股上市公司的注册地址和办公地址经纬度信息，以及所处省市区县。</li>
+<li>上市公司前 5 大供应商数据：包含 2001～2024 年上市公司前 5 大供应商的工商注册信息匹配结果，含供应商经纬度、采购额及采购额占比。</li>
+<li>上市公司前 5 大客户数据：包含 2001～2024 年上市公司前 5 大客户的工商注册信息匹配结果，含客户经纬度、销售额及销售额占比。</li>
+</ol>
+<h3 id="计算公式" class="article-heading"><a href="#计算公式" class="headerlink" title="计算公式"></a>计算公式<a class="article-anchor" href="#计算公式" aria-label="本节链接" title="复制本节链接"></a></h3><p>对于上市公司 i 在第 t 年，分别计算供应商加权距离和客户加权距离：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/23/02b79j1bdbe1b168g4/common/content/1778254384484_894382.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="地理距离计算方法" class="article-heading"><a href="#地理距离计算方法" class="headerlink" title="地理距离计算方法"></a>地理距离计算方法<a class="article-anchor" href="#地理距离计算方法" aria-label="本节链接" title="复制本节链接"></a></h3><p>地理距离采用 <strong>Stata 的 <code>geodist</code> 命令</strong>计算球面距离（Vincenty 球面公式）。<code>geodist</code> 是 Stata 中常用的地理距离计算命令，其基本语法为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">geodist lat1 lon1 lat2 lon2, sphere gen(dist_km)</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>lat1 lon1 为第一个点的纬度和经度；</li>
+<li>lat2 lon2 为第二个点的纬度和经度；</li>
+<li>sphere 选项指定使用球面距离公式（而非椭球面公式）；</li>
+<li>生成的变量单位为千米（km）。</li>
+</ul>
+<p>上市公司地址使用的是<strong>办公地址</strong>（而非注册地址），这与论文中基于实际经营地址的选择一致。</p>
+<h3 id="加权方式说明" class="article-heading"><a href="#加权方式说明" class="headerlink" title="加权方式说明"></a>加权方式说明<a class="article-anchor" href="#加权方式说明" aria-label="本节链接" title="复制本节链接"></a></h3><p>权重采用的是<strong>供应商采购额占前五大供应商采购总额的比例</strong>（而非供应商采购额占企业总采购额的比例）。这是因为上市公司年报中通常只披露前五大供应商/客户的名称和交易金额，无法获取完整的采购/销售总额数据。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/23/02b79j1bdbe1b168g4/common/content/1778254385678_893832.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="计算过程" class="article-heading"><a href="#计算过程" class="headerlink" title="计算过程"></a>计算过程<a class="article-anchor" href="#计算过程" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="第-1-步：参数设置与数据读取" class="article-heading"><a href="#第-1-步：参数设置与数据读取" class="headerlink" title="第 1 步：参数设置与数据读取"></a>第 1 步：参数设置与数据读取<a class="article-anchor" href="#第-1-步：参数设置与数据读取" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先设置数据路径并读取三类数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">more</span> off</span><br><span class="line"></span><br><span class="line"><span class="keyword">global</span> <span class="keyword">dir</span> <span class="string">&quot;/Users/ac/Desktop/使用 Stata 计算上市公司供应链地理加权距离&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">global</span> gys_file <span class="string">&quot;$dir/2001~2024年上市公司前5大供应商工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> kh_file  <span class="string">&quot;$dir/2001~2024年上市公司前5大客户工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> addr_file <span class="string">&quot;$dir/2000～2024年上市公司注册地址与办公地址（含经纬度、所处的省市区县及搬迁距离）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> <span class="keyword">outfile</span>  <span class="string">&quot;$dir/2001～2024年上市公司供应链地理加权距离.dta&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$addr_file&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 办公地址_经度 办公地址_纬度 股票简称 行业代码C 办公地址_省 办公地址_市</span><br><span class="line"><span class="keyword">rename</span> 年份 统计年份</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(统计年份) | <span class="built_in">missing</span>(办公地址_经度) | <span class="built_in">missing</span>(办公地址_纬度)</span><br><span class="line"></span><br><span class="line"><span class="keyword">tempfile</span> addr_temp</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`addr_temp&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>tempfile</code> 用于创建临时文件，Stata 会话结束后自动删除。这里将过滤后的办公地址数据保存为临时文件，以便后续的供应商和客户数据分别合并使用。</p>
+</blockquote>
+<h3 id="第-2-步：计算供应商加权距离" class="article-heading"><a href="#第-2-步：计算供应商加权距离" class="headerlink" title="第 2 步：计算供应商加权距离"></a>第 2 步：计算供应商加权距离<a class="article-anchor" href="#第-2-步：计算供应商加权距离" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先读取供应商数据，筛选有效记录（年报、有经纬度、有采购额）：</p>
+<p>*- 此处代码需下载讲义材料查看～</p>
+<blockquote>
+<p><strong>关键逻辑说明</strong>：<code>geodist</code> 的参数顺序是 <strong>纬度在前、经度在后</strong>，这与经纬度的书写习惯不同（书写时通常”经纬度”），务必注意不要写反。<code>collapse (sum) weighted_dist (count) ratio_s</code> 表示按组求 <code>weighted_dist</code> 的总和和 <code>ratio_s</code> 的计数（即有效供应商数）。最后用 <code>log(1 + weighted_dist)</code> 得到加权距离的对数值。</p>
+</blockquote>
+<h3 id="第-3-步：计算客户加权距离" class="article-heading"><a href="#第-3-步：计算客户加权距离" class="headerlink" title="第 3 步：计算客户加权距离"></a>第 3 步：计算客户加权距离<a class="article-anchor" href="#第-3-步：计算客户加权距离" aria-label="本节链接" title="复制本节链接"></a></h3><p>客户加权距离的计算逻辑与供应商完全对称，只是将”供应商采购额”替换为”客户销售额”：</p>
+<p>*- 此处代码需下载讲义材料查看～</p>
+<h3 id="第-4-步：合并结果并输出" class="article-heading"><a href="#第-4-步：合并结果并输出" class="headerlink" title="第 4 步：合并结果并输出"></a>第 4 步：合并结果并输出<a class="article-anchor" href="#第-4-步：合并结果并输出" aria-label="本节链接" title="复制本节链接"></a></h3><p>将供应商加权距离和客户加权距离合并到上市公司信息表中：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;$addr_file&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 股票简称 行业代码C 办公地址_经度 办公地址_纬度 办公地址_省 办公地址_市</span><br><span class="line"><span class="keyword">rename</span> 年份 统计年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 左连接供应商加权距离</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 统计年份 using <span class="symbol">`gys_weighted&#x27;</span>, nogen</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 左连接客户加权距离</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 统计年份 using <span class="symbol">`kh_weighted&#x27;</span>, nogen</span><br><span class="line"></span><br><span class="line"><span class="keyword">sort</span> 股票代码 统计年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去除 2000 年数据</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 统计年份 &lt; 2001</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;$outfile&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：由于使用了 <code>tempfile</code> 保存中间结果，实际运行时需要将 <code>gys_weighted</code> 和 <code>kh_weighted</code> 的保存与加载放在同一 Stata 会话中。完整脚本中使用了 <code>tempfile</code> 链式操作。</p>
+</blockquote>
+<h2 id="描述性统计" class="article-heading"><a href="#描述性统计" class="headerlink" title="描述性统计"></a>描述性统计<a class="article-anchor" href="#描述性统计" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用 Stata 计算得到的描述性统计结果：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>样本量</th>
+<th>均值</th>
+<th>中位数</th>
+<th>标准差</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Disws</td>
+<td>9,413</td>
+<td>5.840</td>
+<td>6.197</td>
+<td>1.361</td>
+</tr>
+<tr>
+<td>Diswc</td>
+<td>12,363</td>
+<td>5.915</td>
+<td>6.408</td>
+<td>1.504</td>
+</tr>
+</tbody></table>
+<p>可以看到：</p>
+<ul>
+<li>供应商加权距离（Disws）和客户加权距离（Diswc）的中位数分别为 6.197 和 6.408，均值分别为 5.840 和 5.915；</li>
+<li>由于取了对数变换，中位数大于均值说明存在明显的左偏分布；</li>
+<li>客户加权距离的标准差（1.504）略大于供应商加权距离（1.361），说明不同企业与客户的地理距离差异更大。</li>
+</ul>
+<blockquote>
+<p><strong>说明</strong>：上述描述性统计基于全样本（2001～2024 年）计算，与论文中 2007～2022 年的子样本统计量存在差异属于正常现象。</p>
+</blockquote>
+<h2 id="完整-Stata-脚本" class="article-heading"><a href="#完整-Stata-脚本" class="headerlink" title="完整 Stata 脚本"></a>完整 Stata 脚本<a class="article-anchor" href="#完整-Stata-脚本" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- ============================================================</span></span><br><span class="line"><span class="comment">*- 计算上市公司与供应商/客户的加权地理距离（Stata 版本）</span></span><br><span class="line"><span class="comment">*- 参考论文：以数促联：公共数据开放与企业供应链地理布局（邹颖等, 2026）</span></span><br><span class="line"><span class="comment">*-</span></span><br><span class="line"><span class="comment">*- 公式：</span></span><br><span class="line"><span class="comment">*-   Disw_s_it = ln(1 + Σ Dis_s_ipt × Ratio_s_ipt)</span></span><br><span class="line"><span class="comment">*-   Disw_c_it = ln(1 + Σ Dis_c_iqt × Ratio_c_iqt)</span></span><br><span class="line"><span class="comment">*-</span></span><br><span class="line"><span class="comment">*- 距离计算：geodist 命令（Vincenty 球面距离）</span></span><br><span class="line"><span class="comment">*- 地址选择：上市公司使用办公地址</span></span><br><span class="line"><span class="comment">*- 数据计算：微信公众号 RStata</span></span><br><span class="line"><span class="comment">*- ============================================================</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">more</span> off</span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 1. 参数设置 ----</span></span><br><span class="line"><span class="keyword">global</span> <span class="keyword">dir</span> <span class="string">&quot;/Users/ac/Desktop/使用 Stata 计算上市公司供应链地理加权距离&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">global</span> gys_file <span class="string">&quot;$dir/2001~2024年上市公司前5大供应商工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> kh_file  <span class="string">&quot;$dir/2001~2024年上市公司前5大客户工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> addr_file <span class="string">&quot;$dir/2000～2024年上市公司注册地址与办公地址（含经纬度、所处的省市区县及搬迁距离）.dta&quot;</span></span><br><span class="line"><span class="keyword">global</span> <span class="keyword">outfile</span>  <span class="string">&quot;$dir/2001～2024年上市公司供应链地理加权距离.dta&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 2. 准备上市公司办公地址 ----</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$addr_file&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 办公地址_经度 办公地址_纬度 股票简称 行业代码C 办公地址_省 办公地址_市</span><br><span class="line"><span class="keyword">rename</span> 年份 统计年份</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(统计年份) | <span class="built_in">missing</span>(办公地址_经度) | <span class="built_in">missing</span>(办公地址_纬度)</span><br><span class="line"><span class="keyword">tempfile</span> addr_temp</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`addr_temp&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 3. 计算供应商加权距离 ----</span></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 4. 计算客户加权距离 ----</span></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 5. 合并结果 ----</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$addr_file&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 股票简称 行业代码C 办公地址_经度 办公地址_纬度 办公地址_省 办公地址_市</span><br><span class="line"><span class="keyword">rename</span> 年份 统计年份</span><br><span class="line"></span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 统计年份 using <span class="symbol">`gys_weighted&#x27;</span>, nogen</span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 统计年份 using <span class="symbol">`kh_weighted&#x27;</span>, nogen</span><br><span class="line"></span><br><span class="line"><span class="keyword">sort</span> 股票代码 统计年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 6. 描述性统计 ----</span></span><br><span class="line"><span class="keyword">summarize</span> Disw_s Disw_c, detail</span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 7. 去除 2000 年数据并保存 ----</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 统计年份 &lt; 2001</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;$outfile&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考文献" class="article-heading"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献<a class="article-anchor" href="#参考文献" aria-label="本节链接" title="复制本节链接"></a></h2><p>邹颖、石福安、祁亚，2026：《以数促联：公共数据开放与企业供应链地理布局》，《世界经济》第 1 期。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8f8c393c52724926abd2e699535462b8">名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.287Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/97319/" title="名师讲堂｜使用 R 语言计算上市公司供应链地理加权距离"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/55657/" title="1985～2024 年全部专利 CD 指数计算结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/31612/">名师讲堂｜使用 Stata 测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-14 · 约 14 分钟</span></li><li><a href="/posts/51477/">名师讲堂｜使用 Stata 测算上市公司技术专业化与技术多样化</a><span class="tf-related-meta">2026-05-25 · 约 5 分钟</span></li><li><a href="/posts/97319/">名师讲堂｜使用 R 语言计算上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-09 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90"><span class="toc-text">指标来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">指标定义与计算公式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">计算公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E7%90%86%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">地理距离计算方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%9D%83%E6%96%B9%E5%BC%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">加权方式说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">计算过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E6%AD%A5%EF%BC%9A%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">第 1 步：参数设置与数据读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E4%BE%9B%E5%BA%94%E5%95%86%E5%8A%A0%E6%9D%83%E8%B7%9D%E7%A6%BB"><span class="toc-text">第 2 步：计算供应商加权距离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-3-%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%AE%A2%E6%88%B7%E5%8A%A0%E6%9D%83%E8%B7%9D%E7%A6%BB"><span class="toc-text">第 3 步：计算客户加权距离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-4-%E6%AD%A5%EF%BC%9A%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C%E5%B9%B6%E8%BE%93%E5%87%BA"><span class="toc-text">第 4 步：合并结果并输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">描述性统计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4-Stata-%E8%84%9A%E6%9C%AC"><span class="toc-text">完整 Stata 脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-text">参考文献</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

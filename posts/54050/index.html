@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言绘制城市间专利合作申请数量网络图(一) | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/54050/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="前不久给大家分享了「1985～2024年省份间、城市间及区县间各类型专利合作数量面板数据」，在推文中我给大家展示了区县间、城市间和省份间的专利合作网络。今天我们以城市间专利申请合作网络为例讲解如何绘制这种空间网络图。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言绘制城市间专利合作申请数量网络图(一)">
+<meta property="og:url" content="https://tidyfriday.cn/posts/54050/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="前不久给大家分享了「1985～2024年省份间、城市间及区县间各类型专利合作数量面板数据」，在推文中我给大家展示了区县间、城市间和省份间的专利合作网络。今天我们以城市间专利申请合作网络为例讲解如何绘制这种空间网络图。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/54050.png">
+<meta property="article:published_time" content="2025-03-08T21:45:46.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.675Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="专利">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/54050.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言绘制城市间专利合作申请数量网络图(一)">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言绘制城市间专利合作申请数量网络图(一)","description":"前不久给大家分享了「1985～2024年省份间、城市间及区县间各类型专利合作数量面板数据」，在推文中我给大家展示了区县间、城市间和省份间的专利合作网络。今天我们以城市间专利申请合作网络为例讲解如何绘制这种空间网络图。","url":"https://tidyfriday.cn/posts/54050/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/54050/"},"image":["https://tidyfriday.cn/og/54050.png"],"datePublished":"2025-03-08T21:45:46.000Z","dateModified":"2026-09-26T14:18:44.675Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, R 语言, 专利","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言绘制城市间专利合作申请数量网络图(一)","item":"https://tidyfriday.cn/posts/54050/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言绘制城市间专利合作申请数量网络图(一)</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言绘制城市间专利合作申请数量网络图(一)</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-03-08T21:45:46.000Z" itemprop="datePublished">2025-03-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2308 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>前不久给大家分享了「1985～2024年省份间、城市间及区县间各类型专利合作数量面板数据」，在推文中我给大家展示了区县间、城市间和省份间的专利合作网络。今天我们以城市间专利申请合作网络为例讲解如何绘制这种空间网络图。</p>
+<span id="more"></span>
+
+<p>在本次课及下次课我们将介绍两种方法：</p>
+<ol>
+<li>使用 ggplot2 的基础图层绘制空间网络图，这是个很基础和直观的方法，非常有必要掌握；</li>
+<li>使用 ggraph 包的网络相关图层绘制，这个可以实现更多功能，也非常值得掌握：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>基础 ggplot2 绘制</th>
+<th>ggraph 包图层绘制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/08/21/02b79j1bdbe1b168g4/common/content/1741441338105_872157.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+<td><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/08/21/02b79j1bdbe1b168g4/common/content/1741441339359_728989.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>在学习本课程之前需要预先学习之前的课程：</p>
+<blockquote>
+<p>使用 R 语言绘制历年中国省市区县地图（小地图版本+长版）: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c">https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c</a></p>
+</blockquote>
+<p>本课程中使用的地图数据也都是来自该课程。</p>
+<p>首先加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggnewscale<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>读取 2020 年城市间各类型专利合作数量统计数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2020年城市间各类型专利合作数量统计.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 12,316 × 7</span><br><span class="line">#&gt;     年份 城市1    城市2    合作申请专利数量 合作申请外观设计专利数量</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;               &lt;dbl&gt;                    &lt;dbl&gt;</span><br><span class="line">#&gt;  1  2020 七台河市 北京市                  3                        0</span><br><span class="line">#&gt;  2  2020 七台河市 哈尔滨市               12                        0</span><br><span class="line">#&gt;  3  2020 万宁市   大庆市                  1                        0</span><br><span class="line">#&gt;  4  2020 万宁市   江门市                  1                        0</span><br><span class="line">#&gt;  5  2020 万宁市   海口市                  1                        0</span><br><span class="line">#&gt;  6  2020 三亚市   三沙市                  2                        0</span><br><span class="line">#&gt;  7  2020 三亚市   上海市                  1                        0</span><br><span class="line">#&gt;  8  2020 三亚市   九江市                  1                        0</span><br><span class="line">#&gt;  9  2020 三亚市   北京市                 14                        0</span><br><span class="line">#&gt; 10  2020 三亚市   南京市                  2                        0</span><br><span class="line">#&gt; # ℹ 12,306 more rows</span><br><span class="line">#&gt; # ℹ 2 more variables: 合作申请发明专利数量 &lt;dbl&gt;,</span><br><span class="line">#&gt; #   合作申请实用新型专利数量 &lt;dbl&gt;</span><br></pre></td></tr></table></figure>
+
+<p>中国地图通常使用这样的坐标系：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>读取地图数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinaprov2021mini/chinaprov2021mini_line.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span>str_detect<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> <span class="string">&quot;_&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="operator">!</span><span class="built_in">class</span> <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;胡焕庸线&quot;</span><span class="punctuation">,</span> <span class="string">&quot;秦岭-淮河线&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> provlinemap</span><br><span class="line">provlinemap</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 37 features and 1 field</span><br><span class="line">#&gt; Geometry type: MULTILINESTRING</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: -2625586 ymin: 1825139 xmax: 2983002 ymax: 5921583</span><br><span class="line">#&gt; Projected CRS: +proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs</span><br><span class="line">#&gt; # A tibble: 37 × 2</span><br><span class="line">#&gt;    class                                                                geometry</span><br><span class="line">#&gt;    &lt;chr&gt;                                                   &lt;MULTILINESTRING [m]&gt;</span><br><span class="line">#&gt;  1 省份  ((1026818 3753771, 1026899 3753311, 1026900 3753103, 1026899 3752894, …</span><br><span class="line">#&gt;  2 省份  ((891889.1 2343649, 891865 2343557, 891648.7 2343372, 890923.8 2343325…</span><br><span class="line">#&gt;  3 省份  ((959992.3 4475646, 960020 4475637, 960065.6 4475631, 960093.2 4475637…</span><br><span class="line">#&gt;  4 省份  ((1298152 2534763, 1298134 2534747, 1298011 2534699, 1297947 2534713, …</span><br><span class="line">#&gt;  5 省份  ((95551.38 3786158, 95502.29 3786112, 95452.29 3786068, 95358.63 37861…</span><br><span class="line">#&gt;  6 省份  ((590293.9 2117685, 589768.4 2117046, 589358.1 2116967, 589057 2117038…</span><br><span class="line">#&gt;  7 省份  ((444678.3 2172854, 444444.2 2172566, 444074.1 2172455, 443583.3 21726…</span><br><span class="line">#&gt;  8 省份  ((9574.094 2605698, 9564.813 2605694, 9555.934 2605691, 9547.356 26056…</span><br><span class="line">#&gt;  9 省份  ((556006.8 1909575, 555989.1 1909520, 555843.4 1909450, 555794.2 19094…</span><br><span class="line">#&gt; 10 省份  ((1126379 4260466, 1126410 4260264, 1126368 4260023, 1126019 4259982, …</span><br><span class="line">#&gt; # ℹ 27 more rows</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinacity2021mini/chinacity2021mini.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>省代码<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymap</span><br><span class="line">citymap</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; Simple feature collection with 371 features and 6 fields</span><br><span class="line">#&gt; Geometry type: MULTIPOLYGON</span><br><span class="line">#&gt; Dimension:     XY</span><br><span class="line">#&gt; Bounding box:  xmin: -2625586 ymin: 1868655 xmax: 2962768 ymax: 5921583</span><br><span class="line">#&gt; Projected CRS: +proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs</span><br><span class="line">#&gt; # A tibble: 371 × 7</span><br><span class="line">#&gt;    省     省代码 市     市代码 class objid                              geometry</span><br><span class="line">#&gt;  * &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;                    &lt;MULTIPOLYGON [m]&gt;</span><br><span class="line">#&gt;  1 安徽省 340000 安庆市 340800 城市      1 (((1129079 3379225, 1129658 3379349,…</span><br><span class="line">#&gt;  2 安徽省 340000 蚌埠市 340300 城市      2 (((1115455 3634678, 1115645 3634689,…</span><br><span class="line">#&gt;  3 安徽省 340000 亳州市 341600 城市      3 (((973132.7 3682424, 973666.2 368238…</span><br><span class="line">#&gt;  4 安徽省 340000 池州市 341700 城市      4 (((1221172 3343232, 1220927 3342713,…</span><br><span class="line">#&gt;  5 安徽省 340000 滁州市 341100 城市      5 (((1209296 3606762, 1209300 3605694,…</span><br><span class="line">#&gt;  6 安徽省 340000 阜阳市 341200 城市      6 (((969637 3624545, 969637.9 3624505,…</span><br><span class="line">#&gt;  7 安徽省 340000 合肥市 340100 城市      7 (((1122388 3525961, 1122728 3526021,…</span><br><span class="line">#&gt;  8 安徽省 340000 淮北市 340600 城市      8 (((1081361 3696008, 1081801 3696328,…</span><br><span class="line">#&gt;  9 安徽省 340000 淮南市 340400 城市      9 (((1079161 3564117, 1079339 3563864,…</span><br><span class="line">#&gt; 10 安徽省 340000 黄山市 341000 城市     10 (((1238827 3310983, 1239824 3310536,…</span><br><span class="line">#&gt; # ℹ 361 more rows</span><br></pre></td></tr></table></figure>
+
+<p>地图配色可以使用这个网站：<a href="https://tidyfriday.cn/colors">https://tidyfriday.cn/colors</a></p>
+<p>仅仅保留需要的变量，三沙市的位置会影响图表的比例，而且专利申请的很少，还是从数据中去除了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>from <span class="operator">=</span> 城市<span class="number">1</span><span class="punctuation">,</span> to <span class="operator">=</span> 城市<span class="number">2</span><span class="punctuation">,</span> value <span class="operator">=</span> 合作申请专利数量<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span>from <span class="operator">%in%</span> <span class="string">&quot;三沙市&quot;</span> <span class="operator">&amp;</span> <span class="operator">!</span>to <span class="operator">%in%</span> <span class="string">&quot;三沙市&quot;</span><span class="punctuation">)</span><span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>统计每个城市与其他城市的总合作量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>from<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>value <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>value<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsum</span><br><span class="line"></span><br><span class="line">dfsum</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 360 × 2</span><br><span class="line">#&gt;    from     value</span><br><span class="line">#&gt;    &lt;chr&gt;    &lt;dbl&gt;</span><br><span class="line">#&gt;  1 七台河市    15</span><br><span class="line">#&gt;  2 万宁市       3</span><br><span class="line">#&gt;  3 三亚市      99</span><br><span class="line">#&gt;  4 三明市     239</span><br><span class="line">#&gt;  5 三门峡市   521</span><br><span class="line">#&gt;  6 上海市   16108</span><br><span class="line">#&gt;  7 上饶市     442</span><br><span class="line">#&gt;  8 东方市      30</span><br><span class="line">#&gt;  9 东莞市    4062</span><br><span class="line">#&gt; 10 东营市    1828</span><br><span class="line">#&gt; # ℹ 350 more rows</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>from<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span><span class="built_in">sum</span> <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>读取未经编辑的城市矢量数据，因为我们需要这个数据来计算各城市的质心：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&gt; 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">city_centroiddf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 371 × 4</span><br><span class="line">#&gt;    省     市            X        Y</span><br><span class="line">#&gt;    &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span><br><span class="line">#&gt;  1 安徽省 安庆市 1079679. 3295407.</span><br><span class="line">#&gt;  2 安徽省 蚌埠市 1122942. 3589681.</span><br><span class="line">#&gt;  3 安徽省 亳州市 1028999. 3617694.</span><br><span class="line">#&gt;  4 安徽省 池州市 1170731. 3267887.</span><br><span class="line">#&gt;  5 安徽省 滁州市 1187495. 3536891.</span><br><span class="line">#&gt;  6 安徽省 阜阳市  967020. 3560606.</span><br><span class="line">#&gt;  7 安徽省 合肥市 1147083. 3438594.</span><br><span class="line">#&gt;  8 安徽省 淮北市 1062868. 3651788.</span><br><span class="line">#&gt;  9 安徽省 淮南市 1085199. 3509706.</span><br><span class="line">#&gt; 10 安徽省 黄山市 1248987. 3249687.</span><br><span class="line">#&gt; # ℹ 361 more rows</span><br></pre></td></tr></table></figure>
+
+<p>把 df 和 city_centroiddf 匹配起来就可以得到每条合作线起点和终点的坐标了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>city_centroiddf<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;from&quot;</span> <span class="operator">=</span> <span class="string">&quot;市&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>fromlon <span class="operator">=</span> X<span class="punctuation">,</span> fromlat <span class="operator">=</span> Y<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>city_centroiddf<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;to&quot;</span> <span class="operator">=</span> <span class="string">&quot;市&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>tolon <span class="operator">=</span> X<span class="punctuation">,</span> tolat <span class="operator">=</span> Y<span class="punctuation">,</span> prov <span class="operator">=</span> 省.x<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>省.y<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 12,312 × 13</span><br><span class="line">#&gt;     年份 from     to       value 合作申请外观设计专利数量 合作申请发明专利数量</span><br><span class="line">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;    &lt;dbl&gt;                    &lt;dbl&gt;                &lt;dbl&gt;</span><br><span class="line">#&gt;  1  2020 七台河市 北京市       3                        0                    1</span><br><span class="line">#&gt;  2  2020 七台河市 哈尔滨市    12                        0                    3</span><br><span class="line">#&gt;  3  2020 万宁市   大庆市       1                        0                    1</span><br><span class="line">#&gt;  4  2020 万宁市   江门市       1                        0                    0</span><br><span class="line">#&gt;  5  2020 万宁市   海口市       1                        0                    1</span><br><span class="line">#&gt;  6  2020 三亚市   上海市       1                        0                    1</span><br><span class="line">#&gt;  7  2020 三亚市   九江市       1                        0                    1</span><br><span class="line">#&gt;  8  2020 三亚市   北京市      14                        0                    7</span><br><span class="line">#&gt;  9  2020 三亚市   南京市       2                        0                    2</span><br><span class="line">#&gt; 10  2020 三亚市   哈尔滨市     3                        0                    1</span><br><span class="line">#&gt; # ℹ 12,302 more rows</span><br><span class="line">#&gt; # ℹ 7 more variables: 合作申请实用新型专利数量 &lt;dbl&gt;, sum &lt;dbl&gt;, prov &lt;chr&gt;,</span><br><span class="line">#&gt; #   fromlon &lt;dbl&gt;, fromlat &lt;dbl&gt;, tolon &lt;dbl&gt;, tolat &lt;dbl&gt;</span><br></pre></td></tr></table></figure>
+
+<p>简化地图数据，这样绘制地图更快一些：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">city <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">2000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br></pre></td></tr></table></figure>
+
+<p>然后准备两个数据：first100df 和 first10df，第一个用来绘制城市散点（只绘制 100 个），第二个用来添加文本标签（只添加 10 个）。太多就会密密麻麻的，反而效果很差。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&gt; 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">first10df</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 10 × 4</span><br><span class="line">#&gt;    from    fromlon  fromlat   sum</span><br><span class="line">#&gt;    &lt;chr&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;</span><br><span class="line">#&gt;  1 北京市  972929. 4384044. 54652</span><br><span class="line">#&gt;  2 上海市 1545609. 3420743. 16108</span><br><span class="line">#&gt;  3 南京市 1275570. 3476635. 11024</span><br><span class="line">#&gt;  4 深圳市  947535. 2396243. 10807</span><br><span class="line">#&gt;  5 广州市  876561. 2458588.  9926</span><br><span class="line">#&gt;  6 成都市 -106982. 3257911.  8467</span><br><span class="line">#&gt;  7 杭州市 1373275. 3256649.  8392</span><br><span class="line">#&gt;  8 苏州市 1470544. 3443155.  7845</span><br><span class="line">#&gt;  9 天津市 1027425. 4297302.  7410</span><br><span class="line">#&gt; 10 武汉市  885732. 3288717.  6576</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以绘图了。由于细节很多，这里就不在一一解释了，感兴趣的小伙伴可以结合视频讲解学习：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> citymap<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span></span><br><span class="line">          color <span class="operator">=</span> <span class="string">&quot;gray10&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.05</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> provlinemap<span class="punctuation">,</span> aes<span class="punctuation">(</span>color <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">,</span></span><br><span class="line">                                  linewidth <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_manual<span class="punctuation">(</span></span><br><span class="line">    name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#fed439&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8a9197&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d2af81&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#fd7446&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d5e4a2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#197ec0&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#f05c3b&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span></span><br><span class="line">    name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;省份&quot;</span> <span class="operator">=</span> <span class="string">&quot;gray30&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_manual<span class="punctuation">(</span></span><br><span class="line">    name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;省份&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale<span class="punctuation">(</span><span class="string">&quot;fill&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale<span class="punctuation">(</span><span class="string">&quot;color&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale<span class="punctuation">(</span><span class="string">&quot;linewidth&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_curve<span class="punctuation">(</span>data <span class="operator">=</span> df<span class="punctuation">,</span></span><br><span class="line">             aes<span class="punctuation">(</span>x <span class="operator">=</span> fromlon<span class="punctuation">,</span> y <span class="operator">=</span> fromlat<span class="punctuation">,</span></span><br><span class="line">                 xend <span class="operator">=</span> tolon<span class="punctuation">,</span> yend <span class="operator">=</span> tolat<span class="punctuation">,</span></span><br><span class="line">                 color <span class="operator">=</span> from<span class="punctuation">,</span></span><br><span class="line">                 linewidth <span class="operator">=</span> value<span class="punctuation">,</span></span><br><span class="line">                 alpha <span class="operator">=</span> from<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             curvature <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_continuous<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.1</span><span class="punctuation">,</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                             breaks <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>seq<span class="punctuation">(</span><span class="built_in">range</span><span class="punctuation">(</span>df<span class="operator">$</span>value<span class="punctuation">)</span><span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="built_in">range</span><span class="punctuation">(</span>df<span class="operator">$</span>value<span class="punctuation">)</span><span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="built_in">length</span> <span class="operator">=</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                             <span class="comment"># limits = c(0, 800),</span></span><br><span class="line">                             name <span class="operator">=</span> <span class="string">&quot;合作申请专利数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">                             guide <span class="operator">=</span> guide_legend<span class="punctuation">(</span>direction <span class="operator">=</span> <span class="string">&quot;horizontal&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                                  nrow <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                                                  order <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                                                  byrow <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> rev<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#fed439&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8a9197&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d2af81&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#fd7446&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#d5e4a2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#197ec0&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#f05c3b&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#46732e&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#71d0f5&quot;</span><span class="punctuation">,</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">(</span>unique<span class="punctuation">(</span>df<span class="operator">$</span>from<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                     breaks <span class="operator">=</span> rev<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>first10df<span class="operator">$</span>from<span class="punctuation">,</span> df <span class="operator">%&gt;%</span> anti_join<span class="punctuation">(</span>first10df<span class="punctuation">)</span> <span class="operator">%&gt;%</span> pull<span class="punctuation">(</span>from<span class="punctuation">)</span> <span class="operator">%&gt;%</span> unique<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_alpha_manual<span class="punctuation">(</span>values <span class="operator">=</span> rev<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="built_in">rep</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                    <span class="built_in">rep</span><span class="punctuation">(</span><span class="number">0.2</span><span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">(</span>unique<span class="punctuation">(</span>df<span class="operator">$</span>from<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                     breaks <span class="operator">=</span> rev<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>first10df<span class="operator">$</span>from<span class="punctuation">,</span> df <span class="operator">%&gt;%</span> anti_join<span class="punctuation">(</span>first10df<span class="punctuation">)</span> <span class="operator">%&gt;%</span> pull<span class="punctuation">(</span>from<span class="punctuation">)</span> <span class="operator">%&gt;%</span> unique<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale<span class="punctuation">(</span>new_aes <span class="operator">=</span> <span class="string">&quot;size&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_point<span class="punctuation">(</span>data <span class="operator">=</span> first100df<span class="punctuation">,</span> aes<span class="punctuation">(</span>x <span class="operator">=</span> fromlon<span class="punctuation">,</span></span><br><span class="line">                                   y <span class="operator">=</span> fromlat<span class="punctuation">,</span></span><br><span class="line">                                   size <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             color <span class="operator">=</span> <span class="string">&quot;gray10&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_size_continuous<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.01</span><span class="punctuation">,</span> <span class="number">7</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                        breaks <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>seq<span class="punctuation">(</span><span class="built_in">range</span><span class="punctuation">(</span>first100df<span class="operator">$</span><span class="built_in">sum</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="built_in">range</span><span class="punctuation">(</span>first100df<span class="operator">$</span><span class="built_in">sum</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="built_in">length</span> <span class="operator">=</span> <span class="number">6</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                        name <span class="operator">=</span> <span class="string">&quot;总合作申请数量&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="comment"># limits = c(0, 8000),</span></span><br><span class="line">                        guide <span class="operator">=</span> guide_legend<span class="punctuation">(</span>direction <span class="operator">=</span> <span class="string">&quot;horizontal&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                             nrow <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">                                             order <span class="operator">=</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">                                             byrow <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggrepel<span class="operator">::</span>geom_text_repel<span class="punctuation">(</span>data <span class="operator">=</span> first100df<span class="punctuation">,</span></span><br><span class="line">                           aes<span class="punctuation">(</span>x <span class="operator">=</span> fromlon<span class="punctuation">,</span></span><br><span class="line">                               y <span class="operator">=</span> fromlat<span class="punctuation">,</span></span><br><span class="line">                               label <span class="operator">=</span> from<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                           color <span class="operator">=</span> <span class="string">&quot;gray10&quot;</span><span class="punctuation">,</span></span><br><span class="line">                           min.segment.length <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">,</span></span><br><span class="line">                           family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                           size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.title.position <span class="operator">=</span> <span class="string">&quot;top&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&quot;inside&quot;</span><span class="punctuation">,</span></span><br><span class="line">        legend.position.inside <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.12</span><span class="punctuation">,</span> <span class="number">0.2</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span></span><br><span class="line">    width_hint <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">    text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span> text_face <span class="operator">=</span> <span class="string">&quot;plain&quot;</span><span class="punctuation">,</span></span><br><span class="line">    pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.3</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span> which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.6</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">2</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">      text_face <span class="operator">=</span> <span class="string">&quot;plain&quot;</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;2020 年各城市合作申请专利网络&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据处理&amp;绘图：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：国家知识产权局&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic2020.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">8.5</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/08/21/02b79j1bdbe1b168g4/common/content/1741441338105_872157.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>附件中也提供了区县和省份的绘图代码，感兴趣的小伙伴也可以拿来参考。</p>
+<p>下次课我们再继续讲解如何使用 ggraph 包绘制类似的图表。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4ef23aa8632046e283b8e7175f6a6f7f">使用 R 语言绘制城市间专利合作申请数量网络图(一)</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.675Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/77530/" title="相邻城市对质心与共同边界的距离及共同边界矢量数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/21497/" title="使用 R 语言绘制城市间专利合作申请数量网络图(二)"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21497/">使用 R 语言绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2025-03-08 · 约 6 分钟</span></li><li><a href="/posts/62740/">使用 Python 绘制城市间专利合作申请数量网络图(一)</a><span class="tf-related-meta">2026-04-23 · 约 8 分钟</span></li><li><a href="/posts/10258/">使用 Python 绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2026-04-23 · 约 7 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

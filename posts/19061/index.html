@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/19061/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在《Nature》论文：「Papers and patents are becoming less disruptive over time」 中使用了 CD 指数数据，该指标的计算公式如下：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数">
+<meta property="og:url" content="https://tidyfriday.cn/posts/19061/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在《Nature》论文：「Papers and patents are becoming less disruptive over time」 中使用了 CD 指数数据，该指标的计算公式如下：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/19061.png">
+<meta property="article:published_time" content="2026-03-25T23:24:25.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.825Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/19061.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数","description":"在《Nature》论文：「Papers and patents are becoming less disruptive over time」 中使用了 CD 指数数据，该指标的计算公式如下：","url":"https://tidyfriday.cn/posts/19061/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/19061/"},"image":["https://tidyfriday.cn/og/19061.png"],"datePublished":"2026-03-25T23:24:25.000Z","dateModified":"2026-09-26T14:18:49.825Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 专利, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数","item":"https://tidyfriday.cn/posts/19061/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-03-25T23:24:25.000Z" itemprop="datePublished">2026-03-25</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2524 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在《Nature》论文：「Papers and patents are becoming less disruptive over time」 中使用了 CD 指数数据，该指标的计算公式如下：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/01/12/13/02b79j1bdbe1b168g4/common/content/1768196807837_556226.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>其中当专利 j 引用了专利 i 时 fit 取1，否则取 0；若专利 j 引用了专利 i 的后向引用专利时 bit 取 1，否则取 0；</p>
+<p>附件中也提供了该论文的 pdf 文件。</p>
+<p>论文中也提供了一个示意图帮助我们理解这个指数：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/01/12/13/02b79j1bdbe1b168g4/common/content/1768196808164_961511.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>看起来很复杂，其实只需要关注两个：</p>
+<ol>
+<li>若后面的专利既引用专利 i 又引用专利 i 的后向引用专利，那么专利 i 的该项引用的 CD1 指数 -1；</li>
+<li>若后面的专利只引用专利 i 但未引用专利 i 的后向引用专利，那么专利i的该项引用的 CDI 指数为 1；</li>
+<li>其他的情况都是 0 ；</li>
+</ol>
+<p>这样直接计算得到的是每个专利引用关系的 CD 指数，平均之后就得到了某个专利的 CD 指数。</p>
+<p>今天的课程中我们将以上市公司专利为例进行讲解。</p>
+<p>在计算之前我们需要准备两组数据：</p>
+<ol>
+<li>一个是专利的引用关系，也就是每个专利引用了其他的哪些专利；</li>
+<li>第二个是专利的属性信息，也就是每个公司每年申请了哪些专利。</li>
+</ol>
+<p>这两个数据我们都分享过。全部专利的引用与被引用关系数据在这里：</p>
+<blockquote>
+<p>1985~2024 年全部专利引用与被引用详细信息：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/225ad0b59a9945e1831d2e8b96ca1001">https://rstata.duanshu.com/#/brief/course/225ad0b59a9945e1831d2e8b96ca1001</a>；</p>
+</blockquote>
+<p>由于全部的数据非常大，所以附件中仅仅提供了 2010 年前的数据作为样本，通过类似如下代码即可处理得到：</p>
+<blockquote>
+<p>这部分代码就不用运行了，“全部专利引用与被引用信息分年.rds” 是一个超过 40 GB 的大数据，代码需要电脑性能足够好才能运行。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">read_rds<span class="punctuation">(</span><span class="string">&quot;全部专利引用与被引用信息分年.rds&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据公开公告号去重</span></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>公开公告号_original <span class="operator">=</span> str_remove<span class="punctuation">(</span>公开公告号_original<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         公开公告号 <span class="operator">=</span> str_remove<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>公开公告号_original<span class="punctuation">,</span> 公开公告号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 引用信息</span></span><br><span class="line">bind_rows<span class="punctuation">(</span></span><br><span class="line">  df2 <span class="operator">%&gt;%</span></span><br><span class="line">    filter<span class="punctuation">(</span>引用或被引用 <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;他引信息&quot;</span><span class="punctuation">,</span> <span class="string">&quot;自引信息&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;newipzlid1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请日1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号1&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;省1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省代码1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市代码1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县代码1&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;引用或被引用&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;newipzlid2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请日2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;省2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省代码2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市代码2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县代码2&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span><span class="operator">-</span>引用或被引用<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  df2 <span class="operator">%&gt;%</span></span><br><span class="line">    filter<span class="punctuation">(</span>引用或被引用 <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;被他引信息&quot;</span><span class="punctuation">,</span> <span class="string">&quot;被自引信息&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;newipzlid2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请日2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;省2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省代码2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市代码2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县代码2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;引用或被引用&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;newipzlid1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请日1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号1&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;省1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省代码1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市代码1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县代码1&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span><span class="operator">-</span>引用或被引用<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0a</span><br><span class="line"></span><br><span class="line">df0a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">df0a <span class="operator">%&gt;%</span></span><br><span class="line">  write_rds<span class="punctuation">(</span><span class="string">&quot;全部专利引用信息（去重后）.rds&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 选择 2010 年前的样本</span></span><br><span class="line">read_rds<span class="punctuation">(</span><span class="string">&quot;全部专利引用信息（去重后）.rds&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>year<span class="punctuation">(</span>申请日<span class="number">1</span><span class="punctuation">)</span> <span class="operator">&lt;=</span> <span class="number">2010</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  write_csv<span class="punctuation">(</span><span class="string">&quot;2010年及之前专利引用信息.csv&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>专利的属性信息就是上市公司专利匹配结果：</p>
+<blockquote>
+<p>1985～2024 年上市公司与专利数据匹配结果（版本3， 含申请、授权信息）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff">https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff</a></p>
+</blockquote>
+<p>同样这个数据也是非常巨大，附件中提供了 “2010年上市公司与专利数据匹配结果.csv” 样本。</p>
+<p>需要注意，如果想要计算 2010 年的专利 CD 指数，需要使用全部的 2010 年及之前的专利引用信息。因为这里需要专利引用的引用信息，2010 年的专利会引用 2010 年之前的专利，然后这些专利还会引用更早期的专利。</p>
+<p>下面我们开始使用 R 语言处理，首先准备数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在计算 CD 指数前，我们需要准备两个数据，一个是专利的引用关系，也就是每个专利引用了其他的哪些专利，第二个是专利的属性信息，也就是每个公司每年申请了哪些专利。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 首先是 2010 年全部专利的引用关系</span></span><br><span class="line">read_csv<span class="punctuation">(</span><span class="string">&quot;2010年及之前专利引用信息.csv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>newipzlid <span class="operator">=</span> newipzlid1<span class="punctuation">,</span> newipzlid2<span class="punctuation">)</span> <span class="operator">-&gt;</span> patent_citations</span><br><span class="line"></span><br><span class="line">patent_citations</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,327,648 × 2</span></span><br><span class="line"><span class="comment">#&gt;    newipzlid newipzlid2</span></span><br><span class="line"><span class="comment">#&gt;        &lt;dbl&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  19850046   19850027</span></span><br><span class="line"><span class="comment">#&gt;  2  19850046   19857435</span></span><br><span class="line"><span class="comment">#&gt;  3  19850568   19850937</span></span><br><span class="line"><span class="comment">#&gt;  4  19850908   19854634</span></span><br><span class="line"><span class="comment">#&gt;  5  19850908   19859532</span></span><br><span class="line"><span class="comment">#&gt;  6  19851074   19850147</span></span><br><span class="line"><span class="comment">#&gt;  7  19851074   19850143</span></span><br><span class="line"><span class="comment">#&gt;  8  19851742   19851158</span></span><br><span class="line"><span class="comment">#&gt;  9  19851759   19850131</span></span><br><span class="line"><span class="comment">#&gt; 10  19851877   19851493</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,327,638 more rows</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># patent_citations 里面包含的专利编号</span></span><br><span class="line">unique<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>patent_citations<span class="operator">$</span>newipzlid<span class="punctuation">,</span> patent_citations<span class="operator">$</span>newipzlid2<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> unique_newipzlid</span><br><span class="line"></span><br><span class="line">unique_newipzlid</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,732,706 × 1</span></span><br><span class="line"><span class="comment">#&gt;    newipzlid</span></span><br><span class="line"><span class="comment">#&gt;        &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  19850046</span></span><br><span class="line"><span class="comment">#&gt;  2  19850568</span></span><br><span class="line"><span class="comment">#&gt;  3  19850908</span></span><br><span class="line"><span class="comment">#&gt;  4  19851074</span></span><br><span class="line"><span class="comment">#&gt;  5  19851742</span></span><br><span class="line"><span class="comment">#&gt;  6  19851759</span></span><br><span class="line"><span class="comment">#&gt;  7  19851877</span></span><br><span class="line"><span class="comment">#&gt;  8  19851978</span></span><br><span class="line"><span class="comment">#&gt;  9  19852054</span></span><br><span class="line"><span class="comment">#&gt; 10  19852055</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,732,696 more rows</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 上市公司专利数据</span></span><br><span class="line">readr<span class="operator">::</span>read_csv<span class="punctuation">(</span><span class="string">&quot;2010年上市公司与专利数据匹配结果.csv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>unique_newipzlid <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>value <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 由于专利数据里面包含重复的，所以我们要进行去重，不过去重的时候要尽可能保留 unique_newipzlid 里面的</span></span><br><span class="line">df1b <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>公开公告号 <span class="operator">=</span> str_remove<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>value <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>value<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 根据公开公告号去重</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 公开公告号<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>value <span class="operator">==</span> <span class="built_in">max</span><span class="punctuation">(</span>value<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 公开公告号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>公开公告号<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 再根据申请号去重</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 申请号<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>value <span class="operator">==</span> <span class="built_in">max</span><span class="punctuation">(</span>value<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 申请号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>申请号<span class="punctuation">,</span> <span class="operator">-</span>value<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>firm_id <span class="operator">=</span> 股票代码<span class="punctuation">,</span> patent_id <span class="operator">=</span> newipzlid<span class="punctuation">,</span> year <span class="operator">=</span> 年份<span class="punctuation">)</span> <span class="operator">-&gt;</span> patent_info</span><br><span class="line"></span><br><span class="line">patent_info</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 63,434 × 3</span></span><br><span class="line"><span class="comment">#&gt;    firm_id  patent_id  year</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 002705  2010000002  2010</span></span><br><span class="line"><span class="comment">#&gt;  2 000333  2010000004  2010</span></span><br><span class="line"><span class="comment">#&gt;  3 000333  2010000005  2010</span></span><br><span class="line"><span class="comment">#&gt;  4 000333  2010000006  2010</span></span><br><span class="line"><span class="comment">#&gt;  5 002705  2010000016  2010</span></span><br><span class="line"><span class="comment">#&gt;  6 603630  2010000091  2010</span></span><br><span class="line"><span class="comment">#&gt;  7 600467  2010000147  2010</span></span><br><span class="line"><span class="comment">#&gt;  8 002728  2010000188  2010</span></span><br><span class="line"><span class="comment">#&gt;  9 301372  2010000262  2010</span></span><br><span class="line"><span class="comment">#&gt; 10 000825  2010000264  2010</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 63,424 more rows</span></span><br><span class="line"></span><br><span class="line">patent_citations</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,327,648 × 2</span></span><br><span class="line"><span class="comment">#&gt;    newipzlid newipzlid2</span></span><br><span class="line"><span class="comment">#&gt;        &lt;dbl&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  19850046   19850027</span></span><br><span class="line"><span class="comment">#&gt;  2  19850046   19857435</span></span><br><span class="line"><span class="comment">#&gt;  3  19850568   19850937</span></span><br><span class="line"><span class="comment">#&gt;  4  19850908   19854634</span></span><br><span class="line"><span class="comment">#&gt;  5  19850908   19859532</span></span><br><span class="line"><span class="comment">#&gt;  6  19851074   19850147</span></span><br><span class="line"><span class="comment">#&gt;  7  19851074   19850143</span></span><br><span class="line"><span class="comment">#&gt;  8  19851742   19851158</span></span><br><span class="line"><span class="comment">#&gt;  9  19851759   19850131</span></span><br><span class="line"><span class="comment">#&gt; 10  19851877   19851493</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,327,638 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>准备后向引用关系，也就是每个专利引用了哪些专利：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_citations <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span> backward_cited <span class="operator">=</span> newipzlid2<span class="punctuation">)</span> <span class="operator">-&gt;</span> backward_refs</span><br><span class="line"></span><br><span class="line">backward_refs</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,327,648 × 2</span></span><br><span class="line"><span class="comment">#&gt;      patent backward_cited</span></span><br><span class="line"><span class="comment">#&gt;       &lt;dbl&gt;          &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 19850046       19850027</span></span><br><span class="line"><span class="comment">#&gt;  2 19850046       19857435</span></span><br><span class="line"><span class="comment">#&gt;  3 19850568       19850937</span></span><br><span class="line"><span class="comment">#&gt;  4 19850908       19854634</span></span><br><span class="line"><span class="comment">#&gt;  5 19850908       19859532</span></span><br><span class="line"><span class="comment">#&gt;  6 19851074       19850147</span></span><br><span class="line"><span class="comment">#&gt;  7 19851074       19850143</span></span><br><span class="line"><span class="comment">#&gt;  8 19851742       19851158</span></span><br><span class="line"><span class="comment">#&gt;  9 19851759       19850131</span></span><br><span class="line"><span class="comment">#&gt; 10 19851877       19851493</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,327,638 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>计算每次引用的 CD1 值：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 当专利 j 引用了专利 i 时 fit 取1，否则取 0；</span></span><br><span class="line"><span class="comment"># 若专利 j 引用了专利 i 的后向引用专利时 bit 取 1，否则取 0；</span></span><br><span class="line"><span class="comment"># 若后面的专利既引用专利 i 又引用专利 i 的后向引用专利，那么专利 i 的该项引用的 CD1 指数 -1</span></span><br><span class="line"><span class="comment"># 若后面的专利只引用专利 i 但未引用专利 i 的后向引用专利，那么专利i的该项引用的 CDI 指数为 1</span></span><br><span class="line">patent_citations <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>citing_patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span> cited_patent <span class="operator">=</span> newipzlid2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 获取被引用专利的后向引用专利（即它引用的专利）</span></span><br><span class="line">  left_join<span class="punctuation">(</span>backward_refs<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;cited_patent&quot;</span> <span class="operator">=</span> <span class="string">&quot;patent&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> relationship <span class="operator">=</span> <span class="string">&quot;many-to-many&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 检查引用专利是否也引用了这些后向引用专利</span></span><br><span class="line">  left_join<span class="punctuation">(</span></span><br><span class="line">    patent_citations <span class="operator">%&gt;%</span></span><br><span class="line">      rename<span class="punctuation">(</span>citing_patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span></span><br><span class="line">             check_cited <span class="operator">=</span> newipzlid2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    by <span class="operator">=</span> <span class="string">&quot;citing_patent&quot;</span><span class="punctuation">,</span></span><br><span class="line">    relationship <span class="operator">=</span> <span class="string">&quot;many-to-many&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 标记是否同时引用了后向引用专利</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    cites_backward <span class="operator">=</span> <span class="punctuation">(</span>backward_cited <span class="operator">==</span> check_cited<span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">      <span class="punctuation">(</span>backward_cited <span class="operator">!=</span> cited_patent<span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">      <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>backward_cited<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 这里运行下面这句就明白上面的代码在做什么准备了：</span></span><br><span class="line">  <span class="comment"># filter(cites_backward == 1)</span></span><br><span class="line">  <span class="comment"># 计算 CD1</span></span><br><span class="line">  group_by<span class="punctuation">(</span>citing_patent<span class="punctuation">,</span> cited_patent<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    cd1 <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">any</span><span class="punctuation">(</span>cites_backward<span class="punctuation">)</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> cd1_values</span><br><span class="line"></span><br><span class="line">cd1_values</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,327,648 × 3</span></span><br><span class="line"><span class="comment">#&gt;    citing_patent cited_patent   cd1</span></span><br><span class="line"><span class="comment">#&gt;            &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1      19850046     19850027     1</span></span><br><span class="line"><span class="comment">#&gt;  2      19850046     19857435     1</span></span><br><span class="line"><span class="comment">#&gt;  3      19850568     19850937     1</span></span><br><span class="line"><span class="comment">#&gt;  4      19850908     19854634     1</span></span><br><span class="line"><span class="comment">#&gt;  5      19850908     19859532     1</span></span><br><span class="line"><span class="comment">#&gt;  6      19851074     19850142     1</span></span><br><span class="line"><span class="comment">#&gt;  7      19851074     19850143     1</span></span><br><span class="line"><span class="comment">#&gt;  8      19851074     19850146     1</span></span><br><span class="line"><span class="comment">#&gt;  9      19851074     19850147     1</span></span><br><span class="line"><span class="comment">#&gt; 10      19851742     19851158     1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,327,638 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>cd1_values 是专利引用对的结果，分组汇总就得到了专利层面的结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cd2_values <span class="operator">&lt;-</span> cd1_values <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>cited_patent<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    cd2 <span class="operator">=</span> mean<span class="punctuation">(</span>cd1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    n_citations <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>再分企业平均就可以计算企业年度的 CD 指数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cd_index <span class="operator">&lt;-</span> cd2_values <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>patent_info<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;cited_patent&quot;</span> <span class="operator">=</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>firm_id<span class="punctuation">,</span> year<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    CD <span class="operator">=</span> mean<span class="punctuation">(</span>cd2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    n_patents <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cd_index</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,049 × 4</span></span><br><span class="line"><span class="comment">#&gt;    firm_id  year    CD n_patents</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000002   2010 1             3</span></span><br><span class="line"><span class="comment">#&gt;  2 000012   2010 1             1</span></span><br><span class="line"><span class="comment">#&gt;  3 000016   2010 1             7</span></span><br><span class="line"><span class="comment">#&gt;  4 000021   2010 1             4</span></span><br><span class="line"><span class="comment">#&gt;  5 000030   2010 1             1</span></span><br><span class="line"><span class="comment">#&gt;  6 000032   2010 1             5</span></span><br><span class="line"><span class="comment">#&gt;  7 000039   2010 0.6          10</span></span><br><span class="line"><span class="comment">#&gt;  8 000050   2010 0.778         3</span></span><br><span class="line"><span class="comment">#&gt;  9 000055   2010 1             2</span></span><br><span class="line"><span class="comment">#&gt; 10 000063   2010 0.686       351</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,039 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以编写一个函数快速计算：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">calculate_cd_index_verbose <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>patent_citations<span class="punctuation">,</span> patent_info<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="comment"># 1. 准备后向引用关系：每个专利引用了哪些专利</span></span><br><span class="line">  backward_refs <span class="operator">&lt;-</span> patent_citations <span class="operator">%&gt;%</span></span><br><span class="line">    rename<span class="punctuation">(</span>patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span> backward_cited <span class="operator">=</span> newipzlid2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 2. 计算每次引用的CD1值</span></span><br><span class="line">  cd1_values <span class="operator">&lt;-</span> patent_citations <span class="operator">%&gt;%</span></span><br><span class="line">    rename<span class="punctuation">(</span>citing_patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span> cited_patent <span class="operator">=</span> newipzlid2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    <span class="comment"># 获取被引用专利的后向引用专利（即它引用的专利）</span></span><br><span class="line">    left_join<span class="punctuation">(</span>backward_refs<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;cited_patent&quot;</span> <span class="operator">=</span> <span class="string">&quot;patent&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    <span class="comment"># 检查引用专利是否也引用了这些后向引用专利</span></span><br><span class="line">    left_join<span class="punctuation">(</span></span><br><span class="line">      patent_citations <span class="operator">%&gt;%</span> rename<span class="punctuation">(</span>citing_patent <span class="operator">=</span> newipzlid<span class="punctuation">,</span></span><br><span class="line">                                  check_cited <span class="operator">=</span> newipzlid2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      by <span class="operator">=</span> <span class="string">&quot;citing_patent&quot;</span><span class="punctuation">,</span></span><br><span class="line">      relationship <span class="operator">=</span> <span class="string">&quot;many-to-many&quot;</span></span><br><span class="line">    <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    <span class="comment"># 标记是否同时引用了后向引用专利</span></span><br><span class="line">    mutate<span class="punctuation">(</span></span><br><span class="line">      cites_backward <span class="operator">=</span> <span class="punctuation">(</span>backward_cited <span class="operator">==</span> check_cited<span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">        <span class="punctuation">(</span>backward_cited <span class="operator">!=</span> cited_patent<span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">        <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>backward_cited<span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    <span class="comment"># 计算CD1</span></span><br><span class="line">    group_by<span class="punctuation">(</span>citing_patent<span class="punctuation">,</span> cited_patent<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    summarise<span class="punctuation">(</span></span><br><span class="line">      cd1 <span class="operator">=</span> ifelse<span class="punctuation">(</span><span class="built_in">any</span><span class="punctuation">(</span>cites_backward<span class="punctuation">)</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 3. 计算专利级别的CD2</span></span><br><span class="line">  cd2_values <span class="operator">&lt;-</span> cd1_values <span class="operator">%&gt;%</span></span><br><span class="line">    group_by<span class="punctuation">(</span>cited_patent<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    summarise<span class="punctuation">(</span></span><br><span class="line">      cd2 <span class="operator">=</span> mean<span class="punctuation">(</span>cd1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      n_citations <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 4. 计算企业年度的CD</span></span><br><span class="line">  cd_index <span class="operator">&lt;-</span> cd2_values <span class="operator">%&gt;%</span></span><br><span class="line">    left_join<span class="punctuation">(</span>patent_info<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;cited_patent&quot;</span> <span class="operator">=</span> <span class="string">&quot;patent_id&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    group_by<span class="punctuation">(</span>firm_id<span class="punctuation">,</span> year<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    summarise<span class="punctuation">(</span></span><br><span class="line">      CD <span class="operator">=</span> mean<span class="punctuation">(</span>cd2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      n_patents <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">return</span><span class="punctuation">(</span>cd_index<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>创建一个测试数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">test_cites <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  newipzlid <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;P2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P5&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P6&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P7&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P8&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  newipzlid2 <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;P1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P3&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">test_info <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  patent_id <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;P&quot;</span><span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span><span class="number">8</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  firm_id <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;F1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;F2&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> each <span class="operator">=</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  year <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="number">2020</span><span class="operator">:</span><span class="number">2021</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">calculate_cd_index_verbose<span class="punctuation">(</span>patent_citations <span class="operator">=</span> test_cites<span class="punctuation">,</span> patent_info <span class="operator">=</span> test_info<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2 × 4</span></span><br><span class="line"><span class="comment">#&gt;   firm_id  year    CD n_patents</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;   &lt;int&gt; &lt;dbl&gt;     &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 F1       2020     1         2</span></span><br><span class="line"><span class="comment">#&gt; 2 F1       2021     1         1</span></span><br></pre></td></tr></table></figure>
+
+<p>这样如果准备好类似上面结果的数据，就可以直接计算每个公司的 CD 指数了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">result <span class="operator">&lt;-</span> calculate_cd_index_verbose<span class="punctuation">(</span>patent_citations<span class="punctuation">,</span> patent_info<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>result<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,049 × 4</span></span><br><span class="line"><span class="comment">#&gt;    firm_id  year    CD n_patents</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000002   2010 1             3</span></span><br><span class="line"><span class="comment">#&gt;  2 000012   2010 1             1</span></span><br><span class="line"><span class="comment">#&gt;  3 000016   2010 1             7</span></span><br><span class="line"><span class="comment">#&gt;  4 000021   2010 1             4</span></span><br><span class="line"><span class="comment">#&gt;  5 000030   2010 1             1</span></span><br><span class="line"><span class="comment">#&gt;  6 000032   2010 1             5</span></span><br><span class="line"><span class="comment">#&gt;  7 000039   2010 0.6          10</span></span><br><span class="line"><span class="comment">#&gt;  8 000050   2010 0.778         3</span></span><br><span class="line"><span class="comment">#&gt;  9 000055   2010 1             2</span></span><br><span class="line"><span class="comment">#&gt; 10 000063   2010 0.686       351</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,039 more rows</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">result <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>股票代码 <span class="operator">=</span> firm_id<span class="punctuation">,</span> 年份 <span class="operator">=</span> year<span class="punctuation">,</span> CD指数 <span class="operator">=</span> CD<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>n_patents<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;2010年上市公司CD指数计算结果.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/3b00a43418ee43f194df7fa664ef0c7d">名师讲堂｜使用 R 语言测算专利的创新突破度：CD指数（更新）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.825Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/30312/" title="名师讲堂｜使用 R 语言测算专利的创新突破度：CD指数（更新）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/85345/" title="1980～2021 年各省市区县土地利用覆盖和变化面板数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/13441/">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 9 分钟</span></li><li><a href="/posts/35174/">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利</a><span class="tf-related-meta">2026-07-16 · 约 9 分钟</span></li><li><a href="/posts/21826/">名师讲堂｜使用 R 语言测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

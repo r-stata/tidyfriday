@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算各城市数字产业集聚程度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/72197/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Python 测算各城市数字产业集聚程度的方法。该方法参考屠西伟、史丹（2025）《数字产业集聚与企业能源效率改进》，通过区位熵来综合测度城市的数字产业集聚水平。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算各城市数字产业集聚程度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/72197/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Python 测算各城市数字产业集聚程度的方法。该方法参考屠西伟、史丹（2025）《数字产业集聚与企业能源效率改进》，通过区位熵来综合测度城市的数字产业集聚水平。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/72197.png">
+<meta property="article:published_time" content="2026-06-14T19:04:25.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.179Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/72197.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算各城市数字产业集聚程度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算各城市数字产业集聚程度","description":"今天给大家分享使用 Python 测算各城市数字产业集聚程度的方法。该方法参考屠西伟、史丹（2025）《数字产业集聚与企业能源效率改进》，通过区位熵来综合测度城市的数字产业集聚水平。","url":"https://tidyfriday.cn/posts/72197/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/72197/"},"image":["https://tidyfriday.cn/og/72197.png"],"datePublished":"2026-06-14T19:04:25.000Z","dateModified":"2026-09-26T14:18:49.179Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算各城市数字产业集聚程度","item":"https://tidyfriday.cn/posts/72197/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算各城市数字产业集聚程度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算各城市数字产业集聚程度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-06-14T19:04:25.000Z" itemprop="datePublished">2026-06-14</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3589 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 12 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 Python 测算各城市数字产业集聚程度的方法。该方法参考屠西伟、史丹（2025）《数字产业集聚与企业能源效率改进》，通过<strong>区位熵</strong>来综合测度城市的数字产业集聚水平。</p>
+<span id="more"></span>
+
+<p>附件中提供了该参考文献的 PDF 文件，感兴趣的小伙伴可以阅读原文。</p>
+<h2 id="指标来源与计算原理" class="article-heading"><a href="#指标来源与计算原理" class="headerlink" title="指标来源与计算原理"></a>指标来源与计算原理<a class="article-anchor" href="#指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数字产业集聚度（Location-Quotient）" class="article-heading"><a href="#数字产业集聚度（Location-Quotient）" class="headerlink" title="数字产业集聚度（Location Quotient）"></a>数字产业集聚度（Location Quotient）<a class="article-anchor" href="#数字产业集聚度（Location-Quotient）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/19/02b79j1bdbe1b168g4/common/content/1781434897387_282131.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="区位熵的经济含义" class="article-heading"><a href="#区位熵的经济含义" class="headerlink" title="区位熵的经济含义"></a>区位熵的经济含义<a class="article-anchor" href="#区位熵的经济含义" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>DL &gt; 1：该城市数字产业集聚度高于全国平均水平，具有相对专业化优势</li>
+<li>DL = 1：与全国平均水平相当</li>
+<li>DL &lt; 1：低于全国平均水平</li>
+</ul>
+<h3 id="两种测算方法" class="article-heading"><a href="#两种测算方法" class="headerlink" title="两种测算方法"></a>两种测算方法<a class="article-anchor" href="#两种测算方法" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文介绍两种测算方式，主要区别在于分子分母的衡量单位不同：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>Xct</th>
+<th>Sct</th>
+<th>优点</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>注册资本版</strong>（论文方法）</td>
+<td>数字产业注册资本（万元）</td>
+<td>全部企业注册资本（万元）</td>
+<td>反映资本密度，与论文一致</td>
+<td>大城市分母稀释效应明显</td>
+</tr>
+<tr>
+<td><strong>企业数量版</strong>（备选方法）</td>
+<td>数字产业企业数量（家）</td>
+<td>全部企业数量（家）</td>
+<td>不受极值影响，城市间对比更直观</td>
+<td>无法区分大企业与小企业的贡献</td>
+</tr>
+</tbody></table>
+<h3 id="计算步骤概述" class="article-heading"><a href="#计算步骤概述" class="headerlink" title="计算步骤概述"></a>计算步骤概述<a class="article-anchor" href="#计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算流程分为以下几个步骤：</p>
+<ol>
+<li>读取行业分类：加载《数字经济及其核心产业统计分类（2021）》代码表</li>
+<li>构建注销查找表：从注销企业 CSV 中提取 newgcid → exit_year 映射</li>
+<li>单年聚合：逐年读取注册企业 CSV，先过滤已注销企业，再按城市聚合</li>
+<li>面板累计：跨年累加，得到各城市各年的存量企业指标</li>
+<li>计算区位熵：按公式计算 DL，并进行 Winsorize 极端值处理</li>
+<li>输出结果：保存为 .dta 文件</li>
+</ol>
+<hr>
+<h2 id="数据说明" class="article-heading"><a href="#数据说明" class="headerlink" title="数据说明"></a>数据说明<a class="article-anchor" href="#数据说明" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据来源" class="article-heading"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源<a class="article-anchor" href="#数据来源" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>工商注册信息：</li>
+</ul>
+<blockquote>
+<p>1949～2023 年工商企业注册信息数据（含经纬度及其所属的省市区县）(版本2)：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/6d38a3f10cdb467492f3204d1ebdd313">https://rstata.duanshu.com/#/brief/course/6d38a3f10cdb467492f3204d1ebdd313</a></p>
+</blockquote>
+<ul>
+<li>注销企业信息：</li>
+</ul>
+<blockquote>
+<p>1970～2023 年各年各省市区县、各行业注销公司工商信息及数量统计面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/bcdf21ad0e614645b8449e69342e0851">https://rstata.duanshu.com/#/brief/course/bcdf21ad0e614645b8449e69342e0851</a></p>
+</blockquote>
+<ul>
+<li>数字经济核心产业分类：数字经济及其核心产业统计分类.dta，提取自《数字经济及其核心产业统计分类（2021）》。</li>
+</ul>
+<h3 id="注销企业处理逻辑" class="article-heading"><a href="#注销企业处理逻辑" class="headerlink" title="注销企业处理逻辑"></a>注销企业处理逻辑<a class="article-anchor" href="#注销企业处理逻辑" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文采用<strong>个体层面过滤</strong>的方法处理注销企业：</p>
+<blockquote>
+<p><strong>第 t 年存量企业</strong> = t 年及之前注册的 <strong>且</strong> t 年及之前未注销的企业</p>
+</blockquote>
+<p>具体实现：预先从注销企业 CSV 提取 <code>newgcid → exit_year</code> 查找表，缓存为 pickle 文件，在每年聚合前关联该表，直接过滤掉 <code>exit_year &lt;= t</code> 的企业，再对存活企业进行聚合。</p>
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错。因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="步骤一：读取数字经济产业行业代码" class="article-heading"><a href="#步骤一：读取数字经济产业行业代码" class="headerlink" title="步骤一：读取数字经济产业行业代码"></a>步骤一：读取数字经济产业行业代码<a class="article-anchor" href="#步骤一：读取数字经济产业行业代码" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="加载分类标准" class="article-heading"><a href="#加载分类标准" class="headerlink" title="加载分类标准"></a>加载分类标准<a class="article-anchor" href="#加载分类标准" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">digi_dta = pd.read_stata(<span class="string">&quot;数字经济及其核心产业统计分类.dta&quot;</span>)</span><br><span class="line">digi_dta = digi_dta[digi_dta[&#x27;国民经济行业代码&#x27;].notna() &amp; (digi_dta[&#x27;国民经济行业代码&#x27;] != <span class="string">&quot;&quot;</span>)]</span><br><span class="line"></span><br><span class="line"># 提取 3 位前缀（匹配 CSV 行业中类代码后 3 位数字）</span><br><span class="line">digi_prefixes = <span class="keyword">set</span>(digi_dta[&#x27;国民经济行业代码&#x27;].str[:3].unique())</span><br><span class="line"># 构建完整 4 位代码集合（备用于小类匹配）</span><br><span class="line">digi_codes_4d = <span class="keyword">set</span>(digi_dta[&#x27;国民经济行业代码&#x27;].unique())</span><br></pre></td></tr></table></figure>
+
+<p>《数字经济及其核心产业统计分类（2021）》使用 4 位行业代码，而工商注册信息 CSV 中的行业代码字段格式为 <code>I641</code>（中类）或 <code>I6411</code>（小类），均带有字母前缀。</p>
+<p>代码的匹配策略如下：</p>
+<table>
+<thead>
+<tr>
+<th>行业字段</th>
+<th>提取规则</th>
+<th>与分类标准对比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>行业小类代码</code>（4位数字）</td>
+<td><code>code[1:5]</code></td>
+<td>与 <code>digi_codes_4d</code> 完全匹配</td>
+</tr>
+<tr>
+<td><code>行业中类代码</code>（3位数字）</td>
+<td><code>code[1:4]</code></td>
+<td>与 <code>digi_prefixes</code> 前缀匹配</td>
+</tr>
+</tbody></table>
+<p>优先使用小类代码，兜底使用中类代码，确保最大覆盖率。</p>
+<hr>
+<h2 id="步骤二：构建注销查找表" class="article-heading"><a href="#步骤二：构建注销查找表" class="headerlink" title="步骤二：构建注销查找表"></a>步骤二：构建注销查找表<a class="article-anchor" href="#步骤二：构建注销查找表" aria-label="本节链接" title="复制本节链接"></a></h2><p>注销企业处理是整个计算中最关键的一步。</p>
+<h3 id="预构建查找表" class="article-heading"><a href="#预构建查找表" class="headerlink" title="预构建查找表"></a>预构建查找表<a class="article-anchor" href="#预构建查找表" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>代码要点</strong>：</p>
+<ul>
+<li>usecols=[‘newgcid’, ‘退出日期’]：只读两列，大幅节省内存</li>
+<li>drop_duplicates(subset=[‘newgcid’], keep=’first’)：每个企业只保留最早的注销记录</li>
+<li>to_pickle(exit_pkl)：缓存为 pickle 文件，多进程工人从磁盘按需加载，避免跨进程序列化开销</li>
+</ul>
+<hr>
+<h2 id="步骤三：单年聚合函数" class="article-heading"><a href="#步骤三：单年聚合函数" class="headerlink" title="步骤三：单年聚合函数"></a>步骤三：单年聚合函数<a class="article-anchor" href="#步骤三：单年聚合函数" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="函数设计" class="article-heading"><a href="#函数设计" class="headerlink" title="函数设计"></a>函数设计<a class="article-anchor" href="#函数设计" aria-label="本节链接" title="复制本节链接"></a></h3><p>这是计算流程的核心函数，逻辑为：<strong>读取 → 过滤注销 → 识别数字产业 → 企业缩尾（注册资本版）→ 按城市聚合</strong>。</p>
+<blockquote>
+<p>注册资本版与企业数量版的唯一区别在于：注册资本版在聚合前需做企业层面 Winsorize，企业数量版（计数）无需缩尾。以下以注册资本版为例说明。</p>
+</blockquote>
+<h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>五个步骤解析</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>核心代码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>① 读取</td>
+<td><code>pd.read_csv(..., usecols=...)</code></td>
+<td>只读必要列，单年文件可达 200MB+，列选择可节省 60% 内存</td>
+</tr>
+<tr>
+<td>② 过滤注销</td>
+<td><code>dt[dt[&#39;exit_year&#39;].isna() | (dt[&#39;exit_year&#39;] &gt; year_val)]</code></td>
+<td><code>NaN</code> 表示未注销；<code>&gt; year_val</code> 表示当年末尚未退出</td>
+</tr>
+<tr>
+<td>③ 行业识别</td>
+<td><code>dt[&#39;行业小类_数字&#39;].isin(digi_codes_4d)</code></td>
+<td><code>isin()</code> 等价于 R 的 <code>%in%</code>，布尔值自动转 0/1</td>
+</tr>
+<tr>
+<td>④ <strong>企业缩尾</strong></td>
+<td><code>.clip(lower=p05, upper=p95)</code></td>
+<td><strong>先于聚合</strong>，在企业个体层面截断极端注册资本，防止天价壳公司拉偏城市</td>
+</tr>
+<tr>
+<td>⑤ 聚合</td>
+<td><code>dt[&#39;注册资本&#39;] * dt[&#39;is_digi&#39;].astype(int)</code></td>
+<td>利用布尔→0/1转换，<code>sum(注册资本 * is_digi)</code> 即数字产业注册资本</td>
+</tr>
+</tbody></table>
+<h3 id="并行执行" class="article-heading"><a href="#并行执行" class="headerlink" title="并行执行"></a>并行执行<a class="article-anchor" href="#并行执行" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需下载讲义材料查看～-2" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><p><code>ProcessPoolExecutor.map()</code> 等价于 R 的 <code>future_map()</code>，自动将任务分发到多个子进程并行执行。<code>partial()</code> 将固定参数绑定为偏函数，只将年份作为可变参数传入 <code>map()</code>。</p>
+<p><strong>关键区别</strong>（Python vs R）：</p>
+<table>
+<thead>
+<tr>
+<th>R</th>
+<th>Python</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>future::plan(multisession)</code></td>
+<td><code>ProcessPoolExecutor(max_workers=N)</code></td>
+<td>并行引擎</td>
+</tr>
+<tr>
+<td><code>furrr::future_map()</code></td>
+<td><code>executor.map()</code></td>
+<td>并行分发</td>
+</tr>
+<tr>
+<td><code>saveRDS()</code> / <code>readRDS()</code></td>
+<td><code>to_pickle()</code> / <code>read_pickle()</code></td>
+<td>大对象缓存</td>
+</tr>
+<tr>
+<td><code>options(future.globals.maxSize)</code></td>
+<td>pickle 磁盘缓存 + 进程内按需加载</td>
+<td>避免跨进程序列化</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="步骤四：构建面板与计算累计存量" class="article-heading"><a href="#步骤四：构建面板与计算累计存量" class="headerlink" title="步骤四：构建面板与计算累计存量"></a>步骤四：构建面板与计算累计存量<a class="article-anchor" href="#步骤四：构建面板与计算累计存量" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="补全面板并计算累计值" class="article-heading"><a href="#补全面板并计算累计值" class="headerlink" title="补全面板并计算累计值"></a>补全面板并计算累计值<a class="article-anchor" href="#补全面板并计算累计值" aria-label="本节链接" title="复制本节链接"></a></h3><p>注册数据是<strong>流量</strong>（某年新注册的企业），而区位熵需要<strong>存量</strong>（截至该年仍存活的企业总量）。由于已在聚合前过滤了注销企业，这里只需按城市做累计加总即可。</p>
+<h1 id="此处代码需下载讲义材料查看～-3" class="article-heading"><a href="#此处代码需下载讲义材料查看～-3" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-3" aria-label="本节链接" title="复制本节链接"></a></h1><p><strong>关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 代码</th>
+<th>Python 代码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CJ(a, b)</code></td>
+<td><code>pd.MultiIndex.from_product([a, b])</code></td>
+<td>笛卡尔积，生成所有组合的完整面板</td>
+</tr>
+<tr>
+<td><code>set(dt, i, j, value)</code></td>
+<td><code>df[col].fillna(0)</code></td>
+<td>填充缺失值</td>
+</tr>
+<tr>
+<td><code>cumsum(), by=city_code</code></td>
+<td><code>groupby(&#39;city_code&#39;)[col].cumsum()</code></td>
+<td>按城市分组计算逐年累积</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="步骤五：计算区位熵与极端值处理" class="article-heading"><a href="#步骤五：计算区位熵与极端值处理" class="headerlink" title="步骤五：计算区位熵与极端值处理"></a>步骤五：计算区位熵与极端值处理<a class="article-anchor" href="#步骤五：计算区位熵与极端值处理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="计算-DL" class="article-heading"><a href="#计算-DL" class="headerlink" title="计算 DL"></a>计算 DL<a class="article-anchor" href="#计算-DL" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 每年全国总存量</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p><code>np.where()</code> 是 Python 的向量化条件函数，等价于 R 的 <code>fifelse()</code>。这里对零分母做安全保护，避免产生 <code>Inf</code>。</p>
+<h3 id="Winsorize-处理极端值" class="article-heading"><a href="#Winsorize-处理极端值" class="headerlink" title="Winsorize 处理极端值"></a>Winsorize 处理极端值<a class="article-anchor" href="#Winsorize-处理极端值" aria-label="本节链接" title="复制本节链接"></a></h3><p>本项目采用<strong>两层 Winsorize</strong> 策略：</p>
+<ol>
+<li>企业层面（步骤三已完成）：对每个年份内的企业注册资本做 5%/95% 截断</li>
+<li>城市层面：对最终 DL 指标做 5%/95% 截断</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dl_valid = panel_full[&#x27;DL&#x27;].dropna()</span><br><span class="line">dl_valid = dl_valid[np.isfinite(dl_valid)]</span><br><span class="line"></span><br><span class="line">p05 = dl_valid.quantile(0.05)</span><br><span class="line">p95 = dl_valid.quantile(0.95)</span><br><span class="line"></span><br><span class="line">panel_full[&#x27;DL_raw&#x27;] = panel_full[&#x27;DL&#x27;]   # 保留原始值供对比</span><br><span class="line">panel_full[&#x27;DL&#x27;] = panel_full[&#x27;DL&#x27;].clip(lower=p05, upper=p95)</span><br></pre></td></tr></table></figure>
+
+<p><code>.clip(lower=p05, upper=p95)</code> 等价于 R 的 <code>pmax(pmin(DL, p95), p05)</code>，一步到位完成 Winsorize 截断。</p>
+<hr>
+<h2 id="步骤六：合并城市名称与输出" class="article-heading"><a href="#步骤六：合并城市名称与输出" class="headerlink" title="步骤六：合并城市名称与输出"></a>步骤六：合并城市名称与输出<a class="article-anchor" href="#步骤六：合并城市名称与输出" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="从注册文件反查城市名称" class="article-heading"><a href="#从注册文件反查城市名称" class="headerlink" title="从注册文件反查城市名称"></a>从注册文件反查城市名称<a class="article-anchor" href="#从注册文件反查城市名称" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">city_map <span class="operator">=</span> pd.DataFrame<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;city_name&#x27;</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"><span class="keyword">for</span> y <span class="keyword">in</span> sorted<span class="punctuation">(</span>reg_years<span class="punctuation">,</span> reverse<span class="operator">=</span>True<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    fpath <span class="operator">=</span> os.path.join<span class="punctuation">(</span>dir_reg<span class="punctuation">,</span> f<span class="string">&quot;&#123;y&#125;.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="keyword">if</span> not os.path.exists<span class="punctuation">(</span>fpath<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">        continue</span><br><span class="line">    dt <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>fpath<span class="punctuation">,</span> usecols<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;市&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;市代码&#x27;</span><span class="punctuation">]</span><span class="punctuation">,</span> dtype<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&#x27;市代码&#x27;</span><span class="operator">:</span> str<span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                     na_values<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;&#x27;</span><span class="punctuation">]</span><span class="punctuation">,</span> keep_default_na<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line">    dt.columns <span class="operator">=</span> <span class="punctuation">[</span><span class="string">&#x27;city_name&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span></span><br><span class="line">    dt <span class="operator">=</span> dt<span class="punctuation">[</span>dt<span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span>.notna<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="punctuation">(</span>dt<span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span> <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">            dt<span class="punctuation">[</span><span class="string">&#x27;city_name&#x27;</span><span class="punctuation">]</span>.notna<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="punctuation">(</span>dt<span class="punctuation">[</span><span class="string">&#x27;city_name&#x27;</span><span class="punctuation">]</span> <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="punctuation">(</span>dt<span class="punctuation">[</span><span class="string">&#x27;city_name&#x27;</span><span class="punctuation">]</span> <span class="operator">!=</span> <span class="string">&quot; &quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">    dt <span class="operator">=</span> dt.drop_duplicates<span class="punctuation">(</span>subset<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span><span class="punctuation">,</span> keep<span class="operator">=</span><span class="string">&#x27;first&#x27;</span><span class="punctuation">)</span></span><br><span class="line">    dt <span class="operator">=</span> dt<span class="punctuation">[</span><span class="operator">~</span>dt<span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span>.isin<span class="punctuation">(</span>city_map<span class="punctuation">[</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">    <span class="keyword">if</span> len<span class="punctuation">(</span>dt<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">:</span></span><br><span class="line">        city_map <span class="operator">=</span> pd.concat<span class="punctuation">(</span><span class="punctuation">[</span>city_map<span class="punctuation">,</span> dt<span class="punctuation">]</span><span class="punctuation">,</span> ignore_index<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">output <span class="operator">=</span> output.merge<span class="punctuation">(</span>city_map<span class="punctuation">,</span> left_on<span class="operator">=</span><span class="string">&#x27;citycode&#x27;</span><span class="punctuation">,</span> right_on<span class="operator">=</span><span class="string">&#x27;city_code&#x27;</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&#x27;left&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="保存为-DTA-文件" class="article-heading"><a href="#保存为-DTA-文件" class="headerlink" title="保存为 DTA 文件"></a>保存为 DTA 文件<a class="article-anchor" href="#保存为-DTA-文件" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Stata 15+ (version=118) 支持 Unicode 标签</span><br><span class="line">output[&#x27;city_name&#x27;] = output[&#x27;city_name&#x27;].fillna(&#x27;&#x27;)</span><br><span class="line">output.to_stata(</span><br><span class="line">    &quot;数字产业集聚度_注册资本_各城市.dta&quot;,</span><br><span class="line">    version=118,</span><br><span class="line">    data_label=&#x27;数据处理：微信公众号 RStata&#x27;,</span><br><span class="line">    variable_labels=&#123;</span><br><span class="line">        &#x27;citycode&#x27;: &#x27;市代码&#x27;,</span><br><span class="line">        &#x27;city_name&#x27;: &#x27;市&#x27;,</span><br><span class="line">        &#x27;year&#x27;: &#x27;年份&#x27;,</span><br><span class="line">        &#x27;stock_cap_total&#x27;: &#x27;存量注册资本_万元&#x27;,</span><br><span class="line">        &#x27;stock_cap_digi&#x27;: &#x27;存量数字企业注册资本_万元&#x27;,</span><br><span class="line">        &#x27;DL_raw&#x27;: &#x27;DL_原始&#x27;,</span><br><span class="line">        &#x27;DL&#x27;: &#x27;数字产业集聚度&#x27;,</span><br><span class="line">    &#125;,</span><br><span class="line">    write_index=False</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>Python 的 <code>to_stata()</code> 使用 <code>version=118</code>（Stata 15+ 格式），支持 Unicode 变量标签。<code>variable_labels</code> 参数设置中文标签，在 Stata 中通过 <code>describe</code> 可以看到。列名必须为 ASCII，因此用英文列名 + 中文标签的组合。</p>
+<blockquote>
+<p>以上所有计算步骤对应的完整代码参见附件中的 <code>计算数字产业集聚度_注册资本版.py</code> 和 <code>计算数字产业集聚度_企业数量版.py</code>，可直接在终端运行。</p>
+</blockquote>
+<hr>
+<h2 id="结果展示（2010–2012-示例）" class="article-heading"><a href="#结果展示（2010–2012-示例）" class="headerlink" title="结果展示（2010–2012 示例）"></a>结果展示（2010–2012 示例）<a class="article-anchor" href="#结果展示（2010–2012-示例）" aria-label="本节链接" title="复制本节链接"></a></h2><p>以下直接读取已生成的结果文件进行展示。运行前请先执行上述 Python 脚本生成 DTA 文件。</p>
+<h3 id="读取计算结果" class="article-heading"><a href="#读取计算结果" class="headerlink" title="读取计算结果"></a>读取计算结果<a class="article-anchor" href="#读取计算结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"># 读取已生成的结果文件</span><br><span class="line">dt_cap = pd.read_stata(<span class="string">&quot;数字产业集聚度_注册资本_各城市.dta&quot;</span>)</span><br><span class="line">dt_cnt = pd.read_stata(<span class="string">&quot;数字产业集聚度_企业数量_各城市.dta&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(f&quot;注册资本版：&#123;len(dt_cap)&#125; 行，&#123;dt_cap[&#x27;citycode&#x27;].nunique()&#125; 个城市，年份 &#123;int(dt_cap[&#x27;year&#x27;].min())&#125;-&#123;int(dt_cap[&#x27;year&#x27;].max())&#125;&quot;)</span><br><span class="line">print(f&quot;企业数量版：&#123;len(dt_cnt)&#125; 行，&#123;dt_cnt[&#x27;citycode&#x27;].nunique()&#125; 个城市，年份 &#123;int(dt_cnt[&#x27;year&#x27;].min())&#125;-&#123;int(dt_cnt[&#x27;year&#x27;].max())&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="描述性统计" class="article-heading"><a href="#描述性统计" class="headerlink" title="描述性统计"></a>描述性统计<a class="article-anchor" href="#描述性统计" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;========== 注册资本版 描述性统计 ==========&quot;)</span><br><span class="line">dl_cap = dt_cap[&#x27;DL&#x27;].dropna()</span><br><span class="line">dl_cap = dl_cap[np.isfinite(dl_cap) &amp; (dl_cap &gt;= 0)]</span><br><span class="line">print(f&quot;Mean: &#123;dl_cap.mean():.4f&#125;  Median: &#123;dl_cap.median():.4f&#125;  SD: &#123;dl_cap.std():.4f&#125;&quot;)</span><br><span class="line">print(f&quot;Min: &#123;dl_cap.min():.4f&#125;  Max: &#123;dl_cap.max():.4f&#125;  N: &#123;len(dl_cap)&#125;&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;\n========== 企业数量版 描述性统计 ==========&quot;)</span><br><span class="line">dl_cnt = dt_cnt[&#x27;DL&#x27;].dropna()</span><br><span class="line">dl_cnt = dl_cnt[np.isfinite(dl_cnt) &amp; (dl_cnt &gt;= 0)]</span><br><span class="line">print(f&quot;Mean: &#123;dl_cnt.mean():.4f&#125;  Median: &#123;dl_cnt.median():.4f&#125;  SD: &#123;dl_cnt.std():.4f&#125;&quot;)</span><br><span class="line">print(f&quot;Min: &#123;dl_cnt.min():.4f&#125;  Max: &#123;dl_cnt.max():.4f&#125;  N: &#123;len(dl_cnt)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Top-10-城市（2012-年）" class="article-heading"><a href="#Top-10-城市（2012-年）" class="headerlink" title="Top-10 城市（2012 年）"></a>Top-10 城市（2012 年）<a class="article-anchor" href="#Top-10-城市（2012-年）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;========== 注册资本版 Top-10（2012 年）==========&quot;)</span><br><span class="line">top10_cap = dt_cap[dt_cap[&#x27;year&#x27;] == 2012].nlargest(10, &#x27;DL&#x27;)</span><br><span class="line">for _, row in top10_cap.iterrows():</span><br><span class="line">    print(f&quot;  &#123;row[&#x27;city_name&#x27;]&#125;  DL=&#123;row[&#x27;DL&#x27;]:.3f&#125;  注册资本_亿元=&#123;row[&#x27;stock_cap_total&#x27;]/1e4:.2f&#125;&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;\n========== 企业数量版 Top-10（2012 年）==========&quot;)</span><br><span class="line">top10_cnt = dt_cnt[dt_cnt[&#x27;year&#x27;] == 2012].nlargest(10, &#x27;DL&#x27;)</span><br><span class="line">for _, row in top10_cnt.iterrows():</span><br><span class="line">    print(f&quot;  &#123;row[&#x27;city_name&#x27;]&#125;  DL=&#123;row[&#x27;DL&#x27;]:.3f&#125;  企业数=&#123;int(row[&#x27;stock_n_total&#x27;])&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>两种方法的 Top-10 城市排名存在差异，主要原因如下：</p>
+<ul>
+<li>注册资本版更受大体量企业影响——若某城市少数几家高注册资本的数字企业占全国注册资本比例高，区位熵会被抬高</li>
+<li>企业数量版更反映数字产业在城市中的普及度，对城市规模中性</li>
+</ul>
+<h3 id="区域对比" class="article-heading"><a href="#区域对比" class="headerlink" title="区域对比"></a>区域对比<a class="article-anchor" href="#区域对比" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 四大区域分类（国家统计局标准）</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="与论文结果的对比" class="article-heading"><a href="#与论文结果的对比" class="headerlink" title="与论文结果的对比"></a>与论文结果的对比<a class="article-anchor" href="#与论文结果的对比" aria-label="本节链接" title="复制本节链接"></a></h3><p>参考论文（屠西伟、史丹 2025）的结论，数字产业集聚度应呈现 <strong>东部 &gt; 中部 &gt; 西部 &gt; 东北</strong> 的梯度格局。以示例数据计算的结果中：</p>
+<ul>
+<li>一致之处：东部排第一、中部排第二，与论文完全一致</li>
+<li>差异之处：东北与西部的排序可能与论文相反，需要全量数据 + GDP 加权才能最终确认</li>
+</ul>
+<h3 id="可视化：区域对比" class="article-heading"><a href="#可视化：区域对比" class="headerlink" title="可视化：区域对比"></a>可视化：区域对比<a class="article-anchor" href="#可视化：区域对比" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-4" class="article-heading"><a href="#此处代码需下载讲义材料查看～-4" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-4" aria-label="本节链接" title="复制本节链接"></a></h1><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/19/02b79j1bdbe1b168g4/common/content/1781434898004_624123.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="可视化：Top-20-城市趋势" class="article-heading"><a href="#可视化：Top-20-城市趋势" class="headerlink" title="可视化：Top-20 城市趋势"></a>可视化：Top-20 城市趋势<a class="article-anchor" href="#可视化：Top-20-城市趋势" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 取最新年份 Top-20 城市</span><br><span class="line">latest = int(dt_cnt[&#x27;year&#x27;].max())</span><br><span class="line">top_cities = dt_cnt[dt_cnt[&#x27;year&#x27;] == latest].nlargest(20, &#x27;DL&#x27;)[&#x27;citycode&#x27;].tolist()</span><br><span class="line">trend_dt = dt_cnt[dt_cnt[&#x27;citycode&#x27;].isin(top_cities)]</span><br><span class="line"></span><br><span class="line">fig, ax = plt.subplots(figsize=(11, 7))</span><br><span class="line"></span><br><span class="line">for city in top_cities:</span><br><span class="line">    sub = trend_dt[trend_dt[&#x27;citycode&#x27;] == city].sort_values(&#x27;year&#x27;)</span><br><span class="line">    name = sub[&#x27;city_name&#x27;].iloc[0] if &#x27;city_name&#x27; in sub.columns else city</span><br><span class="line">    ax.plot(sub[&#x27;year&#x27;], sub[&#x27;DL&#x27;], label=name, linewidth=1.1, alpha=0.85)</span><br><span class="line">    ax.scatter(sub[&#x27;year&#x27;], sub[&#x27;DL&#x27;], s=18, alpha=0.85)</span><br><span class="line"></span><br><span class="line">ax.set_xlabel(&#x27;年份&#x27;, fontproperties=font_prop)</span><br><span class="line">ax.set_ylabel(&#x27;数字产业集聚度 DL&#x27;, fontproperties=font_prop)</span><br><span class="line">ax.grid(alpha=0.3)</span><br><span class="line"># 主标题用 fig.suptitle，字号可控</span><br><span class="line">fig.suptitle(&#x27;数字产业集聚度 Top-20 城市趋势（企业数量版，2010–2012）&#x27;, fontsize=24, fontproperties=font_prop, y=0.99)</span><br><span class="line">ax.legend(loc=&#x27;upper right&#x27;, fontsize=12, ncol=2, prop=font_prop)</span><br><span class="line">fig.text(0.5, 0.01, &#x27;数据爬取&amp;绘制：微信公众号 RStata&#x27;, fontsize=8, ha=&#x27;center&#x27;, va=&#x27;bottom&#x27;, color=&#x27;gray&#x27;, fontproperties=font_prop)</span><br><span class="line">plt.subplots_adjust(top=0.92, bottom=0.10)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/19/02b79j1bdbe1b168g4/common/content/1781434896458_279224.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/99121a81bb3840cdb4007238fc322022">名师讲堂｜使用 Python 测算各城市数字产业集聚程度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.179Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/88566/" title="名师讲堂｜使用 R 语言测算各城市数字产业集聚程度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/31612/" title="名师讲堂｜使用 Stata 测算上市公司数字技术复杂度"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 5 分钟</span></li><li><a href="/posts/27620/">名师讲堂｜使用 Python 测算区域技术专业化</a><span class="tf-related-meta">2026-05-26 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%97%E4%BA%A7%E4%B8%9A%E9%9B%86%E8%81%9A%E5%BA%A6%EF%BC%88Location-Quotient%EF%BC%89"><span class="toc-text">数字产业集聚度（Location Quotient）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E4%BD%8D%E7%86%B5%E7%9A%84%E7%BB%8F%E6%B5%8E%E5%90%AB%E4%B9%89"><span class="toc-text">区位熵的经济含义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%B5%8B%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">两种测算方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%AF%B4%E6%98%8E"><span class="toc-text">数据说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E9%94%80%E4%BC%81%E4%B8%9A%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="toc-text">注销企业处理逻辑</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E4%B8%80%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E4%BA%A7%E4%B8%9A%E8%A1%8C%E4%B8%9A%E4%BB%A3%E7%A0%81"><span class="toc-text">步骤一：读取数字经济产业行业代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E5%88%86%E7%B1%BB%E6%A0%87%E5%87%86"><span class="toc-text">加载分类标准</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E4%BA%8C%EF%BC%9A%E6%9E%84%E5%BB%BA%E6%B3%A8%E9%94%80%E6%9F%A5%E6%89%BE%E8%A1%A8"><span class="toc-text">步骤二：构建注销查找表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%84%E6%9E%84%E5%BB%BA%E6%9F%A5%E6%89%BE%E8%A1%A8"><span class="toc-text">预构建查找表</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E4%B8%89%EF%BC%9A%E5%8D%95%E5%B9%B4%E8%81%9A%E5%90%88%E5%87%BD%E6%95%B0"><span class="toc-text">步骤三：单年聚合函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%AE%BE%E8%AE%A1"><span class="toc-text">函数设计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C"><span class="toc-text">并行执行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E5%9B%9B%EF%BC%9A%E6%9E%84%E5%BB%BA%E9%9D%A2%E6%9D%BF%E4%B8%8E%E8%AE%A1%E7%AE%97%E7%B4%AF%E8%AE%A1%E5%AD%98%E9%87%8F"><span class="toc-text">步骤四：构建面板与计算累计存量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A5%E5%85%A8%E9%9D%A2%E6%9D%BF%E5%B9%B6%E8%AE%A1%E7%AE%97%E7%B4%AF%E8%AE%A1%E5%80%BC"><span class="toc-text">补全面板并计算累计值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-3"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E4%BA%94%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%8C%BA%E4%BD%8D%E7%86%B5%E4%B8%8E%E6%9E%81%E7%AB%AF%E5%80%BC%E5%A4%84%E7%90%86"><span class="toc-text">步骤五：计算区位熵与极端值处理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97-DL"><span class="toc-text">计算 DL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Winsorize-%E5%A4%84%E7%90%86%E6%9E%81%E7%AB%AF%E5%80%BC"><span class="toc-text">Winsorize 处理极端值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4%E5%85%AD%EF%BC%9A%E5%90%88%E5%B9%B6%E5%9F%8E%E5%B8%82%E5%90%8D%E7%A7%B0%E4%B8%8E%E8%BE%93%E5%87%BA"><span class="toc-text">步骤六：合并城市名称与输出</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E%E6%B3%A8%E5%86%8C%E6%96%87%E4%BB%B6%E5%8F%8D%E6%9F%A5%E5%9F%8E%E5%B8%82%E5%90%8D%E7%A7%B0"><span class="toc-text">从注册文件反查城市名称</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E5%AD%98%E4%B8%BA-DTA-%E6%96%87%E4%BB%B6"><span class="toc-text">保存为 DTA 文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E5%B1%95%E7%A4%BA%EF%BC%882010%E2%80%932012-%E7%A4%BA%E4%BE%8B%EF%BC%89"><span class="toc-text">结果展示（2010–2012 示例）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E8%AE%A1%E7%AE%97%E7%BB%93%E6%9E%9C"><span class="toc-text">读取计算结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">描述性统计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Top-10-%E5%9F%8E%E5%B8%82%EF%BC%882012-%E5%B9%B4%EF%BC%89"><span class="toc-text">Top-10 城市（2012 年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%9F%9F%E5%AF%B9%E6%AF%94"><span class="toc-text">区域对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E8%AE%BA%E6%96%87%E7%BB%93%E6%9E%9C%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-text">与论文结果的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E8%A7%86%E5%8C%96%EF%BC%9A%E5%8C%BA%E5%9F%9F%E5%AF%B9%E6%AF%94"><span class="toc-text">可视化：区域对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-4"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E8%A7%86%E5%8C%96%EF%BC%9ATop-20-%E5%9F%8E%E5%B8%82%E8%B6%8B%E5%8A%BF"><span class="toc-text">可视化：Top-20 城市趋势</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

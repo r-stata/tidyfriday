@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言绘制双变量填充中国地图（拼图方法） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/36043/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在过去的教程中，我一直给大家分享的都是单变量填充地图的绘制方法，但是有时候我们想在一张地图上展示两个变量，这个时候该怎么绘制地图呢？我们可以选择双变量填充地图。如果我们在 Observable 上搜索“Bivariate Choropleth” 就可以看到一大堆使用 D3 绘制的双变量填充地图，非常炫酷，例如：https:&#x2F;&#x2F;observablehq.com&#x2F;@d3&#x2F;bivariate-choro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言绘制双变量填充中国地图（拼图方法）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/36043/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在过去的教程中，我一直给大家分享的都是单变量填充地图的绘制方法，但是有时候我们想在一张地图上展示两个变量，这个时候该怎么绘制地图呢？我们可以选择双变量填充地图。如果我们在 Observable 上搜索“Bivariate Choropleth” 就可以看到一大堆使用 D3 绘制的双变量填充地图，非常炫酷，例如：https:&#x2F;&#x2F;observablehq.com&#x2F;@d3&#x2F;bivariate-choro">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/36043.png">
+<meta property="article:published_time" content="2022-07-20T11:07:30.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.604Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/36043.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言绘制双变量填充中国地图（拼图方法）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言绘制双变量填充中国地图（拼图方法）","description":"在过去的教程中，我一直给大家分享的都是单变量填充地图的绘制方法，但是有时候我们想在一张地图上展示两个变量，这个时候该怎么绘制地图呢？我们可以选择双变量填充地图。如果我们在 Observable 上搜索“Bivariate Choropleth” 就可以看到一大堆使用 D3 绘制的双变量填充地图，非常炫酷，例如：https://observablehq.com/@d3/bivariate-chor…","url":"https://tidyfriday.cn/posts/36043/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/36043/"},"image":["https://tidyfriday.cn/og/36043.png"],"datePublished":"2022-07-20T11:07:30.000Z","dateModified":"2026-09-26T14:18:44.604Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, 地图, R 语言","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言绘制双变量填充中国地图（拼图方法）","item":"https://tidyfriday.cn/posts/36043/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言绘制双变量填充中国地图（拼图方法）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言绘制双变量填充中国地图（拼图方法）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-07-20T11:07:30.000Z" itemprop="datePublished">2022-07-20</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2690 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在过去的教程中，我一直给大家分享的都是单变量填充地图的绘制方法，但是有时候我们想在一张地图上展示两个变量，这个时候该怎么绘制地图呢？我们可以选择双变量填充地图。如果我们在 Observable 上搜索“Bivariate Choropleth” 就可以看到一大堆使用 D3 绘制的双变量填充地图，非常炫酷，例如：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://observablehq.com/@d3/bivariate-choropleth">https://observablehq.com/@d3/bivariate-choropleth</a></p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286056945_839428.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>如何使用 R 绘制这种双变量填充地图，Timo Grossenbacher 做了一个非常炫酷的示范：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286056561_472376.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>该图的绘制方法可以参考：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/">https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/</a> 学习。不过代码过于复杂，所以我这里对里面的代码进行了简化，并且介绍了如何绘制更多分阶的双变量填充地图（该作者只给出了三阶的画法）。</p>
+<p>我暂时也没有时候绘制这种地图的数据，所以下面的演示中我是用随机生成的变量。</p>
+<h2 id="准备工作" class="article-heading"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作<a class="article-anchor" href="#准备工作" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据" class="article-heading"><a href="#数据" class="headerlink" title="数据"></a>数据<a class="article-anchor" href="#数据" aria-label="本节链接" title="复制本节链接"></a></h3><ol>
+<li>2019行政区划：中国省市区县级矢量地图（shp 文件）；</li>
+<li>海岸线：海岸线矢量数据（shp 文件）；</li>
+<li>九段线.geojson：九段线和陆地国界线矢量数据（GEOJSON 文件）。</li>
+</ol>
+<p>加载 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>readr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>stringr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>purrr<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>hrbrthemes<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置字体</span></span><br><span class="line">library<span class="punctuation">(</span>showtext<span class="punctuation">)</span></span><br><span class="line">showtext_auto<span class="punctuation">(</span>enable <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">font_add<span class="punctuation">(</span><span class="string">&quot;songti&quot;</span><span class="punctuation">,</span> regular <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这里使用的是 showtext 包设置字体，“song.otf” 文件可以在附件中找到。</p>
+<h3 id="准备数据" class="article-heading"><a href="#准备数据" class="headerlink" title="准备数据"></a>准备数据<a class="article-anchor" href="#准备数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>我随机生成了两个变量作为绘制双变量填充地图的“双变量”：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读入县级地图数据</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=lcc +lat_1=30 +lat_2=62 +lat_0=0 +lon_0=105 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs&quot;</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2019行政区划/县.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>县 <span class="operator">=</span> NAME<span class="punctuation">,</span> 县代码 <span class="operator">=</span> PAC<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">2000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> county_simple</span><br><span class="line"></span><br><span class="line">county_simple</span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 2900 features and 7 fields (with 8 geometries empty)</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: GEOMETRY</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: -2577078 ymin: 2093713 xmax: 2095448 ymax: 6388032</span></span><br><span class="line"><span class="comment">#&gt; CRS:           +proj=lcc +lat_1=30 +lat_2=62 +lat_0=0 +lon_0=105 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,900 × 8</span></span><br><span class="line"><span class="comment">#&gt;    县代码 县       省代码 省     市代码 市     类型                     geometry</span></span><br><span class="line"><span class="comment">#&gt;  *  &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;              &lt;GEOMETRY [m]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 110101 东城区   110000 北京市 110000 北京市 市辖区 POLYGON ((939697.1 486078…</span></span><br><span class="line"><span class="comment">#&gt;  2 110102 西城区   110000 北京市 110000 北京市 市辖区 POLYGON ((937736.1 486023…</span></span><br><span class="line"><span class="comment">#&gt;  3 110105 朝阳区   110000 北京市 110000 北京市 市辖区 MULTIPOLYGON (((943956.6 …</span></span><br><span class="line"><span class="comment">#&gt;  4 110106 丰台区   110000 北京市 110000 北京市 市辖区 POLYGON ((933688.3 485266…</span></span><br><span class="line"><span class="comment">#&gt;  5 110107 石景山区 110000 北京市 110000 北京市 市辖区 POLYGON ((917889.2 486087…</span></span><br><span class="line"><span class="comment">#&gt;  6 110108 海淀区   110000 北京市 110000 北京市 市辖区 POLYGON ((920458.5 487719…</span></span><br><span class="line"><span class="comment">#&gt;  7 110109 门头沟区 110000 北京市 110000 北京市 市辖区 POLYGON ((887385 4873900,…</span></span><br><span class="line"><span class="comment">#&gt;  8 110111 房山区   110000 北京市 110000 北京市 市辖区 POLYGON ((912222.9 484403…</span></span><br><span class="line"><span class="comment">#&gt;  9 110112 通州区   110000 北京市 110000 北京市 市辖区 POLYGON ((956386.6 486952…</span></span><br><span class="line"><span class="comment">#&gt; 10 110113 顺义区   110000 北京市 110000 北京市 市辖区 POLYGON ((972163.9 490020…</span></span><br><span class="line"><span class="comment">#&gt; # … with 2,890 more rows</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># plot(county_simple[2])</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成示例数据</span></span><br><span class="line">set.seed<span class="punctuation">(</span><span class="number">1234</span><span class="punctuation">)</span></span><br><span class="line">county_simple <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>code <span class="operator">=</span> 县代码<span class="punctuation">,</span> name <span class="operator">=</span> 县<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>v1 <span class="operator">=</span> runif<span class="punctuation">(</span><span class="number">2900</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">100</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         v2 <span class="operator">=</span> runif<span class="punctuation">(</span><span class="number">2900</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">100</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,900 × 4</span></span><br><span class="line"><span class="comment">#&gt;      code name        v1    v2</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 110101 东城区   12.3  80.7</span></span><br><span class="line"><span class="comment">#&gt;  2 110102 西城区   62.6  82.4</span></span><br><span class="line"><span class="comment">#&gt;  3 110105 朝阳区   61.3  34.3</span></span><br><span class="line"><span class="comment">#&gt;  4 110106 丰台区   62.7   4.61</span></span><br><span class="line"><span class="comment">#&gt;  5 110107 石景山区 86.2  38.6</span></span><br><span class="line"><span class="comment">#&gt;  6 110108 海淀区   64.4  63.3</span></span><br><span class="line"><span class="comment">#&gt;  7 110109 门头沟区  1.94 48.2</span></span><br><span class="line"><span class="comment">#&gt;  8 110111 房山区   24.0  72.7</span></span><br><span class="line"><span class="comment">#&gt;  9 110112 通州区   66.9   3.24</span></span><br><span class="line"><span class="comment">#&gt; 10 110113 顺义区   51.9  50.9</span></span><br><span class="line"><span class="comment">#&gt; # … with 2,890 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>数据非常简单，就是每个区县对于两个变量的两个值，v1 和 v2 就是我们需要的 “bivariate”。</p>
+<p>上面我展示的图片中使用的是三阶，我自然得比他的更复杂点，我用 4 阶！下面我们将变量 v1 和 v2 使用分位数各分成 4 段：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 对 df 的两个变量进行分组</span></span><br><span class="line">no_classes <span class="operator">&lt;-</span> 4</span><br><span class="line"><span class="comment"># 计算 v1 分位数</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span>v1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  quantile<span class="punctuation">(</span>probs <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> length.out <span class="operator">=</span> no_classes <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as.vector<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> quantiles1</span><br><span class="line">quantiles1</span><br><span class="line"><span class="comment">#&gt; [1]  1.033839 26.453382 51.048444 74.977486 99.931000</span></span><br><span class="line"><span class="comment"># 计算 v2 分位数</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span>v2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  quantile<span class="punctuation">(</span>probs <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> length.out <span class="operator">=</span> no_classes <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as.vector<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> quantiles2</span><br><span class="line">quantiles2</span><br><span class="line"><span class="comment">#&gt; [1]  1.089039 25.761603 49.748025 75.341730 99.959791</span></span><br></pre></td></tr></table></figure>
+
+<p>对 df 里的 v1 v2 进行分组：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 对 df 里的 v1 v2 进行分组</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>vgroup1 <span class="operator">=</span> cut<span class="punctuation">(</span>v1<span class="punctuation">,</span> breaks <span class="operator">=</span> quantiles1<span class="punctuation">,</span></span><br><span class="line">                       labels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         vgroup2 <span class="operator">=</span> cut<span class="punctuation">(</span>v2<span class="punctuation">,</span> breaks <span class="operator">=</span> quantiles2<span class="punctuation">,</span></span><br><span class="line">                       labels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         vgroup1 <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>vgroup1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         vgroup2 <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>vgroup2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         <span class="built_in">class</span> <span class="operator">=</span> paste<span class="punctuation">(</span>vgroup1<span class="punctuation">,</span> <span class="string">&quot;-&quot;</span><span class="punctuation">,</span> vgroup2<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>starts_with<span class="punctuation">(</span><span class="string">&quot;vgroup&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,900 × 5</span></span><br><span class="line"><span class="comment">#&gt;      code name        v1    v2 class</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 110101 东城区   12.3  80.7  1 - 4</span></span><br><span class="line"><span class="comment">#&gt;  2 110102 西城区   62.6  82.4  3 - 4</span></span><br><span class="line"><span class="comment">#&gt;  3 110105 朝阳区   61.3  34.3  3 - 2</span></span><br><span class="line"><span class="comment">#&gt;  4 110106 丰台区   62.7   4.61 3 - 1</span></span><br><span class="line"><span class="comment">#&gt;  5 110107 石景山区 86.2  38.6  4 - 2</span></span><br><span class="line"><span class="comment">#&gt;  6 110108 海淀区   64.4  63.3  3 - 3</span></span><br><span class="line"><span class="comment">#&gt;  7 110109 门头沟区  1.94 48.2  1 - 2</span></span><br><span class="line"><span class="comment">#&gt;  8 110111 房山区   24.0  72.7  1 - 3</span></span><br><span class="line"><span class="comment">#&gt;  9 110112 通州区   66.9   3.24 3 - 1</span></span><br><span class="line"><span class="comment">#&gt; 10 110113 顺义区   51.9  50.9  3 - 3</span></span><br><span class="line"><span class="comment">#&gt; # … with 2,890 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就把数据都分好组了，下面最重要的事情来了？两个变量，那每组应该是什么颜色？不用担心，前人已经把工具开发好了：Bivariate Choropleth Color Generator(<a target="_blank" rel="noopener external nofollow noreferrer" href="https://observablehq.com/@czxa/bivariate-choropleth-color-generator">https://observablehq.com/@czxa/bivariate-choropleth-color-generator</a>)</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286179756_461842.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这个工具可以让你自由的进行颜色选择、色阶选择，完美！这里我们选择 4 阶的：对应的颜色是：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[&quot;#e8e8e8&quot;, &quot;#bddede&quot;, &quot;#8ed4d4&quot;, &quot;#5ac8c8&quot;, &quot;#dabdd4&quot;, &quot;#bdbdd4&quot;, &quot;#8ebdd4&quot;, &quot;#5abdc8&quot;, &quot;#cc92c1&quot;, &quot;#bd92c1&quot;, &quot;#8e92c1&quot;, &quot;#5a92c1&quot;, &quot;#be64ac&quot;, &quot;#bd64ac&quot;, &quot;#8e64ac&quot;, &quot;#5a64ac&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>可以用 R 查看这些颜色：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#e8e8e8&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#bddede&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8ed4d4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#5ac8c8&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#dabdd4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#bdbdd4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8ebdd4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#5abdc8&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#cc92c1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#bd92c1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8e92c1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#5a92c1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#be64ac&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#bd64ac&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#8e64ac&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#5a64ac&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> scales<span class="operator">::</span>show_col<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286204097_296651.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>我们使用这些颜色构建一个数据框，这个数据框是用于接下来绘制图例的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tibble(</span><br><span class="line">  class = c(&quot;1 - 1&quot;,&quot;1 - 2&quot;,&quot;1 - 3&quot;,&quot;1 - 4&quot;,</span><br><span class="line">            &quot;2 - 1&quot;,&quot;2 - 2&quot;,&quot;2 - 3&quot;,&quot;2 - 4&quot;,</span><br><span class="line">            &quot;3 - 1&quot;,&quot;3 - 2&quot;,&quot;3 - 3&quot;,&quot;3 - 4&quot;,</span><br><span class="line">            &quot;4 - 1&quot;,&quot;4 - 2&quot;,&quot;4 - 3&quot;,&quot;4 - 4&quot;),</span><br><span class="line">  fill = c(&quot;#e8e8e8&quot;, &quot;#bddede&quot;, &quot;#8ed4d4&quot;, &quot;#5ac8c8&quot;,</span><br><span class="line">           &quot;#dabdd4&quot;, &quot;#bdbdd4&quot;, &quot;#8ebdd4&quot;, &quot;#5abdc8&quot;,</span><br><span class="line">           &quot;#cc92c1&quot;, &quot;#bd92c1&quot;, &quot;#8e92c1&quot;, &quot;#5a92c1&quot;,</span><br><span class="line">           &quot;#be64ac&quot;, &quot;#bd64ac&quot;, &quot;#8e64ac&quot;, &quot;#5a64ac&quot;)</span><br><span class="line">) -&gt; bivariate_color_scale</span><br><span class="line"></span><br><span class="line">bivariate_color_scale</span><br><span class="line"></span><br><span class="line">#&gt; # A tibble: 16 × 2</span><br><span class="line">#&gt;    class fill</span><br><span class="line">#&gt;    &lt;chr&gt; &lt;chr&gt;</span><br><span class="line">#&gt;  1 1 - 1 #e8e8e8</span><br><span class="line">#&gt;  2 1 - 2 #bddede</span><br><span class="line">#&gt;  3 1 - 3 #8ed4d4</span><br><span class="line">#&gt;  4 1 - 4 #5ac8c8</span><br><span class="line">#&gt;  5 2 - 1 #dabdd4</span><br><span class="line">#&gt;  6 2 - 2 #bdbdd4</span><br><span class="line">#&gt;  7 2 - 3 #8ebdd4</span><br><span class="line">#&gt;  8 2 - 4 #5abdc8</span><br><span class="line">#&gt;  9 3 - 1 #cc92c1</span><br><span class="line">#&gt; 10 3 - 2 #bd92c1</span><br><span class="line">#&gt; 11 3 - 3 #8e92c1</span><br><span class="line">#&gt; 12 3 - 4 #5a92c1</span><br><span class="line">#&gt; 13 4 - 1 #be64ac</span><br><span class="line">#&gt; 14 4 - 2 #bd64ac</span><br><span class="line">#&gt; 15 4 - 3 #8e64ac</span><br><span class="line">#&gt; 16 4 - 4 #5a64ac</span><br></pre></td></tr></table></figure>
+
+<p>我们把这个数据框和 df 合并起来：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>bivariate_color_scale<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>再把 df 和地图数据集合并起来：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并地图数据和 df</span></span><br><span class="line">county_simple <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;县代码&quot;</span> <span class="operator">=</span> <span class="string">&quot;code&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县&quot;</span> <span class="operator">=</span> <span class="string">&quot;name&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> mapdf</span><br><span class="line"></span><br><span class="line">mapdf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 2900 features and 11 fields (with 8 geometries empty)</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: GEOMETRY</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: -2577078 ymin: 2093713 xmax: 2095448 ymax: 6388032</span></span><br><span class="line"><span class="comment">#&gt; CRS:           +proj=lcc +lat_1=30 +lat_2=62 +lat_0=0 +lon_0=105 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,900 × 12</span></span><br><span class="line"><span class="comment">#&gt;    县代码 县     省代码 省    市代码 市    类型                   geometry    v1</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;            &lt;GEOMETRY [m]&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 110101 东城区 110000 北京… 110000 北京… 市辖… POLYGON ((939697.1 48607… 12.3</span></span><br><span class="line"><span class="comment">#&gt;  2 110102 西城区 110000 北京… 110000 北京… 市辖… POLYGON ((937736.1 48602… 62.6</span></span><br><span class="line"><span class="comment">#&gt;  3 110105 朝阳区 110000 北京… 110000 北京… 市辖… MULTIPOLYGON (((943956.6… 61.3</span></span><br><span class="line"><span class="comment">#&gt;  4 110106 丰台区 110000 北京… 110000 北京… 市辖… POLYGON ((933688.3 48526… 62.7</span></span><br><span class="line"><span class="comment">#&gt;  5 110107 石景…  110000 北京… 110000 北京… 市辖… POLYGON ((917889.2 48608… 86.2</span></span><br><span class="line"><span class="comment">#&gt;  6 110108 海淀区 110000 北京… 110000 北京… 市辖… POLYGON ((920458.5 48771… 64.4</span></span><br><span class="line"><span class="comment">#&gt;  7 110109 门头…  110000 北京… 110000 北京… 市辖… POLYGON ((887385 4873900…  1.94</span></span><br><span class="line"><span class="comment">#&gt;  8 110111 房山区 110000 北京… 110000 北京… 市辖… POLYGON ((912222.9 48440… 24.0</span></span><br><span class="line"><span class="comment">#&gt;  9 110112 通州区 110000 北京… 110000 北京… 市辖… POLYGON ((956386.6 48695… 66.9</span></span><br><span class="line"><span class="comment">#&gt; 10 110113 顺义区 110000 北京… 110000 北京… 市辖… POLYGON ((972163.9 49002… 51.9</span></span><br><span class="line"><span class="comment">#&gt; # … with 2,890 more rows, and 3 more variables: v2 &lt;dbl&gt;, class &lt;chr&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   fill &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>再读入省级地图数据，这个是覆盖在县级地图上面让地图更好看的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2019行政区划/省.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs <span class="operator">=</span> mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">2000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> prov</span><br></pre></td></tr></table></figure>
+
+<p>生成一个标签数据框，这个数据框是用于给地图添加注解的，因为我想像上面的瑞典地图一样在地图的四角选择四个县通过箭头添加注解文本：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 标注点</span></span><br><span class="line">rbind<span class="punctuation">(</span></span><br><span class="line">  slice<span class="punctuation">(</span>subset<span class="punctuation">(</span>mapdf<span class="punctuation">,</span> <span class="built_in">class</span> <span class="operator">==</span> <span class="string">&quot;1 - 1&quot;</span> <span class="operator">&amp;</span> str_detect<span class="punctuation">(</span>省<span class="punctuation">,</span> <span class="string">&quot;新疆&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  slice<span class="punctuation">(</span>subset<span class="punctuation">(</span>mapdf<span class="punctuation">,</span> <span class="built_in">class</span> <span class="operator">==</span> <span class="string">&quot;1 - 4&quot;</span> <span class="operator">&amp;</span> str_detect<span class="punctuation">(</span>省<span class="punctuation">,</span> <span class="string">&quot;云南&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  slice<span class="punctuation">(</span>subset<span class="punctuation">(</span>mapdf<span class="punctuation">,</span> <span class="built_in">class</span> <span class="operator">==</span> <span class="string">&quot;4 - 1&quot;</span> <span class="operator">&amp;</span> str_detect<span class="punctuation">(</span>省<span class="punctuation">,</span> <span class="string">&quot;江苏&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  slice<span class="punctuation">(</span>subset<span class="punctuation">(</span>mapdf<span class="punctuation">,</span> <span class="built_in">class</span> <span class="operator">==</span> <span class="string">&quot;4 - 4&quot;</span> <span class="operator">&amp;</span> str_detect<span class="punctuation">(</span>省<span class="punctuation">,</span> <span class="string">&quot;辽宁&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_centroid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;x&quot;</span><span class="punctuation">,</span> <span class="string">&quot;y&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>xend <span class="operator">=</span> x <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="operator">-</span><span class="number">100000</span><span class="punctuation">,</span> <span class="number">200000</span><span class="punctuation">,</span> <span class="number">500000</span><span class="punctuation">,</span> <span class="number">500000</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         yend <span class="operator">=</span> y <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">400000</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">800000</span><span class="punctuation">,</span> <span class="number">100000</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         xla <span class="operator">=</span> x <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="operator">-</span><span class="number">100000</span><span class="punctuation">,</span> <span class="number">200000</span><span class="punctuation">,</span> <span class="number">900000</span><span class="punctuation">,</span> <span class="number">900000</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         yla <span class="operator">=</span> y <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">700000</span><span class="punctuation">,</span> <span class="operator">-</span><span class="number">1000000</span><span class="punctuation">,</span> <span class="number">100000</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>label <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;low v1\nlow v2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   <span class="string">&quot;low v1\nhigh v2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   <span class="string">&quot;high v1\nlow v2&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   <span class="string">&quot;high v1\nhigh v2&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> labeldf</span><br><span class="line">labeldf</span><br><span class="line"><span class="comment">#&gt; # A tibble: 4 × 7</span></span><br><span class="line"><span class="comment">#&gt;           x        y      xend     yend       xla      yla label</span></span><br><span class="line"><span class="comment">#&gt;       &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 -1826165. 5463075. -1926165. 5863075. -1926165. 6163075. &quot;low v1\nlow v2&quot;</span></span><br><span class="line"><span class="comment">#&gt; 2  -134148. 2930179.    65852. 2130179.    65852. 1930179. &quot;low v1\nhigh v2&quot;</span></span><br><span class="line"><span class="comment">#&gt; 3  1389428. 3988377.  1889428. 4088377.  2289428. 4088377. &quot;high v1\nlow v2&quot;</span></span><br><span class="line"><span class="comment">#&gt; 4  1491219. 5171978.  1991219. 5171978.  2391219. 5171978. &quot;high v1\nhigh v2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里为了满足“四角”的要求，我从新疆、云南、江苏和辽宁四个省选取了四个极端组的县进行标注。labeldf 数据框中的 x 和 y 就是选取的四个极端县的质心，同时也是绘图时箭头的箭尾坐标，xend、yend 是箭头坐标，是我试出来的。xla 和 yla 是标签放置的坐标，也是我试出来的。label 则是用于标注的文本，<code>\n</code> 表示换行。</p>
+<p>然后我们就可以绘制地图了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 海岸线与九段线</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;海岸线/海岸线.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> hax</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;九段线.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> jdx</span><br><span class="line"></span><br><span class="line">mapdf <span class="operator">%&gt;%</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> I<span class="punctuation">(</span>fill<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.01</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> prov<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> hax<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> jdx<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_curve<span class="punctuation">(</span>data <span class="operator">=</span> labeldf<span class="punctuation">,</span></span><br><span class="line">             aes<span class="punctuation">(</span>x <span class="operator">=</span> x<span class="punctuation">,</span> y <span class="operator">=</span> y<span class="punctuation">,</span> xend <span class="operator">=</span> xend<span class="punctuation">,</span> yend <span class="operator">=</span> yend<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             curvature <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">,</span></span><br><span class="line">             arrow <span class="operator">=</span> arrow<span class="punctuation">(</span><span class="built_in">length</span> <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.01</span><span class="punctuation">,</span> <span class="string">&quot;npc&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_text<span class="punctuation">(</span>data <span class="operator">=</span> labeldf<span class="punctuation">,</span></span><br><span class="line">            aes<span class="punctuation">(</span>x <span class="operator">=</span> xla<span class="punctuation">,</span> y <span class="operator">=</span> yla<span class="punctuation">,</span> label <span class="operator">=</span> label<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_sf<span class="punctuation">(</span>crs <span class="operator">=</span> mycrs<span class="punctuation">,</span> xlim <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="operator">-</span><span class="number">2577078</span><span class="operator">-</span><span class="number">500000</span><span class="punctuation">,</span> <span class="number">2095963</span><span class="operator">+</span><span class="number">500000</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span> width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   <span class="comment"># bar_cols = c(&quot;#be64ac&quot;, &quot;#5ac8c8&quot;),</span></span><br><span class="line">                   text_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span> which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">                           <span class="comment"># line_col = &quot;#be64ac&quot;,</span></span><br><span class="line">                           <span class="comment"># text_col = &quot;#5ac8c8&quot;,</span></span><br><span class="line">                           <span class="comment"># fill = c(&quot;#be64ac&quot;, &quot;#5ac8c8&quot;),</span></span><br><span class="line">                           text_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span></span><br><span class="line">                         <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中国地图双变量填充&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> map</span><br></pre></td></tr></table></figure>
+
+<p>绘制图例需要这样的数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 图例</span></span><br><span class="line">bivariate_color_scale <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;v1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;v2&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot; - &quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>v1 <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>v1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         v2 <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>v2<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> bivariate_color_scale</span><br><span class="line">bivariate_color_scale</span><br><span class="line"><span class="comment">#&gt; # A tibble: 16 × 3</span></span><br><span class="line"><span class="comment">#&gt;       v1    v2 fill</span></span><br><span class="line"><span class="comment">#&gt;    &lt;int&gt; &lt;int&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     1     1 #e8e8e8</span></span><br><span class="line"><span class="comment">#&gt;  2     1     2 #bddede</span></span><br><span class="line"><span class="comment">#&gt;  3     1     3 #8ed4d4</span></span><br><span class="line"><span class="comment">#&gt;  4     1     4 #5ac8c8</span></span><br><span class="line"><span class="comment">#&gt;  5     2     1 #dabdd4</span></span><br><span class="line"><span class="comment">#&gt;  6     2     2 #bdbdd4</span></span><br><span class="line"><span class="comment">#&gt;  7     2     3 #8ebdd4</span></span><br><span class="line"><span class="comment">#&gt;  8     2     4 #5abdc8</span></span><br><span class="line"><span class="comment">#&gt;  9     3     1 #cc92c1</span></span><br><span class="line"><span class="comment">#&gt; 10     3     2 #bd92c1</span></span><br><span class="line"><span class="comment">#&gt; 11     3     3 #8e92c1</span></span><br><span class="line"><span class="comment">#&gt; 12     3     4 #5a92c1</span></span><br><span class="line"><span class="comment">#&gt; 13     4     1 #be64ac</span></span><br><span class="line"><span class="comment">#&gt; 14     4     2 #bd64ac</span></span><br><span class="line"><span class="comment">#&gt; 15     4     3 #8e64ac</span></span><br><span class="line"><span class="comment">#&gt; 16     4     4 #5a64ac</span></span><br></pre></td></tr></table></figure>
+
+<p>绘制图例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>latex2exp<span class="punctuation">)</span></span><br><span class="line">ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_tile<span class="punctuation">(</span></span><br><span class="line">    data <span class="operator">=</span> bivariate_color_scale<span class="punctuation">,</span></span><br><span class="line">    mapping <span class="operator">=</span> aes<span class="punctuation">(</span></span><br><span class="line">      x <span class="operator">=</span> v1<span class="punctuation">,</span></span><br><span class="line">      y <span class="operator">=</span> v2<span class="punctuation">,</span></span><br><span class="line">      fill <span class="operator">=</span> fill<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_fill_identity<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>x <span class="operator">=</span> TeX<span class="punctuation">(</span><span class="string">&quot;Higher v1 \\rightarrow&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">       y <span class="operator">=</span> TeX<span class="punctuation">(</span><span class="string">&quot;Higher v2 \\rightarrow&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  coord_fixed<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme_minimal<span class="punctuation">(</span>base_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title <span class="operator">=</span> element_text<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> legend</span><br><span class="line">legend</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286255398_137239.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>最后就是把这两个图组合在一起了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>cowplot<span class="punctuation">)</span></span><br><span class="line">ggdraw<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  draw_plot<span class="punctuation">(</span>map<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  draw_plot<span class="punctuation">(</span>legend<span class="punctuation">,</span> <span class="number">0.2</span><span class="punctuation">,</span> <span class="number">0.15</span><span class="punctuation">,</span> <span class="number">0.22</span><span class="punctuation">,</span> <span class="number">0.22</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286255638_262284.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>使用类似的方法还可以绘制城市的：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/20/11/02b79j1bdbe1b168g4/common/content/1658286256092_379161.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/0e80355d6df245e3aaa51e5860ed9381">使用 R 语言绘制双变量填充中国地图（拼图方法）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.604Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/15928/" title="如何使用 Stata 处理第七次人口普查年鉴数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/25973/" title="名师讲堂｜实证分析中空间数据分析与空间计量模型的注意问题"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/81983/">使用 R 语言绘制填充地图、栅格地图 + 等降水量线</a><span class="tf-related-meta">2024-11-25 · 约 8 分钟</span></li><li><a href="/posts/58740/">使用 R 语言绘制美国州县地图</a><span class="tf-related-meta">2024-07-26 · 约 13 分钟</span></li><li><a href="/posts/74173/">使用 R 语言绘制中国乡镇地图及根据经纬度判断所处的乡镇</a><span class="tf-related-meta">2024-03-19 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE"><span class="toc-text">数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E6%95%B0%E6%8D%AE"><span class="toc-text">准备数据</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

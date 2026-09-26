@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>区县版｜1998～2014 年省界附近的工企距离省界的距离 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/21355/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="省界是非常好的地理断点，很多小伙伴都想做关于地理断点回归的研究，但是不会计算地理距离，所以我就来帮大家解决这个问题啦！今天分享给大家的是一份开箱即用的地理断点回归模型的数据大礼包！位于省界附近的区县的工企业（1998～2014 年工企数据库）距离省界的距离！如果你还有其他的一些数据，那么使用这个数据就可以写一篇很不错的论文了！希望这份数据礼包能帮你早日发表论文～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="区县版｜1998～2014 年省界附近的工企距离省界的距离">
+<meta property="og:url" content="https://tidyfriday.cn/posts/21355/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="省界是非常好的地理断点，很多小伙伴都想做关于地理断点回归的研究，但是不会计算地理距离，所以我就来帮大家解决这个问题啦！今天分享给大家的是一份开箱即用的地理断点回归模型的数据大礼包！位于省界附近的区县的工企业（1998～2014 年工企数据库）距离省界的距离！如果你还有其他的一些数据，那么使用这个数据就可以写一篇很不错的论文了！希望这份数据礼包能帮你早日发表论文～">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/21355.png">
+<meta property="article:published_time" content="2022-02-17T19:16:27.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:47.986Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/21355.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="区县版｜1998～2014 年省界附近的工企距离省界的距离">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"区县版｜1998～2014 年省界附近的工企距离省界的距离","description":"省界是非常好的地理断点，很多小伙伴都想做关于地理断点回归的研究，但是不会计算地理距离，所以我就来帮大家解决这个问题啦！今天分享给大家的是一份开箱即用的地理断点回归模型的数据大礼包！位于省界附近的区县的工企业（1998～2014 年工企数据库）距离省界的距离！如果你还有其他的一些数据，那么使用这个数据就可以写一篇很不错的论文了！希望这份数据礼包能帮你早日发表论文～","url":"https://tidyfriday.cn/posts/21355/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/21355/"},"image":["https://tidyfriday.cn/og/21355.png"],"datePublished":"2022-02-17T19:16:27.000Z","dateModified":"2026-09-26T14:18:47.986Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, 上市公司","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"区县版｜1998～2014 年省界附近的工企距离省界的距离","item":"https://tidyfriday.cn/posts/21355/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">区县版｜1998～2014 年省界附近的工企距离省界的距离</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">区县版｜1998～2014 年省界附近的工企距离省界的距离</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-02-17T19:16:27.000Z" itemprop="datePublished">2022-02-17</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1158 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>省界是非常好的地理断点，很多小伙伴都想做关于地理断点回归的研究，但是不会计算地理距离，所以我就来帮大家解决这个问题啦！今天分享给大家的是一份开箱即用的地理断点回归模型的数据大礼包！位于省界附近的区县的工企业（1998～2014 年工企数据库）距离省界的距离！如果你还有其他的一些数据，那么使用这个数据就可以写一篇很不错的论文了！希望这份数据礼包能帮你早日发表论文～</p>
+<span id="more"></span>
+
+<blockquote>
+<p>工企业地理位置使用的是高德地图地理编码接口解析得到的；这里所说的省界附近的区县是指和省界相接触的区县，也就是下图里面的这些区县：</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>省界附近的区县</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2022-02-17%20%E4%B8%8B%E5%8D%886.37.59_20220217183804.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>一共是 30 份数据（不包含香港、澳门、台湾和海南的），每份数据包含如下内容：</p>
+<ol>
+<li>省界附近的工企业(1998~2014) dta 格式的数据（里面包含省界附近的工企业距离省界的距离数据）；</li>
+<li>省界附近的工企业(1998～2014) xlsx 格式的数据（里面包含省界附近的工企业距离省界的距离数据）；</li>
+<li>一个省界的 geojson 文件（画地图的）；</li>
+<li>一个省省界附近区县的 geojson 文件（画地图的）；</li>
+<li>每年的预览图（PDF 矢量图）</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>数据预览</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2022-02-17%20%E4%B8%8B%E5%8D%886.48.22_20220217184825.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p><code>XXX省界附近的工企业(1998~2014)</code> 数据是本次共享的主要数据，例如 <code>湖南省省界附近的工企业(1998~2014).dta</code> 是下面这样的：</p>
+<table>
+<thead>
+<tr>
+<th>湖南省省界附近的工企业(1998~2014).dta</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2022-02-17%20%E4%B8%8B%E5%8D%886.49.52_20220217184955.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>group 变量是该数据的个体变量，使用 <code>xtset group 年份</code> 就可以设置面板了。</p>
+</blockquote>
+<p>🔥关于 1998～2013 年的数据是如何与 2014 年的数据合并的，大家可以参考这篇推文：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/4AKGFkUfffZy5wgJzF5wdA">如何仿照 Brandt 方法把工企数据匹配成面板？</a></p>
+<p>其中距离变量就表示该企业距离省界的最短距离，单位是 km。</p>
+<p>江西省 2014 年省界附近区县的工企业距离省界的距离在下面的图中一目了然：</p>
+<table>
+<thead>
+<tr>
+<th>江西省省界附近的边界县与工企距离省界的距离(2014年)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217185435.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="距离的计算和图表绘制" class="article-heading"><a href="#距离的计算和图表绘制" class="headerlink" title="距离的计算和图表绘制"></a>距离的计算和图表绘制<a class="article-anchor" href="#距离的计算和图表绘制" aria-label="本节链接" title="复制本节链接"></a></h2><p>本文数据的处理方法可以参考下面这个课程：</p>
+<blockquote>
+<p>哪些县与省界接触？工企业距离省界的距离？｜空间拓扑关系与地理距离计算：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/5793b1c8fed7473288050de20e2b3c6e">https://rstata.duanshu.com/#/brief/course/5793b1c8fed7473288050de20e2b3c6e</a></p>
+</blockquote>
+<p>另外本数据包的附件中也有处理程序的代码和所需的其他数据。</p>
+<p>各个省的效果图 一共有 30 个省、自治区和直辖市的数据：</p>
+<table>
+<thead>
+<tr>
+<th>安徽省</th>
+<th>北京市</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217185953.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190008.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>重庆市</strong></td>
+<td><strong>福建省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190024.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190031.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>甘肃省</strong></td>
+<td><strong>广东省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190052.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190055.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>广西壮族自治区</strong></td>
+<td><strong>贵州省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190111.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190116.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>河北省</strong></td>
+<td><strong>河南省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190125.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190132.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>黑龙江省</strong></td>
+<td><strong>湖北省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190141.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190147.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>湖南省</strong></td>
+<td><strong>吉林省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190203.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190209.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>江苏省</strong></td>
+<td><strong>江西省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190221.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190227.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>辽宁省</strong></td>
+<td><strong>内蒙古自治区</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190235.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190246.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>宁夏回族自治区</strong></td>
+<td><strong>青海省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190252.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190301.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>山东省</strong></td>
+<td><strong>山西省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190304.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190310.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>陕西省</strong></td>
+<td><strong>上海市</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190320.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190328.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>四川省</strong></td>
+<td><strong>天津市</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190340.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190343.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>西藏自治区</strong></td>
+<td><strong>新疆维吾尔自治区</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190510.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190404.png" alt loading="lazy" decoding="async"></td>
+</tr>
+<tr>
+<td><strong>云南省</strong></td>
+<td><strong>浙江省</strong></td>
+</tr>
+<tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190415.png" alt loading="lazy" decoding="async"></td>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220217190423.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="注意事项" class="article-heading"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项<a class="article-anchor" href="#注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
+<li>所有工企的地址都是使用高德地图接口批量解析的，可能包含部分解析错误的观测值，不过从上面的地图来看大部分解析的都是正确的；</li>
+<li>由于工企数据库是 1998～2014 年的，里面的地址自然也是 1998～2014 年的，而高德地图接口返回的经纬度是最新地址的，这也可能导致经纬度错误（这个应该问题不大，毕竟公司搬家的不多。且也没有什么好的办法了）；</li>
+<li>我提供的地理位置数据里有几个公司的名称含乱码，这是原数据的锅；</li>
+<li>高德地图接口解析得到的是 GCJ02 坐标系的经纬度，我已经转换成了 WGS84 坐标系的，可放心使用；</li>
+<li>工企数据库中没有港澳台的数据，所以这里也没有港澳台的；</li>
+<li>海南省是个岛屿，没有与之相接壤的省，所以这里也没有海南省的数据；</li>
+<li>这里所说的省界附近的区县是指和省界相接触的区县，省界附近的工企也就是位于这些区县的工企。</li>
+</ol>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/493da981563040c88d40af575d91a533">区县版｜1998～2014 年省界附近的工企距离省界的距离</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:47.986Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/65212/" title="旧版本｜2014 年至今中国各省市区县分年、分月、逐日 PM2.5 浓度面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/60079/" title="Stata 绘图主题合集"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/92997/">2001～2024 年上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-09 · 约 3 分钟</span></li><li><a href="/posts/81760/">2000～2023 年上市公司注册地址、办公地址与所在省市区县政府的大圆距离</a><span class="tf-related-meta">2025-04-22 · 约 2 分钟</span></li><li><a href="/posts/32475/">2000～2023 年上市公司地址与所在区县税务局的距离</a><span class="tf-related-meta">2025-03-03 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%9D%E7%A6%BB%E7%9A%84%E8%AE%A1%E7%AE%97%E5%92%8C%E5%9B%BE%E8%A1%A8%E7%BB%98%E5%88%B6"><span class="toc-text">距离的计算和图表绘制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">注意事项</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

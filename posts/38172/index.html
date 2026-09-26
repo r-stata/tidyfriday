@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言爬取全国医疗机构列表 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/38172/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="百度地图的地点检索接口可以用于检索某个坐标点周边一定距离内的兴趣点。该接口的介绍文档在这里：https:&#x2F;&#x2F;lbsyun.baidu.com&#x2F;faq&#x2F;api?title&#x3D;webapi&#x2F;guide&#x2F;webservice-placeapi&#x2F;circle ，虽然多边形检索看起来更高效，不过这个接口需要单独申请，所以我们还是只能使用圆形区域检索。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言爬取全国医疗机构列表">
+<meta property="og:url" content="https://tidyfriday.cn/posts/38172/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="百度地图的地点检索接口可以用于检索某个坐标点周边一定距离内的兴趣点。该接口的介绍文档在这里：https:&#x2F;&#x2F;lbsyun.baidu.com&#x2F;faq&#x2F;api?title&#x3D;webapi&#x2F;guide&#x2F;webservice-placeapi&#x2F;circle ，虽然多边形检索看起来更高效，不过这个接口需要单独申请，所以我们还是只能使用圆形区域检索。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/38172.png">
+<meta property="article:published_time" content="2023-07-05T17:07:27.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.121Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="数据爬取">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/38172.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言爬取全国医疗机构列表">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言爬取全国医疗机构列表","description":"百度地图的地点检索接口可以用于检索某个坐标点周边一定距离内的兴趣点。该接口的介绍文档在这里：https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle ，虽然多边形检索看起来更高效，不过这个接口需要单独申请，所以我们还是只能使用圆形区域检索。","url":"https://tidyfriday.cn/posts/38172/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/38172/"},"image":["https://tidyfriday.cn/og/38172.png"],"datePublished":"2023-07-05T17:07:27.000Z","dateModified":"2026-09-26T14:18:44.121Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 数据爬取, 编程技巧","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言爬取全国医疗机构列表","item":"https://tidyfriday.cn/posts/38172/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言爬取全国医疗机构列表</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言爬取全国医疗机构列表</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-07-05T17:07:27.000Z" itemprop="datePublished">2023-07-05</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2605 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a><a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>百度地图的地点检索接口可以用于检索某个坐标点周边一定距离内的兴趣点。该接口的介绍文档在这里：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle">https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle</a> ，虽然多边形检索看起来更高效，不过这个接口需要单独申请，所以我们还是只能使用圆形区域检索。</p>
+<span id="more"></span>
+
+<p>为了更全面的检索，我们可以先生成一个间距均匀的网格点坐标数据，这里为了方便演示，我们使用 50km 的间距（不过实际上 50km 的检索会遗漏很多结果，因为百度地图只会给出该范围的一些热门的搜索结果）。</p>
+<p>由于检索是圆形检索，所以为了不遗漏，我们需要建立分辨率与 50√2km x 50√2km 的经纬度网格，这样以每个网格的中心为检索中心、范围是 50km 的圆形区域恰好可以覆盖这一区域，如下图所示：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/03/19/02b79j1bdbe1b168g4/common/content/1688382894118_362241.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="生成间距均匀的网格点坐标数据" class="article-heading"><a href="#生成间距均匀的网格点坐标数据" class="headerlink" title="生成间距均匀的网格点坐标数据"></a>生成间距均匀的网格点坐标数据<a class="article-anchor" href="#生成间距均匀的网格点坐标数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>合并各省份的数据得到中国范围的矢量数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成中国范围的矢量数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2020行政区划/省.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_union<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cn</span><br><span class="line">nngeo<span class="operator">::</span>st_remove_holes<span class="punctuation">(</span>cn<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cn</span><br></pre></td></tr></table></figure>
+
+<p>这个中国的范围是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">url <span class="operator">&lt;-</span> <span class="string">&quot;http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/&#123;z&#125;/&#123;y&#125;/&#123;x&#125;&quot;</span></span><br><span class="line">library<span class="punctuation">(</span>leaflet<span class="punctuation">)</span></span><br><span class="line">leaflet<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  addTiles<span class="punctuation">(</span>url<span class="punctuation">,</span> attribution <span class="operator">=</span> <span class="string">&quot;微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> map</span><br><span class="line">mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>cn<span class="punctuation">,</span> map <span class="operator">=</span> map<span class="punctuation">,</span> layer.name <span class="operator">=</span> <span class="string">&quot;中国范围&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/03/19/02b79j1bdbe1b168g4/common/content/1688382902451_746266.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>创建一些边长为 50√2 km的格网，这样每个方格正好可以使用一个半径 50km 的圆覆盖。转换成以 m 为单位的坐标系更容易创建：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line">cn <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> cnaea</span><br><span class="line">cnaea <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_grid<span class="punctuation">(</span>cellsize <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">50</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">50</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;km&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cngrid</span><br><span class="line">cngrid</span><br></pre></td></tr></table></figure>
+
+<p>这个网格的效果是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 效果是这样的</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;九段线.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> jdxaea</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>cngrid<span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>cnaea<span class="punctuation">,</span> add <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> col <span class="operator">=</span> <span class="string">&quot;red&quot;</span><span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>jdxaea<span class="punctuation">,</span> add <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> col <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637713530_398336.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>提取与中国相交的格点：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cngrid <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>cnaea<span class="punctuation">)</span> <span class="operator">-&gt;</span> cngrid</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>cngrid<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637735931_258543.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>计算这些格点的质心：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cngrid <span class="operator">%&gt;%</span></span><br><span class="line">  st_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_centroid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> coorddf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">coorddf <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;50km 网格中心.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了检索中心坐标。另外附件中还提供了 10km 分辨率的网格中心数据（计算方法类似）。</p>
+<h2 id="百度地图地点检索接口" class="article-heading"><a href="#百度地图地点检索接口" class="headerlink" title="百度地图地点检索接口"></a>百度地图地点检索接口<a class="article-anchor" href="#百度地图地点检索接口" aria-label="本节链接" title="复制本节链接"></a></h2><p>该接口的介绍文档在这里：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle">https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle</a> ，使用前需要先申请一个百度地图的 ak 密钥，在运行代码前大家需要把下面代码中的 <code>a8niO5h8icau3IRNG2Wv2k5CduVyrktL</code> 替换成自己的：</p>
+<blockquote>
+<p>这里注意结合视频讲解学习，很多细节难以文字表述。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 测试百度地图地点检索功能</span></span><br><span class="line">fromJSON<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/place/v2/search?query=医院$诊所$药店$体检$疗养院$急救中心$疾控中心$医疗&amp;tag=医疗&amp;location=39.915,116.404&amp;radius=2000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=0&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ls</span><br><span class="line">ls<span class="operator">$</span>results <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 20 × 10</span></span><br><span class="line"><span class="comment">#&gt;    name     location$lat address province city  area  street_id telephone detail</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;      &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京市…          39.9 北京市… 北京市   北京… 东城… &quot;4ea3f2f… (010)655…      1</span></span><br><span class="line"><span class="comment">#&gt;  2 首都医…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        (010)570…      1</span></span><br><span class="line"><span class="comment">#&gt;  3 首都医…          39.9 北京市… 北京市   北京… 东城… &quot;0adce3e… (010)522…      1</span></span><br><span class="line"><span class="comment">#&gt;  4 北京医院         39.9 北京市… 北京市   北京… 东城… &quot;&quot;        (010)652…      1</span></span><br><span class="line"><span class="comment">#&gt;  5 北京同…          39.9 北京市… 北京市   北京… 东城… &quot;2a64d1c… (010)670…      1</span></span><br><span class="line"><span class="comment">#&gt;  6 北京王…          39.9 北京市… 北京市   北京… 东城… &quot;fa7da3e… (010)851…      1</span></span><br><span class="line"><span class="comment">#&gt;  7 北京拜…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        (010)670…      1</span></span><br><span class="line"><span class="comment">#&gt;  8 北京市…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        (010)652…      1</span></span><br><span class="line"><span class="comment">#&gt;  9 北京韩…          39.9 北京市… 北京市   北京… 西城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 10 北京市…          39.9 北京市… 北京市   北京… 西城… &quot;&quot;        (010)630…      1</span></span><br><span class="line"><span class="comment">#&gt; 11 北京市…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        (010)670…      1</span></span><br><span class="line"><span class="comment">#&gt; 12 北京医…          39.9 北京市… 北京市   北京… 东城… &quot;f96b45e… &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 13 首都医…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 14 北京同…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 15 同仁堂…          39.9 北京市… 北京市   北京… 东城… &quot;407ae2d… &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 16 同仁堂…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 17 北京妇…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 18 北京王…          39.9 北京市… 北京市   北京… 东城… &quot;af0e425… &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 19 北京医…          39.9 北京市… 北京市   北京… 东城… &quot;&quot;        &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; 20 北京卫…          39.9 北京市… 北京市   北京… 东城…  &lt;NA&gt;     &lt;NA&gt;           1</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2 more variables: location$lng &lt;dbl&gt;, uid &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们循环解析所有的坐标点。这里为了更高效，我采用的是多线程爬取：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>parallel<span class="punctuation">)</span></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;res2&quot;</span><span class="punctuation">)</span></span><br><span class="line">makeCluster<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cl</span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;%&gt;%&quot;</span><span class="punctuation">)</span></span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;coorddf&quot;</span><span class="punctuation">)</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>coorddf<span class="punctuation">)</span><span class="punctuation">,</span> fun <span class="operator">=</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res2/&quot;</span><span class="punctuation">,</span> coorddf<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;_0.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    jsonlite<span class="operator">::</span>fromJSON<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/place/v2/search?query=医院$诊所$药店$体检$疗养院$急救中心$疾控中心$医疗&amp;tag=医疗&amp;location=&quot;</span><span class="punctuation">,</span> coorddf<span class="operator">$</span>Y<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;,&quot;</span> <span class="punctuation">,</span> coorddf<span class="operator">$</span>X<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;&amp;radius=10000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_type=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=0&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ls</span><br><span class="line">    ls <span class="operator">%&gt;%</span></span><br><span class="line">      readr<span class="operator">::</span>write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res2/&quot;</span><span class="punctuation">,</span> coorddf<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;_0.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    pagenum <span class="operator">&lt;-</span> ls<span class="operator">$</span>total <span class="operator">%/%</span> <span class="number">20</span></span><br><span class="line">    <span class="keyword">if</span><span class="punctuation">(</span>pagenum <span class="operator">&gt;=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="keyword">for</span> <span class="punctuation">(</span>p <span class="keyword">in</span> <span class="number">1</span><span class="operator">:</span>pagenum<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">        jsonlite<span class="operator">::</span>fromJSON<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/place/v2/search?query=医院$诊所$药店$体检$疗养院$急救中心$疾控中心$医疗&amp;tag=医疗&amp;location=&quot;</span><span class="punctuation">,</span> coorddf<span class="operator">$</span>Y<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;,&quot;</span> <span class="punctuation">,</span> coorddf<span class="operator">$</span>X<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;&amp;radius=10000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_type=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=&quot;</span><span class="punctuation">,</span> p<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">          readr<span class="operator">::</span>write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res2/&quot;</span><span class="punctuation">,</span> coorddf<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;_&quot;</span><span class="punctuation">,</span> p<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res2</span><br></pre></td></tr></table></figure>
+
+<p>并不是所有的文件都是有数据的，所以我们先删除那些没有数据的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 删除没有结果的</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;res2&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  readr<span class="operator">::</span>read_rds<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">-&gt;</span> ls</span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>ls<span class="operator">$</span>results<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    file.remove<span class="punctuation">(</span>x<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后合并有结果的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并有结果的</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;res2&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  readr<span class="operator">::</span>read_rds<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">-&gt;</span> ls</span><br><span class="line">  ls<span class="operator">$</span>results <span class="operator">%&gt;%</span></span><br><span class="line">    dplyr<span class="operator">::</span>as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    tidyr<span class="operator">::</span>unnest<span class="punctuation">(</span>location<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意返回结果中的坐标是 GCJ02 坐标系的</span></span><br><span class="line"><span class="comment"># GCJ02 转 WGS84</span></span><br><span class="line">source<span class="punctuation">(</span><span class="string">&quot;坐标转换.R&quot;</span><span class="punctuation">)</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>经度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>lng<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         纬度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>lat<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         value2 <span class="operator">=</span> map2_chr<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> GCJ02_WGS84<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>value2<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>lat<span class="punctuation">,</span> <span class="operator">-</span>lng<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>name<span class="punctuation">,</span> lat <span class="operator">=</span> 纬度<span class="punctuation">,</span> lng <span class="operator">=</span> 经度<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;全国医疗机构分布（50km范围检索）.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了 50km 范围内的解析结果。不过这个结果是不全的，大家有时间可以试试更细致的间距（不过也要主要自己的解析额度限制，可能要分好多天解析）。</p>
+<p>附件中我给大家提供了一份 10km 范围内的检索结果：</p>
+<ul>
+<li>全国医疗机构分布（10km范围检索）.xlsx</li>
+</ul>
+<h2 id="全国医疗机构分布地图" class="article-heading"><a href="#全国医疗机构分布地图" class="headerlink" title="全国医疗机构分布地图"></a>全国医疗机构分布地图<a class="article-anchor" href="#全国医疗机构分布地图" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面我们使用这个数据绘制一幅地图展示：</p>
+<blockquote>
+<p>chinacity2020mini 文件夹是我处理的一份带九段线小地图的中国市级行政区划数据。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用 10km 范围内的检索结果</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;全国医疗机构分布（10km范围检索）.xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;lng&quot;</span><span class="punctuation">,</span> <span class="string">&quot;lat&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf</span><br><span class="line"></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinacity2020mini/chinacity2020mini.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span>str_detect<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> <span class="string">&quot;(比例尺)|(指北针)&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymap</span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinacity2020mini/chinacity2020mini_line.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span>str_detect<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> <span class="string">&quot;(_)|(-)|(胡焕庸线)&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citylinemap</span><br><span class="line"></span><br><span class="line">citymap <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">2000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymapsim</span><br><span class="line">citylinemap <span class="operator">%&gt;%</span></span><br><span class="line">  st_simplify<span class="punctuation">(</span>dTolerance <span class="operator">=</span> <span class="number">2000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citylinemapsim</span><br><span class="line"></span><br><span class="line">unique<span class="punctuation">(</span>citylinemapsim<span class="operator">$</span><span class="built_in">class</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; [1] &quot;城市&quot;       &quot;九段线&quot;     &quot;海岸线&quot;     &quot;小地图框格&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取小地图范围中的</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line">small_bbox <span class="operator">&lt;-</span> st_bbox<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>xmin <span class="operator">=</span> <span class="number">120000</span><span class="punctuation">,</span></span><br><span class="line">                        xmax <span class="operator">=</span> <span class="number">1766004.1</span><span class="punctuation">,</span></span><br><span class="line">                        ymax <span class="operator">=</span> <span class="number">2557786.0</span><span class="punctuation">,</span></span><br><span class="line">                        ymin <span class="operator">=</span> <span class="number">320000</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                      crs <span class="operator">=</span> st_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sfc<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dfsf <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>small_bbox<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 移动到右下角</span></span><br><span class="line">dfsf2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>geometry <span class="operator">=</span> geometry <span class="operator">*</span> <span class="number">0.5</span> <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">2100000</span><span class="punctuation">,</span> <span class="number">1665139</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_set_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsf2</span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">ggplot<span class="punctuation">(</span>data <span class="operator">=</span> citymapsim<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="literal">NA</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> citylinemapsim<span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> factor<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              linewidth <span class="operator">=</span> factor<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">    <span class="string">&quot;城市&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">    <span class="string">&quot;城市&quot;</span> <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="number">0.3</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  ggnewscale<span class="operator">::</span>new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> bind_rows<span class="punctuation">(</span>dfsf<span class="punctuation">,</span> dfsf2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> province<span class="punctuation">)</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">0.01</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>paletteer<span class="operator">::</span>paletteer_d<span class="punctuation">(</span><span class="string">&quot;ggsci::default_igv&quot;</span><span class="punctuation">,</span> n <span class="operator">=</span> <span class="number">37</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span> width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   text_family <span class="operator">=</span> <span class="string">&quot;cnfont&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         style <span class="operator">=</span> north_arrow_nautical<span class="punctuation">(</span></span><br><span class="line">                           text_family <span class="operator">=</span> <span class="string">&quot;cnfont&quot;</span></span><br><span class="line">                         <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;中国各种医院、诊所、药店等医疗机构地理分布&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据处理&amp;绘图：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：百度地图地点检索接口（10km 范围逐点的检索）&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                       color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p1</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;中国各种医院、诊所、药店等医疗机构地理分布.png&quot;</span><span class="punctuation">,</span></span><br><span class="line">       width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">8</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637764565_927545.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="各城市医疗机构密度地图" class="article-heading"><a href="#各城市医疗机构密度地图" class="headerlink" title="各城市医疗机构密度地图"></a>各城市医疗机构密度地图<a class="article-anchor" href="#各城市医疗机构密度地图" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用 st_area() 可以轻松计算各城市的行政区划面积，不过记得不要使用上面的那个带九段线小地图的数据（被编辑过的）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算各市的面积</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2020行政区划/市.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br><span class="line"></span><br><span class="line">city <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>面积 <span class="operator">=</span> st_area<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>面积 <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span>面积<span class="punctuation">,</span> km2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         面积 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>面积<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cityarea</span><br><span class="line"></span><br><span class="line">cityarea</span><br><span class="line"><span class="comment">#&gt; # A tibble: 370 × 5</span></span><br><span class="line"><span class="comment">#&gt;    省     省代码 市     市代码   面积</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 安徽省 340000 安庆市 340800 13502.</span></span><br><span class="line"><span class="comment">#&gt;  2 安徽省 340000 蚌埠市 340300  5971.</span></span><br><span class="line"><span class="comment">#&gt;  3 安徽省 340000 亳州市 341600  8530.</span></span><br><span class="line"><span class="comment">#&gt;  4 安徽省 340000 池州市 341700  8406.</span></span><br><span class="line"><span class="comment">#&gt;  5 安徽省 340000 滁州市 341100 13524.</span></span><br><span class="line"><span class="comment">#&gt;  6 安徽省 340000 阜阳市 341200 10125.</span></span><br><span class="line"><span class="comment">#&gt;  7 安徽省 340000 合肥市 340100 11483.</span></span><br><span class="line"><span class="comment">#&gt;  8 安徽省 340000 淮北市 340600  2748.</span></span><br><span class="line"><span class="comment">#&gt;  9 安徽省 340000 淮南市 340400  5534.</span></span><br><span class="line"><span class="comment">#&gt; 10 安徽省 340000 黄山市 341000  9684.</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 360 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以合并数据绘图了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsf <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>name<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span><span class="number">3055</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>st_transform<span class="punctuation">(</span>city<span class="punctuation">,</span> <span class="number">3055</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>省<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 市代码<span class="punctuation">)</span> <span class="operator">-&gt;</span> countdf</span><br><span class="line"></span><br><span class="line">citymapsim <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>countdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>cityarea<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>density <span class="operator">=</span> n <span class="operator">/</span> 面积<span class="punctuation">)</span> <span class="operator">-&gt;</span> citymapsim2</span><br><span class="line"></span><br><span class="line">hist<span class="punctuation">(</span>citymapsim2<span class="operator">$</span>density<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637765003_692195.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ggplot<span class="punctuation">(</span>data <span class="operator">=</span> citymapsim2<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>aes<span class="punctuation">(</span>fill <span class="operator">=</span> density<span class="punctuation">)</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> citylinemapsim<span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> factor<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              linewidth <span class="operator">=</span> factor<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">    <span class="string">&quot;城市&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">    <span class="string">&quot;城市&quot;</span> <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="number">0.3</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span> width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   text_family <span class="operator">=</span> <span class="string">&quot;cnfont&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">                         pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                         style <span class="operator">=</span> north_arrow_nautical<span class="punctuation">(</span></span><br><span class="line">                           text_family <span class="operator">=</span> <span class="string">&quot;cnfont&quot;</span></span><br><span class="line">                         <span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;各城市医疗机构密度(个/平方千米)&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;数据处理&amp;绘图：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：百度地图地点检索接口（10km 范围逐点的检索）&quot;</span><span class="punctuation">,</span></span><br><span class="line">       fill <span class="operator">=</span> <span class="string">&quot;医疗机构密度(个/平方千米)&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>plot.background <span class="operator">=</span> element_rect<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                       color <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.position <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.15</span><span class="punctuation">,</span> <span class="number">0.15</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.direction <span class="operator">=</span> <span class="string">&quot;horizontal&quot;</span><span class="punctuation">,</span></span><br><span class="line">        legend.key.height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.3</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.key.width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>fill <span class="operator">=</span> guide_colorsteps<span class="punctuation">(</span>title.position <span class="operator">=</span> <span class="string">&quot;top&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p2</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;医疗机构密度.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">8</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637765003_692195.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4860e88d511649378c9a8c8b08510726">使用 R 语言爬取全国医疗机构列表</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.121Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/18935/" title="1998～2014 年工企周边 1～5km 范围内碳排放总量面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/80233/" title="旧版本｜工企与工商企业注册信息数据匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/95843/">R 和 RStudio 的安装及初识 R 语言数据爬取</a><span class="tf-related-meta">2022-11-16 · 约 1 分钟</span></li><li><a href="/posts/98762/">R 语言和 RStudio 的安装、R Profile 的配置</a><span class="tf-related-meta">2026-09-03 · 约 14 分钟</span></li><li><a href="/posts/24352/">R 语言：如何计算各国各地区质心经纬度、质心间距离矩阵及邻接矩阵</a><span class="tf-related-meta">2025-05-01 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E9%97%B4%E8%B7%9D%E5%9D%87%E5%8C%80%E7%9A%84%E7%BD%91%E6%A0%BC%E7%82%B9%E5%9D%90%E6%A0%87%E6%95%B0%E6%8D%AE"><span class="toc-text">生成间距均匀的网格点坐标数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E5%9C%B0%E7%82%B9%E6%A3%80%E7%B4%A2%E6%8E%A5%E5%8F%A3"><span class="toc-text">百度地图地点检索接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E5%9B%BD%E5%8C%BB%E7%96%97%E6%9C%BA%E6%9E%84%E5%88%86%E5%B8%83%E5%9C%B0%E5%9B%BE"><span class="toc-text">全国医疗机构分布地图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%84%E5%9F%8E%E5%B8%82%E5%8C%BB%E7%96%97%E6%9C%BA%E6%9E%84%E5%AF%86%E5%BA%A6%E5%9C%B0%E5%9B%BE"><span class="toc-text">各城市医疗机构密度地图</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

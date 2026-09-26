@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算上市公司数字技术复杂度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/95492/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="由于存在坍缩问题，所以这个就不打算分享处理好的数据了，大家可以参考代码自行决定如何计算。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算上市公司数字技术复杂度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/95492/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="由于存在坍缩问题，所以这个就不打算分享处理好的数据了，大家可以参考代码自行决定如何计算。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/95492.png">
+<meta property="article:published_time" content="2026-06-14T23:59:35.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.776Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/95492.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算上市公司数字技术复杂度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算上市公司数字技术复杂度","description":"由于存在坍缩问题，所以这个就不打算分享处理好的数据了，大家可以参考代码自行决定如何计算。","url":"https://tidyfriday.cn/posts/95492/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/95492/"},"image":["https://tidyfriday.cn/og/95492.png"],"datePublished":"2026-06-14T23:59:35.000Z","dateModified":"2026-09-26T14:18:49.776Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 上市公司","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算上市公司数字技术复杂度","item":"https://tidyfriday.cn/posts/95492/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-06-14T23:59:35.000Z" itemprop="datePublished">2026-06-14</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>5201 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 15 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>由于存在坍缩问题，所以这个就不打算分享处理好的数据了，大家可以参考代码自行决定如何计算。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>今天给大家讲解如何使用 R 语言测算上市公司的<strong>数字技术复杂度</strong>指标。该指标来源于宋晴等（2026）发表在《数量经济技术经济研究》上的论文「数字技术复杂度与企业市场价值——基于策略性创新的视角」。附件中提供了该论文的 PDF 文件。</p>
+<h2 id="数字技术复杂度指标的来源与计算方法" class="article-heading"><a href="#数字技术复杂度指标的来源与计算方法" class="headerlink" title="数字技术复杂度指标的来源与计算方法"></a>数字技术复杂度指标的来源与计算方法<a class="article-anchor" href="#数字技术复杂度指标的来源与计算方法" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="指标背景" class="article-heading"><a href="#指标背景" class="headerlink" title="指标背景"></a>指标背景<a class="article-anchor" href="#指标背景" aria-label="本节链接" title="复制本节链接"></a></h3><p><strong>数字技术复杂度</strong>（Digital Technology Complexity）是衡量企业在数字经济相关技术领域创新能力的综合性指标。与传统的专利数量指标不同，技术复杂度不仅考虑企业拥有的专利数量，还考虑了企业所涉及技术的<strong>稀缺性</strong>和<strong>复杂性</strong>——即企业是否集中在少数高门槛技术领域还是分散在普遍性技术领域。</p>
+<p>该指标的计算基于 Hidalgo 和 Hausmann（2009）提出的<strong>反射法</strong>（Method of Reflections），最初用于测算国家出口产品的经济复杂度。宋晴等（2026）将其创新性地应用于企业层面的数字技术专利分析。</p>
+<h3 id="计算步骤" class="article-heading"><a href="#计算步骤" class="headerlink" title="计算步骤"></a>计算步骤<a class="article-anchor" href="#计算步骤" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算过程可以分为以下 6 个主要步骤：</p>
+<ol>
+<li>数字经济专利识别：通过专利唯一标识 newipzlid 与数字经济专利库进行匹配，筛选出属于数字经济领域的专利；</li>
+<li>样本筛选：剔除建筑业、金融业、房地产业企业，剔除 ST、*ST、PT 股票（只要有一年出现即剔除该公司所有年份数据）；</li>
+<li>专利去重与存量构建：对专利进行两轮去重（公开公告号去重 + 申请号去重），然后以公司-专利-IPC 组合为基本单位，构建累计至每年的专利存量池；</li>
+<li>RCA（显性比较优势）计算：对每个企业-技术组合计算 RCA 指标，判断企业在特定技术领域是否具有比较优势；</li>
+<li>反射法迭代：基于 RCA 构建二元矩阵 M，通过迭代计算企业层面的数字技术复杂度；</li>
+<li>标准化：将复杂度指标标准化至 [0,1] 区间，便于跨年比较和回归分析。</li>
+</ol>
+<h3 id="关于”忽增忽降”问题的重要说明" class="article-heading"><a href="#关于”忽增忽降”问题的重要说明" class="headerlink" title="关于”忽增忽降”问题的重要说明"></a>关于”忽增忽降”问题的重要说明<a class="article-anchor" href="#关于”忽增忽降”问题的重要说明" aria-label="本节链接" title="复制本节链接"></a></h3><p>在使用反射法计算复杂度指标时，可能会遇到一个看似异常的现象：<strong>逐年标准化后的复杂度均值在某些年份突然出现大幅上升或下降</strong>（例如从 0.6 跳到 1.0，次年又跌回 0.4）。</p>
+<p>这并不是计算错误，而是反射法在特定数据条件下的固有特征。本讲义将在后文（”计算结果解读”一节）中详细解释其数学原理和数据层面的根本原因。</p>
+<h3 id="核心公式" class="article-heading"><a href="#核心公式" class="headerlink" title="核心公式"></a>核心公式<a class="article-anchor" href="#核心公式" aria-label="本节链接" title="复制本节链接"></a></h3><p>以下公式来源于宋晴等（2026）论文附录”一、复杂度测算与迭代过程”。以 t 年为例，本年度共 I 家上市公司，其数字技术专利存量共涉及 P 类数字技术。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452582991_862188.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452582289_442884.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="直观理解：反射法是什么？" class="article-heading"><a href="#直观理解：反射法是什么？" class="headerlink" title="直观理解：反射法是什么？"></a>直观理解：反射法是什么？<a class="article-anchor" href="#直观理解：反射法是什么？" aria-label="本节链接" title="复制本节链接"></a></h3><p>核心公式涉及较多数学符号，这里用一个通俗类比帮助理解反射法的本质。</p>
+<p><strong>问题意识</strong>：假设你要评价哪家企业的数字技术”厉害”，最简单的办法是数专利数量——谁专利多谁厉害。但这样有问题：一个企业拥有 1000 件低端专利，未必比拥有 10 件尖端专利的企业更”复杂”。反射法的出发点正是<strong>剥离专利规模，只看技术结构</strong>。</p>
+<p><strong>一个类比</strong>：想象一个”谁有稀缺能力”的互评游戏：</p>
+<ul>
+<li>企业说：我厉害，因为我掌握的技术别人都不会（技术越稀有，我就越厉害）</li>
+<li>技术说：我厉害，因为会我的都是厉害企业（企业越厉害，我就越稀有）</li>
+</ul>
+<p>这两句话互相”反射”——企业的得分取决于它掌握的技术有多稀有，而技术的稀有程度又取决于掌握它的企业有多厉害。信息在<strong>企业 ↔ 技术</strong>之间来回反射，经过多轮迭代后逐渐收敛到一个稳定值，这就是”反射法”（Method of Reflections）名字的由来。</p>
+<p><strong>具体迭代过程</strong>：</p>
+<blockquote>
+<p><strong>第 0 轮</strong>：数一数每家企业会多少种技术（多样性），以及每种技术有多少家企业会（稀有性）。</p>
+<p><strong>第 1 轮</strong>：用技术的稀有性重新算企业——如果你会的技术恰好都是”稀有技术”，你的得分就高；如果你会的都是”烂大街的技术”，得分就低。</p>
+<p><strong>第 2 轮</strong>：用更新后的企业得分重新算技术——如果被高分企业掌握，这项技术就是”稀有技术”；如果被低分企业掌握，这项技术就不算稀有。</p>
+<p><strong>第 3～20 轮</strong>：重复上述过程，直到数值稳定。</p>
+</blockquote>
+<p><strong>一句话总结</strong>：反射法 = 用”你拥有的东西有多稀缺”来定义”你有多厉害”，并且让这个定义来回迭代直到收敛。它本质上是一种<strong>基于网络位置的排序算法</strong>，和 Google PageRank 的思想有异曲同工之处——一个企业”厉害”，不仅取决于它自己，还取决于它关联的技术的”质量”。</p>
+<h2 id="数据准备" class="article-heading"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备<a class="article-anchor" href="#数据准备" aria-label="本节链接" title="复制本节链接"></a></h2><p>我们需要准备以下三组数据：</p>
+<ol>
+<li>数字经济专利库：基于主分类号筛选的数字经济专利newipzlid.dta，包含所有被判定为数字经济领域的专利 newipzlid；</li>
+<li>上市公司与专利数据：上市公司与专利样本数据.csv，包含每家上市公司每年申请的所有专利信息（2010～2016 年子样本）；</li>
+<li>上市公司行业信息：2000～2024年国泰安上市公司行业信息.dta，包含每个公司的行业代码和股票简称，用于样本筛选。</li>
+</ol>
+<blockquote>
+<p>1985～2024 年上市公司与专利数据匹配结果（版本3，含申请、授权信息）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934bff">https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934bff</a></p>
+</blockquote>
+<blockquote>
+<p>1985～2024 年数字经济产业相关专利筛选结果：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/d5dfb9ca0858457ebc4f176fce9fee80">https://rstata.duanshu.com/#/brief/course/d5dfb9ca0858457ebc4f176fce9fee80</a></p>
+</blockquote>
+<p>本讲义使用 2010～2016 年的子样本进行演示。附件中提供了提取好的样本数据 <code>上市公司与专利样本数据.csv</code>，其变量与完整数据相同：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>股票代码</code></td>
+<td>上市公司的股票代码</td>
+</tr>
+<tr>
+<td><code>newipzlid</code></td>
+<td>专利唯一标识 ID</td>
+</tr>
+<tr>
+<td><code>年份</code></td>
+<td>专利申请年份</td>
+</tr>
+<tr>
+<td><code>专利类型</code></td>
+<td>专利类型（发明申请、发明授权、实用新型、外观设计）</td>
+</tr>
+<tr>
+<td><code>公开公告号</code></td>
+<td>专利公开公告号</td>
+</tr>
+<tr>
+<td><code>申请号</code></td>
+<td>专利申请号</td>
+</tr>
+<tr>
+<td><code>IPC主分类</code></td>
+<td>专利的 IPC 主分类号</td>
+</tr>
+<tr>
+<td><code>授权公告日</code></td>
+<td>专利授权公告日</td>
+</tr>
+</tbody></table>
+<p>首先来看一下样本数据的基本结构：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>data.table<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取样本数据</span></span><br><span class="line">fread<span class="punctuation">(</span><span class="string">&quot;上市公司与专利样本数据.csv&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="样本筛选说明" class="article-heading"><a href="#样本筛选说明" class="headerlink" title="样本筛选说明"></a>样本筛选说明<a class="article-anchor" href="#样本筛选说明" aria-label="本节链接" title="复制本节链接"></a></h3><p>参照论文的做法，对样本进行以下筛选：</p>
+<ol>
+<li>行业筛选：根据证监会 2012 版行业代码，剔除建筑业（代码首字母 E）、金融业（J）、房地产业（K）的企业。这些行业与数字技术创新关联较弱，且专利行为与制造业有本质差异；</li>
+<li>ST 筛选：剔除曾经被标记为 ST、*ST 或 PT 的公司。这些公司处于财务异常状态，其专利申请行为可能不代表正常的创新决策。只要该公司在任何一年被标记为 ST/*ST/PT，就剔除该公司所有年份的数据。</li>
+</ol>
+<p>行业信息 DTA 的关键变量：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>股票代码</code></td>
+<td>上市公司股票代码</td>
+</tr>
+<tr>
+<td><code>股票简称</code></td>
+<td>股票简称（含 ST/*ST/PT 标记）</td>
+</tr>
+<tr>
+<td><code>行业代码</code></td>
+<td>证监会 2012 版行业分类代码</td>
+</tr>
+<tr>
+<td><code>统计截止日期</code></td>
+<td>行业信息统计截止日期</td>
+</tr>
+</tbody></table>
+<h2 id="详细计算代码" class="article-heading"><a href="#详细计算代码" class="headerlink" title="详细计算代码"></a>详细计算代码<a class="article-anchor" href="#详细计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面我们逐步讲解完整的计算过程。代码需要加载以下 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>data.table<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>Matrix<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-1：读取数字经济专利-DTA" class="article-heading"><a href="#Step-1：读取数字经济专利-DTA" class="headerlink" title="Step 1：读取数字经济专利 DTA"></a>Step 1：读取数字经济专利 DTA<a class="article-anchor" href="#Step-1：读取数字经济专利-DTA" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先从数字经济专利 DTA 文件中提取所有数字经济专利的 <code>newipzlid</code> 列表：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 配置路径</span></span><br><span class="line">dta_path     <span class="operator">&lt;-</span> <span class="string">&quot;数字经济筛选标准/基于主分类号筛选的数字经济专利newipzlid.dta&quot;</span></span><br><span class="line">csv_path     <span class="operator">&lt;-</span> <span class="string">&quot;上市公司与专利样本数据.csv&quot;</span></span><br><span class="line">industry_dta <span class="operator">&lt;-</span> <span class="string">&quot;2000～2024年国泰安上市公司行业信息.dta&quot;</span></span><br><span class="line">min_year     <span class="operator">&lt;-</span> 2010</span><br><span class="line">max_year     <span class="operator">&lt;-</span> 2016</span><br><span class="line">n_iter_k     <span class="operator">&lt;-</span> 20    <span class="comment"># 企业复杂度迭代次数</span></span><br><span class="line">n_iter_t     <span class="operator">&lt;-</span> 19    <span class="comment"># 技术复杂度迭代次数</span></span><br><span class="line">collapse_thresh <span class="operator">&lt;-</span> 1.0  <span class="comment"># Kc range 小于此值视为迭代坍缩</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 行业剔除：证监会2012版行业代码首字母</span></span><br><span class="line">exclude_industry_letters <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;E&quot;</span><span class="punctuation">,</span> <span class="string">&quot;J&quot;</span><span class="punctuation">,</span> <span class="string">&quot;K&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取 DTA，提取 newipzlid 列</span></span><br><span class="line">dta_dt <span class="operator">&lt;-</span> read_dta<span class="punctuation">(</span>dta_path<span class="punctuation">)</span></span><br><span class="line">digital_patent_ids <span class="operator">&lt;-</span> dta_dt<span class="operator">$</span>newipzlid</span><br><span class="line">rm<span class="punctuation">(</span>dta_dt<span class="punctuation">)</span></span><br><span class="line">gc<span class="punctuation">(</span>verbose <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  DTA 唯一 newipzlid 数量:&quot;</span><span class="punctuation">,</span></span><br><span class="line">    format<span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>digital_patent_ids<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>上市公司行业信息来源于之前分享的这个数据：</p>
+<blockquote>
+<p>2000～2024 年上市公司注册地址与办公地址（含经纬度及其所处的省市区县）<br>：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/746d4f595eba41a2a116b5a6edc3ac0a">https://rstata.duanshu.com/#/course/746d4f595eba41a2a116b5a6edc3ac0a</a></p>
+</blockquote>
+<h3 id="Step-2：读取行业信息，构建剔除名单" class="article-heading"><a href="#Step-2：读取行业信息，构建剔除名单" class="headerlink" title="Step 2：读取行业信息，构建剔除名单"></a>Step 2：读取行业信息，构建剔除名单<a class="article-anchor" href="#Step-2：读取行业信息，构建剔除名单" aria-label="本节链接" title="复制本节链接"></a></h3><p>从行业信息 DTA 中识别需要剔除的公司：</p>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><h3 id="Step-3：读取-CSV-并筛选数据" class="article-heading"><a href="#Step-3：读取-CSV-并筛选数据" class="headerlink" title="Step 3：读取 CSV 并筛选数据"></a>Step 3：读取 CSV 并筛选数据<a class="article-anchor" href="#Step-3：读取-CSV-并筛选数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>读取上市公司与专利数据，依次进行年份筛选、公司筛选和数字经济专利匹配。</p>
+<blockquote>
+<p><strong>说明</strong>：论文使用上市公司<strong>申请</strong>的数字技术专利（不筛选授权状态），因此保留所有专利申请记录。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只读取需要的列</span></span><br><span class="line">cols_use <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;专利类型&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="string">&quot;公开公告号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC主分类&quot;</span><span class="punctuation">,</span> <span class="string">&quot;授权公告日&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_raw <span class="operator">&lt;-</span> fread<span class="punctuation">(</span>csv_path<span class="punctuation">,</span> select <span class="operator">=</span> cols_use<span class="punctuation">,</span> encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">,</span></span><br><span class="line">                 colClasses <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;授权公告日&quot;</span> <span class="operator">=</span> <span class="string">&quot;character&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  CSV 总行数:&quot;</span><span class="punctuation">,</span> format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 3a: 筛选年份（2010-2016）---</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span>年份 <span class="operator">%between%</span> <span class="built_in">c</span><span class="punctuation">(</span>min_year<span class="punctuation">,</span> max_year<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  年份筛选后:&quot;</span><span class="punctuation">,</span> format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 3b: 剔除 ST/*ST/PT 和指定行业公司 ---</span></span><br><span class="line">n_before <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span><span class="punctuation">,</span> uniqueN<span class="punctuation">(</span>股票代码<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span><span class="operator">!</span>股票代码 <span class="operator">%in%</span> exclude_stocks<span class="punctuation">]</span></span><br><span class="line">n_after <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span><span class="punctuation">,</span> uniqueN<span class="punctuation">(</span>股票代码<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  公司筛选（剔除 ST/PT + 建筑/金融/房地产）:\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;    剔除前公司数:&quot;</span><span class="punctuation">,</span> n_before<span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;    剔除后公司数:&quot;</span><span class="punctuation">,</span> n_after<span class="punctuation">,</span> <span class="string">&quot;（剔除&quot;</span><span class="punctuation">,</span> n_before <span class="operator">-</span> n_after<span class="punctuation">,</span> <span class="string">&quot;家）\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">rm<span class="punctuation">(</span>exclude_stocks<span class="punctuation">)</span></span><br><span class="line">gc<span class="punctuation">(</span>verbose <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 3c: 不筛选授权状态（论文使用申请专利，保留所有专利申请）---</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  保留所有专利申请（含未授权）:&quot;</span><span class="punctuation">,</span> format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  专利申请类型分布:\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>df_raw<span class="punctuation">[</span><span class="punctuation">,</span> .<span class="punctuation">(</span>n <span class="operator">=</span> .N<span class="punctuation">)</span><span class="punctuation">,</span> by <span class="operator">=</span> 专利类型<span class="punctuation">]</span><span class="punctuation">[</span>order<span class="punctuation">(</span><span class="operator">-</span>n<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 3d: 通过 newipzlid 匹配数字经济专利 ---</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span>newipzlid <span class="operator">%in%</span> digital_patent_ids<span class="punctuation">]</span></span><br><span class="line">rm<span class="punctuation">(</span>digital_patent_ids<span class="punctuation">)</span></span><br><span class="line">gc<span class="punctuation">(</span>verbose <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  newipzlid 匹配（数字经济专利）后:&quot;</span><span class="punctuation">,</span></span><br><span class="line">    format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-4：专利去重" class="article-heading"><a href="#Step-4：专利去重" class="headerlink" title="Step 4：专利去重"></a>Step 4：专利去重<a class="article-anchor" href="#Step-4：专利去重" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于专利数据中存在重复的情况，所以分两步进行去重：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 清洗公开公告号：去掉末尾字母</span></span><br><span class="line">df_raw<span class="punctuation">[</span><span class="punctuation">,</span> 公开公告号_clean <span class="operator">:=</span> str_replace<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">,</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 去重 1: 按股票代码 + 年份 + 公开公告号_clean</span></span><br><span class="line">n_before <span class="operator">&lt;-</span> nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span><span class="operator">!</span>duplicated<span class="punctuation">(</span>df_raw<span class="punctuation">,</span></span><br><span class="line">                              by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;公开公告号_clean&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  去重 1（公开公告号）: %s → %s (-%d)\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">            format<span class="punctuation">(</span>n_before<span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            n_before <span class="operator">-</span> nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 去重 2: 按股票代码 + 年份 + 申请号</span></span><br><span class="line">n_before <span class="operator">&lt;-</span> nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> df_raw<span class="punctuation">[</span><span class="operator">!</span>duplicated<span class="punctuation">(</span>df_raw<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;申请号&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  去重 2（申请号）:     %s → %s (-%d)\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">            format<span class="punctuation">(</span>n_before<span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            n_before <span class="operator">-</span> nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-5：提取-IPC-四位码" class="article-heading"><a href="#Step-5：提取-IPC-四位码" class="headerlink" title="Step 5：提取 IPC 四位码"></a>Step 5：提取 IPC 四位码<a class="article-anchor" href="#Step-5：提取-IPC-四位码" aria-label="本节链接" title="复制本节链接"></a></h3><p>以专利主分类号的 <strong>IPC 四位码</strong>作为技术分类的基本单位：</p>
+<h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><h3 id="Step-6：逐年计算数字技术复杂度（反射法）" class="article-heading"><a href="#Step-6：逐年计算数字技术复杂度（反射法）" class="headerlink" title="Step 6：逐年计算数字技术复杂度（反射法）"></a>Step 6：逐年计算数字技术复杂度（反射法）<a class="article-anchor" href="#Step-6：逐年计算数字技术复杂度（反射法）" aria-label="本节链接" title="复制本节链接"></a></h3><p>这是核心步骤。对每一年 t，执行以下操作：</p>
+<ol>
+<li>从存量数据中筛选 年份 &lt;= t 的专利</li>
+<li>计算每个企业-技术组合的 RCA</li>
+<li>构建 RCA≥1 的二元矩阵 M</li>
+<li>使用反射法迭代 20 次（企业）/ 19 次（技术）</li>
+<li>得到每个企业的数字技术复杂度 Kc</li>
+<li>坍缩检测：检查 Kc 的 range 是否小于阈值（默认 1.0）</li>
+</ol>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 6h: 坍缩检测 ---</span></span><br><span class="line">  kc_range <span class="operator">&lt;-</span> <span class="built_in">max</span><span class="punctuation">(</span>K_c<span class="punctuation">)</span> <span class="operator">-</span> <span class="built_in">min</span><span class="punctuation">(</span>K_c<span class="punctuation">)</span></span><br><span class="line">  is_collapse <span class="operator">&lt;-</span> kc_range <span class="operator">&lt;</span> collapse_thresh</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span>is_collapse<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    collapse_years <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span>collapse_years<span class="punctuation">,</span> t<span class="punctuation">)</span></span><br><span class="line">    cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  ★★★ %d年: 迭代坍缩！Kc range=%.4f &lt; %.1f\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">                t<span class="punctuation">,</span> kc_range<span class="punctuation">,</span> collapse_thresh<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># --- 6i: 保存该年结果 ---</span></span><br><span class="line">  results_list<span class="punctuation">[[</span><span class="built_in">as.character</span><span class="punctuation">(</span>t<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> data.table<span class="punctuation">(</span></span><br><span class="line">    股票代码      <span class="operator">=</span> firms<span class="punctuation">,</span></span><br><span class="line">    年份          <span class="operator">=</span> t<span class="punctuation">,</span></span><br><span class="line">    complexity_raw <span class="operator">=</span> K_c</span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  %d: 企业=%d, 技术=%d, Kc_mean=%.2f, Kc_range=%.2f%s  %.1fs\n&quot;</span><span class="punctuation">,</span></span><br><span class="line">              t<span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">(</span>firms<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">(</span>techs<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              mean<span class="punctuation">(</span>K_c<span class="punctuation">)</span><span class="punctuation">,</span> kc_range<span class="punctuation">,</span></span><br><span class="line">              ifelse<span class="punctuation">(</span>is_collapse<span class="punctuation">,</span> <span class="string">&quot; [坍缩]&quot;</span><span class="punctuation">,</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              <span class="built_in">as.numeric</span><span class="punctuation">(</span>difftime<span class="punctuation">(</span>Sys.time<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span> t_iter_start<span class="punctuation">,</span> units <span class="operator">=</span> <span class="string">&quot;secs&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>collapse_years<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;\n  ★★★ 以下年份发生迭代坍缩（Kc range &lt;&quot;</span><span class="punctuation">,</span> collapse_thresh<span class="punctuation">,</span> <span class="string">&quot;) ★★★\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;  坍缩年份:&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>collapse_years<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;  原因：M 矩阵的企业度分布趋于均匀，反射法迭代后企业间差异丧失。\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  cat<span class="punctuation">(</span><span class="string">&quot;\n  所有年份均未发生迭代坍缩。\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-7：合并结果" class="article-heading"><a href="#Step-7：合并结果" class="headerlink" title="Step 7：合并结果"></a>Step 7：合并结果<a class="article-anchor" href="#Step-7：合并结果" aria-label="本节链接" title="复制本节链接"></a></h3><p>将各年份的计算结果合并为完整的数据框：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">results <span class="operator">&lt;-</span> rbindlist<span class="punctuation">(</span>results_list<span class="punctuation">)</span></span><br><span class="line">rm<span class="punctuation">(</span>results_list<span class="punctuation">)</span>; gc<span class="punctuation">(</span>verbose <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  总观测数:&quot;</span><span class="punctuation">,</span> format<span class="punctuation">(</span>nrow<span class="punctuation">(</span>results<span class="punctuation">)</span><span class="punctuation">,</span> big.mark <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  年份范围:&quot;</span><span class="punctuation">,</span> <span class="built_in">min</span><span class="punctuation">(</span>results<span class="operator">$</span>年份<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;-&quot;</span><span class="punctuation">,</span> <span class="built_in">max</span><span class="punctuation">(</span>results<span class="operator">$</span>年份<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  唯一企业数:&quot;</span><span class="punctuation">,</span> results<span class="punctuation">[</span><span class="punctuation">,</span> uniqueN<span class="punctuation">(</span>股票代码<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">results <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-8：多种标准化方式对比" class="article-heading"><a href="#Step-8：多种标准化方式对比" class="headerlink" title="Step 8：多种标准化方式对比"></a>Step 8：多种标准化方式对比<a class="article-anchor" href="#Step-8：多种标准化方式对比" aria-label="本节链接" title="复制本节链接"></a></h3><p>反射法得到的原始 Kc 值在不同年份之间的量纲差异较大，需要进行标准化。本节对比多种标准化方式，并重点解释<strong>逐年 Min-Max 标准化中”忽增忽降”现象的成因</strong>。</p>
+<h4 id="方式-1：逐年-Min-Max（论文使用方式）" class="article-heading"><a href="#方式-1：逐年-Min-Max（论文使用方式）" class="headerlink" title="方式 1：逐年 Min-Max（论文使用方式）"></a>方式 1：逐年 Min-Max（论文使用方式）<a class="article-anchor" href="#方式-1：逐年-Min-Max（论文使用方式）" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处内容需下载讲义材料查看～</p>
+<h4 id="方式-2：逐年百分位排名" class="article-heading"><a href="#方式-2：逐年百分位排名" class="headerlink" title="方式 2：逐年百分位排名"></a>方式 2：逐年百分位排名<a class="article-anchor" href="#方式-2：逐年百分位排名" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处内容需下载讲义材料查看～</p>
+<h4 id="方式-3：全局-Min-Max" class="article-heading"><a href="#方式-3：全局-Min-Max" class="headerlink" title="方式 3：全局 Min-Max"></a>方式 3：全局 Min-Max<a class="article-anchor" href="#方式-3：全局-Min-Max" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处内容需下载讲义材料查看～</p>
+<h4 id="方式-4：面板-z-score-缩放到-0-1" class="article-heading"><a href="#方式-4：面板-z-score-缩放到-0-1" class="headerlink" title="方式 4：面板 z-score 缩放到 [0,1]"></a>方式 4：面板 z-score 缩放到 [0,1]<a class="article-anchor" href="#方式-4：面板-z-score-缩放到-0-1" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处内容需下载讲义材料查看～</p>
+<h4 id="代码实现" class="article-heading"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现<a class="article-anchor" href="#代码实现" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处内容需下载讲义材料查看～" class="article-heading"><a href="#此处内容需下载讲义材料查看～" class="headerlink" title="此处内容需下载讲义材料查看～"></a>此处内容需下载讲义材料查看～<a class="article-anchor" href="#此处内容需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><h3 id="Step-9：描述性统计" class="article-heading"><a href="#Step-9：描述性统计" class="headerlink" title="Step 9：描述性统计"></a>Step 9：描述性统计<a class="article-anchor" href="#Step-9：描述性统计" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n── 2010-2016 年 complexity 总体统计 ──\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">desc <span class="operator">&lt;-</span> results<span class="punctuation">[</span><span class="punctuation">,</span> .<span class="punctuation">(</span></span><br><span class="line">  样本量 <span class="operator">=</span> .N<span class="punctuation">,</span></span><br><span class="line">  均值   <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>mean<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  最小值 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span><span class="built_in">min</span><span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  中位数 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>median<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  最大值 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span><span class="built_in">max</span><span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  标准差 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>sd<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">print<span class="punctuation">(</span>desc<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n── 逐年统计 ──\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">yearly <span class="operator">&lt;-</span> results<span class="punctuation">[</span><span class="punctuation">,</span> .<span class="punctuation">(</span></span><br><span class="line">  企业数   <span class="operator">=</span> .N<span class="punctuation">,</span></span><br><span class="line">  均值     <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>mean<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  中位数   <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>median<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  标准差   <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>sd<span class="punctuation">(</span>complexity<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span><span class="punctuation">,</span> by <span class="operator">=</span> 年份<span class="punctuation">]</span></span><br><span class="line">print<span class="punctuation">(</span>yearly<span class="punctuation">,</span> row.names <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="“忽增忽降”问题的深入解读" class="article-heading"><a href="#“忽增忽降”问题的深入解读" class="headerlink" title="“忽增忽降”问题的深入解读"></a>“忽增忽降”问题的深入解读<a class="article-anchor" href="#“忽增忽降”问题的深入解读" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="现象描述" class="article-heading"><a href="#现象描述" class="headerlink" title="现象描述"></a>现象描述<a class="article-anchor" href="#现象描述" aria-label="本节链接" title="复制本节链接"></a></h3><p>在使用逐年 Min-Max 标准化后，你可能会观察到复杂度指标的逐年均值出现大幅波动。例如：</p>
+<ul>
+<li>2012 年均值 = 0.91（偏高）</li>
+<li>2013 年均值 = 0.52（大幅下跌）</li>
+<li>2014 年均值 = 0.94（大幅回升）</li>
+<li>2015 年均值 = 0.33（再次大幅下跌）</li>
+</ul>
+<p>这种”忽增忽降”并非计算错误，而是以下两个因素共同作用的必然结果。</p>
+<h3 id="根本原因一：迭代坍缩（Iterative-Collapse）" class="article-heading"><a href="#根本原因一：迭代坍缩（Iterative-Collapse）" class="headerlink" title="根本原因一：迭代坍缩（Iterative Collapse）"></a>根本原因一：迭代坍缩（Iterative Collapse）<a class="article-anchor" href="#根本原因一：迭代坍缩（Iterative-Collapse）" aria-label="本节链接" title="复制本节链接"></a></h3><p>反射法的数学本质是让复杂度值在二分图（企业 ↔ IPC 技术）上不断扩散。当 <strong>M 矩阵中企业的度分布（即每个企业拥有的 RCA≥1 的 IPC 种类数）趋于均匀</strong>时，迭代会使所有企业的 Kc 值收敛到几乎相同的值。</p>
+<p>我们用 2013 年（坍缩年）和 2012 年（正常年）的对比来说明：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>2012 年（正常）</th>
+<th>2013 年（坍缩）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>企业数</td>
+<td>2,466</td>
+<td>2,806</td>
+</tr>
+<tr>
+<td>技术数（IPC四位码）</td>
+<td>124</td>
+<td>125</td>
+</tr>
+<tr>
+<td>M 矩阵密度</td>
+<td>0.031</td>
+<td>0.034</td>
+</tr>
+<tr>
+<td>企业度 CV</td>
+<td><strong>1.053</strong></td>
+<td><strong>1.011</strong></td>
+</tr>
+<tr>
+<td>Kc range</td>
+<td><strong>166.4</strong></td>
+<td><strong>0.057</strong></td>
+</tr>
+</tbody></table>
+<p><strong>企业度 CV（变异系数）= sd / mean</strong>，衡量企业间专利多样性的差异程度。当 CV 接近 1.0 时，所有企业的专利组合高度相似，反射法无法区分谁更复杂，迭代后 Kc 值全部挤在一起（range &lt; 0.01），这就是<strong>迭代坍缩</strong>。</p>
+<h3 id="根本原因二：逐年标准化的独立尺度" class="article-heading"><a href="#根本原因二：逐年标准化的独立尺度" class="headerlink" title="根本原因二：逐年标准化的独立尺度"></a>根本原因二：逐年标准化的独立尺度<a class="article-anchor" href="#根本原因二：逐年标准化的独立尺度" aria-label="本节链接" title="复制本节链接"></a></h3><p>逐年 Min-Max 每年独立地拉伸数据到 [0,1]。当某年发生迭代坍缩时，Kc 的 range 极小，几乎所有企业的 Kc 值相同，Min-Max 标准化后所有企业都被映射到相同或非常接近的值（通常是 0 或 1 附近），导致该年均值出现异常。</p>
+<p><strong>反之</strong>，当某年未发生坍缩、Kc 分布较宽时，Min-Max 后能保留较好的区分度，均值处于正常区间。</p>
+<h3 id="数据层面的深层原因" class="article-heading"><a href="#数据层面的深层原因" class="headerlink" title="数据层面的深层原因"></a>数据层面的深层原因<a class="article-anchor" href="#数据层面的深层原因" aria-label="本节链接" title="复制本节链接"></a></h3><p>为什么企业度 CV 会在某些年份跌破 1.0（趋于均匀）？这反映了<strong>产业层面的真实结构变化</strong>：</p>
+<ol>
+<li>企业数激增：2010 年 1,442 家 → 2015 年 3,284 家（翻倍），大量新进入企业初期的专利组合往往集中在少数热门 IPC 上（如 G06F、H04L）；</li>
+<li>技术数基本停滞：2010 年 118 种 → 2015 年 130 种（仅 +10%），但企业数翻倍 → 每项技术被更多企业同时持有，M 矩阵密度上升但结构变”平”；</li>
+<li>专利同质化涌入：2013 年前后数字经济政策密集出台，大量企业同时申请类似的数字技术专利，企业间差异缩小。</li>
+</ol>
+<p><strong>这不是数据错误，而是反射法算法对产业结构突变的敏感性表现。</strong></p>
+<h3 id="解决方案" class="article-heading"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案<a class="article-anchor" href="#解决方案" aria-label="本节链接" title="复制本节链接"></a></h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>做法</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>A. 减少迭代次数</strong></td>
+<td>改用 5 次迭代（而非 20 次）</td>
+<td>所有年份都有真实区分度，不会坍缩</td>
+<td>与论文的 20 次迭代设定不完全一致</td>
+</tr>
+<tr>
+<td><strong>B. 检测坍缩年并自动降级</strong></td>
+<td>range &lt; 1.0 时对该年改用 5 次迭代</td>
+<td>非坍缩年与论文一致</td>
+<td>跨年不可比（不同年用不同迭代次数）</td>
+</tr>
+<tr>
+<td><strong>C. 使用 log(Kc) + Min-Max</strong></td>
+<td>对原始 Kc 取对数后再标准化</td>
+<td>压缩右尾，减轻坍缩影响</td>
+<td>改变指标的经济含义</td>
+</tr>
+</tbody></table>
+<p><strong>推荐做法</strong>：在回归分析中使用<strong>逐年 Min-Max 标准化 + 年份固定效应</strong>。年份固定效应会吸收所有年份层面的宏观因素（包括产业政策冲击），复杂度系数的识别完全来自”同年企业间的横截面差异”，这是论文的基准做法。</p>
+<h3 id="对后续计量回归的影响" class="article-heading"><a href="#对后续计量回归的影响" class="headerlink" title="对后续计量回归的影响"></a>对后续计量回归的影响<a class="article-anchor" href="#对后续计量回归的影响" aria-label="本节链接" title="复制本节链接"></a></h3><p>上述”忽增忽降”问题是否会污染回归结果，是实证研究中必须正视的问题。以下从计量经济学角度进行系统分析。</p>
+<h4 id="1-测量误差与衰减偏误（Attenuation-Bias）" class="article-heading"><a href="#1-测量误差与衰减偏误（Attenuation-Bias）" class="headerlink" title="1. 测量误差与衰减偏误（Attenuation Bias）"></a>1. 测量误差与衰减偏误（Attenuation Bias）<a class="article-anchor" href="#1-测量误差与衰减偏误（Attenuation-Bias）" aria-label="本节链接" title="复制本节链接"></a></h4><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452581825_511392.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h4 id="2-与年份固定效应的交互作用" class="article-heading"><a href="#2-与年份固定效应的交互作用" class="headerlink" title="2. 与年份固定效应的交互作用"></a>2. 与年份固定效应的交互作用<a class="article-anchor" href="#2-与年份固定效应的交互作用" aria-label="本节链接" title="复制本节链接"></a></h4><p>逐年 Min-Max 标准化配合年份固定效应是论文的基准设定，但坍缩年份存在特殊问题：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452581380_871697.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>年份固定效应吸收的是<strong>所有企业共同面对的年份冲击</strong>，复杂度系数的识别理论上完全来自”同年企业间的横截面差异”。但当某年横截面差异本身被算法扭曲时，该年份观测对整体估计的贡献是<strong>失真</strong>的。</p>
+<h4 id="3-动态面板设定下的额外风险" class="article-heading"><a href="#3-动态面板设定下的额外风险" class="headerlink" title="3. 动态面板设定下的额外风险"></a>3. 动态面板设定下的额外风险<a class="article-anchor" href="#3-动态面板设定下的额外风险" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处内容需下载讲义材料查看～</p>
+<h4 id="4-应对建议" class="article-heading"><a href="#4-应对建议" class="headerlink" title="4. 应对建议"></a>4. 应对建议<a class="article-anchor" href="#4-应对建议" aria-label="本节链接" title="复制本节链接"></a></h4><p>针对上述风险，提出以下四种处理思路：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452580908_336727.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><strong>推荐策略</strong>：</p>
+<ol>
+<li>基准回归使用全样本（2008-2024）跑反射法复杂度 + 年份固定效应，此时坍缩的影响被 17 个年份大幅稀释，2013 和 2015 只是其中 2 年；</li>
+<li>稳健性检验一：删除 2013 和 2015 年重新跑回归，将结果报告于 Robustness Table；</li>
+<li>稳健性检验二：用熵权法计算的复杂度作为替代指标，验证核心结论是否依然成立；</li>
+<li>若坚持使用 2010-2016 子样本：务必在回归中报告 Cluster-Robust SE，并在附录中披露坍缩年份的描述性统计。</li>
+</ol>
+<blockquote>
+<p><strong>小结</strong>：论文本身使用 2008-2024 全样本并成功发表，说明审稿人接受了这一测量方式。若你的研究聚焦于 2010-2016 子样本（如受某政策冲击的影响），则需要在论文中主动讨论坍缩问题，并用上述稳健性检验证明结论不受其干扰。</p>
+</blockquote>
+<h3 id="Step-10：保存结果" class="article-heading"><a href="#Step-10：保存结果" class="headerlink" title="Step 10：保存结果"></a>Step 10：保存结果<a class="article-anchor" href="#Step-10：保存结果" aria-label="本节链接" title="复制本节链接"></a></h3><p>将股票代码统一转为 6 位字符串（不足前补 0），然后保存为 DTA 和 CSV 文件：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 股票代码转 6 位字符串，不足前补 0</span></span><br><span class="line">results<span class="punctuation">[</span><span class="punctuation">,</span> 股票代码 <span class="operator">:=</span> str_pad<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">(</span>股票代码<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                               width <span class="operator">=</span> <span class="number">6</span><span class="punctuation">,</span> side <span class="operator">=</span> <span class="string">&quot;left&quot;</span><span class="punctuation">,</span> pad <span class="operator">=</span> <span class="string">&quot;0&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存 DTA</span></span><br><span class="line">output_dta <span class="operator">&lt;-</span> paste0<span class="punctuation">(</span>min_year<span class="punctuation">,</span> <span class="string">&quot;~&quot;</span><span class="punctuation">,</span> max_year<span class="punctuation">,</span> <span class="string">&quot;年上市公司数字技术复杂度_iter&quot;</span><span class="punctuation">,</span> n_iter_k<span class="punctuation">,</span> <span class="string">&quot;.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">results_dt <span class="operator">&lt;-</span> as_tibble<span class="punctuation">(</span>results<span class="punctuation">[</span><span class="punctuation">,</span> .<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> complexity<span class="punctuation">,</span> complexity_minmax<span class="punctuation">,</span></span><br><span class="line">                                     complexity_rank<span class="punctuation">,</span> complexity_global<span class="punctuation">,</span> complexity_panel<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"><span class="built_in">attr</span><span class="punctuation">(</span>results_dt<span class="punctuation">,</span> <span class="string">&quot;label&quot;</span><span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span></span><br><span class="line">haven<span class="operator">::</span>write_dta<span class="punctuation">(</span>results_dt<span class="punctuation">,</span> output_dta<span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  DTA 已保存至:&quot;</span><span class="punctuation">,</span> output_dta<span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存 CSV（用于检查）</span></span><br><span class="line">output_csv <span class="operator">&lt;-</span> paste0<span class="punctuation">(</span>min_year<span class="punctuation">,</span> <span class="string">&quot;~&quot;</span><span class="punctuation">,</span> max_year<span class="punctuation">,</span> <span class="string">&quot;年上市公司数字技术复杂度_iter&quot;</span><span class="punctuation">,</span> n_iter_k<span class="punctuation">,</span> <span class="string">&quot;.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">fwrite<span class="punctuation">(</span>results<span class="punctuation">[</span><span class="punctuation">,</span> .<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> complexity<span class="punctuation">,</span> complexity_minmax<span class="punctuation">,</span></span><br><span class="line">                   complexity_rank<span class="punctuation">,</span> complexity_global<span class="punctuation">,</span> complexity_panel<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        output_csv<span class="punctuation">,</span> <span class="built_in">quote</span> <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;  CSV 已保存至:&quot;</span><span class="punctuation">,</span> output_csv<span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="关键注意事项" class="article-heading"><a href="#关键注意事项" class="headerlink" title="关键注意事项"></a>关键注意事项<a class="article-anchor" href="#关键注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/23/02b79j1bdbe1b168g4/common/content/1781452579435_555276.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/099e1f327e2d44e8ba0aa94648ee612a">名师讲堂｜使用 R 语言测算上市公司数字技术复杂度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.776Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/31612/" title="名师讲堂｜使用 Stata 测算上市公司数字技术复杂度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/64056/" title="名师讲堂｜使用 Python 测算上市公司数字技术复杂度"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/62613/">名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化</a><span class="tf-related-meta">2026-05-26 · 约 9 分钟</span></li><li><a href="/posts/97319/">名师讲堂｜使用 R 语言计算上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-09 · 约 9 分钟</span></li><li><a href="/posts/56925/">名师讲堂｜使用 R 语言根据上市公司及其子公司与税调匹配结果测算碳排放</a><span class="tf-related-meta">2026-05-09 · 约 7 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E5%AD%97%E6%8A%80%E6%9C%AF%E5%A4%8D%E6%9D%82%E5%BA%A6%E6%8C%87%E6%A0%87%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">数字技术复杂度指标的来源与计算方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E8%83%8C%E6%99%AF"><span class="toc-text">指标背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4"><span class="toc-text">计算步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E2%80%9D%E5%BF%BD%E5%A2%9E%E5%BF%BD%E9%99%8D%E2%80%9D%E9%97%AE%E9%A2%98%E7%9A%84%E9%87%8D%E8%A6%81%E8%AF%B4%E6%98%8E"><span class="toc-text">关于”忽增忽降”问题的重要说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%85%AC%E5%BC%8F"><span class="toc-text">核心公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B4%E8%A7%82%E7%90%86%E8%A7%A3%EF%BC%9A%E5%8F%8D%E5%B0%84%E6%B3%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">直观理解：反射法是什么？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="toc-text">数据准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B7%E6%9C%AC%E7%AD%9B%E9%80%89%E8%AF%B4%E6%98%8E"><span class="toc-text">样本筛选说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">详细计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%95%B0%E5%AD%97%E7%BB%8F%E6%B5%8E%E4%B8%93%E5%88%A9-DTA"><span class="toc-text">Step 1：读取数字经济专利 DTA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2%EF%BC%9A%E8%AF%BB%E5%8F%96%E8%A1%8C%E4%B8%9A%E4%BF%A1%E6%81%AF%EF%BC%8C%E6%9E%84%E5%BB%BA%E5%89%94%E9%99%A4%E5%90%8D%E5%8D%95"><span class="toc-text">Step 2：读取行业信息，构建剔除名单</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3%EF%BC%9A%E8%AF%BB%E5%8F%96-CSV-%E5%B9%B6%E7%AD%9B%E9%80%89%E6%95%B0%E6%8D%AE"><span class="toc-text">Step 3：读取 CSV 并筛选数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-4%EF%BC%9A%E4%B8%93%E5%88%A9%E5%8E%BB%E9%87%8D"><span class="toc-text">Step 4：专利去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-5%EF%BC%9A%E6%8F%90%E5%8F%96-IPC-%E5%9B%9B%E4%BD%8D%E7%A0%81"><span class="toc-text">Step 5：提取 IPC 四位码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-6%EF%BC%9A%E9%80%90%E5%B9%B4%E8%AE%A1%E7%AE%97%E6%95%B0%E5%AD%97%E6%8A%80%E6%9C%AF%E5%A4%8D%E6%9D%82%E5%BA%A6%EF%BC%88%E5%8F%8D%E5%B0%84%E6%B3%95%EF%BC%89"><span class="toc-text">Step 6：逐年计算数字技术复杂度（反射法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-7%EF%BC%9A%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C"><span class="toc-text">Step 7：合并结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-8%EF%BC%9A%E5%A4%9A%E7%A7%8D%E6%A0%87%E5%87%86%E5%8C%96%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-text">Step 8：多种标准化方式对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-1%EF%BC%9A%E9%80%90%E5%B9%B4-Min-Max%EF%BC%88%E8%AE%BA%E6%96%87%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F%EF%BC%89"><span class="toc-text">方式 1：逐年 Min-Max（论文使用方式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-2%EF%BC%9A%E9%80%90%E5%B9%B4%E7%99%BE%E5%88%86%E4%BD%8D%E6%8E%92%E5%90%8D"><span class="toc-text">方式 2：逐年百分位排名</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-3%EF%BC%9A%E5%85%A8%E5%B1%80-Min-Max"><span class="toc-text">方式 3：全局 Min-Max</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-4%EF%BC%9A%E9%9D%A2%E6%9D%BF-z-score-%E7%BC%A9%E6%94%BE%E5%88%B0-0-1"><span class="toc-text">方式 4：面板 z-score 缩放到 [0,1]</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-text">代码实现</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E5%86%85%E5%AE%B9%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处内容需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-9%EF%BC%9A%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">Step 9：描述性统计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%80%9C%E5%BF%BD%E5%A2%9E%E5%BF%BD%E9%99%8D%E2%80%9D%E9%97%AE%E9%A2%98%E7%9A%84%E6%B7%B1%E5%85%A5%E8%A7%A3%E8%AF%BB"><span class="toc-text">“忽增忽降”问题的深入解读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%B0%E8%B1%A1%E6%8F%8F%E8%BF%B0"><span class="toc-text">现象描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B9%E6%9C%AC%E5%8E%9F%E5%9B%A0%E4%B8%80%EF%BC%9A%E8%BF%AD%E4%BB%A3%E5%9D%8D%E7%BC%A9%EF%BC%88Iterative-Collapse%EF%BC%89"><span class="toc-text">根本原因一：迭代坍缩（Iterative Collapse）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B9%E6%9C%AC%E5%8E%9F%E5%9B%A0%E4%BA%8C%EF%BC%9A%E9%80%90%E5%B9%B4%E6%A0%87%E5%87%86%E5%8C%96%E7%9A%84%E7%8B%AC%E7%AB%8B%E5%B0%BA%E5%BA%A6"><span class="toc-text">根本原因二：逐年标准化的独立尺度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%B1%82%E9%9D%A2%E7%9A%84%E6%B7%B1%E5%B1%82%E5%8E%9F%E5%9B%A0"><span class="toc-text">数据层面的深层原因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">解决方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E5%90%8E%E7%BB%AD%E8%AE%A1%E9%87%8F%E5%9B%9E%E5%BD%92%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-text">对后续计量回归的影响</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%B5%8B%E9%87%8F%E8%AF%AF%E5%B7%AE%E4%B8%8E%E8%A1%B0%E5%87%8F%E5%81%8F%E8%AF%AF%EF%BC%88Attenuation-Bias%EF%BC%89"><span class="toc-text">1. 测量误差与衰减偏误（Attenuation Bias）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E4%B8%8E%E5%B9%B4%E4%BB%BD%E5%9B%BA%E5%AE%9A%E6%95%88%E5%BA%94%E7%9A%84%E4%BA%A4%E4%BA%92%E4%BD%9C%E7%94%A8"><span class="toc-text">2. 与年份固定效应的交互作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%8A%A8%E6%80%81%E9%9D%A2%E6%9D%BF%E8%AE%BE%E5%AE%9A%E4%B8%8B%E7%9A%84%E9%A2%9D%E5%A4%96%E9%A3%8E%E9%99%A9"><span class="toc-text">3. 动态面板设定下的额外风险</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%BA%94%E5%AF%B9%E5%BB%BA%E8%AE%AE"><span class="toc-text">4. 应对建议</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-10%EF%BC%9A%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">Step 10：保存结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">关键注意事项</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

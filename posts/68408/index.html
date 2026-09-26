@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/68408/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="注意：附件中的「统一HS编码」仅提供了 2000 年的数据，海关数据也由于过大也没有在附件中提供，全部年份的数据需要从下述链接购买复现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/68408/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="注意：附件中的「统一HS编码」仅提供了 2000 年的数据，海关数据也由于过大也没有在附件中提供，全部年份的数据需要从下述链接购买复现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/68408.png">
+<meta property="article:published_time" content="2026-08-07T08:16:22.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.203Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="企业数据">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/68408.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据","description":"注意：附件中的「统一HS编码」仅提供了 2000 年的数据，海关数据也由于过大也没有在附件中提供，全部年份的数据需要从下述链接购买复现。","url":"https://tidyfriday.cn/posts/68408/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/68408/"},"image":["https://tidyfriday.cn/og/68408.png"],"datePublished":"2026-08-07T08:16:22.000Z","dateModified":"2026-09-26T14:18:51.203Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"企业数据, Stata","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据","item":"https://tidyfriday.cn/posts/68408/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-08-07T08:16:22.000Z" itemprop="datePublished">2026-08-07</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2501 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE">企业数据</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p><strong>注意：附件中的「统一HS编码」仅提供了 2000 年的数据，海关数据也由于过大也没有在附件中提供，全部年份的数据需要从下述链接购买复现。</strong></p>
+<span id="more"></span>
+
+<p>今天给大家分享如何使用 <strong>Stata</strong> 基于逐条海关记录，筛选绿色进出口、统计各企业及各城市的进出口额与绿色进出口额，并计算绿色进出口占比（绿色进出口总额 ÷ 进出口总额 × 100%）的方法。数据基于「2000～2016 年海关数据（版本 2）」与平台分享的「2000～2016年海关数据 HS 编码（税号编码）统一对照表及统一结果」二次整理得到。</p>
+<blockquote>
+<p>2000～2016 年海关数据（版本2）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/530c467967104ffe9aeb2c6cfabf9fa1">https://rstata.duanshu.com/#/brief/course/530c467967104ffe9aeb2c6cfabf9fa1</a></p>
+</blockquote>
+<blockquote>
+<p>2000～2016年海关数据 HS 编码（税号编码）统一对照表及统一结果：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/e596b993c65646189696d21627e64fc8">https://rstata.duanshu.com/#/brief/course/e596b993c65646189696d21627e64fc8</a></p>
+</blockquote>
+<p><strong>处理流程概览</strong>：整个测算由 4 个 <code>.do</code> 文件串联完成，下表给出每一步对应的脚本与任务：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>脚本</th>
+<th>任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step 1</td>
+<td><code>生成绿色HS6位清单.do</code></td>
+<td>合并 <code>table1.xlsx</code> / <code>table2.xlsx</code> → <code>绿色HS6位清单.csv</code>（155 个绿色 HS6 位码）</td>
+</tr>
+<tr>
+<td>Step 2</td>
+<td><code>绿色进出口测算_主程序.do</code></td>
+<td>逐年读入海关数据，merge 统一 HS2017、筛选绿色进出口，并按企业 / 城市分类汇总</td>
+</tr>
+<tr>
+<td>Step 3</td>
+<td><code>合并多年数据.do</code></td>
+<td>将逐年结果纵向 <code>append</code> 为 <code>*_全部年份.dta</code></td>
+</tr>
+<tr>
+<td>Step 4</td>
+<td><code>绘图_*.do</code></td>
+<td>生成总出口、绿色出口及占比趋势图</td>
+</tr>
+</tbody></table>
+<p>其中 <code>table1.xlsx</code> / <code>table2.xlsx</code> 来自之前的数据分享，是环境商品对应的海关 HS6 代码表：</p>
+<blockquote>
+<p>使用 R 语言处理和提取绿色产品 HS6 代码：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/4dca1aac87394d52b235985351ed4fa9">https://rstata.duanshu.com/#/brief/course/4dca1aac87394d52b235985351ed4fa9</a></p>
+</blockquote>
+<p><strong>数据来源说明</strong>：测算依赖五类数据——原始逐条海关记录、统一 HS 编码对照表、绿色 HS6 位清单、企业省市对照（<code>全部海关企业所属省市.dta</code>）、贸易方式大类（<code>贸易方式大类.dta</code>）、国别标准化（<code>ISO3.dta</code>）。其中企业省市对照的省市区县信息：<strong>2000～2011 年根据原始“经营单位所在市名称”汇总；2012～2016 年改用企业名称 + 工商注册信息匹配</strong>获取城市；省市区划代码使用 2021 版。</p>
+<p>其中<code>全部海关企业所属省市.dta</code>、<code>贸易方式大类.dta</code>、<code>ISO3.dta</code> 三个数据来自之前分享的数据：</p>
+<blockquote>
+<p>2000～2016 年各城市与各国家进出口额面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/0bf27cbbb2d841cdab4640fa7af59460">https://rstata.duanshu.com/#/brief/course/0bf27cbbb2d841cdab4640fa7af59460</a></p>
+</blockquote>
+<p>不过这个数据里面并没有这三个文件，因为它们只是整理过程中需要的中间文件，这里在附件中都提供了。</p>
+<hr>
+<h2 id="一、指标来源与计算原理" class="article-heading"><a href="#一、指标来源与计算原理" class="headerlink" title="一、指标来源与计算原理"></a>一、指标来源与计算原理<a class="article-anchor" href="#一、指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-1-核心指标：进出口额、绿色进出口额与占比" class="article-heading"><a href="#1-1-核心指标：进出口额、绿色进出口额与占比" class="headerlink" title="1.1 核心指标：进出口额、绿色进出口额与占比"></a>1.1 核心指标：进出口额、绿色进出口额与占比<a class="article-anchor" href="#1-1-核心指标：进出口额、绿色进出口额与占比" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/08/02b79j1bdbe1b168g4/common/content/1786061164237_161694.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>进口额</td>
+<td><code>进出口分类名称 == &quot;进口&quot;</code> 时的金额</td>
+</tr>
+<tr>
+<td>出口额</td>
+<td><code>进出口分类名称 == &quot;出口&quot;</code> 时的金额</td>
+</tr>
+<tr>
+<td>进出口总额</td>
+<td>进口额 + 出口额</td>
+</tr>
+<tr>
+<td>绿色进口额</td>
+<td>属于绿色产品且为进口的金额</td>
+</tr>
+<tr>
+<td>绿色出口额</td>
+<td>属于绿色产品且为出口的金额</td>
+</tr>
+<tr>
+<td>绿色进出口总额</td>
+<td>绿色进口额 + 绿色出口额</td>
+</tr>
+<tr>
+<td><strong>绿色进出口占比</strong></td>
+<td>绿色进出口总额 ÷ 进出口总额 × 100%</td>
+</tr>
+<tr>
+<td>绿色出口占比（可派生）</td>
+<td>绿色出口额 ÷ 出口额 × 100%</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-绿色进出口的筛选原理" class="article-heading"><a href="#1-2-绿色进出口的筛选原理" class="headerlink" title="1.2 绿色进出口的筛选原理"></a>1.2 绿色进出口的筛选原理<a class="article-anchor" href="#1-2-绿色进出口的筛选原理" aria-label="本节链接" title="复制本节链接"></a></h3><p>“是否属于绿色进出口”由 <strong>HS 编码 + 绿色清单</strong> 判定：</p>
+<ul>
+<li>原始海关数据中每条记录通过 newhgid 在「统一 HS 编码」中对应到统一的 HS2017（8 位）；</li>
+<li>取 HS2017 前 6 位，与 绿色HS6位清单.csv（2017 版绿色 HS6 位码，共 155 个）匹配；</li>
+<li>命中即记为绿色（green = 1），未命中为 green = 0。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：判定必须使用统一的 <code>HS2017</code> 前 6 位，不能用原始 <code>商品编码</code>（其 HS 版本随年变化），否则跨年不可比、漏判严重。</p>
+</blockquote>
+<h3 id="1-3-数据来源与口径" class="article-heading"><a href="#1-3-数据来源与口径" class="headerlink" title="1.3 数据来源与口径"></a>1.3 数据来源与口径<a class="article-anchor" href="#1-3-数据来源与口径" aria-label="本节链接" title="复制本节链接"></a></h3><table>
+<thead>
+<tr>
+<th>数据</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2000～2016 年海关数据（版本 2）</td>
+<td>原始逐条记录，仅用 7 个核心变量</td>
+</tr>
+<tr>
+<td><code>统一HS编码/</code>（逐年 <code>.dta</code>）</td>
+<td>通过 <code>newhgid</code> 取 <code>HS2017</code></td>
+</tr>
+<tr>
+<td><code>绿色HS6位清单.csv</code></td>
+<td>绿色判定字典（155 个 HS6 位码）</td>
+</tr>
+<tr>
+<td><code>贸易方式大类.dta</code></td>
+<td>贸易方式名称 → 标准大类</td>
+</tr>
+<tr>
+<td><code>全部海关企业所属省市.dta</code></td>
+<td>经营单位名称 → 省 / 市</td>
+</tr>
+<tr>
+<td><code>ISO3.dta</code></td>
+<td>起运国 / 目的国名称 → 标准名 / ISO3</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、数据准备工作" class="article-heading"><a href="#二、数据准备工作" class="headerlink" title="二、数据准备工作"></a>二、数据准备工作<a class="article-anchor" href="#二、数据准备工作" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="2-1-Step-1：生成绿色-HS6-位清单" class="article-heading"><a href="#2-1-Step-1：生成绿色-HS6-位清单" class="headerlink" title="2.1 Step 1：生成绿色 HS6 位清单"></a>2.1 Step 1：生成绿色 HS6 位清单<a class="article-anchor" href="#2-1-Step-1：生成绿色-HS6-位清单" aria-label="本节链接" title="复制本节链接"></a></h3><p><strong>关键命令说明</strong>：</p>
+<ul>
+<li>import excel …, firstrow：读取 Excel；ds + word 1 of r(varlist)’动态取首列，规避两张表首列变量名不一致（含空格）导致rename` 失败</li>
+<li>destring …, force：将可能是字符的数字转数值</li>
+<li>strofreal(raw, “%06.0f”)：补齐前导零，统一为 6 位字符串</li>
+</ul>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- ── 0. 路径设置 ──</span></span><br><span class="line"><span class="keyword">global</span> projdir <span class="string">`&quot;&lt;项目绝对路径&gt;&quot;&#x27;</span></span><br><span class="line"><span class="keyword">global</span> tbl1    <span class="string">`&quot;$projdir/table1.xlsx&quot;&#x27;</span></span><br><span class="line"><span class="keyword">global</span> tbl2    <span class="string">`&quot;$projdir/table2.xlsx&quot;&#x27;</span></span><br><span class="line"><span class="keyword">global</span> outcsv  <span class="string">`&quot;$projdir/绿色HS6位清单.csv&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 1. 读取 table1 的 HS Code（首列为 HS 6 位码）──</span></span><br><span class="line">import excel using <span class="string">`&quot;$tbl1&quot;&#x27;</span>, firstrow <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ds</span></span><br><span class="line"><span class="keyword">local</span> v1 : word 1 of `<span class="built_in">r</span>(<span class="keyword">varlist</span>)&#x27;</span><br><span class="line"><span class="keyword">rename</span> <span class="symbol">`v1&#x27;</span> raw</span><br><span class="line"><span class="keyword">keep</span> raw</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(raw)</span><br><span class="line"><span class="keyword">tempfile</span> t1</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`t1&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 2. 读取 table2 的 HS subheading（6-digit），追加到 t1 ──</span></span><br><span class="line"><span class="comment">*- 此处代码需要下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 3. 合并去重 + 格式化为 6 位字符串 ──</span></span><br><span class="line"><span class="comment">*- 此处代码需要下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 4. 导出 CSV（含表头 hs6）──</span></span><br><span class="line">export delimited <span class="string">`&quot;$outcsv&quot;&#x27;</span>, <span class="keyword">replace</span> nolabel</span><br></pre></td></tr></table></figure>
+
+<p><strong>去重与格式化规则说明</strong>：</p>
+<ol>
+<li>两张表首列都取为 raw，缺失行先 drop；</li>
+<li>destring …, force 把字符型数字转为数值，避免后续匹配时报类型不一致；</li>
+<li>strofreal(raw, “%06.0f”) 补齐前导零，确保 hs6 严格 6 位（如 090111 而非 90111）。</li>
+</ol>
+<h3 id="2-2-Step-2a：准备三张辅助表（tempfile）" class="article-heading"><a href="#2-2-Step-2a：准备三张辅助表（tempfile）" class="headerlink" title="2.2 Step 2a：准备三张辅助表（tempfile）"></a>2.2 Step 2a：准备三张辅助表（tempfile）<a class="article-anchor" href="#2-2-Step-2a：准备三张辅助表（tempfile）" aria-label="本节链接" title="复制本节链接"></a></h3><p>主程序逐年循环前，先把三张维度表读入内存并存为 <code>tempfile</code>，供后续 <code>m:1</code> 合并。</p>
+<p><strong>关键命令说明</strong>：</p>
+<ul>
+<li>duplicates drop 合并键：保证合并键唯一，避免 m:1 合并时一对多导致记录膨胀</li>
+<li>gen byte green = 1：在绿色清单上打命中标记</li>
+</ul>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- ── 读取绿色HS6位清单 ──</span></span><br><span class="line">import delimited <span class="string">&quot;$green6csv&quot;</span>, <span class="keyword">clear</span> stringcols(_all) varnames(1)</span><br><span class="line"><span class="keyword">gen</span> byte green = 1</span><br><span class="line"><span class="keyword">tempfile</span> green6</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`green6&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 读取贸易方式大类并去重 ──</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$aux/贸易方式大类.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 贸易方式名称, force</span><br><span class="line"><span class="keyword">tempfile</span> trade</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`trade&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ── 读取企业省市对照并去重，仅保留地理字段 ──</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$aux/全部海关企业所属省市.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 经营单位名称, force</span><br><span class="line"><span class="keyword">keep</span> 经营单位名称 省代码 省 市代码 市</span><br><span class="line"><span class="keyword">tempfile</span> geo</span><br><span class="line"><span class="keyword">save</span> <span class="symbol">`geo&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、主程序逐年测算" class="article-heading"><a href="#三、主程序逐年测算" class="headerlink" title="三、主程序逐年测算"></a>三、主程序逐年测算<a class="article-anchor" href="#三、主程序逐年测算" aria-label="本节链接" title="复制本节链接"></a></h2><p>以下代码对应 <code>绿色进出口测算_主程序.do</code>，在 <code>foreach y of global years</code> 循环内逐年执行。</p>
+<h3 id="3-1-逐年读入核心变量并防溢出" class="article-heading"><a href="#3-1-逐年读入核心变量并防溢出" class="headerlink" title="3.1 逐年读入核心变量并防溢出"></a>3.1 逐年读入核心变量并防溢出<a class="article-anchor" href="#3-1-逐年读入核心变量并防溢出" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">foreach</span> y of <span class="keyword">global</span> years &#123;</span><br><span class="line"><span class="comment">   *- 只读入 7 个核心变量，规避各年变量差异</span></span><br><span class="line">    <span class="keyword">use</span> newhgid 年份 进出口分类名称 商品编码 金额 经营单位名称 贸易方式名称 <span class="comment">///</span></span><br><span class="line">        using <span class="string">&quot;$hgdir/`y&#x27;.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">   *- 金额统一为 double，防止 float/long 求和溢出</span></span><br><span class="line">    <span class="keyword">recast</span> double 金额</span><br><span class="line"><span class="comment">   *- 进出口标记</span></span><br><span class="line">    <span class="keyword">gen</span> byte 出口 = (进出口分类名称 == <span class="string">&quot;出口&quot;</span>)</span><br><span class="line">    <span class="keyword">gen</span> byte 进口 = (进出口分类名称 == <span class="string">&quot;进口&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：只 <code>keepusing</code> 7 个核心变量，是应对“各年海关数据变量数量 / 类型不完全一致”的关键；<code>recast double 金额</code> 保证后续 <code>collapse (sum)</code> 不溢出。</p>
+<h3 id="3-2-绿色判定：newhgid-→-HS2017-→-前-6-位-→-绿色清单" class="article-heading"><a href="#3-2-绿色判定：newhgid-→-HS2017-→-前-6-位-→-绿色清单" class="headerlink" title="3.2 绿色判定：newhgid → HS2017 → 前 6 位 → 绿色清单"></a>3.2 绿色判定：newhgid → HS2017 → 前 6 位 → 绿色清单<a class="article-anchor" href="#3-2-绿色判定：newhgid-→-HS2017-→-前-6-位-→-绿色清单" aria-label="本节链接" title="复制本节链接"></a></h3><p>*- 此处代码需要下载讲义材料查看～</p>
+<p><strong>说明</strong>：<code>merge 1:1 newhgid</code> 是“逐条对应”的统一编码桥梁；<code>substr(HS2017,1,6)</code> 取前 6 位与绿色清单对齐；第二次 <code>merge m:1 hs6</code> 后未命中的 <code>green</code> 为缺失，用 <code>replace green = 0</code> 补全。</p>
+<h3 id="3-3-生成分项金额并合并分类维度" class="article-heading"><a href="#3-3-生成分项金额并合并分类维度" class="headerlink" title="3.3 生成分项金额并合并分类维度"></a>3.3 生成分项金额并合并分类维度<a class="article-anchor" href="#3-3-生成分项金额并合并分类维度" aria-label="本节链接" title="复制本节链接"></a></h3><p>*- 此处代码需要下载讲义材料查看～</p>
+<p><strong>说明</strong>：分项金额用 <code>金额 * 出口 * green</code> 这类乘法，把“是否出口 / 是否绿色”的 0-1 标记直接乘进金额；最后 <code>merge m:1 经营单位名称</code> 把企业归属到城市。</p>
+<h3 id="3-4-三类汇总输出" class="article-heading"><a href="#3-4-三类汇总输出" class="headerlink" title="3.4 三类汇总输出"></a>3.4 三类汇总输出<a class="article-anchor" href="#3-4-三类汇总输出" aria-label="本节链接" title="复制本节链接"></a></h3><p>*- 此处代码需要下载讲义材料查看～</p>
+<p><strong>说明</strong>：三段 <code>preserve ... restore</code> 在同一循环内分别产出三类结果；企业层面 <code>drop if 经营单位名称 == &quot;&quot;</code> 剔除空企业名，城市层面 <code>drop if missing(市代码)</code> 剔除无法归属城市的记录；<code>collapse (sum)</code> 完成分组加总。</p>
+<hr>
+<h2 id="四、合并多年与结果可视化" class="article-heading"><a href="#四、合并多年与结果可视化" class="headerlink" title="四、合并多年与结果可视化"></a>四、合并多年与结果可视化<a class="article-anchor" href="#四、合并多年与结果可视化" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="4-1-合并多年数据" class="article-heading"><a href="#4-1-合并多年数据" class="headerlink" title="4.1 合并多年数据"></a>4.1 合并多年数据<a class="article-anchor" href="#4-1-合并多年数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">more</span> off</span><br><span class="line"><span class="keyword">global</span> <span class="keyword">out</span> <span class="string">&quot;&lt;输出目录&gt;&quot;</span></span><br><span class="line"><span class="keyword">if</span> <span class="string">&quot;$years&quot;</span> == <span class="string">&quot;&quot;</span> <span class="keyword">global</span> years <span class="string">&quot;2000 2001 ... 2016&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> cats <span class="string">&quot;绿色进出口明细 城市层面汇总 企业层面汇总&quot;</span></span><br><span class="line"><span class="keyword">foreach</span> f of <span class="keyword">local</span> cats &#123;</span><br><span class="line">    <span class="keyword">local</span> first 1</span><br><span class="line">    <span class="keyword">foreach</span> y of <span class="keyword">global</span> years &#123;</span><br><span class="line">        <span class="keyword">capture</span> <span class="keyword">confirm</span> <span class="keyword">file</span> <span class="string">&quot;$out/`f&#x27;_`y&#x27;.dta&quot;</span></span><br><span class="line">        <span class="keyword">if</span> _rc <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> <span class="symbol">`first&#x27;</span> &#123;</span><br><span class="line">            <span class="keyword">use</span> <span class="string">&quot;$out/`f&#x27;_`y&#x27;.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">            <span class="keyword">local</span> first 0</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">append</span> using <span class="string">&quot;$out/`f&#x27;_`y&#x27;.dta&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">capture</span> <span class="keyword">sort</span> 年份</span><br><span class="line">    <span class="keyword">save</span> <span class="string">&quot;$out/`f&#x27;_全部年份.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：<code>capture confirm file</code> + <code>if _rc continue</code> 容忍某些年份文件缺失；首年 <code>use</code> 作基准，其余 <code>append using</code> 纵向拼接。</p>
+<blockquote>
+<p><strong>注意</strong>：逐年文件命名须遵循 <code>*_YYYY.dta</code>；缺少年份文件会被静默跳过，跑完请核对年份数量。</p>
+</blockquote>
+<h3 id="4-2-结果可视化" class="article-heading"><a href="#4-2-结果可视化" class="headerlink" title="4.2 结果可视化"></a>4.2 结果可视化<a class="article-anchor" href="#4-2-结果可视化" aria-label="本节链接" title="复制本节链接"></a></h3><p>以全国总出口 vs 绿色出口的双轴折线图为例：</p>
+<p>*- 此处代码需要下载讲义材料查看～</p>
+<p><strong>说明</strong>：先按年 <code>collapse (sum)</code> 得全国口径；金额 ÷1e4 换算万美元；占比指标（绿色出口占比、绿色进出口占比）在 <code>collapse</code> 之后用金额相除得到；<code>twoway</code> 用 <code>yaxis(1)/yaxis(2)</code> 实现双轴；<code>graph export ..., width(4800) height(3000)</code> 输出高清图。<code>绘图_各企业历年平均出口.do</code> 逻辑类似，只是先按“企业×年”汇总、再按年对企业求均值，得到“各企业平均”口径。</p>
+<h3 id="4-3-结果展示" class="article-heading"><a href="#4-3-结果展示" class="headerlink" title="4.3 结果展示"></a>4.3 结果展示<a class="article-anchor" href="#4-3-结果展示" aria-label="本节链接" title="复制本节链接"></a></h3><p>下图由上述脚本生成：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/08/02b79j1bdbe1b168g4/common/content/1786061160427_994878.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/08/02b79j1bdbe1b168g4/common/content/1786061160925_725159.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/08/02b79j1bdbe1b168g4/common/content/1786061161495_291251.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/08/02b79j1bdbe1b168g4/common/content/1786061161858_991145.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/7950c795ee934cb1a8878eb344a70722">名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.203Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/77197/" title="名师讲堂｜使用 Python 测算地区产业专业化指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/52343/" title="1949～2023 年各省市区县产业专业化指标面板数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/38418/">名师讲堂｜使用 Stata 根据上市公司及其子公司与税调匹配结果测算碳排放</a><span class="tf-related-meta">2026-05-09 · 约 6 分钟</span></li><li><a href="/posts/21098/">名师讲堂｜使用 Stata 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 13 分钟</span></li><li><a href="/posts/27665/">名师讲堂｜使用 Stata 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-05 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">一、指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%A0%B8%E5%BF%83%E6%8C%87%E6%A0%87%EF%BC%9A%E8%BF%9B%E5%87%BA%E5%8F%A3%E9%A2%9D%E3%80%81%E7%BB%BF%E8%89%B2%E8%BF%9B%E5%87%BA%E5%8F%A3%E9%A2%9D%E4%B8%8E%E5%8D%A0%E6%AF%94"><span class="toc-text">1.1 核心指标：进出口额、绿色进出口额与占比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%BB%BF%E8%89%B2%E8%BF%9B%E5%87%BA%E5%8F%A3%E7%9A%84%E7%AD%9B%E9%80%89%E5%8E%9F%E7%90%86"><span class="toc-text">1.2 绿色进出口的筛选原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%8F%A3%E5%BE%84"><span class="toc-text">1.3 数据来源与口径</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">二、数据准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Step-1%EF%BC%9A%E7%94%9F%E6%88%90%E7%BB%BF%E8%89%B2-HS6-%E4%BD%8D%E6%B8%85%E5%8D%95"><span class="toc-text">2.1 Step 1：生成绿色 HS6 位清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Step-2a%EF%BC%9A%E5%87%86%E5%A4%87%E4%B8%89%E5%BC%A0%E8%BE%85%E5%8A%A9%E8%A1%A8%EF%BC%88tempfile%EF%BC%89"><span class="toc-text">2.2 Step 2a：准备三张辅助表（tempfile）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BB%E7%A8%8B%E5%BA%8F%E9%80%90%E5%B9%B4%E6%B5%8B%E7%AE%97"><span class="toc-text">三、主程序逐年测算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%80%90%E5%B9%B4%E8%AF%BB%E5%85%A5%E6%A0%B8%E5%BF%83%E5%8F%98%E9%87%8F%E5%B9%B6%E9%98%B2%E6%BA%A2%E5%87%BA"><span class="toc-text">3.1 逐年读入核心变量并防溢出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BB%BF%E8%89%B2%E5%88%A4%E5%AE%9A%EF%BC%9Anewhgid-%E2%86%92-HS2017-%E2%86%92-%E5%89%8D-6-%E4%BD%8D-%E2%86%92-%E7%BB%BF%E8%89%B2%E6%B8%85%E5%8D%95"><span class="toc-text">3.2 绿色判定：newhgid → HS2017 → 前 6 位 → 绿色清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%94%9F%E6%88%90%E5%88%86%E9%A1%B9%E9%87%91%E9%A2%9D%E5%B9%B6%E5%90%88%E5%B9%B6%E5%88%86%E7%B1%BB%E7%BB%B4%E5%BA%A6"><span class="toc-text">3.3 生成分项金额并合并分类维度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%B8%89%E7%B1%BB%E6%B1%87%E6%80%BB%E8%BE%93%E5%87%BA"><span class="toc-text">3.4 三类汇总输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%90%88%E5%B9%B6%E5%A4%9A%E5%B9%B4%E4%B8%8E%E7%BB%93%E6%9E%9C%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="toc-text">四、合并多年与结果可视化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%90%88%E5%B9%B6%E5%A4%9A%E5%B9%B4%E6%95%B0%E6%8D%AE"><span class="toc-text">4.1 合并多年数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BB%93%E6%9E%9C%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="toc-text">4.2 结果可视化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E7%BB%93%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="toc-text">4.3 结果展示</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

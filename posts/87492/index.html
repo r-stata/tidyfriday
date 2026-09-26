@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>Python 和 R 语言中如何根据姓名预测性别？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/87492/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="之前给大家分享过上市公司高管简历数据：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 和 R 语言中如何根据姓名预测性别？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/87492/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="之前给大家分享过上市公司高管简历数据：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/87492.png">
+<meta property="article:published_time" content="2025-10-30T12:23:27.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:39.337Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="人口">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/87492.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Python 和 R 语言中如何根据姓名预测性别？">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Python 和 R 语言中如何根据姓名预测性别？","description":"之前给大家分享过上市公司高管简历数据：","url":"https://tidyfriday.cn/posts/87492/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/87492/"},"image":["https://tidyfriday.cn/og/87492.png"],"datePublished":"2025-10-30T12:23:27.000Z","dateModified":"2026-09-26T14:18:39.337Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"人口, R 语言, Python","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"Python 和 R 语言中如何根据姓名预测性别？","item":"https://tidyfriday.cn/posts/87492/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">Python 和 R 语言中如何根据姓名预测性别？</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">Python 和 R 语言中如何根据姓名预测性别？</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-10-30T12:23:27.000Z" itemprop="datePublished">2025-10-30</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2976 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BA%BA%E5%8F%A3">人口</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>之前给大家分享过上市公司高管简历数据：</p>
+<span id="more"></span>
+
+<blockquote>
+<p>历年上市公司高管、董事和监事简历、持股情况、任职情况变动数据(2025年8月初爬取)：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b75a97992e6e4e63a50ef8c79d3a47b7">https://rstata.duanshu.com/#/brief/course/b75a97992e6e4e63a50ef8c79d3a47b7</a></p>
+</blockquote>
+<p>不过这个数据里面缺少高管的性别变量。这个该如何解决呢？</p>
+<p>Github 上倒是有个项目也是为了解决这个问题：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/AlphaINF/name2gender">https://github.com/AlphaINF/name2gender</a> 不过运行了下作者的代码得到的结果并不符合预期。不过幸运的是作者也提供了训练模型使用的数据，也就是附件中的 <code>ccnc.csv</code> 文件。</p>
+<p>该数据文件包含了 365 万人的姓名和性别：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">姓,名,姓名,性别</span><br><span class="line">陈,品如,陈品如,男</span><br><span class="line">陈,祥旭,陈祥旭,男</span><br><span class="line">陈,晓,陈晓,男</span><br><span class="line">陈,东慧,陈东慧,男</span><br><span class="line">陈,镇彬,陈镇彬,男</span><br><span class="line">陈,锐句,陈锐句,男</span><br><span class="line">陈,晨,陈晨,男</span><br><span class="line">陈,锐,陈锐,男</span><br><span class="line">陈,品希,陈品希,男</span><br><span class="line">陈,韦明,陈韦明,男</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>于是我们可以尝试使用这个数据来训练一个自己的模型来根据姓名预测性别。</p>
+<p>虽然我也不是很熟悉 Python，不过这部分代码可以让豆包来写：</p>
+<blockquote>
+<p>现有一个数据集，包含 姓，名，全名，性别 四个变量，如何训练一个模型根据中文姓名判断性别。使用 CNN 模型，给出完整的代码。</p>
+</blockquote>
+<p>其中 CNN 模型指的是卷积神经网络模型，该模型可以用卷积层提取名字中局部字的组合特征（如 2-gram 字的性别倾向）；</p>
+<blockquote>
+<p><strong>使用 R 语言的小伙伴不必浏览 Python 部分，直接从 R 语言部分阅读即可。</strong></p>
+</blockquote>
+<h2 id="Python-部分" class="article-heading"><a href="#Python-部分" class="headerlink" title="Python 部分"></a>Python 部分<a class="article-anchor" href="#Python-部分" aria-label="本节链接" title="复制本节链接"></a></h2><p>根据豆包的回答最终我整理了下面的代码：</p>
+<p>首先使用 conda 搭建虚拟环境 genderpy_new：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">conda create -n genderpy_new python=3.10</span><br><span class="line">conda activate genderpy_new</span><br><span class="line">pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+
+<p>模型训练和保存代码（附件中的 create_model.py 文件）：</p>
+<blockquote>
+<p>这部分代码并不需要运行，附件中已经有保存好的 gender_prediction_model.h5、name_tokenizer.pkl 和 max_length.pkl 文件：</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">import pandas as pd</span><br><span class="line">import numpy as np</span><br><span class="line">import re</span><br><span class="line">from collections import defaultdict</span><br><span class="line">from sklearn.model_selection import train_test_split</span><br><span class="line">from sklearn.preprocessing import LabelEncoder</span><br><span class="line">from tensorflow.keras.preprocessing.text import Tokenizer</span><br><span class="line">from tensorflow.keras.preprocessing.sequence import pad_sequences</span><br><span class="line">from tensorflow.keras.models import Sequential</span><br><span class="line">from tensorflow.keras.layers import Embedding<span class="punctuation">,</span> Conv1D<span class="punctuation">,</span> GlobalMaxPooling1D<span class="punctuation">,</span> Dense<span class="punctuation">,</span> Dropout</span><br><span class="line">from tensorflow.keras.utils import to_categorical</span><br><span class="line">from tensorflow.keras.callbacks import EarlyStopping</span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 1. 数据加载与预处理</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 加载数据（假设CSV文件有&quot;姓名&quot;和&quot;性别&quot;列，性别值为&quot;男&quot;/&quot;女&quot;）</span></span><br><span class="line">data <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span><span class="string">&quot;dataset/ccnc.csv&quot;</span><span class="punctuation">)</span>  <span class="comment"># 替换为你的数据集路径</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;原始数据量：&#123;len(data)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 数据清洗</span></span><br><span class="line">def clean_name<span class="punctuation">(</span>name<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;清理姓名：保留中文字符，去除特殊符号和数字&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    name <span class="operator">=</span> str<span class="punctuation">(</span>name<span class="punctuation">)</span>.strip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">    <span class="built_in">return</span> re.sub<span class="punctuation">(</span><span class="string">r&#x27;[^\u4e00-\u9fa5]&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;&#x27;</span><span class="punctuation">,</span> name<span class="punctuation">)</span>  <span class="comment"># 仅保留中文</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 应用清洗</span></span><br><span class="line">data<span class="punctuation">[</span><span class="string">&quot;姓名&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> data<span class="punctuation">[</span><span class="string">&quot;姓名&quot;</span><span class="punctuation">]</span>.apply<span class="punctuation">(</span>clean_name<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 过滤空值和过短姓名（至少2个字）</span></span><br><span class="line">data <span class="operator">=</span> data<span class="punctuation">[</span>data<span class="punctuation">[</span><span class="string">&quot;姓名&quot;</span><span class="punctuation">]</span>.str.len<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">&gt;=</span> <span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 过滤性别异常值</span></span><br><span class="line">data <span class="operator">=</span> data<span class="punctuation">[</span>data<span class="punctuation">[</span><span class="string">&quot;性别&quot;</span><span class="punctuation">]</span>.isin<span class="punctuation">(</span><span class="punctuation">[</span><span class="string">&quot;男&quot;</span><span class="punctuation">,</span> <span class="string">&quot;女&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;清洗后数据量：&#123;len(data)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 性别编码（男=1，女=0）</span></span><br><span class="line">label_encoder <span class="operator">=</span> LabelEncoder<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">data<span class="punctuation">[</span><span class="string">&quot;性别编码&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> label_encoder.fit_transform<span class="punctuation">(</span>data<span class="punctuation">[</span><span class="string">&quot;性别&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">y <span class="operator">=</span> data<span class="punctuation">[</span><span class="string">&quot;性别编码&quot;</span><span class="punctuation">]</span>.values  <span class="comment"># 目标变量</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 2. 特征工程：姓名字符序列处理</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 提取姓名字符（每个字作为一个token）</span></span><br><span class="line"><span class="built_in">names</span> <span class="operator">=</span> data<span class="punctuation">[</span><span class="string">&quot;姓名&quot;</span><span class="punctuation">]</span>.tolist<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 最大姓名长度（取95%分位数，避免极端值）</span></span><br><span class="line">max_length <span class="operator">=</span> int<span class="punctuation">(</span>np.percentile<span class="punctuation">(</span><span class="punctuation">[</span>len<span class="punctuation">(</span>name<span class="punctuation">)</span> <span class="keyword">for</span> name <span class="keyword">in</span> <span class="built_in">names</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="number">95</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;最大姓名长度：&#123;max_length&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 字符级Tokenizer（将每个汉字映射为唯一ID）</span></span><br><span class="line">tokenizer <span class="operator">=</span> Tokenizer<span class="punctuation">(</span>char_level<span class="operator">=</span>True<span class="punctuation">)</span>  <span class="comment"># 按字符级处理</span></span><br><span class="line">tokenizer.fit_on_texts<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">)</span>  <span class="comment"># 学习所有出现的汉字</span></span><br><span class="line">vocab_size <span class="operator">=</span> len<span class="punctuation">(</span>tokenizer.word_index<span class="punctuation">)</span> <span class="operator">+</span> <span class="number">1</span>  <span class="comment"># 词汇表大小（+1用于padding）</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;词汇表大小（不同汉字数量）：&#123;vocab_size&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将姓名转换为整数序列（如&quot;张三&quot;→[2,5]）</span></span><br><span class="line">sequences <span class="operator">=</span> tokenizer.texts_to_sequences<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 统一序列长度（短补0，长截断）</span></span><br><span class="line">X <span class="operator">=</span> pad_sequences<span class="punctuation">(</span>sequences<span class="punctuation">,</span> maxlen<span class="operator">=</span>max_length<span class="punctuation">,</span> padding<span class="operator">=</span><span class="string">&quot;post&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 划分训练集和测试集（8:2）</span></span><br><span class="line">X_train<span class="punctuation">,</span> X_test<span class="punctuation">,</span> y_train<span class="punctuation">,</span> y_test <span class="operator">=</span> train_test_split<span class="punctuation">(</span></span><br><span class="line">    X<span class="punctuation">,</span> y<span class="punctuation">,</span> test_size<span class="operator">=</span><span class="number">0.2</span><span class="punctuation">,</span> random_state<span class="operator">=</span><span class="number">42</span><span class="punctuation">,</span> stratify<span class="operator">=</span>y</span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 3. 构建CNN模型</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">model <span class="operator">=</span> Sequential<span class="punctuation">(</span><span class="punctuation">[</span></span><br><span class="line">    <span class="comment"># 嵌入层：将字符ID映射为向量（维度32）</span></span><br><span class="line">    Embedding<span class="punctuation">(</span></span><br><span class="line">        input_dim<span class="operator">=</span>vocab_size<span class="punctuation">,</span>  <span class="comment"># 词汇表大小</span></span><br><span class="line">        output_dim<span class="operator">=</span><span class="number">32</span><span class="punctuation">,</span>         <span class="comment"># 嵌入向量维度</span></span><br><span class="line">        input_length<span class="operator">=</span>max_length  <span class="comment"># 输入序列长度</span></span><br><span class="line">    <span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment"># 卷积层：提取局部字符特征（如2-3个字的组合）</span></span><br><span class="line">    Conv1D<span class="punctuation">(</span></span><br><span class="line">        filters<span class="operator">=</span><span class="number">64</span><span class="punctuation">,</span>           <span class="comment"># 卷积核数量</span></span><br><span class="line">        kernel_size<span class="operator">=</span><span class="number">2</span><span class="punctuation">,</span>        <span class="comment"># 卷积核大小（每次看2个连续字）</span></span><br><span class="line">        activation<span class="operator">=</span><span class="string">&quot;relu&quot;</span>     <span class="comment"># 激活函数</span></span><br><span class="line">    <span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment"># 全局最大池化：保留最显著的特征</span></span><br><span class="line">    GlobalMaxPooling1D<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment"># 全连接层+ dropout防止过拟合</span></span><br><span class="line">    Dense<span class="punctuation">(</span><span class="number">32</span><span class="punctuation">,</span> activation<span class="operator">=</span><span class="string">&quot;relu&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    Dropout<span class="punctuation">(</span><span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment"># 输出层：二分类（sigmoid输出0-1概率）</span></span><br><span class="line">    Dense<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> activation<span class="operator">=</span><span class="string">&quot;sigmoid&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译模型</span></span><br><span class="line">model.compile<span class="punctuation">(</span></span><br><span class="line">    loss<span class="operator">=</span><span class="string">&quot;binary_crossentropy&quot;</span><span class="punctuation">,</span>  <span class="comment"># 二分类损失函数</span></span><br><span class="line">    optimizer<span class="operator">=</span><span class="string">&quot;adam&quot;</span><span class="punctuation">,</span>            <span class="comment"># 优化器</span></span><br><span class="line">    metrics<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;accuracy&quot;</span><span class="punctuation">]</span>         <span class="comment"># 评估指标</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">model.summary<span class="punctuation">(</span><span class="punctuation">)</span>  <span class="comment"># 打印模型结构</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 4. 模型训练</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 早停策略：防止过拟合（验证集准确率3轮不提升则停止）</span></span><br><span class="line">early_stopping <span class="operator">=</span> EarlyStopping<span class="punctuation">(</span></span><br><span class="line">    monitor<span class="operator">=</span><span class="string">&quot;val_accuracy&quot;</span><span class="punctuation">,</span></span><br><span class="line">    patience<span class="operator">=</span><span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">    mode<span class="operator">=</span><span class="string">&quot;max&quot;</span><span class="punctuation">,</span></span><br><span class="line">    restore_best_weights<span class="operator">=</span>True</span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 训练模型</span></span><br><span class="line">history <span class="operator">=</span> model.fit<span class="punctuation">(</span></span><br><span class="line">    X_train<span class="punctuation">,</span> y_train<span class="punctuation">,</span></span><br><span class="line">    epochs<span class="operator">=</span><span class="number">20</span><span class="punctuation">,</span>                  <span class="comment"># 最大训练轮次</span></span><br><span class="line">    batch_size<span class="operator">=</span><span class="number">32</span><span class="punctuation">,</span>              <span class="comment"># 批次大小</span></span><br><span class="line">    validation_split<span class="operator">=</span><span class="number">0.1</span><span class="punctuation">,</span>       <span class="comment"># 从训练集划分10%作为验证集</span></span><br><span class="line">    callbacks<span class="operator">=</span><span class="punctuation">[</span>early_stopping<span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    verbose<span class="operator">=</span><span class="number">1</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 5. 模型评估</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n测试集评估：&quot;</span><span class="punctuation">)</span></span><br><span class="line">loss<span class="punctuation">,</span> accuracy <span class="operator">=</span> model.evaluate<span class="punctuation">(</span>X_test<span class="punctuation">,</span> y_test<span class="punctuation">,</span> verbose<span class="operator">=</span><span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;损失：&#123;loss:.4f&#125;，准确率：&#123;accuracy:.4f&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 6. 预测示例</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">def predict_gender<span class="punctuation">(</span>name<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;预测姓名对应的性别&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 预处理姓名</span></span><br><span class="line">    name_clean <span class="operator">=</span> clean_name<span class="punctuation">(</span>name<span class="punctuation">)</span></span><br><span class="line">    <span class="keyword">if</span> len<span class="punctuation">(</span>name_clean<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">0</span><span class="operator">:</span></span><br><span class="line">        <span class="built_in">return</span> <span class="string">&quot;无效姓名&quot;</span></span><br><span class="line">    <span class="comment"># 转换为序列并补齐长度</span></span><br><span class="line">    seq <span class="operator">=</span> tokenizer.texts_to_sequences<span class="punctuation">(</span><span class="punctuation">[</span>name_clean<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">    seq_pad <span class="operator">=</span> pad_sequences<span class="punctuation">(</span>seq<span class="punctuation">,</span> maxlen<span class="operator">=</span>max_length<span class="punctuation">,</span> padding<span class="operator">=</span><span class="string">&quot;post&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="comment"># 预测概率（&gt;0.5为男，否则为女）</span></span><br><span class="line">    prob <span class="operator">=</span> model.predict<span class="punctuation">(</span>seq_pad<span class="punctuation">)</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span></span><br><span class="line">    gender <span class="operator">=</span> <span class="string">&quot;男&quot;</span> <span class="keyword">if</span> prob <span class="operator">&gt;</span> <span class="number">0.5</span> <span class="keyword">else</span> <span class="string">&quot;女&quot;</span></span><br><span class="line">    <span class="built_in">return</span> f<span class="string">&quot;姓名：&#123;name&#125;，预测性别：&#123;gender&#125;（概率：&#123;prob:.2f&#125;）&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试几个姓名</span></span><br><span class="line">test_names <span class="operator">=</span> <span class="punctuation">[</span><span class="string">&quot;张三&quot;</span><span class="punctuation">,</span> <span class="string">&quot;李四&quot;</span><span class="punctuation">,</span> <span class="string">&quot;王丽&quot;</span><span class="punctuation">,</span> <span class="string">&quot;赵强&quot;</span><span class="punctuation">,</span> <span class="string">&quot;刘芳&quot;</span><span class="punctuation">,</span> <span class="string">&quot;陈明&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">for</span> name <span class="keyword">in</span> test_names<span class="operator">:</span></span><br><span class="line">    print<span class="punctuation">(</span>predict_gender<span class="punctuation">(</span>name<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">import pickle <span class="comment"># 用于保存Tokenizer</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存模型（HDF5格式）</span></span><br><span class="line">model.save<span class="punctuation">(</span><span class="string">&quot;gender_prediction_model.h5&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;模型已保存为：gender_prediction_model.h5&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存Tokenizer（使用pickle）</span></span><br><span class="line">with open<span class="punctuation">(</span><span class="string">&quot;name_tokenizer.pkl&quot;</span><span class="punctuation">,</span> <span class="string">&quot;wb&quot;</span><span class="punctuation">)</span> as f<span class="operator">:</span></span><br><span class="line">    pickle.dump<span class="punctuation">(</span>tokenizer<span class="punctuation">,</span> f<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;Tokenizer已保存为：name_tokenizer.pkl&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 同时保存max_length（预测时需要用到）</span></span><br><span class="line">with open<span class="punctuation">(</span><span class="string">&quot;max_length.pkl&quot;</span><span class="punctuation">,</span> <span class="string">&quot;wb&quot;</span><span class="punctuation">)</span> as f<span class="operator">:</span></span><br><span class="line">    pickle.dump<span class="punctuation">(</span>max_length<span class="punctuation">,</span> f<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;最大姓名长度已保存为：max_length.pkl&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>该模型的损失为 0.8121，准确率为 0.9798。</p>
+<p>如果想要预测单个姓名的性别，可以使用附件中的 <code>predict_gender.py</code> 函数：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import re</span><br><span class="line">import pickle</span><br><span class="line">from tensorflow.keras.models import load_model</span><br><span class="line">from tensorflow.keras.preprocessing.sequence import pad_sequences</span><br><span class="line"></span><br><span class="line"># 加载模型和必要组件（只需加载一次）</span><br><span class="line">def load_gender_model(model_path=<span class="string">&quot;gender_prediction_model.h5&quot;</span>,</span><br><span class="line">                      tokenizer_path=<span class="string">&quot;name_tokenizer.pkl&quot;</span>,</span><br><span class="line">                      max_len_path=<span class="string">&quot;max_length.pkl&quot;</span>):</span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;加载训练好的模型、tokenizer和最大长度参数&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    # 加载模型</span><br><span class="line">    model = load_model(model_path)</span><br><span class="line">    # 加载tokenizer</span><br><span class="line">    with <span class="keyword">open</span>(tokenizer_path, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        tokenizer = pickle.load(f)</span><br><span class="line">    # 加载最大长度</span><br><span class="line">    with <span class="keyword">open</span>(max_len_path, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        max_length = pickle.load(f)</span><br><span class="line">    <span class="keyword">return</span> model, tokenizer, max_length</span><br><span class="line"></span><br><span class="line"># 加载模型组件（全局变量，避免重复加载）</span><br><span class="line">model, tokenizer, max_length = load_gender_model()</span><br><span class="line"></span><br><span class="line">def predict_gender(name):</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    预测姓名对应的性别</span><br><span class="line"></span><br><span class="line">    参数：</span><br><span class="line">        name: str，输入的姓名（可以包含非中文字符，会自动清洗）</span><br><span class="line"></span><br><span class="line">    返回：</span><br><span class="line">        str: <span class="string">&quot;男&quot;</span> 或 <span class="string">&quot;女&quot;</span>（若姓名无效则返回<span class="string">&quot;无效姓名&quot;</span>）</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    # 1. 清洗姓名（仅保留中文字符）</span><br><span class="line">    def clean_name(name):</span><br><span class="line">        name = str(name).strip()</span><br><span class="line">        <span class="keyword">return</span> re.sub(r&#x27;[^\u4e00-\u9fa5]&#x27;, &#x27;&#x27;, name)  # 过滤非中文字符</span><br><span class="line"></span><br><span class="line">    name_clean = clean_name(name)</span><br><span class="line"></span><br><span class="line">    # 2. 检查清洗后的姓名是否有效</span><br><span class="line">    <span class="keyword">if</span> len(name_clean) &lt; 1:  # 至少保留1个中文字符</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;无效姓名&quot;</span></span><br><span class="line"></span><br><span class="line">    # 3. 将姓名转换为模型可接受的序列</span><br><span class="line">    # 转换为整数序列</span><br><span class="line">    sequence = tokenizer.texts_to_sequences([name_clean])</span><br><span class="line">    # 补齐/截断到训练时的最大长度</span><br><span class="line">    padded_sequence = pad_sequences(sequence, maxlen=max_length, padding=<span class="string">&quot;post&quot;</span>)</span><br><span class="line"></span><br><span class="line">    # 4. 模型预测</span><br><span class="line">    <span class="keyword">prob</span> = model.<span class="keyword">predict</span>(padded_sequence, verbose=0)[0][0]  # verbose=0关闭预测输出</span><br><span class="line"></span><br><span class="line">    # 5. 根据概率返回性别（阈值0.5）</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;男&quot;</span> <span class="keyword">if</span> <span class="keyword">prob</span> &gt; 0.5 <span class="keyword">else</span> <span class="string">&quot;女&quot;</span></span><br><span class="line"></span><br><span class="line"># ----------------------</span><br><span class="line"># 使用示例</span><br><span class="line"># ----------------------</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    test_names = [<span class="string">&quot;张三&quot;</span>, <span class="string">&quot;李四&quot;</span>, <span class="string">&quot;王丽&quot;</span>, <span class="string">&quot;赵强&quot;</span>, <span class="string">&quot;刘芳&quot;</span>, <span class="string">&quot;陈明&quot;</span>, <span class="string">&quot;欧阳雪&quot;</span>, <span class="string">&quot;司马勇&quot;</span>]</span><br><span class="line">    <span class="keyword">for</span> name <span class="keyword">in</span> test_names:</span><br><span class="line">        <span class="keyword">print</span>(f<span class="string">&quot;姓名：&#123;name&#125; → 预测性别：&#123;predict_gender(name)&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 姓名：张三 → 预测性别：男</span><br><span class="line"># 姓名：李四 → 预测性别：男</span><br><span class="line"># 姓名：王丽 → 预测性别：女</span><br><span class="line"># 姓名：赵强 → 预测性别：男</span><br><span class="line"># 姓名：刘芳 → 预测性别：女</span><br><span class="line"># 姓名：陈明 → 预测性别：男</span><br><span class="line"># 姓名：欧阳雪 → 预测性别：女</span><br><span class="line"># 姓名：司马勇 → 预测性别：男</span><br></pre></td></tr></table></figure>
+
+<p>看起来效果还不错。</p>
+<p>如果想要预测多个姓名的性别，可以先把需要预测姓名放到附件中的 <code>input_names.csv</code> 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name</span><br><span class="line">李浩垣</span><br><span class="line">张杜超</span><br><span class="line">于光浦</span><br><span class="line">孙爱仙</span><br><span class="line">杨莲菊</span><br><span class="line">赵东祥</span><br><span class="line">邢丽炫</span><br><span class="line">张为梅</span><br><span class="line">陈佩奇</span><br><span class="line">黄懿贤</span><br><span class="line">齐敏音</span><br><span class="line">李圣用</span><br><span class="line">姚龙兵</span><br><span class="line">杨仲东</span><br><span class="line">豆珂阳</span><br></pre></td></tr></table></figure>
+
+<p>然后运行下面的代码（附件中的 csv_handel.py 文件）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">import re</span><br><span class="line">import pickle</span><br><span class="line">import pandas as pd</span><br><span class="line">from tensorflow.keras.models import load_model</span><br><span class="line">from tensorflow.keras.preprocessing.sequence import pad_sequences</span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 1. 加载模型和必要组件</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">def load_gender_model<span class="punctuation">(</span>model_path<span class="operator">=</span><span class="string">&quot;gender_prediction_model.h5&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      tokenizer_path<span class="operator">=</span><span class="string">&quot;name_tokenizer.pkl&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      max_len_path<span class="operator">=</span><span class="string">&quot;max_length.pkl&quot;</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;加载训练好的模型、tokenizer和最大长度参数&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    try<span class="operator">:</span></span><br><span class="line">        <span class="comment"># 加载模型</span></span><br><span class="line">        model <span class="operator">=</span> load_model<span class="punctuation">(</span>model_path<span class="punctuation">)</span></span><br><span class="line">        <span class="comment"># 加载tokenizer</span></span><br><span class="line">        with open<span class="punctuation">(</span>tokenizer_path<span class="punctuation">,</span> <span class="string">&quot;rb&quot;</span><span class="punctuation">)</span> as f<span class="operator">:</span></span><br><span class="line">            tokenizer <span class="operator">=</span> pickle.load<span class="punctuation">(</span>f<span class="punctuation">)</span></span><br><span class="line">        <span class="comment"># 加载最大长度</span></span><br><span class="line">        with open<span class="punctuation">(</span>max_len_path<span class="punctuation">,</span> <span class="string">&quot;rb&quot;</span><span class="punctuation">)</span> as f<span class="operator">:</span></span><br><span class="line">            max_length <span class="operator">=</span> pickle.load<span class="punctuation">(</span>f<span class="punctuation">)</span></span><br><span class="line">        <span class="built_in">return</span> model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length</span><br><span class="line">    except Exception as e<span class="operator">:</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;加载模型失败：&#123;e&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">        raise  <span class="comment"># 抛出异常，终止程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 2. 定义预测函数</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">def predict_single_name<span class="punctuation">(</span>name<span class="punctuation">,</span> model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;单个姓名的性别预测&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 清洗姓名（仅保留中文字符）</span></span><br><span class="line">    def clean_name<span class="punctuation">(</span>name<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">        name <span class="operator">=</span> str<span class="punctuation">(</span>name<span class="punctuation">)</span>.strip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">        <span class="built_in">return</span> re.sub<span class="punctuation">(</span><span class="string">r&#x27;[^\u4e00-\u9fa5]&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;&#x27;</span><span class="punctuation">,</span> name<span class="punctuation">)</span>  <span class="comment"># 过滤非中文字符</span></span><br><span class="line"></span><br><span class="line">    name_clean <span class="operator">=</span> clean_name<span class="punctuation">(</span>name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 无效姓名处理</span></span><br><span class="line">    <span class="keyword">if</span> len<span class="punctuation">(</span>name_clean<span class="punctuation">)</span> <span class="operator">&lt;</span> <span class="number">1</span><span class="operator">:</span></span><br><span class="line">        <span class="built_in">return</span> <span class="string">&quot;无效姓名&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 转换为模型输入格式</span></span><br><span class="line">    sequence <span class="operator">=</span> tokenizer.texts_to_sequences<span class="punctuation">(</span><span class="punctuation">[</span>name_clean<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">    padded_sequence <span class="operator">=</span> pad_sequences<span class="punctuation">(</span>sequence<span class="punctuation">,</span> maxlen<span class="operator">=</span>max_length<span class="punctuation">,</span> padding<span class="operator">=</span><span class="string">&quot;post&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 预测并返回结果</span></span><br><span class="line">    prob <span class="operator">=</span> model.predict<span class="punctuation">(</span>padded_sequence<span class="punctuation">,</span> verbose<span class="operator">=</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span></span><br><span class="line">    <span class="built_in">return</span> <span class="string">&quot;男&quot;</span> <span class="keyword">if</span> prob <span class="operator">&gt;</span> <span class="number">0.5</span> <span class="keyword">else</span> <span class="string">&quot;女&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 3. 批量处理CSV文件</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line">def process_csv<span class="punctuation">(</span>input_csv_path<span class="punctuation">,</span> output_csv_path<span class="punctuation">,</span> model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">    处理输入CSV文件，批量预测性别并生成输出文件</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    参数：</span></span><br><span class="line"><span class="string">        input_csv_path: 输入CSV文件路径（包含name字段）</span></span><br><span class="line"><span class="string">        output_csv_path: 输出CSV文件路径（新增gender字段）</span></span><br><span class="line"><span class="string">        model, tokenizer, max_length: 加载的模型组件</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 读取输入CSV</span></span><br><span class="line">    try<span class="operator">:</span></span><br><span class="line">        df <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>input_csv_path<span class="punctuation">)</span></span><br><span class="line">    except Exception as e<span class="operator">:</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;读取输入文件失败：&#123;e&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 检查是否包含name字段</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;name&quot;</span> not <span class="keyword">in</span> df.columns<span class="operator">:</span></span><br><span class="line">        print<span class="punctuation">(</span><span class="string">&quot;输入CSV文件必须包含&#x27;name&#x27;字段&quot;</span><span class="punctuation">)</span></span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 批量预测性别（应用预测函数到每一行）</span></span><br><span class="line">    print<span class="punctuation">(</span>f<span class="string">&quot;开始预测，共&#123;len(df)&#125;条数据...&quot;</span><span class="punctuation">)</span></span><br><span class="line">    df<span class="punctuation">[</span><span class="string">&quot;gender&quot;</span><span class="punctuation">]</span> <span class="operator">=</span> df<span class="punctuation">[</span><span class="string">&quot;name&quot;</span><span class="punctuation">]</span>.apply<span class="punctuation">(</span></span><br><span class="line">        lambda x<span class="operator">:</span> predict_single_name<span class="punctuation">(</span>x<span class="punctuation">,</span> model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length<span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 保存结果到新CSV</span></span><br><span class="line">    try<span class="operator">:</span></span><br><span class="line">        df.to_csv<span class="punctuation">(</span>output_csv_path<span class="punctuation">,</span> index<span class="operator">=</span>False<span class="punctuation">,</span> encoding<span class="operator">=</span><span class="string">&quot;utf-8-sig&quot;</span><span class="punctuation">)</span>  <span class="comment"># utf-8-sig确保中文正常显示</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;预测完成，结果已保存至：&#123;output_csv_path&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">    except Exception as e<span class="operator">:</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;保存输出文件失败：&#123;e&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="comment"># 4. 主程序入口</span></span><br><span class="line"><span class="comment"># ----------------------</span></span><br><span class="line"><span class="keyword">if</span> __name__ <span class="operator">==</span> <span class="string">&quot;__main__&quot;</span><span class="operator">:</span></span><br><span class="line">    <span class="comment"># 配置文件路径（根据实际情况修改）</span></span><br><span class="line">    INPUT_CSV <span class="operator">=</span> <span class="string">&quot;input_names.csv&quot;</span>    <span class="comment"># 输入CSV路径（包含name字段）</span></span><br><span class="line">    OUTPUT_CSV <span class="operator">=</span> <span class="string">&quot;predicted_genders.csv&quot;</span>  <span class="comment"># 输出CSV路径（新增gender字段）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 加载模型组件</span></span><br><span class="line">    model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length <span class="operator">=</span> load_gender_model<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 批量处理并生成结果</span></span><br><span class="line">    process_csv<span class="punctuation">(</span>INPUT_CSV<span class="punctuation">,</span> OUTPUT_CSV<span class="punctuation">,</span> model<span class="punctuation">,</span> tokenizer<span class="punctuation">,</span> max_length<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就会得到预测结果了（predicted_genders.csv 文件）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name,gender</span><br><span class="line">李浩垣,男</span><br><span class="line">张杜超,男</span><br><span class="line">于光浦,男</span><br><span class="line">孙爱仙,女</span><br><span class="line">杨莲菊,女</span><br><span class="line">赵东祥,男</span><br><span class="line">邢丽炫,女</span><br><span class="line">张为梅,女</span><br><span class="line">陈佩奇,男</span><br><span class="line">黄懿贤,男</span><br><span class="line">齐敏音,女</span><br><span class="line">李圣用,男</span><br><span class="line">姚龙兵,男</span><br><span class="line">杨仲东,男</span><br><span class="line">豆珂阳,男</span><br></pre></td></tr></table></figure>
+
+<h2 id="R-语言部分" class="article-heading"><a href="#R-语言部分" class="headerlink" title="R 语言部分"></a>R 语言部分<a class="article-anchor" href="#R-语言部分" aria-label="本节链接" title="复制本节链接"></a></h2><p>R 语言中可以使用 reticulate 包创建 Python 虚拟环境以及把 Python 函数封装成 R 语言的函数。</p>
+<p>首先是创建虚拟环境：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 安装 python3.10</span></span><br><span class="line">conda_create<span class="punctuation">(</span>envname <span class="operator">=</span> <span class="string">&quot;genderpy&quot;</span><span class="punctuation">,</span> python_version <span class="operator">=</span> <span class="string">&quot;3.10&quot;</span><span class="punctuation">)</span></span><br><span class="line">use_condaenv<span class="punctuation">(</span><span class="string">&quot;genderpy&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 读取requirements.txt文件</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> readLines<span class="punctuation">(</span><span class="string">&quot;requirements.txt&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 清理空行和注释</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> grep<span class="punctuation">(</span><span class="string">&quot;^[^#]&quot;</span><span class="punctuation">,</span> requirements<span class="punctuation">,</span> value <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span>  <span class="comment"># 移除注释行</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> trimws<span class="punctuation">(</span>requirements<span class="punctuation">)</span>  <span class="comment"># 去除两端空格</span></span><br><span class="line">requirements <span class="operator">&lt;-</span> requirements<span class="punctuation">[</span>requirements <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">]</span>  <span class="comment"># 移除空行</span></span><br><span class="line"></span><br><span class="line">requirements</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 安装所有依赖</span></span><br><span class="line">conda_install<span class="punctuation">(</span>packages <span class="operator">=</span> requirements<span class="punctuation">,</span> envname <span class="operator">=</span> <span class="string">&quot;genderpy&quot;</span><span class="punctuation">,</span></span><br><span class="line">              python_version <span class="operator">=</span> <span class="string">&quot;3.10&quot;</span><span class="punctuation">,</span> pip <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span></span><br><span class="line">              pip_options <span class="operator">=</span> <span class="string">&quot;--index-url https://pypi.tuna.tsinghua.edu.cn/simple&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>封装 Python 函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">source_python(&quot;predict_gender.py&quot;)</span><br><span class="line"></span><br><span class="line">predict_gender(&quot;张小龙&quot;)</span><br><span class="line">#&gt; [1] &quot;男&quot;</span><br></pre></td></tr></table></figure>
+
+<p>预测多个姓名的性别可以这样：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_csv<span class="punctuation">(</span><span class="string">&quot;input_names.csv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>gender <span class="operator">=</span> map_chr<span class="punctuation">(</span>name<span class="punctuation">,</span> predict_gender<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 15 × 2</span></span><br><span class="line"><span class="comment">#&gt;    name   gender</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;  &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 李浩垣 男</span></span><br><span class="line"><span class="comment">#&gt;  2 张杜超 男</span></span><br><span class="line"><span class="comment">#&gt;  3 于光浦 男</span></span><br><span class="line"><span class="comment">#&gt;  4 孙爱仙 女</span></span><br><span class="line"><span class="comment">#&gt;  5 杨莲菊 女</span></span><br><span class="line"><span class="comment">#&gt;  6 赵东祥 男</span></span><br><span class="line"><span class="comment">#&gt;  7 邢丽炫 女</span></span><br><span class="line"><span class="comment">#&gt;  8 张为梅 女</span></span><br><span class="line"><span class="comment">#&gt;  9 陈佩奇 男</span></span><br><span class="line"><span class="comment">#&gt; 10 黄懿贤 男</span></span><br><span class="line"><span class="comment">#&gt; 11 齐敏音 女</span></span><br><span class="line"><span class="comment">#&gt; 12 李圣用 男</span></span><br><span class="line"><span class="comment">#&gt; 13 姚龙兵 男</span></span><br><span class="line"><span class="comment">#&gt; 14 杨仲东 男</span></span><br><span class="line"><span class="comment">#&gt; 15 豆珂阳 男</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就解决了这个问题。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bf954f326ae246738c0f5a294b73c988">Python 和 R 语言中如何根据姓名预测性别？</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:39.337Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/85189/" title="1985～2024 年各省市区县、各IPC部、大类、小类、各类型专利申请与授权量"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/10165/" title="1985～2024 年瞪羚、独角兽与科技型初创企业专利申请与授权信息"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/92886/">使用 R 语言绘制 2020 年中国人口密度 3D 蜂窝地图</a><span class="tf-related-meta">2021-01-24 · 约 2 分钟</span></li><li><a href="/posts/98762/">R 语言和 RStudio 的安装、R Profile 的配置</a><span class="tf-related-meta">2026-09-03 · 约 14 分钟</span></li><li><a href="/posts/60234/">使用 R 语言处理和提取绿色产品 HS6 代码</a><span class="tf-related-meta">2026-07-17 · 约 7 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Python-%E9%83%A8%E5%88%86"><span class="toc-text">Python 部分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#R-%E8%AF%AD%E8%A8%80%E9%83%A8%E5%88%86"><span class="toc-text">R 语言部分</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

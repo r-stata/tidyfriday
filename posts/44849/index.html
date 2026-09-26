@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 进行税调专利匹配：超高效的匹配流程 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/44849/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="虽然之前给大家分享过很多数据匹配的结果，不过很久没有更新过数据匹配的课程了。平台上已有的一些匹配课程都是 2021 年左右讲解的了，用现在的视角来看已经不是那么的高效实用了。今天的课程中我们将以税调与专利数据的匹配为例介绍如何在 Stata 中高效的进行数据匹配。在数据处理、匹配中，我们不仅要针对当前数据处理，还应该下意识的构建自我数据库，这样才能让以后的数据处理更高效。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 进行税调专利匹配：超高效的匹配流程">
+<meta property="og:url" content="https://tidyfriday.cn/posts/44849/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="虽然之前给大家分享过很多数据匹配的结果，不过很久没有更新过数据匹配的课程了。平台上已有的一些匹配课程都是 2021 年左右讲解的了，用现在的视角来看已经不是那么的高效实用了。今天的课程中我们将以税调与专利数据的匹配为例介绍如何在 Stata 中高效的进行数据匹配。在数据处理、匹配中，我们不仅要针对当前数据处理，还应该下意识的构建自我数据库，这样才能让以后的数据处理更高效。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/44849.png">
+<meta property="article:published_time" content="2025-06-16T14:25:38.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:47.190Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="企业数据">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="数据匹配">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/44849.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 进行税调专利匹配：超高效的匹配流程">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 进行税调专利匹配：超高效的匹配流程","description":"虽然之前给大家分享过很多数据匹配的结果，不过很久没有更新过数据匹配的课程了。平台上已有的一些匹配课程都是 2021 年左右讲解的了，用现在的视角来看已经不是那么的高效实用了。今天的课程中我们将以税调与专利数据的匹配为例介绍如何在 Stata 中高效的进行数据匹配。在数据处理、匹配中，我们不仅要针对当前数据处理，还应该下意识的构建自我数据库，这样才能让以后的数据处理更高效。","url":"https://tidyfriday.cn/posts/44849/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/44849/"},"image":["https://tidyfriday.cn/og/44849.png"],"datePublished":"2025-06-16T14:25:38.000Z","dateModified":"2026-09-26T14:18:47.190Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"企业数据, Stata, 专利, 数据匹配","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 进行税调专利匹配：超高效的匹配流程","item":"https://tidyfriday.cn/posts/44849/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 进行税调专利匹配：超高效的匹配流程</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 进行税调专利匹配：超高效的匹配流程</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-06-16T14:25:38.000Z" itemprop="datePublished">2025-06-16</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3566 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE">企业数据</a><a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E5%8C%B9%E9%85%8D">数据匹配</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>虽然之前给大家分享过很多数据匹配的结果，不过很久没有更新过数据匹配的课程了。平台上已有的一些匹配课程都是 2021 年左右讲解的了，用现在的视角来看已经不是那么的高效实用了。今天的课程中我们将以税调与专利数据的匹配为例介绍如何在 Stata 中高效的进行数据匹配。在数据处理、匹配中，我们不仅要针对当前数据处理，还应该下意识的构建自我数据库，这样才能让以后的数据处理更高效。</p>
+<span id="more"></span>
+
+<h2 id="数据生成-ID-变量" class="article-heading"><a href="#数据生成-ID-变量" class="headerlink" title="数据生成 ID 变量"></a>数据生成 ID 变量<a class="article-anchor" href="#数据生成-ID-变量" aria-label="本节链接" title="复制本节链接"></a></h2><p>如果大家经常使用我分享的数据，就会发现几乎所有的数据里面我都会生成一个 id 变量，例如税调数据里面有我生成的 sdid 变量，专利数据里面有我生成的 newipzlid：</p>
+<blockquote>
+<p>2007～2016年税调数据与工商注册数据匹配结果（版本2）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/cb8992583a404b73bd01a0a5486ac640">https://rstata.duanshu.com/#/brief/course/cb8992583a404b73bd01a0a5486ac640</a></p>
+<p>1985～2024 年专利申请与授权数据（版本 3，含申请人所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988">https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988</a></p>
+</blockquote>
+<p>在专利数据的介绍里面我分享了这种 id 变量的生成方法：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">forval</span> y = 1985/2024 &#123;</span><br><span class="line"> <span class="keyword">di</span> <span class="string">&quot;`y&#x27;&quot;</span></span><br><span class="line"> <span class="keyword">qui</span> &#123;</span><br><span class="line">  <span class="keyword">use</span> <span class="string">&quot;`y&#x27;patent.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">cap</span> <span class="keyword">drop</span> newipzlid</span><br><span class="line">  <span class="keyword">gen</span> newipzlid = <span class="built_in">string</span>(<span class="symbol">`y&#x27;</span> * 10^<span class="built_in">strlen</span>(<span class="string">&quot;`=_N&#x27;&quot;</span>) + _n, <span class="string">&quot;%12.0f&quot;</span>)</span><br><span class="line">  <span class="keyword">order</span> newipzlid</span><br><span class="line">  <span class="keyword">compress</span></span><br><span class="line">  <span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">   <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">save</span> <span class="string">&quot;`y&#x27;patent.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些 id 的变量都是用于标识观测值编号的，例如 <code>2007276106</code> 就表示 2007 年数据中的第 276106 个观测值。所谓的数据匹配其实就是建立 ID 对照表的过程，因为预先生成 id 变量，可以让我们在匹配过程中仅仅保留所需的变量，这样可以大大提升匹配的速度。</p>
+<p>下图展示了税调变量的基本信息：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/06/16/14/02b79j1bdbe1b168g4/common/content/1750055068480_958242.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>在完整的税调数据里面我也提供了这个 sdid 变量。</p>
+<h2 id="借助工商注册信息" class="article-heading"><a href="#借助工商注册信息" class="headerlink" title="借助工商注册信息"></a>借助工商注册信息<a class="article-anchor" href="#借助工商注册信息" aria-label="本节链接" title="复制本节链接"></a></h2><p>企业与专利数据匹配过程中我们通常可以使用企业名称变量和申请人变量进行匹配。不过还可以借助工商注册数据来提升匹配数量。因为工商注册信息里面还包含了企业曾用名、统一社会信用代码等指标。</p>
+<p>企业与工商注册信息的匹配通常也是用企业名称，当然如果有组织机构代码等变量也可以用。</p>
+<p>这里匹配税调企业专利信息就可以借助税调企业的工商注册信息。</p>
+<h2 id="确定匹配思路" class="article-heading"><a href="#确定匹配思路" class="headerlink" title="确定匹配思路"></a>确定匹配思路<a class="article-anchor" href="#确定匹配思路" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合税调数据和专利数据包含的变量，我们选择企业名称、统一社会信用代码、纳税人识别号这三个变量进行匹配。</p>
+<p>另外就是税调数据是个多年的面板数据，这种数据通常存在一个问题，就是例如 2007 年的数据中有某个企业 A 和它的组织机构代码，但是 2008 年的数据里面可能企业名称缺失。但是组织机构代码还在。因此我们可以首先进行跨年的数据填补。</p>
+<p>匹配的时候可以分别使用企业名称、企业代码进行匹配。</p>
+<h2 id="使用企业名称进行匹配" class="article-heading"><a href="#使用企业名称进行匹配" class="headerlink" title="使用企业名称进行匹配"></a>使用企业名称进行匹配<a class="article-anchor" href="#使用企业名称进行匹配" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="处理税调数据的企业名称" class="article-heading"><a href="#处理税调数据的企业名称" class="headerlink" title="处理税调数据的企业名称"></a>处理税调数据的企业名称<a class="article-anchor" href="#处理税调数据的企业名称" aria-label="本节链接" title="复制本节链接"></a></h3><p>按照上面的思路，我们合并税调和工商注册信息，保留所有可能用到的企业名称字段：</p>
+<blockquote>
+<p>appendall.ado 是我编写的一个小命令，把该文件放到工作目录下面就可以使用了。该命令可以用来合并某个文件夹下面的所有 dta 文件。</p>
+</blockquote>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/使用 Stata 进行税调专利匹配&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并税调企业工商注册信息</span></span><br><span class="line">appendall 税调数据与工商注册数据匹配结果(分年)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2007～2009年税调数据与工商注册数据匹配结果&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并税调基本信息语工商注册信息</span></span><br><span class="line"><span class="keyword">use</span> 税调基本信息.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> year = <span class="built_in">substr</span>(sdid, 1, 4)</span><br><span class="line"><span class="keyword">destring</span> year, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inrange</span>(year, 2007, 2009)</span><br><span class="line"><span class="keyword">ren</span> 企业名称 企业名称_税调</span><br><span class="line"><span class="keyword">merge</span> 1:1 sdid using <span class="string">&quot;2007～2009年税调数据与工商注册数据匹配结果.dta&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 根据法人代码填补企业名称</span></span><br><span class="line"><span class="keyword">bysort</span> 法人代码: fillmissing 企业名称_税调 <span class="keyword">if</span> !<span class="built_in">missing</span>(法人代码), with(any)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保留匹配可能需要的变量</span></span><br><span class="line"><span class="keyword">keep</span> sdid year 企业名称_税调 企业名称 曾用名 英文名</span><br><span class="line">gather 企业名称_税调 企业名称 曾用名 英文名</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(value)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">ren</span> value 企业名称</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 企业名称 == <span class="string">&quot; &quot;</span></span><br><span class="line"><span class="keyword">save</span> 税调基本信息2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |       sdid   year                                             企业名称 |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 2007000001   2007                             北京京仪集团有限责任公司 |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 2007000001   2007                                 北京京仪集团有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  3. | 2007000002   2007                             中国煤炭海外开发有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  4. | 2007000002   2007                             中国煤炭海外开发有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  5. | 2007000002   2007   中国煤炭海外开发公司中国成套设备出口公司煤炭分公司 |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. | 2007000003   2007                               中国种畜进出口有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  7. | 2007000003   2007                               中国种畜进出口有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  8. | 2007000003   2007                                   中国种畜进出口公司 |</span></span><br><span class="line"><span class="comment">*&gt;  9. | 2007000004   2007                         中国图书进出口（集团）总公司 |</span></span><br><span class="line"><span class="comment">*&gt; 10. | 2007000004   2007                         中国图书进出口（集团）总公司 |</span></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="专利数据预处理" class="article-heading"><a href="#专利数据预处理" class="headerlink" title="专利数据预处理"></a>专利数据预处理<a class="article-anchor" href="#专利数据预处理" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于一个专利的申请人可能存在多个，因此在匹配前我们需要先拆分申请人：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;专利申请人&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">  <span class="keyword">use</span> 专利原始数据/<span class="symbol">`y&#x27;</span>.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> newipzlid 申请人</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(申请人)</span><br><span class="line">  export delimited using <span class="string">&quot;专利申请人/`y&#x27;.csv&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 csv 文件是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">newipzlid,申请人</span><br><span class="line">2007237048,上海新跃仪表厂</span><br><span class="line">2007018707,上海昱豪高压清洗机有限公司</span><br><span class="line">2007039991,上海嘉迪机械有限公司</span><br><span class="line">2007503190,上海南洋电机有限公司</span><br><span class="line">2007346177,中涂化工(上海)有限公司</span><br><span class="line">2007502524,上海华特汽车配件有限公司</span><br><span class="line">2007194229,上海科世达 华阳汽车电器有限公司</span><br><span class="line">2007270323,上海生大企业有限公司; 上海生大医保股份有限公司</span><br><span class="line">2007422296,上海球明标准件有限公司</span><br><span class="line">2007131238,上海众源燃油分配器制造有限公司</span><br><span class="line">2007470817,中国科学院上海光学精密机械研究所</span><br><span class="line">2007051307,中国科学院上海光学精密机械研究所</span><br></pre></td></tr></table></figure>
+
+<p>之所以导出为 csv 文件，是因为我们下面想使用 R 语言进行拆分。在 Stata 中，这种拆分可以使用 split + gather 或者循环实现。不过对于专利这种数据，这样的处理方法是非常低效的。所以这里我还是建议使用 R 语言。</p>
+<p>对 split + gather 或者循环实现感兴趣的小伙伴可以学习这个课程：</p>
+<blockquote>
+<p>使用 Stata 进行绿色专利的筛选：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2fd6838527754c94a3f5ccb0e3ba7be1">https://rstata.duanshu.com/#/brief/course/2fd6838527754c94a3f5ccb0e3ba7be1</a></p>
+</blockquote>
+<p>下面的代码就是在 R 语言中运行了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;专利拆分申请人&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="number">2007</span><span class="operator">:</span><span class="number">2009</span> <span class="operator">%&gt;%</span></span><br><span class="line">  lapply<span class="punctuation">(</span><span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    readr<span class="operator">::</span>read_csv<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;专利申请人/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.csv&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      tidytext<span class="operator">::</span>unnest_tokens<span class="punctuation">(</span>input <span class="operator">=</span> <span class="string">&quot;申请人&quot;</span><span class="punctuation">,</span> output <span class="operator">=</span> <span class="string">&quot;申请人&quot;</span><span class="punctuation">,</span></span><br><span class="line">                              token <span class="operator">=</span> stringr<span class="operator">::</span>str_split<span class="punctuation">,</span></span><br><span class="line">                              pattern <span class="operator">=</span> <span class="string">&quot;;&quot;</span><span class="punctuation">,</span> to_lower <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      mutate<span class="punctuation">(</span>申请人 <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>申请人<span class="punctuation">,</span> <span class="string">&quot; &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">      haven<span class="operator">::</span>write_dta<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;专利拆分申请人/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.dta&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br></pre></td></tr></table></figure>
+
+<p>拆分好的结果就保存在”专利拆分申请人”文件夹里面：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 专利拆分申请人/2007, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tostring</span> newipzlid, <span class="keyword">replace</span> <span class="keyword">format</span>(%16.0f)</span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     |  newipzlid   申请人                         |</span></span><br><span class="line"><span class="comment">*&gt;     |---------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 2007237048   上海新跃仪表厂                 |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 2007018707   上海昱豪高压清洗机有限公司     |</span></span><br><span class="line"><span class="comment">*&gt;  3. | 2007039991   上海嘉迪机械有限公司           |</span></span><br><span class="line"><span class="comment">*&gt;  4. | 2007503190   上海南洋电机有限公司           |</span></span><br><span class="line"><span class="comment">*&gt;  5. | 2007346177   中涂化工(上海)有限公司         |</span></span><br><span class="line"><span class="comment">*&gt;     |---------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. | 2007502524   上海华特汽车配件有限公司       |</span></span><br><span class="line"><span class="comment">*&gt;  7. | 2007194229   上海科世达华阳汽车电器有限公司 |</span></span><br><span class="line"><span class="comment">*&gt;  8. | 2007270323   上海生大企业有限公司           |</span></span><br><span class="line"><span class="comment">*&gt;  9. | 2007270323   上海生大医保股份有限公司       |</span></span><br><span class="line"><span class="comment">*&gt; 10. | 2007422296   上海球明标准件有限公司         |</span></span><br><span class="line"><span class="comment">*&gt;     +---------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到第 8、9 个观测值就是一个专利拆分出来的结果。</p>
+<p><code>企业名称处理.do</code> 文件是很多年前我在处理工企数据企业名称变量的时候写的，后来我发现这些纠正代码用在其他数据上也很好用，所以每次匹配的时候我都会用上。<code>企业名称处理2.do</code> 则是去除一些影响匹配的关键词：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> z = 企业名称</span><br><span class="line"><span class="keyword">order</span> z</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;股份有限&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;集团有限&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;有限责任&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;有限公司&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;有限&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;责任&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;股份&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;公司&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;厂&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;(集团)&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;（集团）&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;（&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;）&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;(&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;)&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;回族自治区&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;壮族自治区&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;维吾尔自治区&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;自治区&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;省&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;市&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;区&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> z = <span class="built_in">subinstr</span>(z, <span class="string">&quot;县&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br></pre></td></tr></table></figure>
+
+<p>依次使用这两个 do 文件处理企业名称就可以得到一个新变量 z，这个变量就是用来匹配的桥梁变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;专利数据待匹配_申请人&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">  <span class="keyword">use</span> 专利拆分申请人/<span class="symbol">`y&#x27;</span>, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">ren</span> 申请人 企业名称</span><br><span class="line">  <span class="keyword">do</span> 企业名称处理.<span class="keyword">do</span></span><br><span class="line">  <span class="keyword">do</span> 企业名称处理2.<span class="keyword">do</span></span><br><span class="line">  <span class="keyword">keep</span> newipzlid z</span><br><span class="line">  <span class="keyword">save</span> <span class="string">&quot;专利数据待匹配_申请人/`y&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理好的文件就存放在 “专利数据待匹配_申请人” 文件夹里面。这个数据不仅仅可以用来匹配税调，用来匹配其他数据也是完全没有问题的。</p>
+<h3 id="使用-z-进行匹配" class="article-heading"><a href="#使用-z-进行匹配" class="headerlink" title="使用 z 进行匹配"></a>使用 z 进行匹配<a class="article-anchor" href="#使用-z-进行匹配" aria-label="本节链接" title="复制本节链接"></a></h3><p>然后我们就可以用同样的方法处理税调的企业名称，进而匹配：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 根据企业名称匹配</span></span><br><span class="line"><span class="keyword">use</span> 税调基本信息2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">do</span> 企业名称处理.<span class="keyword">do</span></span><br><span class="line"><span class="keyword">do</span> 企业名称处理2.<span class="keyword">do</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">save</span> 待匹配专利信息, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;res1&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">  <span class="keyword">di</span> <span class="string">&quot;`y&#x27;&quot;</span></span><br><span class="line">  <span class="keyword">qui</span> &#123;</span><br><span class="line">    <span class="keyword">use</span> 待匹配专利信息, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">keep</span> <span class="keyword">if</span> year == <span class="symbol">`y&#x27;</span></span><br><span class="line">    <span class="keyword">joinby</span> z using <span class="string">&quot;专利数据待匹配_申请人/`y&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">tostring</span> newipzlid, <span class="keyword">replace</span> <span class="keyword">format</span>(%16.0f)</span><br><span class="line">    <span class="keyword">joinby</span> newipzlid using <span class="string">&quot;专利原始数据/`y&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">drop</span> z 企业名称 year</span><br><span class="line">    <span class="keyword">save</span> res1/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="合并匹配结果" class="article-heading"><a href="#合并匹配结果" class="headerlink" title="合并匹配结果"></a>合并匹配结果<a class="article-anchor" href="#合并匹配结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall res1</span><br><span class="line">destring *次数, replace force</span><br><span class="line">foreach i of varlist _all &#123;</span><br><span class="line">  cap format `i&#x27; %10s</span><br><span class="line">&#125;</span><br><span class="line">save 根据企业名称匹配结果, replace</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用统一社会信用代码匹配" class="article-heading"><a href="#使用统一社会信用代码匹配" class="headerlink" title="使用统一社会信用代码匹配"></a>使用统一社会信用代码匹配<a class="article-anchor" href="#使用统一社会信用代码匹配" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用统一社会信用代码匹配的过程和上面的差不多。</p>
+<p>预处理专利数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;专利数据待匹配_信用代码&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">  <span class="keyword">use</span> <span class="string">&quot;专利原始数据/`y&#x27;&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">gen</span> code = 工商统一社会信用代码</span><br><span class="line">  <span class="keyword">keep</span> newipzlid code</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(code)</span><br><span class="line">  <span class="keyword">split</span> code, <span class="keyword">parse</span>(;)</span><br><span class="line">  <span class="keyword">drop</span> code</span><br><span class="line">  gather code*</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(value)</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line">  <span class="keyword">ren</span> value code</span><br><span class="line">  <span class="keyword">replace</span> code = <span class="built_in">subinstr</span>(code, <span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">replace</span> code = <span class="built_in">subinstr</span>(code, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(code)</span><br><span class="line">  <span class="keyword">keep</span> newipzlid code</span><br><span class="line">  <span class="keyword">save</span> <span class="string">&quot;专利数据待匹配_信用代码/`y&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样，这个数据也可以用来匹配其他数据。</p>
+<p>统一社会信用代码、纳税人识别号、组织机构代码、工商注册号这几个变量在很多数据里面经常混用，因此匹配的时候可以考虑把这几个变量一起用来匹配：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 税调基本信息.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> year = <span class="built_in">substr</span>(sdid, 1, 4)</span><br><span class="line"><span class="keyword">destring</span> year, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inrange</span>(year, 2007, 2009)</span><br><span class="line"><span class="keyword">ren</span> 企业名称 企业名称_税调</span><br><span class="line"><span class="keyword">merge</span> 1:1 sdid using <span class="string">&quot;2007～2009年税调数据与工商注册数据匹配结果.dta&quot;</span></span><br><span class="line"><span class="keyword">keep</span> sdid 统一社会信用代码 纳税人识别号</span><br><span class="line">gather 统一社会信用代码 纳税人识别号</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(value)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">ren</span> value code</span><br><span class="line"><span class="keyword">replace</span> code = <span class="built_in">strupper</span>(code)</span><br><span class="line"><span class="keyword">replace</span> code = <span class="built_in">subinstr</span>(code, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(code) | code == <span class="string">&quot;None&quot;</span> | code == <span class="string">&quot;未公开&quot;</span> | code == <span class="string">&quot;-&quot;</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> code == <span class="string">&quot; &quot;</span></span><br><span class="line"><span class="keyword">gen</span> year = <span class="built_in">substr</span>(sdid, 1, 4)</span><br><span class="line"><span class="keyword">destring</span> year, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">save</span> 待匹配专利信息2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>匹配：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 使用统一社会信用代码匹配</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;res2&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">  <span class="keyword">di</span> <span class="string">&quot;`y&#x27;&quot;</span></span><br><span class="line">  <span class="keyword">qui</span> &#123;</span><br><span class="line">    <span class="keyword">use</span> 待匹配专利信息2, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">keep</span> <span class="keyword">if</span> year == <span class="symbol">`y&#x27;</span></span><br><span class="line">    <span class="keyword">joinby</span> code using <span class="string">&quot;专利数据待匹配_信用代码/`y&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">tostring</span> newipzlid, <span class="keyword">replace</span> <span class="keyword">format</span>(%16.0f)</span><br><span class="line">    <span class="keyword">joinby</span> newipzlid using <span class="string">&quot;专利原始数据/`y&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">save</span> res2/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并</span></span><br><span class="line">appendall res2</span><br><span class="line"><span class="keyword">destring</span> *次数, <span class="keyword">replace</span> force</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">  <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">drop</span> code year</span><br><span class="line"><span class="keyword">save</span> 根据统一社会信用代码匹配结果, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="合并两部分匹配结果" class="article-heading"><a href="#合并两部分匹配结果" class="headerlink" title="合并两部分匹配结果"></a>合并两部分匹配结果<a class="article-anchor" href="#合并两部分匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>合并两部分匹配结果再去重即可。不过如果大家的电脑内存不是很足，其实上面的分年匹配结果就不要直接合并了。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 合并</span></span><br><span class="line"><span class="keyword">use</span> 根据企业名称匹配结果, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using 根据统一社会信用代码匹配结果</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去除重复匹配的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> sdid newipzlid, force</span><br><span class="line"><span class="keyword">gsort</span> sdid newipzlid</span><br><span class="line"><span class="keyword">label</span> data <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2007～2009年税调与专利数据匹配结果&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 拆分成逐年的</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;2007～2009年税调与专利数据匹配结果&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;税调与专利数据匹配结果分年&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 2007/2009 &#123;</span><br><span class="line">    <span class="keyword">preserve</span></span><br><span class="line">    <span class="keyword">keep</span> <span class="keyword">if</span> 年份 == <span class="symbol">`y&#x27;</span></span><br><span class="line">    <span class="keyword">save</span> <span class="string">&quot;税调与专利数据匹配结果分年/`y&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">    <span class="keyword">restore</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="分年、分类型统计各企业的专利申请和授权数量" class="article-heading"><a href="#分年、分类型统计各企业的专利申请和授权数量" class="headerlink" title="分年、分类型统计各企业的专利申请和授权数量"></a>分年、分类型统计各企业的专利申请和授权数量<a class="article-anchor" href="#分年、分类型统计各企业的专利申请和授权数量" aria-label="本节链接" title="复制本节链接"></a></h2><p>在计算专利申请数量时需要注意，专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/06/16/14/02b79j1bdbe1b168g4/common/content/1750055069015_419212.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>统计申请数量：</p>
+<blockquote>
+<p>这部分代码需要下载讲义材料查看。</p>
+</blockquote>
+<p>然后是授权数量的统计。这里说的授权通常是指申请并最终被授权的数量，因此去除未授权的即可统计：</p>
+<blockquote>
+<p>这部分代码需要下载讲义材料查看。</p>
+</blockquote>
+<p>最后合并两部分结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 sdid using data2</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> *量 &#123;</span><br><span class="line">  <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = 0 <span class="keyword">if</span> <span class="built_in">mi</span>(<span class="symbol">`i&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> sdid, force</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2007～2009年税调专利申请与授权数量统计&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/06/16/14/02b79j1bdbe1b168g4/common/content/1750055069212_923823.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样就得到了分年、分类型统计各企业的专利申请和授权数量面板。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/43fd5249e06c462a95c499b2c646046d">使用 Stata 进行税调专利匹配：超高效的匹配流程</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:47.190Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/97824/" title="旧版本｜1940～2024 年各省市区县乡镇各月 100m 高空平均风速及风向角计算结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/44630/" title="1985～2024 年各省市区县间各类型关键数字技术专利合作数量统计"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21781/">Stata 中如何借助工商注册信息匹配结果把税调数据设定成面板？</a><span class="tf-related-meta">2025-12-15 · 约 4 分钟</span></li><li><a href="/posts/52709/">使用 Stata 匹配工商注册信息行业与国民经济行业代码</a><span class="tf-related-meta">2024-11-30 · 约 5 分钟</span></li><li><a href="/posts/13182/">专利数据库、用电量、金融机构数据、税调与行政区划数据包</a><span class="tf-related-meta">2026-07-20 · 约 1 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90-ID-%E5%8F%98%E9%87%8F"><span class="toc-text">数据生成 ID 变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9%E5%B7%A5%E5%95%86%E6%B3%A8%E5%86%8C%E4%BF%A1%E6%81%AF"><span class="toc-text">借助工商注册信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A1%AE%E5%AE%9A%E5%8C%B9%E9%85%8D%E6%80%9D%E8%B7%AF"><span class="toc-text">确定匹配思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E4%BC%81%E4%B8%9A%E5%90%8D%E7%A7%B0%E8%BF%9B%E8%A1%8C%E5%8C%B9%E9%85%8D"><span class="toc-text">使用企业名称进行匹配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E7%A8%8E%E8%B0%83%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BC%81%E4%B8%9A%E5%90%8D%E7%A7%B0"><span class="toc-text">处理税调数据的企业名称</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86"><span class="toc-text">专利数据预处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-z-%E8%BF%9B%E8%A1%8C%E5%8C%B9%E9%85%8D"><span class="toc-text">使用 z 进行匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E5%8C%B9%E9%85%8D%E7%BB%93%E6%9E%9C"><span class="toc-text">合并匹配结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%BB%9F%E4%B8%80%E7%A4%BE%E4%BC%9A%E4%BF%A1%E7%94%A8%E4%BB%A3%E7%A0%81%E5%8C%B9%E9%85%8D"><span class="toc-text">使用统一社会信用代码匹配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E4%B8%A4%E9%83%A8%E5%88%86%E5%8C%B9%E9%85%8D%E7%BB%93%E6%9E%9C"><span class="toc-text">合并两部分匹配结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B9%B4%E3%80%81%E5%88%86%E7%B1%BB%E5%9E%8B%E7%BB%9F%E8%AE%A1%E5%90%84%E4%BC%81%E4%B8%9A%E7%9A%84%E4%B8%93%E5%88%A9%E7%94%B3%E8%AF%B7%E5%92%8C%E6%8E%88%E6%9D%83%E6%95%B0%E9%87%8F"><span class="toc-text">分年、分类型统计各企业的专利申请和授权数量</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

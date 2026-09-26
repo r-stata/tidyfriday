@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言爬取处理 WIPO 绿色专利分类数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/15628/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="绿色专利的筛选通常使用 WIPO 提供的绿色专利分类范围清单：https:&#x2F;&#x2F;www.wipo.int&#x2F;classifications&#x2F;ipc&#x2F;green-inventory&#x2F;home ，今天就让我们一起学习下如何使用 R 语言爬取这个网页上的数据，然后整理成我们需要的形式。后续课程我还会讲解如何根据这个爬取结果来筛选绿色专利。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言爬取处理 WIPO 绿色专利分类数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/15628/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="绿色专利的筛选通常使用 WIPO 提供的绿色专利分类范围清单：https:&#x2F;&#x2F;www.wipo.int&#x2F;classifications&#x2F;ipc&#x2F;green-inventory&#x2F;home ，今天就让我们一起学习下如何使用 R 语言爬取这个网页上的数据，然后整理成我们需要的形式。后续课程我还会讲解如何根据这个爬取结果来筛选绿色专利。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/15628.png">
+<meta property="article:published_time" content="2022-07-05T12:54:33.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.199Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="数据爬取">
+<meta property="article:tag" content="专利">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/15628.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言爬取处理 WIPO 绿色专利分类数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言爬取处理 WIPO 绿色专利分类数据","description":"绿色专利的筛选通常使用 WIPO 提供的绿色专利分类范围清单：https://www.wipo.int/classifications/ipc/green-inventory/home ，今天就让我们一起学习下如何使用 R 语言爬取这个网页上的数据，然后整理成我们需要的形式。后续课程我还会讲解如何根据这个爬取结果来筛选绿色专利。","url":"https://tidyfriday.cn/posts/15628/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/15628/"},"image":["https://tidyfriday.cn/og/15628.png"],"datePublished":"2022-07-05T12:54:33.000Z","dateModified":"2026-09-26T14:18:44.199Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 数据爬取, 专利","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言爬取处理 WIPO 绿色专利分类数据","item":"https://tidyfriday.cn/posts/15628/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言爬取处理 WIPO 绿色专利分类数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言爬取处理 WIPO 绿色专利分类数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-07-05T12:54:33.000Z" itemprop="datePublished">2022-07-05</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1721 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>绿色专利的筛选通常使用 WIPO 提供的绿色专利分类范围清单：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.wipo.int/classifications/ipc/green-inventory/home">https://www.wipo.int/classifications/ipc/green-inventory/home</a> ，今天就让我们一起学习下如何使用 R 语言爬取这个网页上的数据，然后整理成我们需要的形式。后续课程我还会讲解如何根据这个爬取结果来筛选绿色专利。</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/07/05/12/02b79j1bdbe1b168g4/common/content/1656996555643_367965.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>通过网页分析，我们可以发现这个列表的数据就在这里：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.wipo.int/classifications/ipc/green-inventory/main.ea782575202e01049dd6.js">https://www.wipo.int/classifications/ipc/green-inventory/main.ea782575202e01049dd6.js</a> 通过简单的手动处理，我们就可以把里面的 json 数据提取处理了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">fromJSON<span class="punctuation">(</span><span class="string">&quot;temp.js&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 7 × 6</span></span><br><span class="line"><span class="comment">#&gt;   expanded folder key   title                                data$trans children</span></span><br><span class="line"><span class="comment">#&gt;   &lt;lgl&gt;    &lt;lgl&gt;  &lt;chr&gt; &lt;chr&gt;                                &lt;chr&gt;      &lt;list&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 TRUE     TRUE   _1    ALTERNATIVE ENERGY PRODUCTION        PRODUCTIO… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 2 TRUE     TRUE   _98   TRANSPORTATION                       TRANSPORTS &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 3 TRUE     TRUE   _124  ENERGY CONSERVATION                  CONSERVAT… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 4 TRUE     TRUE   _141  WASTE MANAGEMENT                     GESTION D… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 5 TRUE     TRUE   _192  AGRICULTURE / FORESTRY               AGRICULTU… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 6 TRUE     TRUE   _198  ADMINISTRATIVE, REGULATORY OR DESIG… ASPECTS A… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 7 TRUE     TRUE   _202  NUCLEAR POWER GENERATION             PRODUCTIO… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; # … with 1 more variable: data$IPC &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>实际上从另外一个链接也可以下载到这个 json 数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.wipo.int/export/sites/www/classifications/ipc/en/green_inventory/assets/green_inventory.js">https://www.wipo.int/export/sites/www/classifications/ipc/en/green_inventory/assets/green_inventory.js</a> 所以我们还是直接处理这个：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># https://www.wipo.int/classifications/ipc/en/green_inventory/index.html</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">download.file<span class="punctuation">(</span><span class="string">&#x27;https://www.wipo.int/export/sites/www/classifications/ipc/en/green_inventory/assets/green_inventory.js&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;green_inventory.js&#x27;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理这个数据</span></span><br><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">read_lines<span class="punctuation">(</span><span class="string">&#x27;green_inventory.js&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  paste0<span class="punctuation">(</span>collapse <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  str_remove<span class="punctuation">(</span><span class="string">&#x27;// Created on 20190130_112331gi=&#x27;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipc</span><br><span class="line"></span><br><span class="line">ipc</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 7 × 6</span></span><br><span class="line"><span class="comment">#&gt;   expanded folder key   title                                data$trans children</span></span><br><span class="line"><span class="comment">#&gt;   &lt;lgl&gt;    &lt;lgl&gt;  &lt;chr&gt; &lt;chr&gt;                                &lt;chr&gt;      &lt;list&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 TRUE     TRUE   _1    ALTERNATIVE ENERGY PRODUCTION        PRODUCTIO… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 2 TRUE     TRUE   _98   TRANSPORTATION                       TRANSPORTS &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 3 TRUE     TRUE   _124  ENERGY CONSERVATION                  CONSERVAT… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 4 TRUE     TRUE   _141  WASTE MANAGEMENT                     GESTION D… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 5 TRUE     TRUE   _192  AGRICULTURE / FORESTRY               AGRICULTU… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 6 TRUE     TRUE   _198  ADMINISTRATIVE, REGULATORY OR DESIG… ASPECTS A… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; 7 TRUE     TRUE   _202  NUCLEAR POWER GENERATION             PRODUCTIO… &lt;df&gt;</span></span><br><span class="line"><span class="comment">#&gt; # … with 1 more variable: data$IPC &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样得到的 7 个 title 就是上面网页截图上的 7 个类别，我们简单处理下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> key<span class="punctuation">,</span> l1title <span class="operator">=</span> title<span class="punctuation">,</span> IPC <span class="operator">=</span> IPC<span class="punctuation">)</span> <span class="operator">-&gt;</span> l1df</span><br><span class="line">l1df</span><br><span class="line"><span class="comment">#&gt; # A tibble: 7 × 3</span></span><br><span class="line"><span class="comment">#&gt;   l1key l1title                                      IPC</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt; &lt;chr&gt;                                        &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 _1    ALTERNATIVE ENERGY PRODUCTION                &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 2 _98   TRANSPORTATION                               &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 3 _124  ENERGY CONSERVATION                          &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 4 _141  WASTE MANAGEMENT                             &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 5 _192  AGRICULTURE / FORESTRY                       &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 6 _198  ADMINISTRATIVE, REGULATORY OR DESIGN ASPECTS &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt; 7 _202  NUCLEAR POWER GENERATION                     &quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们再看第二级：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> key<span class="punctuation">,</span> l1title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> key<span class="punctuation">,</span> l2title <span class="operator">=</span> title<span class="punctuation">,</span> IPC<span class="punctuation">)</span> <span class="operator">-&gt;</span> l2df</span><br><span class="line"></span><br><span class="line">l2df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 39 × 5</span></span><br><span class="line"><span class="comment">#&gt;    l1key l1title                       l2key l2title                       IPC</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;chr&gt;                         &lt;chr&gt; &lt;chr&gt;                         &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 _1    ALTERNATIVE ENERGY PRODUCTION _2    Bio-fuels                     &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  2 _1    ALTERNATIVE ENERGY PRODUCTION _11   Integrated gasification comb… &quot;C10…</span></span><br><span class="line"><span class="comment">#&gt;  3 _1    ALTERNATIVE ENERGY PRODUCTION _12   Fuel cells                    &quot;H01…</span></span><br><span class="line"><span class="comment">#&gt;  4 _1    ALTERNATIVE ENERGY PRODUCTION _17   Pyrolysis or gasification of… &quot;C10…</span></span><br><span class="line"><span class="comment">#&gt;  5 _1    ALTERNATIVE ENERGY PRODUCTION _18   Harnessing energy from manma… &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  6 _1    ALTERNATIVE ENERGY PRODUCTION _33   Hydro energy                  &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  7 _1    ALTERNATIVE ENERGY PRODUCTION _40   Ocean thermal energy convers… &quot;F03…</span></span><br><span class="line"><span class="comment">#&gt;  8 _1    ALTERNATIVE ENERGY PRODUCTION _41   Wind energy                   &quot;F03…</span></span><br><span class="line"><span class="comment">#&gt;  9 _1    ALTERNATIVE ENERGY PRODUCTION _47   Solar energy                  &quot;F24…</span></span><br><span class="line"><span class="comment">#&gt; 10 _1    ALTERNATIVE ENERGY PRODUCTION _74   Geothermal energy             &quot;F24…</span></span><br><span class="line"><span class="comment">#&gt; # … with 29 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>第三级：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> key<span class="punctuation">,</span> l1title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> key<span class="punctuation">,</span> l2title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> key<span class="punctuation">,</span> l3title <span class="operator">=</span> title<span class="punctuation">,</span> IPC<span class="punctuation">)</span> <span class="operator">-&gt;</span> l3df</span><br></pre></td></tr></table></figure>
+
+<p>第四级：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> key<span class="punctuation">,</span> l1title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> key<span class="punctuation">,</span> l2title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> key<span class="punctuation">,</span> l3title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> l3key<span class="punctuation">,</span> l3title <span class="operator">=</span> l3title<span class="punctuation">,</span></span><br><span class="line">         l4key <span class="operator">=</span> key<span class="punctuation">,</span> l4title <span class="operator">=</span> title<span class="punctuation">,</span> IPC<span class="punctuation">)</span> <span class="operator">-&gt;</span> l4df</span><br></pre></td></tr></table></figure>
+
+<p>第五级：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> key<span class="punctuation">,</span> l1title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> key<span class="punctuation">,</span> l2title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> key<span class="punctuation">,</span> l3title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> l3key<span class="punctuation">,</span> l3title <span class="operator">=</span> l3title<span class="punctuation">,</span></span><br><span class="line">         l4key <span class="operator">=</span> key<span class="punctuation">,</span> l4title <span class="operator">=</span> title<span class="punctuation">,</span> children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>children<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>data<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>l1key <span class="operator">=</span> l1key<span class="punctuation">,</span> l1title <span class="operator">=</span> l1title<span class="punctuation">,</span></span><br><span class="line">         l2key <span class="operator">=</span> l2key<span class="punctuation">,</span> l2title <span class="operator">=</span> l2title<span class="punctuation">,</span></span><br><span class="line">         l3key <span class="operator">=</span> l3key<span class="punctuation">,</span> l3title <span class="operator">=</span> l3title<span class="punctuation">,</span></span><br><span class="line">         l4key <span class="operator">=</span> l4key<span class="punctuation">,</span> l4title <span class="operator">=</span> l4title<span class="punctuation">,</span></span><br><span class="line">         l5key <span class="operator">=</span> key<span class="punctuation">,</span> l5title <span class="operator">=</span> title<span class="punctuation">,</span> IPC<span class="punctuation">)</span> <span class="operator">-&gt;</span> l5df</span><br></pre></td></tr></table></figure>
+
+<p>合并所有的结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">bind_rows<span class="punctuation">(</span></span><br><span class="line">  l1df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>key <span class="operator">=</span> l1key<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  l2df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>key <span class="operator">=</span> l2key<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  l3df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>key <span class="operator">=</span> l3key<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  l4df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>key <span class="operator">=</span> l4key<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  l5df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>key <span class="operator">=</span> l5key<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>key<span class="punctuation">,</span> IPC<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>key <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>key<span class="punctuation">,</span> <span class="string">&quot;_&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>key<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>l1key<span class="punctuation">,</span> <span class="operator">-</span>l2key<span class="punctuation">,</span> <span class="operator">-</span>l3key<span class="punctuation">,</span> <span class="operator">-</span>l4key<span class="punctuation">,</span> <span class="operator">-</span>l5key<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>IPC<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>l1title <span class="operator">=</span> str_to_sentence<span class="punctuation">(</span>l1title<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf</span><br><span class="line">ipcdf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 186 × 7</span></span><br><span class="line"><span class="comment">#&gt;      key IPC                             l1title l2title l3title l4title l5title</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;                           &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     3 C10L 5/00, 5/40-5/48            Altern… Bio-fu… Solid … &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  2     4 C10B 53/02. C10L 5/40, 9/00     Altern… Bio-fu… Solid … Torref… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  3     5 C10L 1/00, 1/02, 1/14           Altern… Bio-fu… Liquid… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  4     6 C10L 1/02, 1/19                 Altern… Bio-fu… Liquid… Vegeta… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  5     7 C07C 67/00, 69/00. C10G. C10L … Altern… Bio-fu… Liquid… Biodie… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  6     8 C10L 1/02, 1/182. C12N 9/24. C… Altern… Bio-fu… Liquid… Bioeth… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  7     9 C02F 3/28, 11/04. C10L 3/00. C… Altern… Bio-fu… Biogas  &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  8    10 C12N 1/13, 1/15, 1/21, 5/10, 1… Altern… Bio-fu… From g… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  9    11 C10L 3/00. F02C 3/28            Altern… Integr… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; 10    12 H01M 4/86-4/98, 8/00-8/24, 12/… Altern… Fuel c… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; # … with 176 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>里面的不少 IPC 使用 <code>.</code> 分隔范围，可以使用 tidytext 包的 unnest_tokens() 函数展开这些：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidytext<span class="punctuation">)</span></span><br><span class="line">ipcdf <span class="operator">%&gt;%</span></span><br><span class="line">  unnest_tokens<span class="punctuation">(</span>IPC<span class="punctuation">,</span> IPC<span class="punctuation">,</span> token <span class="operator">=</span> stringr<span class="operator">::</span>str_split<span class="punctuation">,</span></span><br><span class="line">                pattern <span class="operator">=</span> <span class="string">&quot;\\. &quot;</span><span class="punctuation">,</span> to_lower <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> str_sub<span class="punctuation">(</span>IPC<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         IPC <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>IPC<span class="punctuation">,</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         IPC <span class="operator">=</span> str_trim<span class="punctuation">(</span>IPC<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>key<span class="punctuation">,</span> IPC<span class="punctuation">,</span> <span class="built_in">class</span><span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest_tokens<span class="punctuation">(</span>IPC<span class="punctuation">,</span> IPC<span class="punctuation">,</span> token <span class="operator">=</span> stringr<span class="operator">::</span>str_split<span class="punctuation">,</span></span><br><span class="line">                pattern <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">,</span> to_lower <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf</span><br><span class="line">ipcdf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 350 × 8</span></span><br><span class="line"><span class="comment">#&gt;      key IPC       class l1title                 l2title l3title l4title l5title</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;                   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     3 5/00      C10L  Alternative energy pro… Bio-fu… Solid … &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  2     3 5/40-5/48 C10L  Alternative energy pro… Bio-fu… Solid … &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  3     4 53/02     C10B  Alternative energy pro… Bio-fu… Solid … Torref… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  4     4 5/40      C10L  Alternative energy pro… Bio-fu… Solid … Torref… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  5     4 9/00      C10L  Alternative energy pro… Bio-fu… Solid … Torref… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  6     5 1/00      C10L  Alternative energy pro… Bio-fu… Liquid… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  7     5 1/02      C10L  Alternative energy pro… Bio-fu… Liquid… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  8     5 1/14      C10L  Alternative energy pro… Bio-fu… Liquid… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  9     6 1/02      C10L  Alternative energy pro… Bio-fu… Liquid… Vegeta… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; 10     6 1/19      C10L  Alternative energy pro… Bio-fu… Liquid… Vegeta… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; # … with 340 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>根据 IPC 变量，我们把数据分为下面几类：</p>
+<h3 id="第一类：只有大类的" class="article-heading"><a href="#第一类：只有大类的" class="headerlink" title="第一类：只有大类的"></a>第一类：只有大类的<a class="article-anchor" href="#第一类：只有大类的" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipcdf <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_length<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">==</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf1</span><br><span class="line">ipcdf1</span><br><span class="line"><span class="comment">#&gt; # A tibble: 2 × 8</span></span><br><span class="line"><span class="comment">#&gt;     key IPC   class l1title                  l2title     l3title l4title l5title</span></span><br><span class="line"><span class="comment">#&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;                    &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1   115 &quot;&quot;    B61   Transportation           Rail vehic… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; 2   203 &quot;&quot;    G21   Nuclear power generation Nuclear en… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第二类：只有大类小类的" class="article-heading"><a href="#第二类：只有大类小类的" class="headerlink" title="第二类：只有大类小类的"></a>第二类：只有大类小类的<a class="article-anchor" href="#第二类：只有大类小类的" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipcdf <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_length<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">==</span> <span class="number">4</span> <span class="operator">&amp;</span> IPC <span class="operator">==</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf2</span><br><span class="line">ipcdf2</span><br><span class="line"><span class="comment">#&gt; # A tibble: 29 × 8</span></span><br><span class="line"><span class="comment">#&gt;      key IPC   class l1title                     l2title l3title l4title l5title</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;                       &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     7 &quot;&quot;    C10G  Alternative energy product… Bio-fu… Liquid… Biodie… &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  2    10 &quot;&quot;    A01H  Alternative energy product… Bio-fu… From g… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  3    17 &quot;&quot;    C10J  Alternative energy product… Pyroly… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  4    30 &quot;&quot;    B09B  Alternative energy product… Harnes… Landfi… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  5    36 &quot;&quot;    F03B  Alternative energy product… Hydro … Machin… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  6    36 &quot;&quot;    F03C  Alternative energy product… Hydro … Machin… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  7    41 &quot;&quot;    F03D  Alternative energy product… Wind e… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  8    47 &quot;&quot;    F24S  Alternative energy product… Solar … &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt;  9    47 &quot;&quot;    H02S  Alternative energy product… Solar … &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; 10    57 &quot;&quot;    F24S  Alternative energy product… Solar … Use of… &lt;NA&gt;    &lt;NA&gt;</span></span><br><span class="line"><span class="comment">#&gt; # … with 19 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第三类：没有范围的" class="article-heading"><a href="#第三类：没有范围的" class="headerlink" title="第三类：没有范围的"></a>第三类：没有范围的<a class="article-anchor" href="#第三类：没有范围的" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipcdf <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span>str_detect<span class="punctuation">(</span>IPC<span class="punctuation">,</span> <span class="string">&quot;-&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf3</span><br></pre></td></tr></table></figure>
+
+<h3 id="第四类：有范围的" class="article-heading"><a href="#第四类：有范围的" class="headerlink" title="第四类：有范围的"></a>第四类：有范围的<a class="article-anchor" href="#第四类：有范围的" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipcdf <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>ipcdf3<span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf4</span><br></pre></td></tr></table></figure>
+
+<p>对于这里用 <code>-</code> 连接的范围，我们需要手动找到这些范围包含的所有分类号补齐，补齐之后得到的数据是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;ipcdf4.xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest_tokens<span class="punctuation">(</span>IPC<span class="punctuation">,</span> IPC<span class="punctuation">,</span> token <span class="operator">=</span> stringr<span class="operator">::</span>str_split<span class="punctuation">,</span></span><br><span class="line">                pattern <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">,</span> to_lower <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipcdf4</span><br></pre></td></tr></table></figure>
+
+<p>最后我们再把这些 ipcdf* 保存下来：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipcdf1 <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;ipcdf1.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">ipcdf2 <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;ipcdf2.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">ipcdf3 <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;ipcdf3.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">ipcdf4 <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;ipcdf4.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>下次课我们再讲解如何使用这些数据从专利数据中筛选绿色专利数据。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/6edd7ed2f3284915b2c916ead3fbfd10">使用 R 语言爬取处理 WIPO 绿色专利分类数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.199Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/45950/" title="旧版本｜1998～2014 年工企数据与绿色专利匹配结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/71672/" title="1998～2014 年工企与上市公司匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21497/">使用 R 语言绘制城市间专利合作申请数量网络图(二)</a><span class="tf-related-meta">2025-03-08 · 约 6 分钟</span></li><li><a href="/posts/54050/">使用 R 语言绘制城市间专利合作申请数量网络图(一)</a><span class="tf-related-meta">2025-03-08 · 约 9 分钟</span></li><li><a href="/posts/14967/">使用 R 语言爬取外交部官网驻外报道</a><span class="tf-related-meta">2024-05-06 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%B1%BB%EF%BC%9A%E5%8F%AA%E6%9C%89%E5%A4%A7%E7%B1%BB%E7%9A%84"><span class="toc-text">第一类：只有大类的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%B1%BB%EF%BC%9A%E5%8F%AA%E6%9C%89%E5%A4%A7%E7%B1%BB%E5%B0%8F%E7%B1%BB%E7%9A%84"><span class="toc-text">第二类：只有大类小类的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%B1%BB%EF%BC%9A%E6%B2%A1%E6%9C%89%E8%8C%83%E5%9B%B4%E7%9A%84"><span class="toc-text">第三类：没有范围的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%B1%BB%EF%BC%9A%E6%9C%89%E8%8C%83%E5%9B%B4%E7%9A%84"><span class="toc-text">第四类：有范围的</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

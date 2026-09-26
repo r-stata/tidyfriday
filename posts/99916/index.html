@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言绘制中国地图 + 空间网络图 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/99916/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="前不久给大家分享过「上市公司前5大供应商和客户工商注册数据匹配结果（含经纬度和所处的省市区县）」数据，在数据介绍中我展示了「2022 年上市公司前 5 大客户与供应商地理分布」：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言绘制中国地图 + 空间网络图">
+<meta property="og:url" content="https://tidyfriday.cn/posts/99916/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="前不久给大家分享过「上市公司前5大供应商和客户工商注册数据匹配结果（含经纬度和所处的省市区县）」数据，在数据介绍中我展示了「2022 年上市公司前 5 大客户与供应商地理分布」：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/99916.png">
+<meta property="article:published_time" content="2024-01-09T23:55:43.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.456Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/99916.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言绘制中国地图 + 空间网络图">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言绘制中国地图 + 空间网络图","description":"前不久给大家分享过「上市公司前5大供应商和客户工商注册数据匹配结果（含经纬度和所处的省市区县）」数据，在数据介绍中我展示了「2022 年上市公司前 5 大客户与供应商地理分布」：","url":"https://tidyfriday.cn/posts/99916/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/99916/"},"image":["https://tidyfriday.cn/og/99916.png"],"datePublished":"2024-01-09T23:55:43.000Z","dateModified":"2026-09-26T14:18:44.456Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, 地图, R 语言","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言绘制中国地图 + 空间网络图","item":"https://tidyfriday.cn/posts/99916/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言绘制中国地图 + 空间网络图</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言绘制中国地图 + 空间网络图</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-01-09T23:55:43.000Z" itemprop="datePublished">2024-01-09</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2115 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>前不久给大家分享过「上市公司前5大供应商和客户工商注册数据匹配结果（含经纬度和所处的省市区县）」数据，在数据介绍中我展示了「2022 年上市公司前 5 大客户与供应商地理分布」：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/23/02b79j1bdbe1b168g4/common/content/1704815535888_387928.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这幅图是使用 Stata 绘制，今天的课程中我们将一起学习下该如何在 Stata 中绘制。</p>
+<p>在学习该课程前，需要预先学习下面两个课程：</p>
+<ul>
+<li>使用 R 语言绘制历年中国省市区县地图（小地图版本+长版）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c">https://rstata.duanshu.com/#/brief/course/379d19770956478ebc4d919910fca74c</a></li>
+<li>使用 R 语言绘制带邻国地区的中国地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/595e69cd0cf0417c8f72f0c007ea9d37">https://rstata.duanshu.com/#/brief/course/595e69cd0cf0417c8f72f0c007ea9d37</a></li>
+</ul>
+<p>今天的课程也将在之前的这两个课程的基础上进行讲解。</p>
+<p>绘制地图和在地图上添加散点图的方法之前我们都已经讲解过了，因此我们今天就直接来看如何在地图上添加连接线。</p>
+<p>显然，连接线需要的数据至少应该包含起始点的经纬度坐标，下面我们先构造绘制连接线所需的数据。</p>
+<p>加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>读取上市公司经纬度数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;上市公司注册地址经纬度数据.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0</span><br></pre></td></tr></table></figure>
+
+<p>中国地图通常使用这样的坐标系：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于绘图使用的底图是 mycrs 坐标系下的，所以下面我们需要把所有的经纬度都转换成 mycrs 坐标系下的坐标：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df0 <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;注册地址经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;注册地址纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> df0</span><br><span class="line"></span><br><span class="line">bind_cols<span class="punctuation">(</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span>df0<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span>df0<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;注册地址经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;注册地址纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0</span><br></pre></td></tr></table></figure>
+
+<p>构造上市公司-供应商连接线数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 构造上市公司-供应商连接线数据</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2022年上市公司供应商信息.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> 省<span class="punctuation">,</span> 股票代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>供应商经度 <span class="operator">=</span> 经度<span class="punctuation">,</span></span><br><span class="line">         供应商纬度 <span class="operator">=</span> 纬度<span class="punctuation">,</span></span><br><span class="line">         供应商所在省 <span class="operator">=</span> 省<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfa</span><br><span class="line"></span><br><span class="line">dfa <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;供应商经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;供应商纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfa</span><br><span class="line"></span><br><span class="line">bind_cols<span class="punctuation">(</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span>dfa<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span>dfa<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;供应商经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;供应商纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfa</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接两个数据</span></span><br><span class="line">dfa <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>df0<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 供应商经度<span class="punctuation">,</span> 供应商纬度<span class="punctuation">,</span> 供应商所在省<span class="punctuation">,</span> 注册地址经度<span class="punctuation">,</span> 注册地址纬度<span class="punctuation">,</span> 注册地址所在省份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>上市公司经度 <span class="operator">=</span> 注册地址经度<span class="punctuation">,</span></span><br><span class="line">         上市公司纬度 <span class="operator">=</span> 注册地址纬度<span class="punctuation">,</span></span><br><span class="line">         上市公司所在省 <span class="operator">=</span> 注册地址所在省份<span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,262 × 7</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 供应商经度 供应商纬度 供应商所在省 上市公司经度 上市公司纬度</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;               &lt;dbl&gt;        &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000005     1608294.   3299398. 浙江省            944512.     2386745.</span></span><br><span class="line"><span class="comment">#&gt;  2 000005      867836.   2441568. 广东省            944512.     2386745.</span></span><br><span class="line"><span class="comment">#&gt;  3 000006      356692.   3660158. 陕西省            942786.     2386569.</span></span><br><span class="line"><span class="comment">#&gt;  4 000006      935506.   2385749. 广东省            942786.     2386569.</span></span><br><span class="line"><span class="comment">#&gt;  5 000006     1487424.   3526677. 江苏省            942786.     2386569.</span></span><br><span class="line"><span class="comment">#&gt;  6 000006      768901.   3004543. 湖南省            942786.     2386569.</span></span><br><span class="line"><span class="comment">#&gt;  7 000007     1552862.   3445405. 上海市            940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt;  8 000007      823579.   2374488. 广东省            940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt;  9 000007     1536324.   3437444. 上海市            940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt; 10 000007     1315762.   3482064. 江苏省            940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,252 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: 上市公司所在省 &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>构造上市公司-客户连接线数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2022年上市公司客户信息.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> 省<span class="punctuation">,</span> 股票代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>客户经度 <span class="operator">=</span> 经度<span class="punctuation">,</span></span><br><span class="line">         客户纬度 <span class="operator">=</span> 纬度<span class="punctuation">,</span></span><br><span class="line">         客户所在省 <span class="operator">=</span> 省<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfb</span><br><span class="line"></span><br><span class="line">dfb <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;客户经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;客户纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfb</span><br><span class="line"></span><br><span class="line">bind_cols<span class="punctuation">(</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span>dfb<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span>dfb<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;客户经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;客户纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfb</span><br><span class="line"></span><br><span class="line">dfb <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>df0<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 客户经度<span class="punctuation">,</span> 客户纬度<span class="punctuation">,</span> 客户所在省<span class="punctuation">,</span> 注册地址经度<span class="punctuation">,</span> 注册地址纬度<span class="punctuation">,</span> 注册地址所在省份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>上市公司经度 <span class="operator">=</span> 注册地址经度<span class="punctuation">,</span></span><br><span class="line">         上市公司纬度 <span class="operator">=</span> 注册地址纬度<span class="punctuation">,</span></span><br><span class="line">         上市公司所在省 <span class="operator">=</span> 注册地址所在省份<span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,993 × 7</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 客户经度 客户纬度 客户所在省 上市公司经度 上市公司纬度</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000005   1431886. 3317730. 浙江省          944512.     2386745.</span></span><br><span class="line"><span class="comment">#&gt;  2 000005   1513723. 3162952. 浙江省          944512.     2386745.</span></span><br><span class="line"><span class="comment">#&gt;  3 000006    938641. 2386290. 广东省          942786.     2386569.</span></span><br><span class="line"><span class="comment">#&gt;  4 000007    940338. 2386288. 广东省          940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt;  5 000007    937929. 2385388. 广东省          940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt;  6 000007    940290. 2386210. 广东省          940278.     2386306.</span></span><br><span class="line"><span class="comment">#&gt;  7 000010   -256449. 2607587. 云南省          918984.     2384949.</span></span><br><span class="line"><span class="comment">#&gt;  8 000010    855612. 2435194. 广东省          918984.     2384949.</span></span><br><span class="line"><span class="comment">#&gt;  9 000010    145654. 2774150. 贵州省          918984.     2384949.</span></span><br><span class="line"><span class="comment">#&gt; 10 000010   -229982. 2620613. 云南省          918984.     2384949.</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,983 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: 上市公司所在省 &lt;chr&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>构造散点数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">bind_rows<span class="punctuation">(</span></span><br><span class="line">  df1 <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span>上市公司经度<span class="punctuation">,</span> 上市公司纬度<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="string">&quot;上市公司&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  df1 <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span>供应商经度<span class="punctuation">,</span> 供应商纬度<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="string">&quot;供应商/客户&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdf1</span><br><span class="line"></span><br><span class="line">bind_rows<span class="punctuation">(</span></span><br><span class="line">  df2 <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span>上市公司经度<span class="punctuation">,</span> 上市公司纬度<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="string">&quot;上市公司&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  df2 <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span>客户经度<span class="punctuation">,</span> 客户纬度<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    set_names<span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="string">&quot;供应商/客户&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdf2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 转换成 sf 对象</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">pointdf1 <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf1</span><br><span class="line"></span><br><span class="line">pointdf2 <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf2</span><br></pre></td></tr></table></figure>
+
+<p>在读取相关的地图数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取小地图版本的中国城市地图</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinacity2019mini/chinacity2019mini.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>省代码<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymap</span><br><span class="line"></span><br><span class="line"><span class="comment"># 线条</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;chinacity2019mini/chinacity2019mini_line.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span><span class="punctuation">,</span> <span class="string">&quot;海岸线&quot;</span><span class="punctuation">,</span> <span class="string">&quot;小地图框格&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citylinemap</span><br><span class="line"></span><br><span class="line"><span class="comment"># 邻国地图</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;china_neighboring/china_neighboring.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> china_neighboring</span><br></pre></td></tr></table></figure>
+
+<p>为了让图表更美观，我们可以提取小地图部分的散点也绘制到图上：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 小地图的范围</span></span><br><span class="line">small_bbox <span class="operator">&lt;-</span> st_bbox<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>xmin <span class="operator">=</span> <span class="number">120000</span><span class="punctuation">,</span></span><br><span class="line">                        xmax <span class="operator">=</span> <span class="number">1766004.1</span><span class="punctuation">,</span></span><br><span class="line">                        ymax <span class="operator">=</span> <span class="number">2557786.0</span><span class="punctuation">,</span></span><br><span class="line">                        ymin <span class="operator">=</span> <span class="number">320000</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                      crs <span class="operator">=</span> st_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sfc<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取小地图上的点</span></span><br><span class="line">pointdfsf1 <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>small_bbox<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf1_small</span><br><span class="line">pointdfsf2 <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>small_bbox<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf2_small</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把这些点移动到小地图的位置</span></span><br><span class="line">pointdfsf1_small <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>geometry <span class="operator">=</span> geometry <span class="operator">*</span> <span class="number">0.5</span> <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">2100000</span><span class="punctuation">,</span> <span class="number">1665139</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  sf<span class="operator">::</span>st_set_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf1_small</span><br><span class="line">pointdfsf2_small <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>geometry <span class="operator">=</span> geometry <span class="operator">*</span> <span class="number">0.5</span> <span class="operator">+</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">2100000</span><span class="punctuation">,</span> <span class="number">1665139</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  sf<span class="operator">::</span>st_set_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsf2_small</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并两部分</span></span><br><span class="line">bind_rows<span class="punctuation">(</span>pointdfsf1<span class="punctuation">,</span> pointdfsf1_small<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsfall1</span><br><span class="line">bind_rows<span class="punctuation">(</span>pointdfsf2<span class="punctuation">,</span> pointdfsf2_small<span class="punctuation">)</span> <span class="operator">-&gt;</span> pointdfsfall2</span><br></pre></td></tr></table></figure>
+
+<p>绘图区域（数据制作的时候预设好的）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">st_bbox<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>xmin <span class="operator">=</span> <span class="operator">-</span><span class="number">2725586</span><span class="punctuation">,</span></span><br><span class="line">          xmax <span class="operator">=</span> <span class="number">2982768</span><span class="punctuation">,</span></span><br><span class="line">          ymax <span class="operator">=</span> <span class="number">6000000</span><span class="punctuation">,</span></span><br><span class="line">          ymin <span class="operator">=</span> <span class="number">1800655</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        crs <span class="operator">=</span> st_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sfc<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> plotbbox</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以绘图了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 绘图</span></span><br><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggnewscale<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置绘图主题</span></span><br><span class="line">theme_set<span class="punctuation">(</span></span><br><span class="line">  hrbrthemes<span class="operator">::</span>theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    theme<span class="punctuation">(</span>axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.title.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.text.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          axis.text.y <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          panel.grid.major <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          plot.title <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          plot.subtitle <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          legend.position <span class="operator">=</span> <span class="string">&quot;bottom&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 供应商——上市公司</span></span><br><span class="line">ggplot<span class="punctuation">(</span>citymap<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> plotbbox<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#BBD1EB&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.01</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> china_neighboring<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#EDEDED&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  stat_sf_coordinates<span class="punctuation">(</span>data <span class="operator">=</span> china_neighboring<span class="punctuation">,</span></span><br><span class="line">                      geom <span class="operator">=</span> <span class="string">&quot;text&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      aes<span class="punctuation">(</span>label <span class="operator">=</span> country_cn<span class="punctuation">)</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                      size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> citylinemap<span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#A29AC4&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_manual<span class="punctuation">(</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="number">0.6</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> pointdfsfall1<span class="punctuation">,</span> aes<span class="punctuation">(</span>color <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#fed439&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                     name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_segment<span class="punctuation">(</span>data <span class="operator">=</span> df1<span class="punctuation">,</span></span><br><span class="line">             aes<span class="punctuation">(</span>x <span class="operator">=</span> 供应商经度<span class="punctuation">,</span> y <span class="operator">=</span> 供应商纬度<span class="punctuation">,</span></span><br><span class="line">                 xend <span class="operator">=</span> 上市公司经度<span class="punctuation">,</span> yend <span class="operator">=</span> 上市公司纬度<span class="punctuation">,</span></span><br><span class="line">                 color <span class="operator">=</span> 上市公司所在省<span class="punctuation">)</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.05</span><span class="punctuation">,</span></span><br><span class="line">             arrow <span class="operator">=</span> arrow<span class="punctuation">(</span><span class="built_in">length</span> <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.01</span><span class="punctuation">,</span> <span class="string">&quot;npc&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> type <span class="operator">=</span> <span class="string">&quot;closed&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> paletteer<span class="operator">::</span>paletteer_d<span class="punctuation">(</span><span class="string">&quot;ggsci::default_igv&quot;</span><span class="punctuation">,</span> n <span class="operator">=</span> <span class="number">31</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;上市公司前 5 大供应商&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;绘图：微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> guide_legend<span class="punctuation">(</span>nrow <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                   pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.2</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                   pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span></span><br><span class="line">    which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> p1</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic1.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">9</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">7.5</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/23/02b79j1bdbe1b168g4/common/content/1704815534077_223341.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>上市公司和客户的连接线绘制方法类似：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 上市公司——客户</span></span><br><span class="line">ggplot<span class="punctuation">(</span>citymap<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> plotbbox<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#BBD1EB&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>fill <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.01</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> china_neighboring<span class="punctuation">,</span> fill <span class="operator">=</span> <span class="string">&quot;#EDEDED&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  stat_sf_coordinates<span class="punctuation">(</span>data <span class="operator">=</span> china_neighboring<span class="punctuation">,</span></span><br><span class="line">                      geom <span class="operator">=</span> <span class="string">&quot;text&quot;</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      aes<span class="punctuation">(</span>label <span class="operator">=</span> country_cn<span class="punctuation">)</span><span class="punctuation">,</span> family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                      size <span class="operator">=</span> <span class="number">3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> citylinemap<span class="punctuation">,</span></span><br><span class="line">          aes<span class="punctuation">(</span>color <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#A29AC4&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="string">&quot;#0055AA&quot;</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_linewidth_manual<span class="punctuation">(</span></span><br><span class="line">    values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span> <span class="operator">=</span> <span class="number">0.6</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;海岸线&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">               <span class="string">&quot;小地图框格&quot;</span> <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> pointdfsfall2<span class="punctuation">,</span> aes<span class="punctuation">(</span>color <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          size <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#fed439&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                     name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  new_scale_color<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_segment<span class="punctuation">(</span>data <span class="operator">=</span> df2<span class="punctuation">,</span></span><br><span class="line">               aes<span class="punctuation">(</span>xend <span class="operator">=</span> 客户经度<span class="punctuation">,</span> yend <span class="operator">=</span> 客户纬度<span class="punctuation">,</span></span><br><span class="line">                   x <span class="operator">=</span> 上市公司经度<span class="punctuation">,</span> y <span class="operator">=</span> 上市公司纬度<span class="punctuation">,</span></span><br><span class="line">                   color <span class="operator">=</span> 上市公司所在省<span class="punctuation">)</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.05</span><span class="punctuation">,</span></span><br><span class="line">               arrow <span class="operator">=</span> arrow<span class="punctuation">(</span><span class="built_in">length</span> <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.01</span><span class="punctuation">,</span> <span class="string">&quot;npc&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> type <span class="operator">=</span> <span class="string">&quot;closed&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               show.legend <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> paletteer<span class="operator">::</span>paletteer_d<span class="punctuation">(</span><span class="string">&quot;ggsci::default_igv&quot;</span><span class="punctuation">,</span> n <span class="operator">=</span> <span class="number">31</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;上市公司前 5 大客户&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;绘图：微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  guides<span class="punctuation">(</span>color <span class="operator">=</span> guide_legend<span class="punctuation">(</span>nrow <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_scale<span class="punctuation">(</span>location <span class="operator">=</span> <span class="string">&quot;bl&quot;</span><span class="punctuation">,</span></span><br><span class="line">                   width_hint <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span></span><br><span class="line">                   text_family <span class="operator">=</span> cnfont<span class="punctuation">,</span></span><br><span class="line">                   pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1.2</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                   pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  annotation_north_arrow<span class="punctuation">(</span></span><br><span class="line">    location <span class="operator">=</span> <span class="string">&quot;tr&quot;</span><span class="punctuation">,</span></span><br><span class="line">    which_north <span class="operator">=</span> <span class="string">&quot;false&quot;</span><span class="punctuation">,</span></span><br><span class="line">    pad_x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    pad_y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;cm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    style <span class="operator">=</span> north_arrow_fancy_orienteering<span class="punctuation">(</span></span><br><span class="line">      text_family <span class="operator">=</span> cnfont</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> p2</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic2.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">9</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">7.5</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/23/02b79j1bdbe1b168g4/common/content/1704815535316_515444.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>最后还可以合并两幅图并使用相同的图例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并两幅图</span></span><br><span class="line">library<span class="punctuation">(</span>patchwork<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">p1 <span class="operator">+</span></span><br><span class="line">  p2 <span class="operator">+</span></span><br><span class="line">  plot_layout<span class="punctuation">(</span>guides <span class="operator">=</span> <span class="string">&#x27;collect&#x27;</span><span class="punctuation">)</span> <span class="operator">&amp;</span></span><br><span class="line">  theme<span class="punctuation">(</span>legend.position <span class="operator">=</span> <span class="string">&#x27;bottom&#x27;</span><span class="punctuation">)</span><span class="operator">-&gt;</span> p</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;pic3.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">15</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">7.5</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/23/02b79j1bdbe1b168g4/common/content/1704815534617_993613.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/82fa1ce28006473ead5b05cfdde1d6e1">使用 R 语言绘制中国地图 + 空间网络图</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.456Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/88661/" title="1988～2022 年金融机构网点各种绿色专利数量及专利知识宽度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/62610/" title="使用 R 语言绘制地图课程汇总"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/81983/">使用 R 语言绘制填充地图、栅格地图 + 等降水量线</a><span class="tf-related-meta">2024-11-25 · 约 8 分钟</span></li><li><a href="/posts/58740/">使用 R 语言绘制美国州县地图</a><span class="tf-related-meta">2024-07-26 · 约 13 分钟</span></li><li><a href="/posts/74173/">使用 R 语言绘制中国乡镇地图及根据经纬度判断所处的乡镇</a><span class="tf-related-meta">2024-03-19 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

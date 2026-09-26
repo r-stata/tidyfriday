@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/35174/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利">
+<meta property="og:url" content="https://tidyfriday.cn/posts/35174/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/35174.png">
+<meta property="article:published_time" content="2026-07-16T22:17:04.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.324Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/35174.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利","description":"今天给大家分享使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利的方法。","url":"https://tidyfriday.cn/posts/35174/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/35174/"},"image":["https://tidyfriday.cn/og/35174.png"],"datePublished":"2026-07-16T22:17:04.000Z","dateModified":"2026-09-26T14:18:50.324Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 专利, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利","item":"https://tidyfriday.cn/posts/35174/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-07-16T22:17:04.000Z" itemprop="datePublished">2026-07-16</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2693 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利的方法。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>不过需要注意，直接对每个专利计算和之前年份（即使是 3 年内的）所有专利的相似度是非常非常耗时的，建议还是限定在某个领域内，例如只计算该专利与自己所在的部、大类、小类的。</p>
+</blockquote>
+<h2 id="1-指标来源与计算方法" class="article-heading"><a href="#1-指标来源与计算方法" class="headerlink" title="1. 指标来源与计算方法"></a>1. 指标来源与计算方法<a class="article-anchor" href="#1-指标来源与计算方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>参照冉征、刘修岩、陈露（2025）发表于《中国工业经济》2025 年第 10 期的论文《技术集群结构与颠覆式创新——兼论关联性”陷阱”的突破路径》，本文基于 Kelly et al.（2021）设计的文本相似度法，通过专利文本的前后对比测度每项专利的颠覆性指标。</p>
+<h3 id="1-1-核心思想" class="article-heading"><a href="#1-1-核心思想" class="headerlink" title="1.1 核心思想"></a>1.1 核心思想<a class="article-anchor" href="#1-1-核心思想" aria-label="本节链接" title="复制本节链接"></a></h3><p>颠覆式创新聚焦突破原有技术模式，形成全新的生产和价值创造模式，即<strong>一方面突破已有技术的限制，另一方面对后续的创新活动产生深远影响</strong>（Kerr, 2010）。基于这一内涵，一项专利如果：</p>
+<ul>
+<li>与此前的专利关联性较小（新颖性高）</li>
+<li>与此后的专利关联性较大（影响力大）</li>
+</ul>
+<p>则说明该项专利突破了已有技术的框架，形成了新的技术模式，具有更强的颠覆性。</p>
+<h3 id="1-2-计算步骤" class="article-heading"><a href="#1-2-计算步骤" class="headerlink" title="1.2 计算步骤"></a>1.2 计算步骤<a class="article-anchor" href="#1-2-计算步骤" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/16/22/02b79j1bdbe1b168g4/common/content/1784211310022_684439.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-3-两种计算方案" class="article-heading"><a href="#1-3-两种计算方案" class="headerlink" title="1.3 两种计算方案"></a>1.3 两种计算方案<a class="article-anchor" href="#1-3-两种计算方案" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/16/22/02b79j1bdbe1b168g4/common/content/1784211310280_366283.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-4-颠覆性专利筛选" class="article-heading"><a href="#1-4-颠覆性专利筛选" class="headerlink" title="1.4 颠覆性专利筛选"></a>1.4 颠覆性专利筛选<a class="article-anchor" href="#1-4-颠覆性专利筛选" aria-label="本节链接" title="复制本节链接"></a></h3><p>考虑到 radical 指数是连续指标且可以跨时期对比，按照论文方法设置<strong>前 5%</strong> 作为颠覆式创新的识别区间，即全样本中颠覆性指数位于前 5% 的专利定义为颠覆式创新专利。</p>
+<hr>
+<h2 id="2-数据读取与预处理" class="article-heading"><a href="#2-数据读取与预处理" class="headerlink" title="2. 数据读取与预处理"></a>2. 数据读取与预处理<a class="article-anchor" href="#2-数据读取与预处理" aria-label="本节链接" title="复制本节链接"></a></h2><p>加载相关 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">required_packages <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;tidyverse&quot;</span><span class="punctuation">,</span>   <span class="comment"># 数据处理与管道操作</span></span><br><span class="line">  <span class="string">&quot;tidytext&quot;</span><span class="punctuation">,</span>    <span class="comment"># 文本挖掘</span></span><br><span class="line">  <span class="string">&quot;jiebaR&quot;</span><span class="punctuation">,</span>      <span class="comment"># 中文分词</span></span><br><span class="line">  <span class="string">&quot;text2vec&quot;</span><span class="punctuation">,</span>    <span class="comment"># 文本向量化与相似度计算</span></span><br><span class="line">  <span class="string">&quot;Matrix&quot;</span><span class="punctuation">,</span>      <span class="comment"># 稀疏矩阵运算</span></span><br><span class="line">  <span class="string">&quot;haven&quot;</span><span class="punctuation">,</span>       <span class="comment"># 读写 .dta 文件</span></span><br><span class="line">  <span class="string">&quot;progress&quot;</span>     <span class="comment"># 进度条</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> <span class="punctuation">(</span>pkg <span class="keyword">in</span> required_packages<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>requireNamespace<span class="punctuation">(</span>pkg<span class="punctuation">,</span> quietly <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    install.packages<span class="punctuation">(</span>pkg<span class="punctuation">,</span> repos <span class="operator">=</span> <span class="string">&quot;https://cloud.r-project.org&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>tidytext<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>jiebaR<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>Matrix<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>首先读取专利数据样本文件夹中的所有 CSV 文件。专利数据包含如下变量：<code>newipzlid</code>（专利 ID，前 4 位为年份）、<code>标题</code>、<code>摘要</code>、<code>公开公告号</code>、<code>申请号</code>。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">data_dir <span class="operator">&lt;-</span> <span class="string">&quot;专利数据样本&quot;</span></span><br><span class="line">csv_files <span class="operator">&lt;-</span> list.files<span class="punctuation">(</span>data_dir<span class="punctuation">,</span> pattern <span class="operator">=</span> <span class="string">&quot;\\.csv$&quot;</span><span class="punctuation">,</span> full.names <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n===== 读取专利数据 =====\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">df_raw <span class="operator">&lt;-</span> csv_files <span class="operator">%&gt;%</span></span><br><span class="line">  map_dfr<span class="punctuation">(</span><span class="operator">~</span> read_csv<span class="punctuation">(</span>.x<span class="punctuation">,</span> show_col_types <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span> locale <span class="operator">=</span> locale<span class="punctuation">(</span>encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;原始数据总行数: %d\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df_raw<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1-提取年份" class="article-heading"><a href="#2-1-提取年份" class="headerlink" title="2.1 提取年份"></a>2.1 提取年份<a class="article-anchor" href="#2-1-提取年份" aria-label="本节链接" title="复制本节链接"></a></h3><p>从 <code>newipzlid</code> 的前 4 位提取专利申请年份：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">&lt;-</span> df_raw <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>年份 <span class="operator">=</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">(</span>newipzlid<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;年份范围: %d - %d\n&quot;</span><span class="punctuation">,</span> <span class="built_in">min</span><span class="punctuation">(</span>df<span class="operator">$</span>年份<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">max</span><span class="punctuation">(</span>df<span class="operator">$</span>年份<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-专利去重" class="article-heading"><a href="#2-2-专利去重" class="headerlink" title="2.2 专利去重"></a>2.2 专利去重<a class="article-anchor" href="#2-2-专利去重" aria-label="本节链接" title="复制本节链接"></a></h3><p>专利数据中可能存在重复专利，需要按年份和申请号进行去重。先去重公开公告号（去掉末尾的类型标识字母），再去重申请号：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n===== 专利去重 =====\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;去重前: %d 行\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 年份 + 公开公告号 去重（去掉末尾字母）</span></span><br><span class="line">df <span class="operator">&lt;-</span> df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    公开公告号_clean <span class="operator">=</span> str_replace<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">,</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>年份<span class="punctuation">,</span> 公开公告号_clean<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>公开公告号_clean<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 年份 + 申请号 去重（保留第一次出现的记录）</span></span><br><span class="line">df <span class="operator">&lt;-</span> df <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>年份<span class="punctuation">,</span> 申请号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;去重后: %d 行\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-文本清洗" class="article-heading"><a href="#2-3-文本清洗" class="headerlink" title="2.3 文本清洗"></a>2.3 文本清洗<a class="article-anchor" href="#2-3-文本清洗" aria-label="本节链接" title="复制本节链接"></a></h3><p>合并专利的标题和摘要作为完整文本，去除标点、数字、英文及多余空格：</p>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">df</span><br><span class="line"></span><br><span class="line">#&gt; # A tibble: 10,993 × 8</span><br><span class="line">#&gt;     newipzlid 标题             摘要  公开公告号 申请号  年份 text_raw text_clean</span><br><span class="line">#&gt;         &lt;dbl&gt; &lt;chr&gt;            &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;  &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;</span><br><span class="line">#&gt;  1 2000090933 听诊器头         省略其它… CN3204328D CN003…  2000 听诊器头 省略… 听诊器头 省略其它…</span><br><span class="line">#&gt;  2 2000034715 棚舍暖风炉       一种棚舍… CN2422585Y CN002…  2000 棚舍暖风炉 一… 棚舍暖风炉 一种棚…</span><br><span class="line">#&gt;  3 2000062767 麻将棋盘         省略其它… CN3192088D CN003…  2000 麻将棋盘 省略… 麻将棋盘 省略其它…</span><br><span class="line">#&gt;  4 2000024941 一种表面条纹陶瓷砖的成型工艺…… 一种表面… CN1281777A CN001…  2000 一种表面条纹陶… 一种表面条纹陶瓷砖…</span><br><span class="line">#&gt;  5 2000014255 温室大棚骨架     本实用新… CN2409766Y CN002…  2000 温室大棚骨架 … 温室大棚骨架 本实…</span><br><span class="line">#&gt;  6 2000039857 卫生间用排污管道 一种卫生… CN2425141Y CN002…  2000 卫生间用排污管… 卫生间用排污管道 …</span><br><span class="line">#&gt;  7 2000027011 钉书机结构改良   本实用新… CN2418002Y CN002…  2000 钉书机结构改良… 钉书机结构改良 本…</span><br><span class="line">#&gt;  8 2000087646 纯氧烟           一种保健… CN2450912Y CN002…  2000 纯氧烟 一种保… 纯氧烟 一种保健型…</span><br><span class="line">#&gt;  9 2000073315 一种加工微孔金属板的方法和产品… 一种加工… CN1307957A CN001…  2000 一种加工微孔金… 一种加工微孔金属板…</span><br><span class="line">#&gt; 10 2000006162 阀门(塑料)       &lt;NA&gt;  CN3164174D CN003…  2000 阀门(塑料) … 阀门 塑料</span><br><span class="line">#&gt; # ℹ 10,983 more rows</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-中文分词" class="article-heading"><a href="#2-4-中文分词" class="headerlink" title="2.4 中文分词"></a>2.4 中文分词<a class="article-anchor" href="#2-4-中文分词" aria-label="本节链接" title="复制本节链接"></a></h3><p>使用 jiebaR 进行中文分词，过滤长度小于 2 的词和非中文字符：</p>
+<h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h2 id="3-辅助函数：TF-IDF-矩阵与颠覆性指数" class="article-heading"><a href="#3-辅助函数：TF-IDF-矩阵与颠覆性指数" class="headerlink" title="3. 辅助函数：TF-IDF 矩阵与颠覆性指数"></a>3. 辅助函数：TF-IDF 矩阵与颠覆性指数<a class="article-anchor" href="#3-辅助函数：TF-IDF-矩阵与颠覆性指数" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="3-1-构建时变-TF-IDF-矩阵" class="article-heading"><a href="#3-1-构建时变-TF-IDF-矩阵" class="headerlink" title="3.1 构建时变 TF-IDF 矩阵"></a>3.1 构建时变 TF-IDF 矩阵<a class="article-anchor" href="#3-1-构建时变-TF-IDF-矩阵" aria-label="本节链接" title="复制本节链接"></a></h3><p>根据目标年份的 ±τ 窗口筛选专利，展开词条为 tidy 格式，计算 TF-IDF 权重，构建稀疏文档-词项矩阵（DTM），并进行 L2 归一化——使得归一化后的余弦相似度等于向量点积：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">#&#x27; 计算指定窗口年的 TF-IDF 矩阵</span></span><br><span class="line"><span class="comment">#&#x27; <span class="doctag">@param <span class="variable">df</span></span> 包含 words, newipzlid, 年份 的数据框</span></span><br><span class="line"><span class="comment">#&#x27; <span class="doctag">@param <span class="variable">year_range</span></span> 年份范围向量</span></span><br><span class="line"><span class="comment">#&#x27; <span class="doctag">@return</span> L2 归一化后的 TF-IDF 稀疏矩阵，行名为 newipzlid</span></span><br><span class="line">build_tfidf_matrix <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>df<span class="punctuation">,</span> year_range<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="comment"># 筛选窗口内的专利</span></span><br><span class="line">  corpus <span class="operator">&lt;-</span> df <span class="operator">%&gt;%</span> filter<span class="punctuation">(</span>年份 <span class="operator">%in%</span> year_range<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 展开为 tidy 格式: 每个 (专利, 词) 对一行</span></span><br><span class="line">  tidy_corpus <span class="operator">&lt;-</span> corpus <span class="operator">%&gt;%</span></span><br><span class="line">    select<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> words<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    unnest<span class="punctuation">(</span>words<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    rename<span class="punctuation">(</span>word <span class="operator">=</span> words<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    count<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> word<span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 计算 TF-IDF</span></span><br><span class="line">  tidy_corpus <span class="operator">&lt;-</span> tidy_corpus <span class="operator">%&gt;%</span></span><br><span class="line">    bind_tf_idf<span class="punctuation">(</span>word<span class="punctuation">,</span> newipzlid<span class="punctuation">,</span> n<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 构建稀疏 DTM</span></span><br><span class="line">  dtm <span class="operator">&lt;-</span> tidy_corpus <span class="operator">%&gt;%</span></span><br><span class="line">    cast_sparse<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> word<span class="punctuation">,</span> tf_idf<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># L2 归一化（使余弦相似度等于点积）</span></span><br><span class="line">  row_norms <span class="operator">&lt;-</span> <span class="built_in">sqrt</span><span class="punctuation">(</span>rowSums<span class="punctuation">(</span>dtm<span class="operator">^</span><span class="number">2</span><span class="punctuation">)</span> <span class="operator">+</span> <span class="number">1e-10</span><span class="punctuation">)</span></span><br><span class="line">  dtm_norm <span class="operator">&lt;-</span> dtm <span class="operator">/</span> row_norms</span><br><span class="line"></span><br><span class="line">  <span class="built_in">return</span><span class="punctuation">(</span>dtm_norm<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-计算颠覆性指数" class="article-heading"><a href="#3-2-计算颠覆性指数" class="headerlink" title="3.2 计算颠覆性指数"></a>3.2 计算颠覆性指数<a class="article-anchor" href="#3-2-计算颠覆性指数" aria-label="本节链接" title="复制本节链接"></a></h3><p>对每一年，确定前后窗口内的专利索引，计算后向相似度（BPS）和前向相似度（FPS），并同时输出两种方案的 radical 指数。其中求和法是论文中使用的：</p>
+<h1 id="此处代码需下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需下载讲义材料查看～-2" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h2 id="4-逐年计算颠覆性指数" class="article-heading"><a href="#4-逐年计算颠覆性指数" class="headerlink" title="4. 逐年计算颠覆性指数"></a>4. 逐年计算颠覆性指数<a class="article-anchor" href="#4-逐年计算颠覆性指数" aria-label="本节链接" title="复制本节链接"></a></h2><p>设定计算窗口 τ=3 年，对 2003～2007 年逐年计算颠覆性指数：</p>
+<h1 id="此处代码需下载讲义材料查看～-3" class="article-heading"><a href="#此处代码需下载讲义材料查看～-3" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-3" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h2 id="5-汇总结果与筛选颠覆性专利" class="article-heading"><a href="#5-汇总结果与筛选颠覆性专利" class="headerlink" title="5. 汇总结果与筛选颠覆性专利"></a>5. 汇总结果与筛选颠覆性专利<a class="article-anchor" href="#5-汇总结果与筛选颠覆性专利" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="5-1-标记颠覆性专利" class="article-heading"><a href="#5-1-标记颠覆性专利" class="headerlink" title="5.1 标记颠覆性专利"></a>5.1 标记颠覆性专利<a class="article-anchor" href="#5-1-标记颠覆性专利" aria-label="本节链接" title="复制本节链接"></a></h3><p>在全样本期内，将颠覆性指数位于前 5% 的专利定义为颠覆式创新，分别对两种方案计算阈值并标记：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df_radical <span class="operator">&lt;-</span> bind_rows<span class="punctuation">(</span>all_results<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分别对两种方案计算阈值和颠覆性标记</span></span><br><span class="line">threshold_sum <span class="operator">&lt;-</span> quantile<span class="punctuation">(</span>df_radical<span class="operator">$</span>radical_sum<span class="punctuation">,</span> probs <span class="operator">=</span> <span class="number">0.95</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">threshold_avg <span class="operator">&lt;-</span> quantile<span class="punctuation">(</span>df_radical<span class="operator">$</span>radical_avg<span class="punctuation">,</span> probs <span class="operator">=</span> <span class="number">0.95</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;\n===== 颠覆性创新阈值（top 5%%）=====\n&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  方案一（求和法）: radical_sum &gt;= %.4f\n&quot;</span><span class="punctuation">,</span> threshold_sum<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  方案二（均值法）: radical_avg &gt;= %.4f\n&quot;</span><span class="punctuation">,</span> threshold_avg<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_radical <span class="operator">&lt;-</span> df_radical <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    颠覆性_<span class="built_in">sum</span> <span class="operator">=</span> ifelse<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>radical_sum<span class="punctuation">)</span> <span class="operator">&amp;</span> radical_sum <span class="operator">&gt;=</span> threshold_sum<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    颠覆性_avg <span class="operator">=</span> ifelse<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>radical_avg<span class="punctuation">)</span> <span class="operator">&amp;</span> radical_avg <span class="operator">&gt;=</span> threshold_avg<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-合并原始专利信息" class="article-heading"><a href="#5-2-合并原始专利信息" class="headerlink" title="5.2 合并原始专利信息"></a>5.2 合并原始专利信息<a class="article-anchor" href="#5-2-合并原始专利信息" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 注意：统一 newipzlid 类型为字符型，避免 join 时类型不匹配</span></span><br><span class="line">df <span class="operator">&lt;-</span> df <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>newipzlid <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>newipzlid<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">df_radical <span class="operator">&lt;-</span> df_radical <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>newipzlid <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>newipzlid<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_final <span class="operator">&lt;-</span> df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 标题<span class="punctuation">,</span> 摘要<span class="punctuation">,</span> 公开公告号<span class="punctuation">,</span> 申请号<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df_radical<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;newipzlid&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-结果展示" class="article-heading"><a href="#6-结果展示" class="headerlink" title="6. 结果展示"></a>6. 结果展示<a class="article-anchor" href="#6-结果展示" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="6-1-总体描述" class="article-heading"><a href="#6-1-总体描述" class="headerlink" title="6.1 总体描述"></a>6.1 总体描述<a class="article-anchor" href="#6-1-总体描述" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">cat(<span class="string">&quot;\n===== 结果摘要 =====\n&quot;</span>)</span><br><span class="line">cat(<span class="built_in">sprintf</span>(<span class="string">&quot;目标年份: %d - %d\n&quot;</span>, min(target_years), max(target_years)))</span><br><span class="line">cat(<span class="built_in">sprintf</span>(<span class="string">&quot;总专利数（去重后，含窗口期）: %d\n&quot;</span>, nrow(df)))</span><br><span class="line">cat(<span class="built_in">sprintf</span>(<span class="string">&quot;计算了 radical 指数的专利数: %d\n&quot;</span>, sum(!is.na(df_final$radical_avg))))</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-各年颠覆性专利分布（方案一：求和法）" class="article-heading"><a href="#6-2-各年颠覆性专利分布（方案一：求和法）" class="headerlink" title="6.2 各年颠覆性专利分布（方案一：求和法）"></a>6.2 各年颠覆性专利分布（方案一：求和法）<a class="article-anchor" href="#6-2-各年颠覆性专利分布（方案一：求和法）" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-4" class="article-heading"><a href="#此处代码需下载讲义材料查看～-4" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-4" aria-label="本节链接" title="复制本节链接"></a></h1><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/16/22/02b79j1bdbe1b168g4/common/content/1784211310463_551616.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="6-3-各年颠覆性专利分布（方案二：均值法）" class="article-heading"><a href="#6-3-各年颠覆性专利分布（方案二：均值法）" class="headerlink" title="6.3 各年颠覆性专利分布（方案二：均值法）"></a>6.3 各年颠覆性专利分布（方案二：均值法）<a class="article-anchor" href="#6-3-各年颠覆性专利分布（方案二：均值法）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n--- 各年颠覆性专利分布（方案二：均值法）---\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">df_final <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>年份 <span class="operator">%in%</span> target_years<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    总专利数 <span class="operator">=</span> n<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    有效radical <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>radical_avg<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    颠覆性专利数 <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>颠覆性_avg<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    颠覆性占比 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>mean<span class="punctuation">(</span>颠覆性_avg<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="number">100</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    radical均值 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>mean<span class="punctuation">(</span>radical_avg<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    radical中位数 <span class="operator">=</span> <span class="built_in">round</span><span class="punctuation">(</span>median<span class="punctuation">(</span>radical_avg<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  knitr<span class="operator">::</span>kable<span class="punctuation">(</span>caption <span class="operator">=</span> <span class="string">&quot;方案二：均值法&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/07/16/22/02b79j1bdbe1b168g4/common/content/1784211310691_923695.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="6-4-两种方案一致性比较" class="article-heading"><a href="#6-4-两种方案一致性比较" class="headerlink" title="6.4 两种方案一致性比较"></a>6.4 两种方案一致性比较<a class="article-anchor" href="#6-4-两种方案一致性比较" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n--- 两种方案一致性比较 ---\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">df_target <span class="operator">&lt;-</span> df_final <span class="operator">%&gt;%</span> filter<span class="punctuation">(</span>年份 <span class="operator">%in%</span> target_years<span class="punctuation">)</span></span><br><span class="line">both <span class="operator">&lt;-</span> <span class="built_in">sum</span><span class="punctuation">(</span>df_target<span class="operator">$</span>颠覆性_<span class="built_in">sum</span> <span class="operator">==</span> <span class="number">1</span> <span class="operator">&amp;</span> df_target<span class="operator">$</span>颠覆性_avg <span class="operator">==</span> <span class="number">1</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">only_sum <span class="operator">&lt;-</span> <span class="built_in">sum</span><span class="punctuation">(</span>df_target<span class="operator">$</span>颠覆性_<span class="built_in">sum</span> <span class="operator">==</span> <span class="number">1</span> <span class="operator">&amp;</span> df_target<span class="operator">$</span>颠覆性_avg <span class="operator">==</span> <span class="number">0</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">only_avg <span class="operator">&lt;-</span> <span class="built_in">sum</span><span class="punctuation">(</span>df_target<span class="operator">$</span>颠覆性_<span class="built_in">sum</span> <span class="operator">==</span> <span class="number">0</span> <span class="operator">&amp;</span> df_target<span class="operator">$</span>颠覆性_avg <span class="operator">==</span> <span class="number">1</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  两种方案均标记为颠覆性: %d\n&quot;</span><span class="punctuation">,</span> both<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  仅求和法标记: %d\n&quot;</span><span class="punctuation">,</span> only_sum<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  仅均值法标记: %d\n&quot;</span><span class="punctuation">,</span> only_avg<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;  一致率: %.1f%%\n&quot;</span><span class="punctuation">,</span> both <span class="operator">/</span> <span class="punctuation">(</span>both <span class="operator">+</span> only_sum <span class="operator">+</span> only_avg<span class="punctuation">)</span> <span class="operator">*</span> <span class="number">100</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-保存结果" class="article-heading"><a href="#7-保存结果" class="headerlink" title="7. 保存结果"></a>7. 保存结果<a class="article-anchor" href="#7-保存结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>将计算结果保存为 Stata 格式（.dta）：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">output_file <span class="operator">&lt;-</span> <span class="string">&quot;patent_disruptive_index.dta&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 选择关键变量并添加标签</span></span><br><span class="line">df_output <span class="operator">&lt;-</span> df_final <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> 年份<span class="punctuation">,</span> 标题<span class="punctuation">,</span> 摘要<span class="punctuation">,</span> 公开公告号<span class="punctuation">,</span> 申请号<span class="punctuation">,</span></span><br><span class="line">         BPS_sum<span class="punctuation">,</span> FPS_sum<span class="punctuation">,</span> radical_sum<span class="punctuation">,</span> 颠覆性_<span class="built_in">sum</span><span class="punctuation">,</span></span><br><span class="line">         BPS_avg<span class="punctuation">,</span> FPS_avg<span class="punctuation">,</span> radical_avg<span class="punctuation">,</span> 颠覆性_avg<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置变量标签和数据标签</span></span><br><span class="line"></span><br><span class="line">df_output <span class="operator">&lt;-</span> df_output <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>across<span class="punctuation">(</span>where<span class="punctuation">(</span><span class="built_in">is.numeric</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">as.numeric</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>across<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>颠覆性_<span class="built_in">sum</span><span class="punctuation">,</span> 颠覆性_avg<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">as.integer</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 haven 写入 .dta 文件</span></span><br><span class="line">write_dta<span class="punctuation">(</span>df_output<span class="punctuation">,</span> output_file<span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理:微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-1-目标年份子集（2003～2007）" class="article-heading"><a href="#7-1-目标年份子集（2003～2007）" class="headerlink" title="7.1 目标年份子集（2003～2007）"></a>7.1 目标年份子集（2003～2007）<a class="article-anchor" href="#7-1-目标年份子集（2003～2007）" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于 3 年窗口期的选择，实际上只有 2003～2007 年是有数据的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df_target <span class="operator">&lt;-</span> df_output <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>年份 <span class="operator">%in%</span> target_years<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_target</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; # A tibble: 4,995 × 14</span><br><span class="line">#&gt;    newipzlid   年份 标题     摘要  公开公告号 申请号 BPS_sum FPS_sum radical_sum</span><br><span class="line">#&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;</span><br><span class="line">#&gt;  1 2003069124  2003 拉丝铝塑复合板… 该产品为… CN3364938D CN033…   32.8    44.8        1.37</span><br><span class="line">#&gt;  2 2003195916  2003 软轴式工程污水… 本实用新… CN2663694Y CN200…   16.3    16.1        0.988</span><br><span class="line">#&gt;  3 2003171135  2003 一体化井下工具… 一种一体… CN2687325Y CN200…    8.88    8.05       0.907</span><br><span class="line">#&gt;  4 2003064947  2003 MP3数字网络… &lt;NA&gt;  CN3362831D CN200…    3.71    4.98       1.34</span><br><span class="line">#&gt;  5 2003047227  2003 标贴(LILY… 主视图中… CN3353888D CN033…   21.2    18.0        0.847</span><br><span class="line">#&gt;  6 2003088533  2003 输卵管再通器械… 本实用新… CN2623179Y CN032…   10.7    12.2        1.14</span><br><span class="line">#&gt;  7 2003162795  2003 蓄能式冷干机蓄… 本发明蓄… CN1202198C CN031…    3.18    4.08       1.28</span><br><span class="line">#&gt;  8 2003057925  2003 转轴结构的改良… 本实用新… CN2608643Y CN032…   11.6    13.3        1.15</span><br><span class="line">#&gt;  9 2003032767  2003 新型管夹件…… 本实用新… CN2597802Y CN032…   10.7    10.8        1.01</span><br><span class="line">#&gt; 10 2003189845  2003 阴角及阳角浇注… 一种阴角… CN1182311C CN031…    6.38    7.32       1.15</span><br><span class="line">#&gt; # ℹ 4,985 more rows</span><br><span class="line">#&gt; # ℹ 5 more variables: 颠覆性_sum &lt;int&gt;, BPS_avg &lt;dbl&gt;, FPS_avg &lt;dbl&gt;,</span><br><span class="line">#&gt; #   radical_avg &lt;dbl&gt;, 颠覆性_avg &lt;int&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">target_output <span class="operator">&lt;-</span> <span class="string">&quot;patent_disruptive_index_2003_2007.dta&quot;</span></span><br><span class="line">write_dta<span class="punctuation">(</span>df_target<span class="punctuation">,</span> target_output<span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理:微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/88f81c985d0c49de91b61bdbeb28d890">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.324Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/71216/" title="使用 Python 统一海关税号编码"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/86990/" title="2000～2016年海关数据 HS 编码（税号编码）统一对照表及统一结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/13441/">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 9 分钟</span></li><li><a href="/posts/21826/">名师讲堂｜使用 R 语言测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 9 分钟</span></li><li><a href="/posts/19061/">名师讲堂｜使用 R 语言测算专利的创新突破度：CD 指数</a><span class="tf-related-meta">2026-03-26 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">1. 指标来源与计算方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-text">1.1 核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4"><span class="toc-text">1.2 计算步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%A4%E7%A7%8D%E8%AE%A1%E7%AE%97%E6%96%B9%E6%A1%88"><span class="toc-text">1.3 两种计算方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E9%A2%A0%E8%A6%86%E6%80%A7%E4%B8%93%E5%88%A9%E7%AD%9B%E9%80%89"><span class="toc-text">1.4 颠覆性专利筛选</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96%E4%B8%8E%E9%A2%84%E5%A4%84%E7%90%86"><span class="toc-text">2. 数据读取与预处理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%8F%90%E5%8F%96%E5%B9%B4%E4%BB%BD"><span class="toc-text">2.1 提取年份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%93%E5%88%A9%E5%8E%BB%E9%87%8D"><span class="toc-text">2.2 专利去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%96%87%E6%9C%AC%E6%B8%85%E6%B4%97"><span class="toc-text">2.3 文本清洗</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D"><span class="toc-text">2.4 中文分词</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BE%85%E5%8A%A9%E5%87%BD%E6%95%B0%EF%BC%9ATF-IDF-%E7%9F%A9%E9%98%B5%E4%B8%8E%E9%A2%A0%E8%A6%86%E6%80%A7%E6%8C%87%E6%95%B0"><span class="toc-text">3. 辅助函数：TF-IDF 矩阵与颠覆性指数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%9E%84%E5%BB%BA%E6%97%B6%E5%8F%98-TF-IDF-%E7%9F%A9%E9%98%B5"><span class="toc-text">3.1 构建时变 TF-IDF 矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%AE%A1%E7%AE%97%E9%A2%A0%E8%A6%86%E6%80%A7%E6%8C%87%E6%95%B0"><span class="toc-text">3.2 计算颠覆性指数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%80%90%E5%B9%B4%E8%AE%A1%E7%AE%97%E9%A2%A0%E8%A6%86%E6%80%A7%E6%8C%87%E6%95%B0"><span class="toc-text">4. 逐年计算颠覆性指数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-3"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%B1%87%E6%80%BB%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%AD%9B%E9%80%89%E9%A2%A0%E8%A6%86%E6%80%A7%E4%B8%93%E5%88%A9"><span class="toc-text">5. 汇总结果与筛选颠覆性专利</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A0%87%E8%AE%B0%E9%A2%A0%E8%A6%86%E6%80%A7%E4%B8%93%E5%88%A9"><span class="toc-text">5.1 标记颠覆性专利</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%90%88%E5%B9%B6%E5%8E%9F%E5%A7%8B%E4%B8%93%E5%88%A9%E4%BF%A1%E6%81%AF"><span class="toc-text">5.2 合并原始专利信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%BB%93%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="toc-text">6. 结果展示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%80%BB%E4%BD%93%E6%8F%8F%E8%BF%B0"><span class="toc-text">6.1 总体描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%90%84%E5%B9%B4%E9%A2%A0%E8%A6%86%E6%80%A7%E4%B8%93%E5%88%A9%E5%88%86%E5%B8%83%EF%BC%88%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E6%B1%82%E5%92%8C%E6%B3%95%EF%BC%89"><span class="toc-text">6.2 各年颠覆性专利分布（方案一：求和法）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-4"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%90%84%E5%B9%B4%E9%A2%A0%E8%A6%86%E6%80%A7%E4%B8%93%E5%88%A9%E5%88%86%E5%B8%83%EF%BC%88%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E5%9D%87%E5%80%BC%E6%B3%95%EF%BC%89"><span class="toc-text">6.3 各年颠覆性专利分布（方案二：均值法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%A1%88%E4%B8%80%E8%87%B4%E6%80%A7%E6%AF%94%E8%BE%83"><span class="toc-text">6.4 两种方案一致性比较</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">7. 保存结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9B%AE%E6%A0%87%E5%B9%B4%E4%BB%BD%E5%AD%90%E9%9B%86%EF%BC%882003%EF%BD%9E2007%EF%BC%89"><span class="toc-text">7.1 目标年份子集（2003～2007）</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

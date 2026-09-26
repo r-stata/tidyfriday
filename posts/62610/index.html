@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言绘制地图课程汇总 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/62610/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="经过长久的努力，感觉终于把各种地图的绘制课程都制作好啦，这篇推文汇总了平台上所有的使用 R 语言绘制地图课程，方便大家之后查找和学习。前五个课程非常重要，推荐按顺序学习～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言绘制地图课程汇总">
+<meta property="og:url" content="https://tidyfriday.cn/posts/62610/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="经过长久的努力，感觉终于把各种地图的绘制课程都制作好啦，这篇推文汇总了平台上所有的使用 R 语言绘制地图课程，方便大家之后查找和学习。前五个课程非常重要，推荐按顺序学习～">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/62610.png">
+<meta property="article:published_time" content="2024-01-11T19:04:52.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.652Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/62610.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言绘制地图课程汇总">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言绘制地图课程汇总","description":"经过长久的努力，感觉终于把各种地图的绘制课程都制作好啦，这篇推文汇总了平台上所有的使用 R 语言绘制地图课程，方便大家之后查找和学习。前五个课程非常重要，推荐按顺序学习～","url":"https://tidyfriday.cn/posts/62610/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/62610/"},"image":["https://tidyfriday.cn/og/62610.png"],"datePublished":"2024-01-11T19:04:52.000Z","dateModified":"2026-09-26T14:18:44.652Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, 地图, R 语言","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"使用 R 语言绘制地图课程汇总","item":"https://tidyfriday.cn/posts/62610/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言绘制地图课程汇总</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言绘制地图课程汇总</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2024-01-11T19:04:52.000Z" itemprop="datePublished">2024-01-11</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1084 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>经过长久的努力，感觉终于把各种地图的绘制课程都制作好啦，这篇推文汇总了平台上所有的使用 R 语言绘制地图课程，方便大家之后查找和学习。前五个课程非常重要，推荐按顺序学习～</p>
+<span id="more"></span>
+
+<hr>
+<ol>
+<li>使用 R 语言绘制历年中国省市区县地图（小地图版本+长版）：</li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970282054_212922.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="2">
+<li>使用 R 语言绘制带邻国地区的中国地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/595e69cd0cf0417c8f72f0c007ea9d37">https://rstata.duanshu.com/#/brief/course/595e69cd0cf0417c8f72f0c007ea9d37</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970282733_279252.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="3">
+<li>使用 R 语言绘制中国地图 + 空间网络图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/82fa1ce28006473ead5b05cfdde1d6e1">https://rstata.duanshu.com/#/brief/course/82fa1ce28006473ead5b05cfdde1d6e1</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970283150_714152.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="4">
+<li>使用 R 语言绘制双变量填充中国地图（插件方法）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/38b692228a624e85afd8640b207bbb08">https://rstata.duanshu.com/#/brief/course/38b692228a624e85afd8640b207bbb08</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970276639_212383.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>4a. 使用 R 语言绘制三变量填充中国地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/9cdf8a8cc921480a8942f34b3496fd2b">https://rstata.duanshu.com/#/course/9cdf8a8cc921480a8942f34b3496fd2b</a></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/03/08/17/02b79j1bdbe1b168g4/common/content/1709890355494_927422.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="5">
+<li>如何绘制以太平洋为中心的世界地图？：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/baed82ae2daa421a9721aa2499dd7405">https://rstata.duanshu.com/#/brief/course/baed82ae2daa421a9721aa2499dd7405</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970280920_794462.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="6">
+<li>使用 highcharter 绘制交互式世界地图（可能有点老了，回头再更新下）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/5a7fadd5a3874735949d5cde736c6735">https://rstata.duanshu.com/#/course/5a7fadd5a3874735949d5cde736c6735</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970280321_218287.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="7">
+<li>使用 R 语言绘制中国夜间灯光地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/a430bddc4100426fb4dfeeec38c994d9">https://rstata.duanshu.com/#/brief/course/a430bddc4100426fb4dfeeec38c994d9</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970279428_832161.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="8">
+<li>使用 R 语言绘制双变量填充中国地图（拼图方法）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/0e80355d6df245e3aaa51e5860ed9381">https://rstata.duanshu.com/#/brief/course/0e80355d6df245e3aaa51e5860ed9381</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970278652_238625.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="9">
+<li>使用 R 语言制作地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/67c4ebf2736c4a01a06e42597c281f69">https://rstata.duanshu.com/#/brief/course/67c4ebf2736c4a01a06e42597c281f69</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970277513_628376.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970502028_619233.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970476182_311937.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970501423_237611.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="10">
+<li>QGIS &amp; R 语言：如何从地图图片上提取数据并重新绘图？（使用 QGIS 进行地图配准）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/377485bd8d2b44eda8caa017a71dc5be">https://rstata.duanshu.com/#/course/377485bd8d2b44eda8caa017a71dc5be</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970553918_186744.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="11">
+<li>使用 R 语言绘图展示 2020 年中国各省市地区生产总值（地图 + 柱状图）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/d2ddc558171e4347a83e50e73fcb69dd">https://rstata.duanshu.com/#/brief/course/d2ddc558171e4347a83e50e73fcb69dd</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970553382_177579.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="12">
+<li>使用 R 语言绘制全球各国（地区）省级行政区划地图矢量数据 &amp; 代码：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/adc3456625234f7fa7d6693793fba4de">https://rstata.duanshu.com/#/brief/course/adc3456625234f7fa7d6693793fba4de</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970553005_816375.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="13">
+<li>使用 R 语言绘制 2020 年中国人口密度 3D 蜂窝地图：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/8f921af271a04b6db79c52ce48a04d49">https://rstata.duanshu.com/#/brief/course/8f921af271a04b6db79c52ce48a04d49</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970551744_813486.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="14">
+<li>如何绘制一幅漂亮的路网地图？网页文本提取、地理编码与可视化：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2b622a0fab0d4201a4324775259d89b0">https://rstata.duanshu.com/#/brief/course/2b622a0fab0d4201a4324775259d89b0</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970550726_312466.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="15">
+<li>使用 R 语言绘制全球各国市级（二级）行政区划地图数据 &amp; 代码：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/7f3aac5c612a4dd89aa9556fca3103f9">https://rstata.duanshu.com/#/brief/course/7f3aac5c612a4dd89aa9556fca3103f9</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970550241_772354.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="16">
+<li>使用 R 语言绘图展示中国土地覆盖类型分布和各省市区县耕地占比分布：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2818fb6f59f7494cba080c6a3a74109a">https://rstata.duanshu.com/#/brief/course/2818fb6f59f7494cba080c6a3a74109a</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970549700_852253.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>另外一些课程或者数据分享中也有提供过 R 语言绘制地图的代码：</p>
+<ol start="17">
+<li>使用 R 语言计算胡焕庸线两侧的省市区县（含结果）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/657a959f57ce4f9a82336994691a5eb3">https://rstata.duanshu.com/#/course/657a959f57ce4f9a82336994691a5eb3</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970547231_849396.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="18">
+<li>世界银行WDI（世界发展指标）面板数据，1440 个指标！含 R 语言绘制地图的方法：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/9ea32d00f9674e7892e8f465dfa86658">https://rstata.duanshu.com/#/brief/course/9ea32d00f9674e7892e8f465dfa86658</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970278267_887767.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="19">
+<li>如何判断工企业在南方还是北方 &amp; 计算每个工企业距离秦岭淮河线的距离？：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8a4e1e28c1e54c30a7d6996823648242">https://rstata.duanshu.com/#/course/8a4e1e28c1e54c30a7d6996823648242</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970554471_724293.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="20">
+<li>相邻城市共同边界附近的工企与共同边界的距离计算 &amp; 绘图展示：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8826d436db824341b7d9d79e4e5e8243">https://rstata.duanshu.com/#/course/8826d436db824341b7d9d79e4e5e8243</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970691276_586798.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="21">
+<li>中国各省市区县 CO2 排放量面板数据 + 栅格数据（2000 年～2021 年）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bd604edcdc934fdd9f6bd29ff11f81c9">https://rstata.duanshu.com/#/course/bd604edcdc934fdd9f6bd29ff11f81c9</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970697946_286412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="22">
+<li>全国各省市区县政府经纬度及距离矩阵：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/e5596f809c6241de97a7479f7c427098">https://rstata.duanshu.com/#/course/e5596f809c6241de97a7479f7c427098</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970696843_842294.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="23">
+<li>使用 R 语言计算秦岭—淮河线两侧的省市区县（含结果）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/f712215de055427984dde8fd42e4bfa9">https://rstata.duanshu.com/#/course/f712215de055427984dde8fd42e4bfa9</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970695993_752586.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="24">
+<li>中国各城市间的交通距离是如何解析的？——以各城市与上海的驾车交通路线规划为例：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/e35a78b8555143749245c9de51f9aa48">https://rstata.duanshu.com/#/course/e35a78b8555143749245c9de51f9aa48</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970695517_311561.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="25">
+<li>中国各级行政区划矢量数据库（SHP 和 GEOJSON 格式，1820～2021 年）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bb5eb00f561f44f794011cae14247be1">https://rstata.duanshu.com/#/course/bb5eb00f561f44f794011cae14247be1</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970694986_764483.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="26">
+<li>2022 年中国各省市级行政区划矢量数据（附带邻近区域）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/574b567592ec48c8a6166d79f12a236e">https://rstata.duanshu.com/#/course/574b567592ec48c8a6166d79f12a236e</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970694664_332815.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="27">
+<li>如何绘制一幅圆滚滚的世界地图~：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d2ed0e51fc4c4c09a345a474da1c92c7">https://rstata.duanshu.com/#/course/d2ed0e51fc4c4c09a345a474da1c92c7</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970694097_329447.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="28">
+<li>哪些县与省界接触？工企业距离省界的距离？｜空间拓扑关系与地理距离计算：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/5793b1c8fed7473288050de20e2b3c6e">https://rstata.duanshu.com/#/course/5793b1c8fed7473288050de20e2b3c6e</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970693632_121822.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="29">
+<li>历年各省市区县邻接矩阵、质心距离矩阵、质心距离倒数矩阵数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/eb331d940dbf4907b75d75b4914da67d">https://rstata.duanshu.com/#/course/eb331d940dbf4907b75d75b4914da67d</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/18/02b79j1bdbe1b168g4/common/content/1704970692692_372765.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="30">
+<li>1736～1911 年清代各省府州粮价数据库：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/38af44d775ed4265bc259812384540ff">https://rstata.duanshu.com/#/course/38af44d775ed4265bc259812384540ff</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/19/02b79j1bdbe1b168g4/common/content/1704970981695_321433.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<ol start="31">
+<li>使用 R 语言和 Stata 制作一张装饰画～：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/55c727a5adb64b19996cf2e0b4cc05e5">https://rstata.duanshu.com/#/course/55c727a5adb64b19996cf2e0b4cc05e5</a></li>
+</ol>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/19/02b79j1bdbe1b168g4/common/content/1704970985432_212857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>还有更多相似的绘图案例就不再一一列举了～</p>
+<p>更多 R 语言绘图案例可以浏览：<a href="https://tidyfriday.cn/r-gallery/">https://tidyfriday.cn/r-gallery/</a></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/11/19/02b79j1bdbe1b168g4/common/content/1704970984027_462722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bfd1fea6fcff437cb4aea0529790ca57">使用 R 语言绘制地图课程汇总</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.652Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/99916/" title="使用 R 语言绘制中国地图 + 空间网络图"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/74737/" title="旧版本｜1998～2014 年工企与关键数字技术专利数据匹配结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/56853/">1960~2022 年世界银行 WDI（世界发展指标）面板数据（含 R 语言绘制地图的方法）</a><span class="tf-related-meta">2024-05-08 · 约 2 分钟</span></li><li><a href="/posts/16719/">使用 R 语言绘制全球各国（地区）省级行政区划地图矢量数据 &amp; 代码</a><span class="tf-related-meta">2021-01-28 · 约 3 分钟</span></li><li><a href="/posts/33038/">世界银行WDI（世界发展指标）面板数据，1440 个指标！含 R 语言绘制地图的方法</a><span class="tf-related-meta">2021-01-24 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

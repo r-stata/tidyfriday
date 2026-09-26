@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 进行绿色专利的筛选 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/65859/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在前不久的课程中我们讲解了如何使用 R 语言爬取处理 WIPO 绿色专利分类数据：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;brief&#x2F;course&#x2F;6edd7ed2f3284915b2c916ead3fbfd10">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 进行绿色专利的筛选">
+<meta property="og:url" content="https://tidyfriday.cn/posts/65859/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在前不久的课程中我们讲解了如何使用 R 语言爬取处理 WIPO 绿色专利分类数据：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;brief&#x2F;course&#x2F;6edd7ed2f3284915b2c916ead3fbfd10">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/65859.png">
+<meta property="article:published_time" content="2022-08-29T16:38:54.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:47.215Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/65859.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 进行绿色专利的筛选">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 进行绿色专利的筛选","description":"在前不久的课程中我们讲解了如何使用 R 语言爬取处理 WIPO 绿色专利分类数据：https://rstata.duanshu.com/#/brief/course/6edd7ed2f3284915b2c916ead3fbfd10","url":"https://tidyfriday.cn/posts/65859/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/65859/"},"image":["https://tidyfriday.cn/og/65859.png"],"datePublished":"2022-08-29T16:38:54.000Z","dateModified":"2026-09-26T14:18:47.215Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 进行绿色专利的筛选","item":"https://tidyfriday.cn/posts/65859/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 进行绿色专利的筛选</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 进行绿色专利的筛选</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-08-29T16:38:54.000Z" itemprop="datePublished">2022-08-29</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2381 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在前不久的课程中我们讲解了如何使用 R 语言爬取处理 WIPO 绿色专利分类数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/6edd7ed2f3284915b2c916ead3fbfd10">https://rstata.duanshu.com/#/brief/course/6edd7ed2f3284915b2c916ead3fbfd10</a></p>
+<span id="more"></span>
+
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/29/16/02b79j1bdbe1b168g4/common/content/1661762259241_238316.jpg" alt loading="lazy" decoding="async">×</p>
+<p>今天我们继续上次课的内容讲解如何使用得到的绿色专利列表结果进行绿色专利的筛选和统计。</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/29/16/02b79j1bdbe1b168g4/common/content/1661762272807_913334.jpg" alt loading="lazy" decoding="async">×</p>
+<p>作为演示，我们使用 2013 年的工企专利匹配结果进行操作，2000～2014 年的完整数据可以从这里下载得到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04f4aea3b97e42289e990e1ced0081bc">https://rstata.duanshu.com/#/brief/course/04f4aea3b97e42289e990e1ced0081bc</a></p>
+<p>附件中有提供 2013 年的数据：</p>
+<ol>
+<li>完整版：工企专利匹配2013(完整版).dta</li>
+<li>汇总版：工企专利数量2013.dta</li>
+</ol>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/29/16/02b79j1bdbe1b168g4/common/content/1661762296111_972223.jpg" alt loading="lazy" decoding="async">×</p>
+<p>完整版是直接把工企数据和专利数据进行匹配，里面的一条条观测值是一条条的专利；，而汇总版是汇总每家工企申请的各种类型的专利数量以及所有专利的数量。</p>
+<p>在上次的 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/6edd7ed2f3284915b2c916ead3fbfd10">使用 R 语言爬取处理 WIPO 绿色专利分类数据</a> 的课程中，通过爬取分析，我们得到了四个文件：</p>
+<ul>
+<li>ipcdf1.dta</li>
+<li>ipcdf2.dta</li>
+<li>ipcdf3.dta</li>
+<li>ipcdf4.dta</li>
+</ul>
+<p>下面我们来逐一根据这些列表从工企专利匹配结果中筛选绿色专利。</p>
+<p>读取数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;工企专利匹配2013(完整版).dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> gqid zlid 分类号 主分类号</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;gqzl2013sim&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>由于数据里面有分类号和主分类号两个字段，所以我分别根据两个字段处理得到了两份结果。</p>
+<p>首先我们根据分类号进行筛选：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 根据分类号筛选</span></span><br><span class="line"><span class="keyword">use</span> gqzl2013sim, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> 主分类号</span><br></pre></td></tr></table></figure>
+
+<p>由于每个专利对应着多个分类号，分类号之间使用“;”分隔。所以首先我们需要先把分类号拆分开，这里有两种办法。</p>
+<h3 id="方法一：split-gather" class="article-heading"><a href="#方法一：split-gather" class="headerlink" title="方法一：split + gather"></a>方法一：split + gather<a class="article-anchor" href="#方法一：split-gather" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">split 分类号, parse(&quot;;&quot;)</span><br><span class="line">drop 分类号</span><br><span class="line">* 安装 gather：ssc install tidy</span><br><span class="line">gather 分类号*</span><br><span class="line">drop if missing(value)</span><br><span class="line">drop var</span><br><span class="line">ren value 分类号</span><br><span class="line">save data1, replace</span><br></pre></td></tr></table></figure>
+
+<p>不过这种方法对于大数据的操作会非常慢，可以考虑使用循环 + append</p>
+<h3 id="方法二：split-forval-append" class="article-heading"><a href="#方法二：split-forval-append" class="headerlink" title="方法二：split + forval + append"></a>方法二：split + forval + append<a class="article-anchor" href="#方法二：split-forval-append" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> gqzl2013sim, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">split</span> 分类号, <span class="keyword">parse</span>(<span class="string">&quot;;&quot;</span>)</span><br><span class="line"><span class="keyword">ret</span> <span class="keyword">list</span></span><br><span class="line"><span class="keyword">local</span> k_new = <span class="built_in">r</span>(k_new)</span><br><span class="line"><span class="keyword">drop</span> 分类号 主分类号</span><br><span class="line"><span class="keyword">save</span> temp, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> temp, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> zlid gqid 分类号1</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(分类号1)</span><br><span class="line"><span class="keyword">ren</span> 分类号1 分类号</span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">forval</span> i = 2/<span class="symbol">`k_new&#x27;</span> &#123;</span><br><span class="line">  <span class="keyword">di</span> <span class="string">&quot;`i&#x27;&quot;</span></span><br><span class="line">  <span class="keyword">qui</span> &#123;</span><br><span class="line">    <span class="keyword">use</span> temp, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">keep</span> zlid gqid 分类号<span class="symbol">`i&#x27;</span></span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(分类号<span class="symbol">`i&#x27;</span>)</span><br><span class="line">    <span class="keyword">ren</span> 分类号<span class="symbol">`i&#x27;</span> 分类号</span><br><span class="line">    <span class="keyword">append</span> using data2</span><br><span class="line">    <span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方法虽然代码稍微复杂，但是电脑处理起来更容易，不容易卡死，两种方法会得到同样的结果。</p>
+<p>下面我们再处理分类号：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 删除分类号里面不需要的部分</span></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> 分类号 = ustrregexs(1) <span class="keyword">if</span> ustrregexm(分类号, <span class="string">&quot;(.*)\(&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">index</span>(分类号, <span class="string">&quot;/&quot;</span>)</span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 再检查下有没有别的问题了</span></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">index</span>(分类号, <span class="string">&quot; &quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">* 如果有问题的话再一一处理</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们就可以根据绿色专利列表进行筛选了。</p>
+<h2 id="根据-ipcdf1-进行筛选" class="article-heading"><a href="#根据-ipcdf1-进行筛选" class="headerlink" title="根据 ipcdf1 进行筛选"></a>根据 ipcdf1 进行筛选<a class="article-anchor" href="#根据-ipcdf1-进行筛选" aria-label="本节链接" title="复制本节链接"></a></h2><p>ipcdf1 是只有大类类别的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 属于 ipcdf1 的</span></span><br><span class="line"><span class="keyword">use</span> ipcdf1.dta, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(分类号, 1, 3)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 <span class="keyword">class</span> using ipcdf1.dta</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres1, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="根据-ipcdf2-进行筛选" class="article-heading"><a href="#根据-ipcdf2-进行筛选" class="headerlink" title="根据 ipcdf2 进行筛选"></a>根据 ipcdf2 进行筛选<a class="article-anchor" href="#根据-ipcdf2-进行筛选" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> ipcdf2.dta, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* use data3, clear</span></span><br><span class="line"><span class="comment">* gen class = substr(分类号, 1, 4)</span></span><br><span class="line"><span class="comment">* merge m:1 class using ipcdf2.dta</span></span><br></pre></td></tr></table></figure>
+
+<p>这个时候报错了，检查可以发现，ipcdf2 中的 class 是存在重复值的。所以我们这个时候需要执行 m:m 的匹配，但是我们不能使用 merge 的 m:m 匹配，因为会得到错误的结果，例如下面这个案例：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 考虑下面两个数据</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">input</span> str10 name1 str3 gender</span><br><span class="line"><span class="string">&quot;张三&quot;</span> <span class="string">&quot;男&quot;</span></span><br><span class="line"><span class="string">&quot;李四&quot;</span> <span class="string">&quot;男&quot;</span></span><br><span class="line"><span class="string">&quot;李梅&quot;</span> <span class="string">&quot;女&quot;</span></span><br><span class="line"><span class="string">&quot;张楠&quot;</span> <span class="string">&quot;女&quot;</span></span><br><span class="line">end</span><br><span class="line"><span class="keyword">save</span> mdata1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">input</span> str10 name2 str3 gender</span><br><span class="line"><span class="string">&quot;王五&quot;</span> <span class="string">&quot;男&quot;</span></span><br><span class="line"><span class="string">&quot;赵四&quot;</span> <span class="string">&quot;男&quot;</span></span><br><span class="line"><span class="string">&quot;王琴&quot;</span> <span class="string">&quot;女&quot;</span></span><br><span class="line"><span class="string">&quot;赵英&quot;</span> <span class="string">&quot;女&quot;</span></span><br><span class="line">end</span><br><span class="line"><span class="keyword">save</span> mdata2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> mdata1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:<span class="keyword">m</span> gender using <span class="string">&quot;mdata2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这个结果不是我们想要的。那么如何进行 m:m 的匹配呢？我们可以循环进行 m 次 1:m 的匹配或者 m 次 m:1 的匹配：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> mdata1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">bysort</span> gender: <span class="keyword">gen</span> matchid = _n</span><br><span class="line"><span class="keyword">save</span> mdata1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">forval</span> i = 1/2 &#123;</span><br><span class="line">  <span class="keyword">use</span> mdata1, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> matchid == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">merge</span> 1:<span class="keyword">m</span> gender using mdata2</span><br><span class="line">  <span class="keyword">save</span> matchres<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> matchres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using matchres2</span><br><span class="line"><span class="keyword">drop</span> _m matchid</span><br></pre></td></tr></table></figure>
+
+<p>这样就得到了所有同性别的组合了。</p>
+<p>那么我们现在如果想进行 m:m 的匹配也要这样做：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> ipcdf2.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">bysort</span> <span class="keyword">class</span>: <span class="keyword">gen</span> matchid = _n</span><br><span class="line"><span class="keyword">save</span> ipcdf2a, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">tab</span> matchid</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(分类号, 1, 4)</span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">forval</span> i = 1/2 &#123;</span><br><span class="line">  <span class="keyword">use</span> ipcdf2a.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> matchid == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">merge</span> 1:<span class="keyword">m</span> <span class="keyword">class</span> using data3</span><br><span class="line">  <span class="keyword">save</span> matchres<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">* 合并结果</span></span><br><span class="line"><span class="keyword">use</span> matchres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using matchres2</span><br><span class="line"></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title l3title l4title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="ipcdf3-和-ipcdf4-可以合并起来处理" class="article-heading"><a href="#ipcdf3-和-ipcdf4-可以合并起来处理" class="headerlink" title="ipcdf3 和 ipcdf4 可以合并起来处理"></a>ipcdf3 和 ipcdf4 可以合并起来处理<a class="article-anchor" href="#ipcdf3-和-ipcdf4-可以合并起来处理" aria-label="本节链接" title="复制本节链接"></a></h2><p>ipcdf3 和 ipcdf4 都是具体的分类号，可以合并起来处理：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> ipcdf3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using ipcdf4</span><br><span class="line"><span class="keyword">gen</span> 分类号 = <span class="keyword">class</span> + IPC</span><br><span class="line"><span class="keyword">order</span> 分类号</span><br><span class="line"></span><br><span class="line"><span class="comment">* 检查分类号的重复性</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> 分类号</span><br><span class="line"><span class="keyword">bysort</span> 分类号: <span class="keyword">gen</span> matchid = _n</span><br><span class="line"><span class="keyword">tab</span> matchid</span><br><span class="line"><span class="keyword">save</span> ipcdf5, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 循环匹配</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/4 &#123;</span><br><span class="line">  <span class="keyword">use</span> ipcdf5.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> matchid == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">merge</span> 1:<span class="keyword">m</span> 分类号 using data3</span><br><span class="line">  <span class="keyword">save</span> matchres<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> matchres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 2/4 &#123;</span><br><span class="line">  <span class="keyword">append</span> using matchres<span class="symbol">`i&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title l3title l4title l5title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres5, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="合并所有的结果" class="article-heading"><a href="#合并所有的结果" class="headerlink" title="合并所有的结果"></a>合并所有的结果<a class="article-anchor" href="#合并所有的结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>最后合并所有的结果就可以了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 合并所有的结果</span></span><br><span class="line"><span class="keyword">use</span> dfres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using dfres2</span><br><span class="line"><span class="keyword">append</span> using dfres5</span><br><span class="line"><span class="comment">* 如果想删除重复值，可以：</span></span><br><span class="line"><span class="comment">* duplicates drop zlid gqid, force</span></span><br><span class="line"><span class="keyword">save</span> 基于分类号筛选的绿色专利.dta, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>类似的方法就可以根据主分类号进行筛选了，而且更为简单（不需要拆分分类号了）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 根据主分类号筛选</span></span><br><span class="line"><span class="keyword">use</span> gqzl2013sim, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> 分类号</span><br><span class="line"></span><br><span class="line"><span class="comment">* 为了直接使用上面的代码，把主分类号重命名为 分类号</span></span><br><span class="line"><span class="keyword">ren</span> 主分类号 分类号</span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 下面我们再处理分类号</span></span><br><span class="line"><span class="comment">* 删除分类号里面不需要的部分</span></span><br><span class="line"><span class="keyword">use</span> data2, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> 分类号 = ustrregexs(1) <span class="keyword">if</span> ustrregexm(分类号, <span class="string">&quot;(.*)\(&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">index</span>(分类号, <span class="string">&quot;/&quot;</span>)</span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 绿色专利筛选</span></span><br><span class="line"><span class="comment">* 属于 ipcdf1 的</span></span><br><span class="line"><span class="keyword">use</span> ipcdf1.dta, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(分类号, 1, 3)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 <span class="keyword">class</span> using ipcdf1.dta</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 属于 ipcdf2 的</span></span><br><span class="line"><span class="keyword">use</span> ipcdf2.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">bysort</span> <span class="keyword">class</span>: <span class="keyword">gen</span> matchid = _n</span><br><span class="line"><span class="keyword">save</span> ipcdf2a, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">tab</span> matchid</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(分类号, 1, 4)</span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">forval</span> i = 1/2 &#123;</span><br><span class="line">  <span class="keyword">use</span> ipcdf2a.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> matchid == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">merge</span> 1:<span class="keyword">m</span> <span class="keyword">class</span> using data3</span><br><span class="line">  <span class="keyword">save</span> matchres<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">* 合并结果</span></span><br><span class="line"><span class="keyword">use</span> matchres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using matchres2</span><br><span class="line"></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title l3title l4title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* ipcdf3 和 ipcdf4 可以合并起来处理</span></span><br><span class="line"><span class="keyword">use</span> ipcdf3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using ipcdf4</span><br><span class="line"><span class="keyword">gen</span> 分类号 = <span class="keyword">class</span> + IPC</span><br><span class="line"><span class="keyword">order</span> 分类号</span><br><span class="line"></span><br><span class="line"><span class="comment">* 检查分类号的重复性</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> 分类号</span><br><span class="line"><span class="keyword">bysort</span> 分类号: <span class="keyword">gen</span> matchid = _n</span><br><span class="line"><span class="keyword">tab</span> matchid</span><br><span class="line"><span class="keyword">save</span> ipcdf5, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 循环匹配</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/4 &#123;</span><br><span class="line">  <span class="keyword">use</span> ipcdf5.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> matchid == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">merge</span> 1:<span class="keyword">m</span> 分类号 using data3</span><br><span class="line">  <span class="keyword">save</span> matchres<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> matchres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 2/4 &#123;</span><br><span class="line">  <span class="keyword">append</span> using matchres<span class="symbol">`i&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">keep</span> zlid gqid <span class="keyword">class</span> l1title l2title l3title l4title l5title</span><br><span class="line"><span class="keyword">ren</span> <span class="keyword">class</span> greenIPC</span><br><span class="line"><span class="keyword">save</span> dfres5, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 合并所有的结果</span></span><br><span class="line"><span class="keyword">use</span> dfres1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using dfres2</span><br><span class="line"><span class="keyword">append</span> using dfres5</span><br><span class="line"><span class="comment">* 如果想删除重复值，可以：</span></span><br><span class="line"><span class="comment">* duplicates drop zlid gqid, force</span></span><br><span class="line"><span class="keyword">save</span> 基于主分类号筛选的绿色专利.dta, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们就可以统计各种类型绿色专利的数量了。这里以“基于主分类号筛选的绿色专利.dta”为例：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 基于主分类号筛选的绿色专利.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> zlid gqid, force</span><br><span class="line"><span class="keyword">merge</span> 1:1 zlid gqid using <span class="string">&quot;工企专利匹配2013(完整版).dta&quot;</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">count</span>) zlid, <span class="keyword">by</span>(gqid 专利类型)</span><br><span class="line">spread 专利类型 zlid</span><br><span class="line"><span class="comment">* 安装 spread：ssc install tidy</span></span><br><span class="line"><span class="comment">* 这里可能会报错，因为 spread 认为中文不能作为变量名</span></span><br><span class="line"><span class="comment">* 可以运行 adoedit spread 修改里面检查变量名称部分的代码</span></span><br><span class="line"><span class="comment">* 也就是注释掉 52～56 行</span></span><br><span class="line"><span class="comment">/* if `r(N)&#x27; &gt; 0 &#123;</span></span><br><span class="line"><span class="comment">  levelsof `variable&#x27; if `temp&#x27; == 1</span></span><br><span class="line"><span class="comment">  display as error `&quot;Some observations for `variable&#x27; don&#x27;t have valid variable names: `=r(levels)&#x27;&quot;&#x27;</span></span><br><span class="line"><span class="comment">  exit 4</span></span><br><span class="line"><span class="comment">&#125; */</span></span><br><span class="line"><span class="comment">* 然后保存之后再 clear all 就行</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ren</span> 发明型专利 发明型绿色专利</span><br><span class="line"><span class="keyword">ren</span> 实用型专利 实用型绿色专利</span><br><span class="line"><span class="keyword">gen</span> 绿色专利数量 = 发明型绿色专利 + 实用型绿色专利</span><br><span class="line"><span class="keyword">replace</span> 发明型绿色专利 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(发明型绿色专利)</span><br><span class="line"><span class="keyword">replace</span> 实用型绿色专利 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(实用型绿色专利)</span><br><span class="line"><span class="keyword">replace</span> 绿色专利数量 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(绿色专利数量)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2013年各公司绿色专利数量&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 工企专利数量2013.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 gqid using <span class="string">&quot;2013年各公司绿色专利数量&quot;</span></span><br><span class="line"><span class="keyword">order</span> gqid 年份 设计型专利 发明型专利 实用型专利 总专利数量 发明型绿色专利 实用型绿色专利 绿色专利数量</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 发明型绿色专利 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(发明型绿色专利)</span><br><span class="line"><span class="keyword">replace</span> 实用型绿色专利 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(实用型绿色专利)</span><br><span class="line"><span class="keyword">replace</span> 绿色专利数量 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(绿色专利数量)</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> 工企绿色专利数量2013.dta, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>最后删除掉所有的临时文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* 删去无用的文件</span><br><span class="line">cap erase data1.dta</span><br><span class="line">cap erase data2.dta</span><br><span class="line">cap erase data3.dta</span><br><span class="line">cap erase dfres1.dta</span><br><span class="line">cap erase dfres5.dta</span><br><span class="line">cap erase dfres2.dta</span><br><span class="line">cap erase gqzl2013sim.dta</span><br><span class="line">cap erase ipcdf2a.dta</span><br><span class="line">cap erase matchres1.dta</span><br><span class="line">cap erase matchres2.dta</span><br><span class="line">cap erase matchres3.dta</span><br><span class="line">cap erase matchres4.dta</span><br><span class="line">cap erase mdata1.dta</span><br><span class="line">cap erase mdata2.dta</span><br><span class="line">cap erase temp.dta</span><br><span class="line">cap erase ipcdf5.dta</span><br></pre></td></tr></table></figure>
+
+<p>按照这个方法循环所有的年份即可。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/2fd6838527754c94a3f5ccb0e3ba7be1">使用 Stata 进行绿色专利的筛选</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:47.215Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/31852/" title="我的收藏夹（第一期）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/97511/" title="旧版本｜日度数据：1980年1月1日～2022年6月30日中国各省市区县地表PM2.5质量浓度"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/44849/">使用 Stata 进行税调专利匹配：超高效的匹配流程</a><span class="tf-related-meta">2025-06-16 · 约 11 分钟</span></li><li><a href="/posts/76069/">使用 Stata 绘制城市间专利合作申请数量网络图</a><span class="tf-related-meta">2025-03-10 · 约 10 分钟</span></li><li><a href="/posts/22680/">使用 Stata 筛选绿色低碳技术相关专利</a><span class="tf-related-meta">2024-04-17 · 约 11 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9Asplit-gather"><span class="toc-text">方法一：split + gather</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9Asplit-forval-append"><span class="toc-text">方法二：split + forval + append</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B9%E6%8D%AE-ipcdf1-%E8%BF%9B%E8%A1%8C%E7%AD%9B%E9%80%89"><span class="toc-text">根据 ipcdf1 进行筛选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B9%E6%8D%AE-ipcdf2-%E8%BF%9B%E8%A1%8C%E7%AD%9B%E9%80%89"><span class="toc-text">根据 ipcdf2 进行筛选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ipcdf3-%E5%92%8C-ipcdf4-%E5%8F%AF%E4%BB%A5%E5%90%88%E5%B9%B6%E8%B5%B7%E6%9D%A5%E5%A4%84%E7%90%86"><span class="toc-text">ipcdf3 和 ipcdf4 可以合并起来处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E6%89%80%E6%9C%89%E7%9A%84%E7%BB%93%E6%9E%9C"><span class="toc-text">合并所有的结果</span></a>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

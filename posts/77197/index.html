@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算地区产业专业化指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/77197/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Python 测算地区产业专业化指标的方法。该方法参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算地区产业专业化指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/77197/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Python 测算地区产业专业化指标的方法。该方法参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/77197.png">
+<meta property="article:published_time" content="2026-08-07T07:21:07.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.256Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/77197.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算地区产业专业化指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算地区产业专业化指标","description":"今天给大家分享使用 Python 测算地区产业专业化指标的方法。该方法参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。","url":"https://tidyfriday.cn/posts/77197/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/77197/"},"image":["https://tidyfriday.cn/og/77197.png"],"datePublished":"2026-08-07T07:21:07.000Z","dateModified":"2026-09-26T14:18:49.256Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算地区产业专业化指标","item":"https://tidyfriday.cn/posts/77197/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算地区产业专业化指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算地区产业专业化指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-08-07T07:21:07.000Z" itemprop="datePublished">2026-08-07</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2941 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享<strong>使用 Python 测算地区产业专业化指标</strong>的方法。该方法参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 <strong>Krugman 式专业化指数</strong>。</p>
+<span id="more"></span>
+
+<p>附件中提供了该参考文献的 PDF 文件（<code>数字经济与区域产业布局.pdf</code>），感兴趣的小伙伴可以阅读原文。</p>
+<p>本文使用的原始数据为工商企业注册信息（已在本项目内裁剪为测算所需的 9 个变量），以 2000–2005 年为例演示完整计算过程。与 R 版本不同，本文的 Python 代码全部运行在由 <strong>reticulate</strong> 创建和管理的独立虚拟环境（<code>.venv</code>）中，依赖（<code>numpy</code> / <code>pandas</code> / <code>matplotlib</code>）与系统 Python 完全隔离。</p>
+<hr>
+<h2 id="指标来源与计算过程" class="article-heading"><a href="#指标来源与计算过程" class="headerlink" title="指标来源与计算过程"></a>指标来源与计算过程<a class="article-anchor" href="#指标来源与计算过程" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="地区产业专业化指数（公式）" class="article-heading"><a href="#地区产业专业化指数（公式）" class="headerlink" title="地区产业专业化指数（公式）"></a>地区产业专业化指数（公式）<a class="article-anchor" href="#地区产业专业化指数（公式）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/07/02b79j1bdbe1b168g4/common/content/1786058289351_961122.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="行业范围：制造业-C13–C43，剔除-C39" class="article-heading"><a href="#行业范围：制造业-C13–C43，剔除-C39" class="headerlink" title="行业范围：制造业 C13–C43，剔除 C39"></a>行业范围：制造业 C13–C43，剔除 C39<a class="article-anchor" href="#行业范围：制造业-C13–C43，剔除-C39" aria-label="本节链接" title="复制本节链接"></a></h3><p>按国民经济行业分类（GB/T 4754）的<strong>制造业门类（行业门类 = “制造业”）</strong>，取 2 位行业大类代码 <strong>C13–C43</strong>，并<strong>剔除 C39（计算机、通信和其他电子设备制造业）</strong>。剔除 C39 的依据是论文第 248 页附录 1 的说明（该行业受数字经济影响特殊，在相关研究中通常单独处理）。</p>
+<h3 id="产业规模的代理变量" class="article-heading"><a href="#产业规模的代理变量" class="headerlink" title="产业规模的代理变量"></a>产业规模的代理变量<a class="article-anchor" href="#产业规模的代理变量" aria-label="本节链接" title="复制本节链接"></a></h3><p>论文以企业的<strong>注册资本</strong>作为行业规模的代理变量（主指标）；同时以<strong>企业数量</strong>作为稳健性口径。两者计算逻辑完全一致，仅在汇总时替换聚合字段。</p>
+<h3 id="存续企业的界定（进入与退出）" class="article-heading"><a href="#存续企业的界定（进入与退出）" class="headerlink" title="存续企业的界定（进入与退出）"></a>存续企业的界定（进入与退出）<a class="article-anchor" href="#存续企业的界定（进入与退出）" aria-label="本节链接" title="复制本节链接"></a></h3><p>参考李磊等（2023）的做法，按”进入—退出”口径统计每年各城市各行业的<strong>存续企业</strong>：</p>
+<ul>
+<li>进入：以企业的成立年份作为进入年份；</li>
+<li>退出：当经营状态含”注销/吊销”时视为退出企业，退出年份取核准日期的年份；</li>
+<li>存续：在年份 t 满足”成立年份 ≤ t，且（未退出 或 退出年份 &gt; t）”的企业。</li>
+</ul>
+<h3 id="计算步骤概述" class="article-heading"><a href="#计算步骤概述" class="headerlink" title="计算步骤概述"></a>计算步骤概述<a class="article-anchor" href="#计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><p>整体计算分为以下几个步骤：</p>
+<ol>
+<li>读取与清洗：读取各年工商注册数据，仅保留制造业、有效城市代码、必需变量，并界定进入/退出年份；</li>
+<li>构建存续面板：对每个目标年份 t，筛选存活企业，按”城市 × 行业”汇总规模，得到城市×行业×年份存续企业规模面板；</li>
+<li>计算专业化指数：对每一年，按公式计算各城市的 spec 指数（注册资本口径 + 企业数量口径）；</li>
+<li>输出与可视化：导出结果 CSV，并绘制趋势、分布与 Top 城市等图表。</li>
+</ol>
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装，避免每次 knit 都重装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看已安装的包" class="article-heading"><a href="#查看已安装的包" class="headerlink" title="查看已安装的包"></a>查看已安装的包<a class="article-anchor" href="#查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 列出虚拟环境中已安装的包</span></span><br><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 只显示我们关心的包</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, packages = &quot;matplotlib&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="详细计算代码" class="article-heading"><a href="#详细计算代码" class="headerlink" title="详细计算代码"></a>详细计算代码<a class="article-anchor" href="#详细计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面按步骤完整展示 Python 代码（基于 <code>pandas</code> / <code>numpy</code>），每一段均可在 reticulate 管理的虚拟环境中直接运行。代码与同目录下的 <code>01_测算地区产业专业化指标.py</code> / <code>02_可视化.py</code> 一致。</p>
+<h3 id="0-路径与参数" class="article-heading"><a href="#0-路径与参数" class="headerlink" title="0. 路径与参数"></a>0. 路径与参数<a class="article-anchor" href="#0-路径与参数" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先设定工程目录、输出目录、数据目录，以及制造业行业代码与所需变量。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import os</span><br><span class="line">from pathlib import Path</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"># ---- 路径与参数 ----------------------------------------------------------</span><br><span class="line"># proj_dir / out_dir / data_dir：knitr 的 &#123;python&#125; chunk 工作目录即 Rmd 所在目录</span><br><span class="line">PROJ_DIR = Path(os.getcwd())</span><br><span class="line">OUT_DIR  = PROJ_DIR / <span class="string">&quot;输出&quot;</span></span><br><span class="line"># 本地化数据：项目内已裁剪为 9 个必需变量的样本（工商注册信息2025-<span class="keyword">sample</span>）</span><br><span class="line">DATA_DIR = PROJ_DIR / <span class="string">&quot;工商注册信息2025-sample&quot;</span></span><br><span class="line"></span><br><span class="line">FILE_YEARS   = <span class="keyword">list</span>(<span class="keyword">range</span>(2000, 2006))   # 使用的原始数据文件（按成立年份分年存储）</span><br><span class="line">TARGET_YEARS = <span class="keyword">list</span>(<span class="keyword">range</span>(2000, 2006))   # 需要测算专业化指数的年份</span><br><span class="line"></span><br><span class="line">OUT_DIR.<span class="keyword">mkdir</span>(parents=True, exist_ok=True)</span><br><span class="line"></span><br><span class="line"># 制造业大类：C13-C43，剔除 C39（计算机、通信和其他电子设备制造业）</span><br><span class="line">mfg_codes = [f<span class="string">&quot;C&#123;n:02d&#125;&quot;</span> <span class="keyword">for</span> <span class="keyword">n</span> <span class="keyword">in</span> <span class="keyword">range</span>(13, 44) <span class="keyword">if</span> <span class="keyword">n</span> != 39]</span><br><span class="line"></span><br><span class="line"># 仅读取所需列，显著降低内存占用</span><br><span class="line">need_cols = [<span class="string">&quot;注册资本&quot;</span>, <span class="string">&quot;实缴资本&quot;</span>, <span class="string">&quot;行业门类&quot;</span>, <span class="string">&quot;行业大类代码&quot;</span>,</span><br><span class="line">             <span class="string">&quot;经营状态&quot;</span>, <span class="string">&quot;成立年份&quot;</span>, <span class="string">&quot;核准日期&quot;</span>, <span class="string">&quot;市&quot;</span>, <span class="string">&quot;市代码&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-读取并清洗单个年份文件" class="article-heading"><a href="#1-读取并清洗单个年份文件" class="headerlink" title="1. 读取并清洗单个年份文件"></a>1. 读取并清洗单个年份文件<a class="article-anchor" href="#1-读取并清洗单个年份文件" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>read_one_year()</code> 负责把一年的 CSV 读入并清洗为”企业级”明细：</p>
+<ul>
+<li>仅保留行业门类 == “制造业”且大类在 C13–C43 且非 C39 的记录；</li>
+<li>仅保留市代码为 6 位数字行政区划码的有效城市；</li>
+<li>把成立年份、核准日期解析为年份，按经营状态判定是否退出企业并得到退出年份；</li>
+<li>剔除成立年份或注册资本缺失、注册资本非正的样本，以及”退出早于成立”的逻辑异常样本。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 此处代码需要下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(&quot;步骤 1/4：读取与清洗原始数据 ……&quot;)</span><br><span class="line">firms = pd.concat([read_one_year(yr) for yr in FILE_YEARS], ignore_index=True)</span><br><span class="line">print(f&quot;  清洗后制造业企业记录：&#123;len(firms):,&#125;&quot;)</span><br><span class="line"></span><br><span class="line">firms</span><br></pre></td></tr></table></figure>
+
+<p>将企业级明细缓存为 pickle，便于后续复算或单独调试（等价于 R 的 <code>write_rds</code>）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 缓存企业级明细，便于复算（pickle 无需额外依赖）</span><br><span class="line">firms.to_pickle(OUT_DIR / &quot;firms_manufacturing_2000_2005.pkl&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-构建城市×行业×年份存续企业规模面板" class="article-heading"><a href="#2-构建城市×行业×年份存续企业规模面板" class="headerlink" title="2. 构建城市×行业×年份存续企业规模面板"></a>2. 构建城市×行业×年份存续企业规模面板<a class="article-anchor" href="#2-构建城市×行业×年份存续企业规模面板" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>build_year_scale(t)</code> 对目标年份 t 筛选”存续企业”（成立年份 ≤ t，且未退出或退出年份 &gt; t），按<code>城市 × 行业</code>汇总该年的注册资本总额（<code>output_reg</code>）与企业数（<code>n_firm</code>）。逐年份构建后即得到<code>城市×行业×年份</code>规模面板。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;步骤 2/4：构建城市×行业×年份存续企业规模面板 ……&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">build_year_scale</span>(<span class="params">t</span>):</span><br><span class="line">    sub = firms[(firms[<span class="string">&quot;entry_year&quot;</span>] &lt;= t) &amp;</span><br><span class="line">                (firms[<span class="string">&quot;exit_year&quot;</span>].isna() | (firms[<span class="string">&quot;exit_year&quot;</span>] &gt; t))]</span><br><span class="line">    res = (sub.groupby([<span class="string">&quot;city_code&quot;</span>, <span class="string">&quot;city&quot;</span>, <span class="string">&quot;industry&quot;</span>], dropna=<span class="literal">False</span>)</span><br><span class="line">              .agg(output_reg=(<span class="string">&quot;cap_reg&quot;</span>, <span class="string">&quot;sum&quot;</span>),    <span class="comment"># 注册资本口径（基准）</span></span><br><span class="line">                   n_firm=(<span class="string">&quot;cap_reg&quot;</span>, <span class="string">&quot;size&quot;</span>))       <span class="comment"># 企业数量口径（稳健性）</span></span><br><span class="line">              .reset_index())</span><br><span class="line">    res.insert(<span class="number">0</span>, <span class="string">&quot;year&quot;</span>, t)</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line"></span><br><span class="line">city_ind_year = pd.concat([build_year_scale(t) <span class="keyword">for</span> t <span class="keyword">in</span> TARGET_YEARS], ignore_index=<span class="literal">True</span>)</span><br><span class="line">city_ind_year.to_csv(OUT_DIR / <span class="string">&quot;城市_行业_年份_制造业规模.csv&quot;</span>, index=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">city_ind_year</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-计算-Krugman-式地区产业专业化指数" class="article-heading"><a href="#3-计算-Krugman-式地区产业专业化指数" class="headerlink" title="3. 计算 Krugman 式地区产业专业化指数"></a>3. 计算 Krugman 式地区产业专业化指数<a class="article-anchor" href="#3-计算-Krugman-式地区产业专业化指数" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>compute_spec_one_year(df, value_col)</code> 是核心：对某一年的<code>城市×行业</code>规模数据，计算各城市的专业化指数。</p>
+<p>关键点：</p>
+<ol>
+<li>计算每个城市该口径的总规模 city_total，并求各行业份额 share；</li>
+<li>通过 笛卡尔积 补全”城市 × 行业”全网格，该城市该行业无企业时份额记为 0；</li>
+<li>对每个行业求全部城市份额之和 sum_share，则”其他城市平均份额”为 (sum_share - share)/(J-1)；</li>
+<li>计算差的平方 (share - other_avg)^2，跨行业求和即得该城市的 spec。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;步骤 3/4：计算地区产业专业化指数 ……&quot;)</span><br><span class="line"></span><br><span class="line"># 此处代码需要下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"># 合并结果</span><br><span class="line">spec_all = spec_reg.merge(spec_cnt[[&quot;year&quot;, &quot;city_code&quot;, &quot;spec_count&quot;]],</span><br><span class="line">                          on=[&quot;year&quot;, &quot;city_code&quot;], how=&quot;left&quot;)</span><br><span class="line">spec_all = spec_all[[&quot;year&quot;, &quot;city_code&quot;, &quot;city&quot;, &quot;n_city&quot;, &quot;spec_reg&quot;, &quot;spec_count&quot;]]</span><br><span class="line">spec_all = spec_all.sort_values([&quot;year&quot;, &quot;spec_reg&quot;], ascending=[True, False]).reset_index(drop=True)</span><br><span class="line"></span><br><span class="line">spec_all.to_csv(OUT_DIR / &quot;地区产业专业化指数_2000_2005.csv&quot;, index=False)</span><br><span class="line"></span><br><span class="line">print(&quot;步骤 4/4：输出结果 ……&quot;)</span><br><span class="line">print(&quot;  各年城市数(J)：&quot;)</span><br><span class="line">print(spec_all.groupby(&quot;year&quot;)[&quot;n_city&quot;].first().to_string())</span><br><span class="line"></span><br><span class="line">print(&quot;\n2005 年产业专业化指数最高的 10 个城市：&quot;)</span><br><span class="line">top = spec_all[spec_all[&quot;year&quot;] == 2005].nlargest(10, &quot;spec_reg&quot;)</span><br><span class="line">print(top[[&quot;city&quot;, &quot;spec_reg&quot;, &quot;spec_count&quot;]].to_string(index=False))</span><br><span class="line"></span><br><span class="line">print(f&quot;\n完成！结果已写入：&#123;OUT_DIR&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="结果预览" class="article-heading"><a href="#结果预览" class="headerlink" title="结果预览"></a>结果预览<a class="article-anchor" href="#结果预览" aria-label="本节链接" title="复制本节链接"></a></h3><p>读取结果，展示 2005 年专业化指数最高的若干城市，便于核对：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">spec_all <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span>OUT_DIR <span class="operator">/</span> <span class="string">&quot;地区产业专业化指数_2000_2005.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;=== 2005 年产业专业化指数最高的 15 个城市 ===&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>spec_all<span class="punctuation">[</span>spec_all<span class="punctuation">[</span><span class="string">&quot;year&quot;</span><span class="punctuation">]</span> <span class="operator">==</span> <span class="number">2005</span><span class="punctuation">]</span></span><br><span class="line">      .nlargest<span class="punctuation">(</span><span class="number">15</span><span class="punctuation">,</span> <span class="string">&quot;spec_reg&quot;</span><span class="punctuation">)</span><span class="punctuation">[[</span><span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;city&quot;</span><span class="punctuation">,</span> <span class="string">&quot;n_city&quot;</span><span class="punctuation">,</span> <span class="string">&quot;spec_reg&quot;</span><span class="punctuation">,</span> <span class="string">&quot;spec_count&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span></span><br><span class="line">      .to_string<span class="punctuation">(</span>index<span class="operator">=</span>False<span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="数据可视化" class="article-heading"><a href="#数据可视化" class="headerlink" title="数据可视化"></a>数据可视化<a class="article-anchor" href="#数据可视化" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面使用 Python 的 <code>matplotlib</code> 绘制三张图表，直观展示专业化指数的整体趋势、年份分布与头部城市。</p>
+<h3 id="图1：各城市平均专业化指数随年份变化趋势" class="article-heading"><a href="#图1：各城市平均专业化指数随年份变化趋势" class="headerlink" title="图1：各城市平均专业化指数随年份变化趋势"></a>图1：各城市平均专业化指数随年份变化趋势<a class="article-anchor" href="#图1：各城市平均专业化指数随年份变化趋势" aria-label="本节链接" title="复制本节链接"></a></h3><p>计算全部城市在各年份的平均值与中位数，并叠加”平均值 ± 1 倍标准差”阴影带，刻画整体趋势。</p>
+<h1 id="此处代码需要下载讲义材料查看～" class="article-heading"><a href="#此处代码需要下载讲义材料查看～" class="headerlink" title="此处代码需要下载讲义材料查看～"></a>此处代码需要下载讲义材料查看～<a class="article-anchor" href="#此处代码需要下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/07/02b79j1bdbe1b168g4/common/content/1786058302717_445462.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="图2：各年专业化指数分布（箱线图）" class="article-heading"><a href="#图2：各年专业化指数分布（箱线图）" class="headerlink" title="图2：各年专业化指数分布（箱线图）"></a>图2：各年专业化指数分布（箱线图）<a class="article-anchor" href="#图2：各年专业化指数分布（箱线图）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PALETTE = cmp.get_discrete_colors(&quot;acton&quot;, n=6)</span><br><span class="line"></span><br><span class="line">fig, ax = plt.subplots(figsize=(10, 6))</span><br><span class="line">years2 = sorted(spec_all[&quot;year&quot;].unique())</span><br><span class="line">data = [spec_all[spec_all[&quot;year&quot;] == y][&quot;spec_reg&quot;].values for y in years2]</span><br><span class="line">bp = ax.boxplot(data, patch_artist=True, flierprops=dict(alpha=0.3))</span><br><span class="line">ax.set_xticks(range(1, len(years2) + 1))</span><br><span class="line">ax.set_xticklabels(years2)</span><br><span class="line">for patch, c in zip(bp[&quot;boxes&quot;], PALETTE):</span><br><span class="line">    patch.set_facecolor(c)</span><br><span class="line">    patch.set_alpha(0.85)</span><br><span class="line">for med in bp[&quot;medians&quot;]:</span><br><span class="line">    med.set_color(&quot;black&quot;); med.set_linewidth(1.0)</span><br><span class="line">ax.set_xlabel(&quot;&quot;)</span><br><span class="line">ax.set_ylabel(&quot;产业专业化指数 spec&quot;)</span><br><span class="line">ax.grid(axis=&quot;y&quot;, linestyle=&quot;--&quot;, linewidth=0.5, alpha=0.4)</span><br><span class="line">cmp.add_title_and_subtitle(ax,</span><br><span class="line">    &quot;各年份城市产业专业化指数分布 (2000-2005)&quot;,</span><br><span class="line">    &quot;箱线图展示全部城市的专业化指数分布及其演变&quot;,</span><br><span class="line">    title_fontsize=15, subtitle_fontsize=9, title_pad=32)</span><br><span class="line">cmp.add_caption(ax, &quot;数据处理 &amp; 绘图：微信公众号 RStata&quot;, fig=fig, fontsize=8)</span><br><span class="line">fig.savefig(OUT_DIR / &quot;图2_专业化指数分布.png&quot;, dpi=300,</span><br><span class="line">            bbox_inches=&quot;tight&quot;, facecolor=&quot;white&quot;)</span><br><span class="line">plt.close(fig)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/07/02b79j1bdbe1b168g4/common/content/1786058302964_262972.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="图3：2005-年专业化程度最高的-20-城市" class="article-heading"><a href="#图3：2005-年专业化程度最高的-20-城市" class="headerlink" title="图3：2005 年专业化程度最高的 20 城市"></a>图3：2005 年专业化程度最高的 20 城市<a class="article-anchor" href="#图3：2005-年专业化程度最高的-20-城市" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CMAP_SEQ = cmp.get_scico_colors_cmap(&quot;acton&quot;)</span><br><span class="line"></span><br><span class="line">top20 = (spec_all[spec_all[&quot;year&quot;] == 2005]</span><br><span class="line">         .nlargest(20, &quot;spec_reg&quot;)</span><br><span class="line">         .sort_values(&quot;spec_reg&quot;))</span><br><span class="line">fig, ax = plt.subplots(figsize=(10, 7))</span><br><span class="line">vals = top20[&quot;spec_reg&quot;].values</span><br><span class="line">norm = (vals - vals.min()) / (vals.max() - vals.min() + 1e-12)</span><br><span class="line">bar_colors = [CMAP_SEQ(0.25 + 0.7 * t) for t in norm]</span><br><span class="line">ax.barh(top20[&quot;city&quot;], top20[&quot;spec_reg&quot;], color=bar_colors, alpha=0.95)</span><br><span class="line">ax.set_xlabel(&quot;产业专业化指数 spec&quot;)</span><br><span class="line">ax.set_ylabel(&quot;&quot;)</span><br><span class="line">ax.grid(axis=&quot;x&quot;, linestyle=&quot;--&quot;, linewidth=0.5, alpha=0.4)</span><br><span class="line">cmp.add_title_and_subtitle(ax,</span><br><span class="line">    &quot;2005 年制造业产业专业化程度最高的 20 个城市&quot;,</span><br><span class="line">    &quot;颜色越深表示专业化指数越高&quot;,</span><br><span class="line">    title_fontsize=15, subtitle_fontsize=9, title_pad=32)</span><br><span class="line">cmp.add_caption(ax, &quot;数据处理 &amp; 绘图：微信公众号 RStata&quot;, fig=fig, fontsize=8)</span><br><span class="line">fig.savefig(OUT_DIR / &quot;图3_2005专业化top20.png&quot;, dpi=300,</span><br><span class="line">            bbox_inches=&quot;tight&quot;, facecolor=&quot;white&quot;)</span><br><span class="line">plt.close(fig)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/07/07/02b79j1bdbe1b168g4/common/content/1786058303149_484857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/9dfc640436054f4cbba41308f7dc065d">名师讲堂｜使用 Python 测算地区产业专业化指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.256Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/75631/" title="名师讲堂｜使用 R 语言测算地区产业专业化指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/68408/" title="名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-05 · 约 5 分钟</span></li><li><a href="/posts/72197/">名师讲堂｜使用 Python 测算各城市数字产业集聚程度</a><span class="tf-related-meta">2026-06-15 · 约 12 分钟</span></li><li><a href="/posts/27620/">名师讲堂｜使用 Python 测算区域技术专业化</a><span class="tf-related-meta">2026-05-26 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">指标来源与计算过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E5%8C%BA%E4%BA%A7%E4%B8%9A%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%EF%BC%88%E5%85%AC%E5%BC%8F%EF%BC%89"><span class="toc-text">地区产业专业化指数（公式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E4%B8%9A%E8%8C%83%E5%9B%B4%EF%BC%9A%E5%88%B6%E9%80%A0%E4%B8%9A-C13%E2%80%93C43%EF%BC%8C%E5%89%94%E9%99%A4-C39"><span class="toc-text">行业范围：制造业 C13–C43，剔除 C39</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A7%E4%B8%9A%E8%A7%84%E6%A8%A1%E7%9A%84%E4%BB%A3%E7%90%86%E5%8F%98%E9%87%8F"><span class="toc-text">产业规模的代理变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E7%9A%84%E7%95%8C%E5%AE%9A%EF%BC%88%E8%BF%9B%E5%85%A5%E4%B8%8E%E9%80%80%E5%87%BA%EF%BC%89"><span class="toc-text">存续企业的界定（进入与退出）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">详细计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0-%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%8F%82%E6%95%B0"><span class="toc-text">0. 路径与参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AF%BB%E5%8F%96%E5%B9%B6%E6%B8%85%E6%B4%97%E5%8D%95%E4%B8%AA%E5%B9%B4%E4%BB%BD%E6%96%87%E4%BB%B6"><span class="toc-text">1. 读取并清洗单个年份文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9E%84%E5%BB%BA%E5%9F%8E%E5%B8%82%C3%97%E8%A1%8C%E4%B8%9A%C3%97%E5%B9%B4%E4%BB%BD%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E8%A7%84%E6%A8%A1%E9%9D%A2%E6%9D%BF"><span class="toc-text">2. 构建城市×行业×年份存续企业规模面板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%AE%A1%E7%AE%97-Krugman-%E5%BC%8F%E5%9C%B0%E5%8C%BA%E4%BA%A7%E4%B8%9A%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0"><span class="toc-text">3. 计算 Krugman 式地区产业专业化指数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E9%A2%84%E8%A7%88"><span class="toc-text">结果预览</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="toc-text">数据可视化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE1%EF%BC%9A%E5%90%84%E5%9F%8E%E5%B8%82%E5%B9%B3%E5%9D%87%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%E9%9A%8F%E5%B9%B4%E4%BB%BD%E5%8F%98%E5%8C%96%E8%B6%8B%E5%8A%BF"><span class="toc-text">图1：各城市平均专业化指数随年份变化趋势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E8%A6%81%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需要下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE2%EF%BC%9A%E5%90%84%E5%B9%B4%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%E5%88%86%E5%B8%83%EF%BC%88%E7%AE%B1%E7%BA%BF%E5%9B%BE%EF%BC%89"><span class="toc-text">图2：各年专业化指数分布（箱线图）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE3%EF%BC%9A2005-%E5%B9%B4%E4%B8%93%E4%B8%9A%E5%8C%96%E7%A8%8B%E5%BA%A6%E6%9C%80%E9%AB%98%E7%9A%84-20-%E5%9F%8E%E5%B8%82"><span class="toc-text">图3：2005 年专业化程度最高的 20 城市</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

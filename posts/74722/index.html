@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>appendtxt：Stata 中高效合并 txt 文件的命令 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/74722/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享一个 Stata 中高效合并 txt 文件的命令：appendtxt，是根据会员的问题编写好代码再使用 GPT 模型封装成 ado 命令的，可以用于快速合并某个文件夹里面所有的 txt 文件生成一个 dta 文件。得到的文件包含两个变量，filename 和 content，分别表示各个文件的名称和内容。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="appendtxt：Stata 中高效合并 txt 文件的命令">
+<meta property="og:url" content="https://tidyfriday.cn/posts/74722/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享一个 Stata 中高效合并 txt 文件的命令：appendtxt，是根据会员的问题编写好代码再使用 GPT 模型封装成 ado 命令的，可以用于快速合并某个文件夹里面所有的 txt 文件生成一个 dta 文件。得到的文件包含两个变量，filename 和 content，分别表示各个文件的名称和内容。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/74722.png">
+<meta property="article:published_time" content="2026-04-05T18:27:24.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:42.125Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/74722.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="appendtxt：Stata 中高效合并 txt 文件的命令">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"appendtxt：Stata 中高效合并 txt 文件的命令","description":"今天给大家分享一个 Stata 中高效合并 txt 文件的命令：appendtxt，是根据会员的问题编写好代码再使用 GPT 模型封装成 ado 命令的，可以用于快速合并某个文件夹里面所有的 txt 文件生成一个 dta 文件。得到的文件包含两个变量，filename 和 content，分别表示各个文件的名称和内容。","url":"https://tidyfriday.cn/posts/74722/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/74722/"},"image":["https://tidyfriday.cn/og/74722.png"],"datePublished":"2026-04-05T18:27:24.000Z","dateModified":"2026-09-26T14:18:42.125Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 编程技巧","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"appendtxt：Stata 中高效合并 txt 文件的命令","item":"https://tidyfriday.cn/posts/74722/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">appendtxt：Stata 中高效合并 txt 文件的命令</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">appendtxt：Stata 中高效合并 txt 文件的命令</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-04-05T18:27:24.000Z" itemprop="datePublished">2026-04-05</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3182 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享一个 Stata 中高效合并 txt 文件的命令：appendtxt，是根据会员的问题编写好代码再使用 GPT 模型封装成 ado 命令的，可以用于快速合并某个文件夹里面所有的 txt 文件生成一个 dta 文件。得到的文件包含两个变量，filename 和 content，分别表示各个文件的名称和内容。</p>
+<span id="more"></span>
+
+<hr>
+<h2 id="目录" class="article-heading"><a href="#目录" class="headerlink" title="目录"></a>目录<a class="article-anchor" href="#目录" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
+<li>命令简介</li>
+<li>安装方法</li>
+<li>语法说明</li>
+<li>创建示例数据</li>
+<li>基本用法</li>
+<li>进阶用法</li>
+<li>常见问题</li>
+</ol>
+<hr>
+<h2 id="1-命令简介" class="article-heading"><a href="#1-命令简介" class="headerlink" title="1. 命令简介"></a>1. 命令简介<a class="article-anchor" href="#1-命令简介" aria-label="本节链接" title="复制本节链接"></a></h2><p><code>appendtxt</code> 用于将指定文件夹中所有 <code>.txt</code> 文件批量读入 Stata，每个文件对应数据集中的<strong>一行观测值</strong>，并将文件路径与文件内容分别存入两个变量：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>类型</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>filename</code></td>
+<td><code>strL</code></td>
+<td>TXT 文件的完整路径（文件夹 + 文件名）</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td><code>strL</code></td>
+<td>TXT 文件的全部文本内容</td>
+</tr>
+</tbody></table>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li>支持相对路径与绝对路径</li>
+<li>支持多文件夹追加合并（多次调用自动累积）</li>
+<li>可正确处理文件内容中含有反引号（`）的情形，不触发宏展开错误</li>
+<li>可选择将结果直接保存为 .dta 文件</li>
+</ul>
+<hr>
+<h2 id="2-安装方法" class="article-heading"><a href="#2-安装方法" class="headerlink" title="2. 安装方法"></a>2. 安装方法<a class="article-anchor" href="#2-安装方法" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="方式一：放入当前工作目录（临时使用）" class="article-heading"><a href="#方式一：放入当前工作目录（临时使用）" class="headerlink" title="方式一：放入当前工作目录（临时使用）"></a>方式一：放入当前工作目录（临时使用）<a class="article-anchor" href="#方式一：放入当前工作目录（临时使用）" aria-label="本节链接" title="复制本节链接"></a></h3><p>将以下两个文件复制到你的 Stata 当前工作目录（<code>cd</code> 所指向的目录）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendtxt.ado</span><br><span class="line">appendtxt.sthlp</span><br></pre></td></tr></table></figure>
+
+<p>无需任何额外操作，即可在该工作目录下使用 <code>appendtxt</code> 命令。</p>
+<blockquote>
+<p>查看当前工作目录：<code>pwd</code></p>
+</blockquote>
+<hr>
+<h3 id="方式二：安装到个人-ado-目录（永久使用，推荐）" class="article-heading"><a href="#方式二：安装到个人-ado-目录（永久使用，推荐）" class="headerlink" title="方式二：安装到个人 ado 目录（永久使用，推荐）"></a>方式二：安装到个人 ado 目录（永久使用，推荐）<a class="article-anchor" href="#方式二：安装到个人-ado-目录（永久使用，推荐）" aria-label="本节链接" title="复制本节链接"></a></h3><p>将 <code>appendtxt.ado</code> 和 <code>appendtxt.sthlp</code> 复制到 Stata 个人 ado 目录下按首字母分类的子文件夹中。</p>
+<p><strong>第一步：查看个人 ado 目录路径</strong></p>
+<p>sysdir</p>
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">   STATA:  C:\Program Files\Stata18\</span><br><span class="line">    BASE:  C:\Program Files\Stata18\ado\base\</span><br><span class="line">    SITE:  C:\Program Files\Stata18\ado\site\</span><br><span class="line">    PLUS:  C:\Users\用户名\ado\plus\</span><br><span class="line">PERSONAL:  C:\Users\用户名\ado\personal\</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二步：将文件放入 <code>PERSONAL</code> 目录下的 <code>a</code> 子文件夹</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Windows:  C:\Users\用户名\ado\personal\a\</span><br><span class="line">Mac/Linux:  ~/ado/personal/a/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>若 <code>a</code> 文件夹不存在，手动创建即可。</p>
+</blockquote>
+<p><strong>第三步：验证安装</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">which appendtxt</span><br><span class="line">help appendtxt</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="方式三：通过-net-install-从本地安装（包方式）" class="article-heading"><a href="#方式三：通过-net-install-从本地安装（包方式）" class="headerlink" title="方式三：通过 net install 从本地安装（包方式）"></a>方式三：通过 <code>net install</code> 从本地安装（包方式）<a class="article-anchor" href="#方式三：通过-net-install-从本地安装（包方式）" aria-label="本节链接" title="复制本节链接"></a></h3><p>将以下四个文件放在同一个文件夹（如 <code>C:/mypkg/appendtxt/</code>）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendtxt.ado</span><br><span class="line">appendtxt.sthlp</span><br><span class="line">appendtxt.pkg</span><br><span class="line">stata.toc</span><br></pre></td></tr></table></figure>
+
+<p>然后执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- Windows</span><br><span class="line">net install appendtxt.pkg, from(&quot;C:/mypkg/appendtxt&quot;)</span><br><span class="line"></span><br><span class="line">*- Mac / Linux</span><br><span class="line">net install appendtxt.pkg, from(&quot;/Users/用户名/mypkg/appendtxt&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-语法说明" class="article-heading"><a href="#3-语法说明" class="headerlink" title="3. 语法说明"></a>3. 语法说明<a class="article-anchor" href="#3-语法说明" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendtxt [, folder(路径) saving(文件名) replace]</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>简写</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>folder(路径)</code></td>
+<td><code>fol()</code></td>
+<td>指定 TXT 文件所在文件夹，默认为当前工作目录</td>
+</tr>
+<tr>
+<td><code>saving(文件名)</code></td>
+<td><code>sav()</code></td>
+<td>保存结果为 <code>.dta</code> 文件，无需写后缀</td>
+</tr>
+<tr>
+<td><code>replace</code></td>
+<td>—</td>
+<td>配合 <code>saving()</code> 使用，允许覆盖已有文件</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-创建示例数据" class="article-heading"><a href="#4-创建示例数据" class="headerlink" title="4. 创建示例数据"></a>4. 创建示例数据<a class="article-anchor" href="#4-创建示例数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>在正式演示各种用法之前，先用 Stata 代码在当前工作目录下创建一批示例 TXT 文件，以便复现所有示例。</p>
+<h3 id="4-1-创建目录结构" class="article-heading"><a href="#4-1-创建目录结构" class="headerlink" title="4.1 创建目录结构"></a>4.1 创建目录结构<a class="article-anchor" href="#4-1-创建目录结构" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 创建示例文件夹</span><br><span class="line">mkdir &quot;示例文本&quot;</span><br><span class="line">mkdir &quot;示例文本/第一批&quot;</span><br><span class="line">mkdir &quot;示例文本/第二批&quot;</span><br><span class="line">mkdir &quot;示例文本/含特殊字符&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-创建第一批-TXT-文件（普通文本）" class="article-heading"><a href="#4-2-创建第一批-TXT-文件（普通文本）" class="headerlink" title="4.2 创建第一批 TXT 文件（普通文本）"></a>4.2 创建第一批 TXT 文件（普通文本）<a class="article-anchor" href="#4-2-创建第一批-TXT-文件（普通文本）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 文件 1：某公司 2024 年一季度报告</span><br><span class="line">local f1 = &quot;示例文本/第一批/report_2024q1.txt&quot;</span><br><span class="line">local content1 = &quot;公司名称：宏远科技有限公司&quot; + char(10) + ///</span><br><span class="line">                 &quot;报告期间：2024年第一季度&quot; + char(10) + ///</span><br><span class="line">                 &quot;营业收入：1,250万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;净利润：320万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;同比增长：15.3%&quot;</span><br><span class="line">file open fh using `&quot;`f1&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content1&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br><span class="line"></span><br><span class="line">*- 文件 2：某公司 2024 年二季度报告</span><br><span class="line">local f2 = &quot;示例文本/第一批/report_2024q2.txt&quot;</span><br><span class="line">local content2 = &quot;公司名称：宏远科技有限公司&quot; + char(10) + ///</span><br><span class="line">                 &quot;报告期间：2024年第二季度&quot; + char(10) + ///</span><br><span class="line">                 &quot;营业收入：1,480万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;净利润：401万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;同比增长：18.7%&quot;</span><br><span class="line">file open fh using `&quot;`f2&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content2&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br><span class="line"></span><br><span class="line">*- 文件 3：某公司 2024 年三季度报告</span><br><span class="line">local f3 = &quot;示例文本/第一批/report_2024q3.txt&quot;</span><br><span class="line">local content3 = &quot;公司名称：宏远科技有限公司&quot; + char(10) + ///</span><br><span class="line">                 &quot;报告期间：2024年第三季度&quot; + char(10) + ///</span><br><span class="line">                 &quot;营业收入：1,620万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;净利润：445万元&quot; + char(10) + ///</span><br><span class="line">                 &quot;同比增长：21.2%&quot;</span><br><span class="line">file open fh using `&quot;`f3&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content3&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-创建第二批-TXT-文件（访谈记录）" class="article-heading"><a href="#4-3-创建第二批-TXT-文件（访谈记录）" class="headerlink" title="4.3 创建第二批 TXT 文件（访谈记录）"></a>4.3 创建第二批 TXT 文件（访谈记录）<a class="article-anchor" href="#4-3-创建第二批-TXT-文件（访谈记录）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 访谈记录 1</span><br><span class="line">local f4 = &quot;示例文本/第二批/interview_001.txt&quot;</span><br><span class="line">local content4 = &quot;受访者：张三&quot; + char(10) + ///</span><br><span class="line">                 &quot;日期：2024-03-15&quot; + char(10) + ///</span><br><span class="line">                 &quot;地点：北京&quot; + char(10) + char(10) + ///</span><br><span class="line">                 &quot;问：您如何看待当前的市场形势？&quot; + char(10) + ///</span><br><span class="line">                 &quot;答：整体来看，市场需求在逐步回暖，但竞争压力依然较大。&quot;</span><br><span class="line">file open fh using `&quot;`f4&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content4&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br><span class="line"></span><br><span class="line">*- 访谈记录 2</span><br><span class="line">local f5 = &quot;示例文本/第二批/interview_002.txt&quot;</span><br><span class="line">local content5 = &quot;受访者：李四&quot; + char(10) + ///</span><br><span class="line">                 &quot;日期：2024-03-16&quot; + char(10) + ///</span><br><span class="line">                 &quot;地点：上海&quot; + char(10) + char(10) + ///</span><br><span class="line">                 &quot;问：您认为未来一年的发展重点是什么？&quot; + char(10) + ///</span><br><span class="line">                 &quot;答：数字化转型是重中之重，需要加大技术研发投入。&quot;</span><br><span class="line">file open fh using `&quot;`f5&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content5&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-创建含特殊字符的-TXT-文件" class="article-heading"><a href="#4-4-创建含特殊字符的-TXT-文件" class="headerlink" title="4.4 创建含特殊字符的 TXT 文件"></a>4.4 创建含特殊字符的 TXT 文件<a class="article-anchor" href="#4-4-创建含特殊字符的-TXT-文件" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 含引号与百分号的文件</span><br><span class="line">local f6 = &quot;示例文本/含特殊字符/special_chars.txt&quot;</span><br><span class="line">local content6 = &quot;产品说明：本产品采用\&quot;高强度合金\&quot;材料&quot; + char(10) + ///</span><br><span class="line">                 &quot;折扣率：8.5折（即85%）&quot; + char(10) + ///</span><br><span class="line">                 &quot;备注：价格含税，不含运费&quot;</span><br><span class="line">file open fh using `&quot;`f6&#x27;&quot;&#x27;, write replace</span><br><span class="line">file write fh `&quot;`content6&#x27;&quot;&#x27;</span><br><span class="line">file close fh</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-验证文件创建结果" class="article-heading"><a href="#4-5-验证文件创建结果" class="headerlink" title="4.5 验证文件创建结果"></a>4.5 验证文件创建结果<a class="article-anchor" href="#4-5-验证文件创建结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 查看各文件夹中的 txt 文件列表</span><br><span class="line">local list1 : dir &quot;示例文本/第一批&quot; files &quot;*.txt&quot;</span><br><span class="line">local list2 : dir &quot;示例文本/第二批&quot; files &quot;*.txt&quot;</span><br><span class="line">local list3 : dir &quot;示例文本/含特殊字符&quot; files &quot;*.txt&quot;</span><br><span class="line"></span><br><span class="line">di &quot;第一批：`list1&#x27;&quot;</span><br><span class="line">di &quot;第二批：`list2&#x27;&quot;</span><br><span class="line">di &quot;含特殊字符：`list3&#x27;&quot;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-基本用法" class="article-heading"><a href="#5-基本用法" class="headerlink" title="5. 基本用法"></a>5. 基本用法<a class="article-anchor" href="#5-基本用法" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="5-1-读取当前工作目录下的所有-TXT-文件" class="article-heading"><a href="#5-1-读取当前工作目录下的所有-TXT-文件" class="headerlink" title="5.1 读取当前工作目录下的所有 TXT 文件"></a>5.1 读取当前工作目录下的所有 TXT 文件<a class="article-anchor" href="#5-1-读取当前工作目录下的所有-TXT-文件" aria-label="本节链接" title="复制本节链接"></a></h3><p>最简调用，不加任何选项，默认读取当前目录（<code>pwd</code>）下所有 <code>.txt</code> 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt</span><br><span class="line">list</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-2-使用相对路径指定文件夹" class="article-heading"><a href="#5-2-使用相对路径指定文件夹" class="headerlink" title="5.2 使用相对路径指定文件夹"></a>5.2 使用相对路径指定文件夹<a class="article-anchor" href="#5-2-使用相对路径指定文件夹" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line">list filename</span><br></pre></td></tr></table></figure>
+
+<p>输出示意：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*&gt;     +----------------------------------------------+</span><br><span class="line">*&gt;     | filename                                     |</span><br><span class="line">*&gt;     |----------------------------------------------|</span><br><span class="line">*&gt;  1. | 示例文本/第一批/report_2024q1.txt            |</span><br><span class="line">*&gt;  2. | 示例文本/第一批/report_2024q2.txt            |</span><br><span class="line">*&gt;  3. | 示例文本/第一批/report_2024q3.txt            |</span><br><span class="line">*&gt;     +----------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-3-使用绝对路径指定文件夹" class="article-heading"><a href="#5-3-使用绝对路径指定文件夹" class="headerlink" title="5.3 使用绝对路径指定文件夹"></a>5.3 使用绝对路径指定文件夹<a class="article-anchor" href="#5-3-使用绝对路径指定文件夹" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">*- Windows 示例</span><br><span class="line">appendtxt, folder(&quot;C:/Users/用户名/Desktop/示例文本/第一批&quot;)</span><br><span class="line"></span><br><span class="line">*- Mac / Linux 示例</span><br><span class="line">appendtxt, folder(&quot;/Users/用户名/Desktop/示例文本/第一批&quot;)</span><br><span class="line"></span><br><span class="line">list filename</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-4-读取后直接保存为-dta-文件" class="article-heading"><a href="#5-4-读取后直接保存为-dta-文件" class="headerlink" title="5.4 读取后直接保存为 .dta 文件"></a>5.4 读取后直接保存为 .dta 文件<a class="article-anchor" href="#5-4-读取后直接保存为-dta-文件" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;) saving(quarterly_reports) replace</span><br></pre></td></tr></table></figure>
+
+<p>执行后 Stata 输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*&gt; 文件夹：示例文本/第一批</span><br><span class="line">*&gt; 共发现 3 个 txt 文件，开始读取...</span><br><span class="line">*&gt;</span><br><span class="line">*&gt;   [1/3] 正在读取：report_2024q1.txt</span><br><span class="line">*&gt;   [2/3] 正在读取：report_2024q2.txt</span><br><span class="line">*&gt;   [3/3] 正在读取：report_2024q3.txt</span><br><span class="line">*&gt;</span><br><span class="line">*&gt; 读取完成！共 3 个文件已合并。</span><br><span class="line">*&gt; 数据已保存至：quarterly_reports.dta</span><br><span class="line">*&gt;</span><br><span class="line">*&gt; ═══════════════════════════════════════</span><br><span class="line">*&gt;  appendtxt 执行摘要</span><br><span class="line">*&gt; ═══════════════════════════════════════</span><br><span class="line">*&gt;  来源文件夹：示例文本/第一批</span><br><span class="line">*&gt;  本次读取：  3 个文件</span><br><span class="line">*&gt;  数据集总行：3 行</span><br><span class="line">*&gt;  保存路径：  quarterly_reports.dta</span><br><span class="line">*&gt; ═══════════════════════════════════════</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-5-查看读取结果" class="article-heading"><a href="#5-5-查看读取结果" class="headerlink" title="5.5 查看读取结果"></a>5.5 查看读取结果<a class="article-anchor" href="#5-5-查看读取结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line"></span><br><span class="line">*- 查看变量基本信息</span><br><span class="line">describe</span><br><span class="line"></span><br><span class="line">*- 查看文件名列表</span><br><span class="line">list filename</span><br><span class="line"></span><br><span class="line">*- 查看第一行文件内容</span><br><span class="line">di content[1]</span><br><span class="line"></span><br><span class="line">*- 查看所有内容（适合内容较短时）</span><br><span class="line">list content</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-进阶用法" class="article-heading"><a href="#6-进阶用法" class="headerlink" title="6. 进阶用法"></a>6. 进阶用法<a class="article-anchor" href="#6-进阶用法" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="6-1-合并多个文件夹（追加模式）" class="article-heading"><a href="#6-1-合并多个文件夹（追加模式）" class="headerlink" title="6.1 合并多个文件夹（追加模式）"></a>6.1 合并多个文件夹（追加模式）<a class="article-anchor" href="#6-1-合并多个文件夹（追加模式）" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>appendtxt</code> 支持多次调用，后续调用会自动追加到已有数据集末尾：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line"></span><br><span class="line">*- 先读取第一批</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line">di &quot;第一批读取后观测数：&quot; _N</span><br><span class="line"></span><br><span class="line">*- 再追加第二批</span><br><span class="line">appendtxt, folder(&quot;示例文本/第二批&quot;)</span><br><span class="line">di &quot;追加第二批后观测数：&quot; _N</span><br><span class="line"></span><br><span class="line">*- 查看完整结果</span><br><span class="line">list filename</span><br><span class="line"></span><br><span class="line">*- 保存合并结果</span><br><span class="line">save all_texts, replace</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-2-合并多文件夹并一次性保存" class="article-heading"><a href="#6-2-合并多文件夹并一次性保存" class="headerlink" title="6.2 合并多文件夹并一次性保存"></a>6.2 合并多文件夹并一次性保存<a class="article-anchor" href="#6-2-合并多文件夹并一次性保存" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line">appendtxt, folder(&quot;示例文本/第二批&quot;)</span><br><span class="line">appendtxt, folder(&quot;示例文本/含特殊字符&quot;) saving(all_merged) replace</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>saving()</code> 选项只需在最后一次调用时指定，Stata 会将内存中完整的数据集保存。</p>
+</blockquote>
+<hr>
+<h3 id="6-3-读取后提取文件名（去除路径前缀）" class="article-heading"><a href="#6-3-读取后提取文件名（去除路径前缀）" class="headerlink" title="6.3 读取后提取文件名（去除路径前缀）"></a>6.3 读取后提取文件名（去除路径前缀）<a class="article-anchor" href="#6-3-读取后提取文件名（去除路径前缀）" aria-label="本节链接" title="复制本节链接"></a></h3><p>有时只需要文件名本身，可用字符串函数处理 <code>filename</code> 变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span></span><br><span class="line">appendtxt, folder(<span class="string">&quot;示例文本/第一批&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取纯文件名（去除文件夹路径）</span></span><br><span class="line"><span class="keyword">gen</span> basename = <span class="built_in">regexs</span>(0) <span class="keyword">if</span> <span class="built_in">regexm</span>(filename, <span class="string">&quot;[^/\\]+\.txt$&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> filename basename</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-4-从文件名中提取结构化信息" class="article-heading"><a href="#6-4-从文件名中提取结构化信息" class="headerlink" title="6.4 从文件名中提取结构化信息"></a>6.4 从文件名中提取结构化信息<a class="article-anchor" href="#6-4-从文件名中提取结构化信息" aria-label="本节链接" title="复制本节链接"></a></h3><p>若文件名有规律（如 <code>report_2024q1.txt</code>），可进一步拆解为结构化变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span></span><br><span class="line">appendtxt, folder(<span class="string">&quot;示例文本/第一批&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取年份</span></span><br><span class="line"><span class="keyword">gen</span> year = <span class="built_in">real</span>(<span class="built_in">regexs</span>(1)) <span class="keyword">if</span> <span class="built_in">regexm</span>(filename, <span class="string">&quot;(\d&#123;4&#125;)q\d&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取季度</span></span><br><span class="line"><span class="keyword">gen</span> quarter = <span class="built_in">real</span>(<span class="built_in">regexs</span>(1)) <span class="keyword">if</span> <span class="built_in">regexm</span>(filename, <span class="string">&quot;\d&#123;4&#125;q(\d)&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> filename year quarter</span><br></pre></td></tr></table></figure>
+
+<p>输出示意：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*&gt;      +-----------------------------------------------+</span><br><span class="line">*&gt;      | filename                        year  quarter |</span><br><span class="line">*&gt;      |-----------------------------------------------|</span><br><span class="line">*&gt;   1. | 示例文本/第一批/report_2024q1.txt  2024      1 |</span><br><span class="line">*&gt;   2. | 示例文本/第一批/report_2024q2.txt  2024      2 |</span><br><span class="line">*&gt;   3. | 示例文本/第一批/report_2024q3.txt  2024      3 |</span><br><span class="line">*&gt;      +-----------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-5-按关键词筛选文件内容" class="article-heading"><a href="#6-5-按关键词筛选文件内容" class="headerlink" title="6.5 按关键词筛选文件内容"></a>6.5 按关键词筛选文件内容<a class="article-anchor" href="#6-5-按关键词筛选文件内容" aria-label="本节链接" title="复制本节链接"></a></h3><p>读取后可对 <code>content</code> 变量进行字符串匹配，筛选包含特定关键词的文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line"></span><br><span class="line">*- 筛选内容中包含&quot;净利润&quot;的文件</span><br><span class="line">keep if strpos(content, &quot;净利润&quot;) &gt; 0</span><br><span class="line"></span><br><span class="line">di &quot;包含净利润字段的文件数：&quot; _N</span><br><span class="line">list filename</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-6-统计各文件的字符数与行数" class="article-heading"><a href="#6-6-统计各文件的字符数与行数" class="headerlink" title="6.6 统计各文件的字符数与行数"></a>6.6 统计各文件的字符数与行数<a class="article-anchor" href="#6-6-统计各文件的字符数与行数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span></span><br><span class="line">appendtxt, folder(<span class="string">&quot;示例文本/第一批&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 统计每个文件的字符数</span></span><br><span class="line"><span class="keyword">gen</span> char_count = <span class="built_in">length</span>(content)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 统计每个文件的行数（以换行符数量 +1 估算）</span></span><br><span class="line"><span class="keyword">gen</span> line_count = <span class="built_in">length</span>(content) - <span class="built_in">length</span>(<span class="built_in">subinstr</span>(content, <span class="built_in">char</span>(10), <span class="string">&quot;&quot;</span>, .)) + 1</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> filename char_count line_count</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-7-将文件内容分行展开（长格式转换）" class="article-heading"><a href="#6-7-将文件内容分行展开（长格式转换）" class="headerlink" title="6.7 将文件内容分行展开（长格式转换）"></a>6.7 将文件内容分行展开（长格式转换）<a class="article-anchor" href="#6-7-将文件内容分行展开（长格式转换）" aria-label="本节链接" title="复制本节链接"></a></h3><p>若需要对文本逐行分析，可将每行内容拆分为独立观测值：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span></span><br><span class="line">appendtxt, folder(<span class="string">&quot;示例文本/第一批&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保留原始文件标识</span></span><br><span class="line"><span class="keyword">gen</span> file_id = _n</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 展开为长格式：每行文本一条观测值</span></span><br><span class="line"><span class="comment">*- （需要 splitvallabels 或手动循环，以下为简化示意）</span></span><br><span class="line"><span class="comment">*- 先将换行符替换为分隔符</span></span><br><span class="line"><span class="keyword">gen</span> content2 = <span class="built_in">subinstr</span>(content, <span class="built_in">char</span>(10), <span class="string">&quot;|&quot;</span>, .)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用 split 命令按 | 拆分（生成 content2_1, content2_2, ...）</span></span><br><span class="line"><span class="keyword">split</span> content2, <span class="keyword">parse</span>(<span class="string">&quot;|&quot;</span>) <span class="keyword">gen</span>(line_)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 转换为长格式</span></span><br><span class="line"><span class="keyword">reshape</span> long line_, <span class="built_in">i</span>(file_id) <span class="built_in">j</span>(line_no)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(line_) | line_ == <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">rename</span> line_ text_line</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> file_id line_no text_line</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-8-读取后立即排序" class="article-heading"><a href="#6-8-读取后立即排序" class="headerlink" title="6.8 读取后立即排序"></a>6.8 读取后立即排序<a class="article-anchor" href="#6-8-读取后立即排序" aria-label="本节链接" title="复制本节链接"></a></h3><p>文件读取顺序由操作系统决定（通常为文件名字母升序），如需明确控制顺序，读取后手动排序：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line"></span><br><span class="line">*- 按文件名升序排列</span><br><span class="line">sort filename</span><br><span class="line"></span><br><span class="line">*- 按文件名降序排列</span><br><span class="line">gsort -filename</span><br><span class="line"></span><br><span class="line">list filename</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-9-与现有数据集合并" class="article-heading"><a href="#6-9-与现有数据集合并" class="headerlink" title="6.9 与现有数据集合并"></a>6.9 与现有数据集合并<a class="article-anchor" href="#6-9-与现有数据集合并" aria-label="本节链接" title="复制本节链接"></a></h3><p>若已有一个包含文件名信息的元数据表，可在读取后与之合并：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 第一步：创建元数据（文件名 → 附加属性）</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">input</span> str50 basename str10 category</span><br><span class="line"><span class="string">&quot;report_2024q1.txt&quot;</span>  <span class="string">&quot;财务&quot;</span></span><br><span class="line"><span class="string">&quot;report_2024q2.txt&quot;</span>  <span class="string">&quot;财务&quot;</span></span><br><span class="line"><span class="string">&quot;report_2024q3.txt&quot;</span>  <span class="string">&quot;财务&quot;</span></span><br><span class="line">end</span><br><span class="line"><span class="keyword">save</span> metadata, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 第二步：读取 TXT 文件</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line">appendtxt, folder(<span class="string">&quot;示例文本/第一批&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取纯文件名用于匹配</span></span><br><span class="line"><span class="keyword">gen</span> basename = <span class="built_in">regexs</span>(0) <span class="keyword">if</span> <span class="built_in">regexm</span>(filename, <span class="string">&quot;[^/\\]+\.txt$&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 第三步：与元数据合并</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 basename using metadata</span><br><span class="line"><span class="keyword">list</span> filename category</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-常见问题" class="article-heading"><a href="#7-常见问题" class="headerlink" title="7. 常见问题"></a>7. 常见问题<a class="article-anchor" href="#7-常见问题" aria-label="本节链接" title="复制本节链接"></a></h2><p><strong>Q1：文件夹路径中含有中文或空格，会报错吗？</strong></p>
+<p>不会。<code>appendtxt</code> 内部使用复合引号（``”…”‘`）处理路径，可兼容中文路径和含空格的路径。</p>
+<hr>
+<p><strong>Q2：文件内容含有反引号（```），会报错吗？</strong></p>
+<p>不会。这正是 <code>appendtxt</code> 相比手动脚本的核心改进之处。命令内部直接调用 <code>fileread()</code> 函数将结果写入 <code>strL</code> 变量，完全绕过本地宏的解析过程，因此反引号不会触发宏展开错误。</p>
+<hr>
+<p><strong>Q3：追加时报错”当前数据集中不含 filename 或 content 变量”？</strong></p>
+<p>这意味着内存中已有数据集，但不含 <code>appendtxt</code> 所需的两个变量。解决方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 方法一：清空内存重新开始</span><br><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;你的文件夹&quot;)</span><br><span class="line"></span><br><span class="line">*- 方法二：先保存现有数据，再清空</span><br><span class="line">save backup, replace</span><br><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;你的文件夹&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>Q4：命令只读取了当前文件夹，不读取子文件夹？</strong></p>
+<p>是的，<code>appendtxt</code> 仅扫描指定文件夹的根目录，不递归进入子文件夹。若需处理多层目录，请对每个子文件夹分别调用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line">appendtxt, folder(&quot;示例文本/第二批&quot;)</span><br><span class="line">appendtxt, folder(&quot;示例文本/含特殊字符&quot;)</span><br><span class="line">save all, replace</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>Q5：如何只保存部分列？</strong></p>
+<p>读取后用 <code>keep</code> 命令保留所需变量，再保存：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">appendtxt, folder(&quot;示例文本/第一批&quot;)</span><br><span class="line">keep filename content        // 只保留这两列（默认即只有这两列）</span><br><span class="line">save result, replace</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>Q6：文件数量很多时，命令会很慢吗？</strong></p>
+<p>速度主要取决于文件总大小而非文件数量。<code>fileread()</code> 函数为 Stata 内置函数，效率较高。若文件单个体积很大（数十 MB 以上），读取速度会相应变慢，这是正常现象。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/0a57d10e10de4412a79be8988061f5ea">appendtxt：Stata 中高效合并 txt 文件的命令</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:42.125Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/58169/" title="名师讲堂｜使用 R 语言基于 LandScan 数据测算城市多中心指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/73955/" title="2000～2024 年各城市多中心指标（商玉萍版本）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/81361/">Stata：ado 命令编程案例</a><span class="tf-related-meta">2023-03-17 · 约 1 分钟</span></li><li><a href="/posts/62716/">Stata：编写自己的 ado 命令（四）</a><span class="tf-related-meta">2023-03-17 · 约 1 分钟</span></li><li><a href="/posts/16575/">Stata：编写自己的 ado 命令（三）</a><span class="tf-related-meta">2023-02-03 · 约 1 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%91%BD%E4%BB%A4%E7%AE%80%E4%BB%8B"><span class="toc-text">1. 命令简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95"><span class="toc-text">2. 安装方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E6%94%BE%E5%85%A5%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%EF%BC%88%E4%B8%B4%E6%97%B6%E4%BD%BF%E7%94%A8%EF%BC%89"><span class="toc-text">方式一：放入当前工作目录（临时使用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E5%AE%89%E8%A3%85%E5%88%B0%E4%B8%AA%E4%BA%BA-ado-%E7%9B%AE%E5%BD%95%EF%BC%88%E6%B0%B8%E4%B9%85%E4%BD%BF%E7%94%A8%EF%BC%8C%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-text">方式二：安装到个人 ado 目录（永久使用，推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%89%EF%BC%9A%E9%80%9A%E8%BF%87-net-install-%E4%BB%8E%E6%9C%AC%E5%9C%B0%E5%AE%89%E8%A3%85%EF%BC%88%E5%8C%85%E6%96%B9%E5%BC%8F%EF%BC%89"><span class="toc-text">方式三：通过 net install 从本地安装（包方式）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%AF%AD%E6%B3%95%E8%AF%B4%E6%98%8E"><span class="toc-text">3. 语法说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%88%9B%E5%BB%BA%E7%A4%BA%E4%BE%8B%E6%95%B0%E6%8D%AE"><span class="toc-text">4. 创建示例数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">4.1 创建目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E6%89%B9-TXT-%E6%96%87%E4%BB%B6%EF%BC%88%E6%99%AE%E9%80%9A%E6%96%87%E6%9C%AC%EF%BC%89"><span class="toc-text">4.2 创建第一批 TXT 文件（普通文本）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%BA%8C%E6%89%B9-TXT-%E6%96%87%E4%BB%B6%EF%BC%88%E8%AE%BF%E8%B0%88%E8%AE%B0%E5%BD%95%EF%BC%89"><span class="toc-text">4.3 创建第二批 TXT 文件（访谈记录）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%88%9B%E5%BB%BA%E5%90%AB%E7%89%B9%E6%AE%8A%E5%AD%97%E7%AC%A6%E7%9A%84-TXT-%E6%96%87%E4%BB%B6"><span class="toc-text">4.4 创建含特殊字符的 TXT 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E9%AA%8C%E8%AF%81%E6%96%87%E4%BB%B6%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%9C"><span class="toc-text">4.5 验证文件创建结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-text">5. 基本用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%AF%BB%E5%8F%96%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%E4%B8%8B%E7%9A%84%E6%89%80%E6%9C%89-TXT-%E6%96%87%E4%BB%B6"><span class="toc-text">5.1 读取当前工作目录下的所有 TXT 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-text">5.2 使用相对路径指定文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E7%94%A8%E7%BB%9D%E5%AF%B9%E8%B7%AF%E5%BE%84%E6%8C%87%E5%AE%9A%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-text">5.3 使用绝对路径指定文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%AF%BB%E5%8F%96%E5%90%8E%E7%9B%B4%E6%8E%A5%E4%BF%9D%E5%AD%98%E4%B8%BA-dta-%E6%96%87%E4%BB%B6"><span class="toc-text">5.4 读取后直接保存为 .dta 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E6%9F%A5%E7%9C%8B%E8%AF%BB%E5%8F%96%E7%BB%93%E6%9E%9C"><span class="toc-text">5.5 查看读取结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%BF%9B%E9%98%B6%E7%94%A8%E6%B3%95"><span class="toc-text">6. 进阶用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AA%E6%96%87%E4%BB%B6%E5%A4%B9%EF%BC%88%E8%BF%BD%E5%8A%A0%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-text">6.1 合并多个文件夹（追加模式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%90%88%E5%B9%B6%E5%A4%9A%E6%96%87%E4%BB%B6%E5%A4%B9%E5%B9%B6%E4%B8%80%E6%AC%A1%E6%80%A7%E4%BF%9D%E5%AD%98"><span class="toc-text">6.2 合并多文件夹并一次性保存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%AF%BB%E5%8F%96%E5%90%8E%E6%8F%90%E5%8F%96%E6%96%87%E4%BB%B6%E5%90%8D%EF%BC%88%E5%8E%BB%E9%99%A4%E8%B7%AF%E5%BE%84%E5%89%8D%E7%BC%80%EF%BC%89"><span class="toc-text">6.3 读取后提取文件名（去除路径前缀）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E4%BB%8E%E6%96%87%E4%BB%B6%E5%90%8D%E4%B8%AD%E6%8F%90%E5%8F%96%E7%BB%93%E6%9E%84%E5%8C%96%E4%BF%A1%E6%81%AF"><span class="toc-text">6.4 从文件名中提取结构化信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E6%8C%89%E5%85%B3%E9%94%AE%E8%AF%8D%E7%AD%9B%E9%80%89%E6%96%87%E4%BB%B6%E5%86%85%E5%AE%B9"><span class="toc-text">6.5 按关键词筛选文件内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-%E7%BB%9F%E8%AE%A1%E5%90%84%E6%96%87%E4%BB%B6%E7%9A%84%E5%AD%97%E7%AC%A6%E6%95%B0%E4%B8%8E%E8%A1%8C%E6%95%B0"><span class="toc-text">6.6 统计各文件的字符数与行数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7-%E5%B0%86%E6%96%87%E4%BB%B6%E5%86%85%E5%AE%B9%E5%88%86%E8%A1%8C%E5%B1%95%E5%BC%80%EF%BC%88%E9%95%BF%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2%EF%BC%89"><span class="toc-text">6.7 将文件内容分行展开（长格式转换）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-8-%E8%AF%BB%E5%8F%96%E5%90%8E%E7%AB%8B%E5%8D%B3%E6%8E%92%E5%BA%8F"><span class="toc-text">6.8 读取后立即排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-9-%E4%B8%8E%E7%8E%B0%E6%9C%89%E6%95%B0%E6%8D%AE%E9%9B%86%E5%90%88%E5%B9%B6"><span class="toc-text">6.9 与现有数据集合并</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-text">7. 常见问题</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

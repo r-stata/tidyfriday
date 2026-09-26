@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/99231/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="上次课程中我们计算了上市公司专利与其引用专利的文本相似度。今天我们继续上次课的内容，筛选颠覆性创新专利。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/99231/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="上次课程中我们计算了上市公司专利与其引用专利的文本相似度。今天我们继续上次课的内容，筛选颠覆性创新专利。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/99231.png">
+<meta property="article:published_time" content="2025-08-13T16:09:04.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.985Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="计量与统计方法">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta property="article:tag" content="文本数据">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/99231.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）","description":"上次课程中我们计算了上市公司专利与其引用专利的文本相似度。今天我们继续上次课的内容，筛选颠覆性创新专利。","url":"https://tidyfriday.cn/posts/99231/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/99231/"},"image":["https://tidyfriday.cn/og/99231.png"],"datePublished":"2025-08-13T16:09:04.000Z","dateModified":"2026-09-26T14:18:51.985Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"计量与统计方法, 专利, 创新与知识, 文本数据","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）","item":"https://tidyfriday.cn/posts/99231/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-08-13T16:09:04.000Z" itemprop="datePublished">2025-08-13</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3756 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 13 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%AE%A1%E9%87%8F%E4%B8%8E%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95">计量与统计方法</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>上次课程中我们计算了上市公司专利与其引用专利的文本相似度。今天我们继续上次课的内容，筛选颠覆性创新专利。</p>
+<span id="more"></span>
+
+<p>「企业数字化转型与颠覆性技术创新——来自专利网络与SBERT模型的微观证据_黄先海」文献中，作者定义专利的创新度为其与所有引用专利相似度平均值的倒数（取对数）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163588263_822811.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>也就是和引用专利的相似度越低，创新度越高。</p>
+<p>然后定义<code>突破性技术创新</code>的专利为：同年同一行业企业的专利中，创新度位于前 20% 的专利。<code>重要影响力技术创新</code>的专利为：同年同一行业企业的专利中，3 年内被引次数排名前 20% 的专利。</p>
+<p>同时满足上述两个条件的专利即位具有<code>颠覆性创新</code>的。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163552262_281178.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>在处理前仅保留发明专利并且删除金融和保险类企业。</p>
+<h2 id="计算专利创新度" class="article-heading"><a href="#计算专利创新度" class="headerlink" title="计算专利创新度"></a>计算专利创新度<a class="article-anchor" href="#计算专利创新度" aria-label="本节链接" title="复制本节链接"></a></h2><p>因此我们首先计算专利的创新度。</p>
+<p><code>2021年上市公司专利与其引用专利的相似度计算结果.dta</code> 文件是按照上次课程内容计算的结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2021年上市公司专利与其引用专利的相似度计算结果.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> newipzlid2<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,398 × 4</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid newipzlid2 similarity</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 600028   2001001259  199980468      0.724</span></span><br><span class="line"><span class="comment">#&gt;  2 600019   2001003922  199817092      0.773</span></span><br><span class="line"><span class="comment">#&gt;  3 000537   2001004017  199251691      0.563</span></span><br><span class="line"><span class="comment">#&gt;  4 000537   2001004017 2000118896      0.400</span></span><br><span class="line"><span class="comment">#&gt;  5 000537   2001004017 2000103920      0.439</span></span><br><span class="line"><span class="comment">#&gt;  6 000537   2001004017  199202422      0.560</span></span><br><span class="line"><span class="comment">#&gt;  7 600089   2001004068  199451721      0.930</span></span><br><span class="line"><span class="comment">#&gt;  8 600089   2001004068  199844765      0.828</span></span><br><span class="line"><span class="comment">#&gt;  9 600716   2001004964  199739276      0.802</span></span><br><span class="line"><span class="comment">#&gt; 10 603051   2001004971  198611343      0.722</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,388 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>其实在上次课程中的计算过程中可以先对“专利对”进行去重后再计算，可以节省很多运算量。</p>
+<p>匹配上市公司信息：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_rds<span class="punctuation">(</span><span class="string">&quot;2001年上市公司专利引用信息.rds&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0</span><br><span class="line"></span><br><span class="line">df0 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> newipzlid<span class="punctuation">,</span> newipzlid2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>dfall<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,422 × 4</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid newipzlid2 similarity</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 600028   2001001259  199980468      0.724</span></span><br><span class="line"><span class="comment">#&gt;  2 600019   2001003922  199817092      0.773</span></span><br><span class="line"><span class="comment">#&gt;  3 000537   2001004017  199251691      0.563</span></span><br><span class="line"><span class="comment">#&gt;  4 000537   2001004017 2000118896      0.400</span></span><br><span class="line"><span class="comment">#&gt;  5 000537   2001004017 2000103920      0.439</span></span><br><span class="line"><span class="comment">#&gt;  6 000537   2001004017  199202422      0.560</span></span><br><span class="line"><span class="comment">#&gt;  7 600089   2001004068  199451721      0.930</span></span><br><span class="line"><span class="comment">#&gt;  8 600089   2001004068  199844765      0.828</span></span><br><span class="line"><span class="comment">#&gt;  9 600716   2001004964  199739276      0.802</span></span><br><span class="line"><span class="comment">#&gt; 10 603051   2001004971  198611343      0.722</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,412 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>根据创新度公式计算每个专利的创新度：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfall <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> newipzlid<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>Innov <span class="operator">=</span> <span class="built_in">log</span><span class="punctuation">(</span>n<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">/</span> <span class="built_in">sum</span><span class="punctuation">(</span>similarity<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> innovdf</span><br><span class="line"></span><br><span class="line">innovdf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 686 × 3</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid  Innov</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000026   2001026802 0.369</span></span><br><span class="line"><span class="comment">#&gt;  2 000063   2001026367 0.264</span></span><br><span class="line"><span class="comment">#&gt;  3 000063   2001026374 0.307</span></span><br><span class="line"><span class="comment">#&gt;  4 000063   2001026405 0.269</span></span><br><span class="line"><span class="comment">#&gt;  5 000063   2001026406 0.357</span></span><br><span class="line"><span class="comment">#&gt;  6 000063   2001026422 0.998</span></span><br><span class="line"><span class="comment">#&gt;  7 000063   2001026458 0.0497</span></span><br><span class="line"><span class="comment">#&gt;  8 000063   2001026511 0.290</span></span><br><span class="line"><span class="comment">#&gt;  9 000063   2001026535 0.622</span></span><br><span class="line"><span class="comment">#&gt; 10 000063   2001026536 0.352</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 676 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>不过暂时我们还不能直接继续后面的步骤，因为这里没有涵盖全部的，也就是没有引用的专利不在其中，这些专利的创新度其实就是 0。</p>
+<p>读取全部 2021 年上市公司发明专利</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">readr<span class="operator">::</span>read_csv<span class="punctuation">(</span><span class="string">&quot;2001年上市公司与发明专利数据匹配结果.csv&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0a</span><br><span class="line"></span><br><span class="line">df0a</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,213 × 10</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 股票名称  newipzlid  年份 申请日     标题  摘要  公开公告号 专利类型</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 002215   诺普信   2001000048  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299592A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  2 002215   诺普信   2001000049  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299593A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  3 002215   诺普信   2001000050  2001 2001-01-05 吡虫啉微… 吡虫啉微… CN1299594A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  4 002215   诺普信   2001000051  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299595A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  5 002215   诺普信   2001000052  2001 2001-01-05 吡虫啉·… 本发明为… CN1299596A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  6 600481   双良节能 2001000235  2001 2001-01-13 相变技术… 本发明涉… CN1302991A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  7 000537   广宇发展 2001000265  2001 2001-02-26 无线移动… 本发明属… CN1303183A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  8 600853   龙建股份 2001000356  2001 2001-02-19 高强度、… 本发明涉… CN1305020A 发明申请</span></span><br><span class="line"><span class="comment">#&gt;  9 002215   诺普信   2001000445  2001 2001-01-05 阿维菌素… 一种杀虫… CN1305711A 发明申请</span></span><br><span class="line"><span class="comment">#&gt; 10 600005   武钢股份 2001000491  2001 2001-02-28 高性能管… 本发明涉… CN1305879A 发明申请</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,203 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: 授权公告日 &lt;date&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在专利数据的介绍里面我们提到了，专利数据里面有重复的，一种去重方法就是去除公开公告号结尾的字母之后再去重。不过这里我们不能直接去重，而是要优先保留 innovdf 里面的专利：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 去重，但是保留 innovdf 中的结果</span></span><br><span class="line">df0a <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>innovdf <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>newipzlid<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">              distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> <span class="built_in">class</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>公开公告号 <span class="operator">=</span> str_remove<span class="punctuation">(</span>公开公告号<span class="punctuation">,</span> <span class="string">&quot;[A-Z]$&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 公开公告号<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">==</span> <span class="built_in">max</span><span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span><span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 公开公告号<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df0b</span><br><span class="line"></span><br><span class="line">df0b</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 2,203 × 10</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 股票名称  newipzlid  年份 申请日     标题  摘要  公开公告号 专利类型</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 002215   诺普信   2001000048  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299592  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  2 002215   诺普信   2001000049  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299593  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  3 002215   诺普信   2001000050  2001 2001-01-05 吡虫啉微… 吡虫啉微… CN1299594  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  4 002215   诺普信   2001000051  2001 2001-01-05 阿维菌素… 一种杀虫… CN1299595  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  5 002215   诺普信   2001000052  2001 2001-01-05 吡虫啉·… 本发明为… CN1299596  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  6 600481   双良节能 2001000235  2001 2001-01-13 相变技术… 本发明涉… CN1302991  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  7 000537   广宇发展 2001000265  2001 2001-02-26 无线移动… 本发明属… CN1303183  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  8 600853   龙建股份 2001000356  2001 2001-02-19 高强度、… 本发明涉… CN1305020  发明申请</span></span><br><span class="line"><span class="comment">#&gt;  9 002215   诺普信   2001000445  2001 2001-01-05 阿维菌素… 一种杀虫… CN1305711  发明申请</span></span><br><span class="line"><span class="comment">#&gt; 10 600005   武钢股份 2001000491  2001 2001-02-28 高性能管… 本发明涉… CN1305879  发明申请</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2,193 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1 more variable: 授权公告日 &lt;date&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="筛选突破性技术创新专利" class="article-heading"><a href="#筛选突破性技术创新专利" class="headerlink" title="筛选突破性技术创新专利"></a>筛选突破性技术创新专利<a class="article-anchor" href="#筛选突破性技术创新专利" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>同年同一行业企业的专利中，创新度位于前 20% 的专利。</p>
+</blockquote>
+<p>因此这里我们还需要上市公司的行业信息。这里我们使用证监会行业分类，这个变量在之前分享的这个数据里面有：</p>
+<blockquote>
+<p>2000～2024 年上市公司注册地址与办公地址（含经纬度及其所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/746d4f595eba41a2a116b5a6edc3ac0a">https://rstata.duanshu.com/#/brief/course/746d4f595eba41a2a116b5a6edc3ac0a</a></p>
+</blockquote>
+<blockquote>
+<p>IndustryName [行业名称] - 2023年（含）之后的年份是按照中国上市公司协会行业分类， 2012年（含）之后的年份是按照2012版证监会行业分类，2012年之前是按照2001版证监会行业分类。如：2012年证监会行业分类是根据统计截止日期与证监会2012版本披露的实施日期，用2012版本的行业填充。</p>
+</blockquote>
+<p>附件中提供了 2001 年的数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2001年上市公司行业信息.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 行业名称<span class="punctuation">,</span> 年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> industrydf</span><br><span class="line"></span><br><span class="line">industrydf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,166 × 3</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 行业名称            年份</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;chr&gt;              &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000001   其他商业银行        2001</span></span><br><span class="line"><span class="comment">#&gt;  2 000002   房地产开发与经营业  2001</span></span><br><span class="line"><span class="comment">#&gt;  3 000003   综合类              2001</span></span><br><span class="line"><span class="comment">#&gt;  4 000004   公路运输业          2001</span></span><br><span class="line"><span class="comment">#&gt;  5 000005   综合类              2001</span></span><br><span class="line"><span class="comment">#&gt;  6 000006   房地产开发与经营业  2001</span></span><br><span class="line"><span class="comment">#&gt;  7 000007   房地产开发与经营业  2001</span></span><br><span class="line"><span class="comment">#&gt;  8 000008   计算机应用服务业    2001</span></span><br><span class="line"><span class="comment">#&gt;  9 000009   综合类              2001</span></span><br><span class="line"><span class="comment">#&gt; 10 000010   商业经纪与代理业    2001</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,156 more rows</span></span><br><span class="line"></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 行业名称<span class="number">2</span> <span class="operator">=</span> 行业名称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> industrydf2</span><br><span class="line"></span><br><span class="line">industrydf2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,166 × 2</span></span><br><span class="line"><span class="comment">#&gt;    股票代码 行业名称2</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;    &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000001   其他商业银行</span></span><br><span class="line"><span class="comment">#&gt;  2 000002   房地产开发与经营业</span></span><br><span class="line"><span class="comment">#&gt;  3 000003   综合类</span></span><br><span class="line"><span class="comment">#&gt;  4 000004   公路运输业</span></span><br><span class="line"><span class="comment">#&gt;  5 000005   综合类</span></span><br><span class="line"><span class="comment">#&gt;  6 000006   房地产开发与经营业</span></span><br><span class="line"><span class="comment">#&gt;  7 000007   房地产开发与经营业</span></span><br><span class="line"><span class="comment">#&gt;  8 000008   计算机应用服务业</span></span><br><span class="line"><span class="comment">#&gt;  9 000009   综合类</span></span><br><span class="line"><span class="comment">#&gt; 10 000010   商业经纪与代理业</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,156 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>如果跨年处理的话，这里其实会遇到同一家公司在不同年份的行业不同。所以我准备了两个行业数据，一个是各年各公司的行业信息，另外一个则是每个公司的行业（不分行业，粗暴的去重），这样如果和第一个匹配成功的就用第一个的结果，第一个没有匹配成功的用第二个的结果。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df0b <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> newipzlid<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>innovdf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>Innov <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>Innov<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> Innov<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         年份 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_sub<span class="punctuation">(</span>format<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> scientific <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span> trim <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>Innov <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>行业名称 <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">,</span> 行业名称<span class="number">2</span><span class="punctuation">,</span> 行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2a</span><br><span class="line"></span><br><span class="line">df2a</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 493 × 6</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid  Innov  年份 行业名称         行业名称2</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;            &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 600028   2001001259 0.323   2001 天然原油开采业   天然原油开采业</span></span><br><span class="line"><span class="comment">#&gt;  2 600019   2001003922 0.257   2001 炼钢业           炼钢业</span></span><br><span class="line"><span class="comment">#&gt;  3 000537   2001004017 0.712   2001 综合类           综合类</span></span><br><span class="line"><span class="comment">#&gt;  4 600089   2001004068 0.129   2001 电工器械制造业   电工器械制造业</span></span><br><span class="line"><span class="comment">#&gt;  5 600716   2001004964 0.220   2001 非金属矿物制品业 非金属矿物制品业</span></span><br><span class="line"><span class="comment">#&gt;  6 600019   2001006006 0.0291  2001 炼钢业           炼钢业</span></span><br><span class="line"><span class="comment">#&gt;  7 600019   2001008425 0.164   2001 炼钢业           炼钢业</span></span><br><span class="line"><span class="comment">#&gt;  8 000527   2001009690 1.64    2001 日用电器制造业   日用电器制造业</span></span><br><span class="line"><span class="comment">#&gt;  9 600871   2001014526 0.352   2001 合成纤维制造业   合成纤维制造业</span></span><br><span class="line"><span class="comment">#&gt; 10 000939   2001020999 0.468   2001 电力生产业       电力生产业</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 483 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里我又把创新度为 0 的删除了。这其实是因为最开始我准备用所有的专利数据计算 80% 分位数进行筛选，但是后来发现创新度为 0 的太多，基于所有专利技术的 80% 分位数不能有效的筛选，所以到这里我还是把创新度为 0 的删除了。</p>
+<p>计算分位数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2a <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>行业名称<span class="number">2</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">,</span> 行业名称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>p80 <span class="operator">=</span> quantile<span class="punctuation">(</span>Innov<span class="punctuation">,</span> probs <span class="operator">=</span> <span class="number">0.8</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2b</span><br><span class="line"></span><br><span class="line">df2a <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>行业名称<span class="number">2</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df2b<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>Innov <span class="operator">&gt;=</span> p80<span class="punctuation">)</span> <span class="operator">-&gt;</span> df2c</span><br><span class="line"></span><br><span class="line">df2c</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 112 × 6</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid Innov  年份 行业名称             p80</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000537   2001004017 0.712  2001 综合类             0.706</span></span><br><span class="line"><span class="comment">#&gt;  2 600089   2001004068 0.129  2001 电工器械制造业     0.129</span></span><br><span class="line"><span class="comment">#&gt;  3 000527   2001009690 1.64   2001 日用电器制造业     0.642</span></span><br><span class="line"><span class="comment">#&gt;  4 000063   2001026422 0.998  2001 通信设备制造业     0.603</span></span><br><span class="line"><span class="comment">#&gt;  5 000063   2001026535 0.622  2001 通信设备制造业     0.603</span></span><br><span class="line"><span class="comment">#&gt;  6 000063   2001026650 0.671  2001 通信设备制造业     0.603</span></span><br><span class="line"><span class="comment">#&gt;  7 000063   2001026674 0.748  2001 通信设备制造业     0.603</span></span><br><span class="line"><span class="comment">#&gt;  8 000063   2001026723 0.714  2001 通信设备制造业     0.603</span></span><br><span class="line"><span class="comment">#&gt;  9 000837   2001026734 0.513  2001 金属加工机械制造业 0.513</span></span><br><span class="line"><span class="comment">#&gt; 10 000026   2001026802 0.369  2001 机械、设备、仪表   0.369</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 102 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这些专利就是具有突破性技术创新的专利了。</p>
+<h2 id="重要影响力技术创新专利" class="article-heading"><a href="#重要影响力技术创新专利" class="headerlink" title="重要影响力技术创新专利"></a>重要影响力技术创新专利<a class="article-anchor" href="#重要影响力技术创新专利" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>同年同一行业企业的专利中，3 年内被引次数排名前 20% 的专利。</p>
+</blockquote>
+<p>这里需要使用每个专利在特定窗口内的被引用次数，之前平台上有分享过这个数据：</p>
+<blockquote>
+<p>1985~2024 年各专利当年～十一年内的被自引、被他引数量统计：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/51e62d1eae074a4d8174a3969f5025c6">https://rstata.duanshu.com/#/brief/course/51e62d1eae074a4d8174a3969f5025c6</a></p>
+</blockquote>
+<p>附件中提供了 2001 年的部分数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;2021年各专利当年～十一年内的被自引、被他引数量统计.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df3</span><br><span class="line">df3</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 46,648 × 14</span></span><br><span class="line"><span class="comment">#&gt;     year newipzlid  引用或被引用  当年 两年内 三年内 四年内 五年内 六年内 七年内</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2001 2001000001 被他引信息       0      1      1      1      1      1      1</span></span><br><span class="line"><span class="comment">#&gt;  2  2001 2001000003 被他引信息       0      2      2      2      2      2      2</span></span><br><span class="line"><span class="comment">#&gt;  3  2001 2001000005 被他引信息       0      0      0      0      0      0      0</span></span><br><span class="line"><span class="comment">#&gt;  4  2001 2001000006 被他引信息       0      0      1      1      1      1      1</span></span><br><span class="line"><span class="comment">#&gt;  5  2001 2001000007 被他引信息       0      0      0      0      0      0      0</span></span><br><span class="line"><span class="comment">#&gt;  6  2001 2001000008 被他引信息       0      0      0      0      0      0      0</span></span><br><span class="line"><span class="comment">#&gt;  7  2001 2001000009 被他引信息       0      0      0      0      0      1      2</span></span><br><span class="line"><span class="comment">#&gt;  8  2001 2001000012 被他引信息       0      0      0      0      0      0      0</span></span><br><span class="line"><span class="comment">#&gt;  9  2001 2001000013 被他引信息       0      0      2      2      2      2      4</span></span><br><span class="line"><span class="comment">#&gt; 10  2001 2001000016 被他引信息       0      0      0      0      0      0      0</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 46,638 more rows</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 4 more variables: 八年内 &lt;dbl&gt;, 九年内 &lt;dbl&gt;, 十年内 &lt;dbl&gt;, 十一年内 &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>总被引次数 = 总被自引次数 + 总被他引次数，计算每个专利的总被引次数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df3 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> 三年内<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  count<span class="punctuation">(</span>newipzlid<span class="punctuation">,</span> wt <span class="operator">=</span> 三年内<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>三年内被引次数 <span class="operator">=</span> n<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>newipzlid <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>newipzlid<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df3a</span><br><span class="line"></span><br><span class="line">df3a</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 42,420 × 2</span></span><br><span class="line"><span class="comment">#&gt;     newipzlid 三年内被引次数</span></span><br><span class="line"><span class="comment">#&gt;         &lt;dbl&gt;          &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 2001000001              1</span></span><br><span class="line"><span class="comment">#&gt;  2 2001000003              2</span></span><br><span class="line"><span class="comment">#&gt;  3 2001000005              0</span></span><br><span class="line"><span class="comment">#&gt;  4 2001000006              1</span></span><br><span class="line"><span class="comment">#&gt;  5 2001000007              0</span></span><br><span class="line"><span class="comment">#&gt;  6 2001000008              0</span></span><br><span class="line"><span class="comment">#&gt;  7 2001000009              0</span></span><br><span class="line"><span class="comment">#&gt;  8 2001000012              0</span></span><br><span class="line"><span class="comment">#&gt;  9 2001000013              2</span></span><br><span class="line"><span class="comment">#&gt; 10 2001000016              0</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 42,410 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>分年分行业计算被引用次数的 80% 分位数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df0b <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> newipzlid<span class="punctuation">,</span> 年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df3a<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>三年内被引次数 <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">,</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>三年内被引次数<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>行业名称 <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">,</span> 行业名称<span class="number">2</span><span class="punctuation">,</span> 行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>行业名称<span class="number">2</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">,</span> 行业名称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span>p80b <span class="operator">=</span> quantile<span class="punctuation">(</span>三年内被引次数<span class="punctuation">,</span> probs <span class="operator">=</span> <span class="number">0.8</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df3b</span><br><span class="line"></span><br><span class="line">df3b</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 27 × 3</span></span><br><span class="line"><span class="comment">#&gt;     年份 行业名称                  p80b</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;                    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2001 中药材及中成药加工业       1</span></span><br><span class="line"><span class="comment">#&gt;  2  2001 其他专用设备制造业         6</span></span><br><span class="line"><span class="comment">#&gt;  3  2001 其他制造业                 1</span></span><br><span class="line"><span class="comment">#&gt;  4  2001 化学农药制造业             1</span></span><br><span class="line"><span class="comment">#&gt;  5  2001 化学原料及化学制品制造业   3</span></span><br><span class="line"><span class="comment">#&gt;  6  2001 化学肥料制造业             1.8</span></span><br><span class="line"><span class="comment">#&gt;  7  2001 化学药品制剂制造业         4.6</span></span><br><span class="line"><span class="comment">#&gt;  8  2001 原油加工业                 1</span></span><br><span class="line"><span class="comment">#&gt;  9  2001 合成纤维制造业             5.6</span></span><br><span class="line"><span class="comment">#&gt; 10  2001 基本化学原料制造业         4</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 17 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>然后再筛选：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df0 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> newipzlid<span class="punctuation">,</span> 年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df3a<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>三年内被引次数 <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">,</span> <span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>三年内被引次数<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industrydf2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>行业名称 <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">,</span> 行业名称<span class="number">2</span><span class="punctuation">,</span> 行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>行业名称<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>行业名称<span class="number">2</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>df3b<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>三年内被引次数 <span class="operator">&gt;=</span> p80b<span class="punctuation">)</span> <span class="operator">-&gt;</span> df3c</span><br><span class="line"></span><br><span class="line">df3c</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 57 × 6</span></span><br><span class="line"><span class="comment">#&gt;    股票代码  newipzlid  年份 三年内被引次数 行业名称        p80b</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 000537   2001004017  2001              1 综合类           1</span></span><br><span class="line"><span class="comment">#&gt;  2 000537   2001004017  2001              1 综合类           1</span></span><br><span class="line"><span class="comment">#&gt;  3 000537   2001004017  2001              1 综合类           1</span></span><br><span class="line"><span class="comment">#&gt;  4 000537   2001004017  2001              1 综合类           1</span></span><br><span class="line"><span class="comment">#&gt;  5 600019   2001006006  2001              3 炼钢业           3</span></span><br><span class="line"><span class="comment">#&gt;  6 600019   2001006006  2001              3 炼钢业           3</span></span><br><span class="line"><span class="comment">#&gt;  7 600028   2001026483  2001              4 天然原油开采业   3</span></span><br><span class="line"><span class="comment">#&gt;  8 600028   2001026483  2001              4 天然原油开采业   3</span></span><br><span class="line"><span class="comment">#&gt;  9 600028   2001026483  2001              4 天然原油开采业   3</span></span><br><span class="line"><span class="comment">#&gt; 10 000063   2001027334  2001             16 通信设备制造业   2.6</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 47 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="颠覆性创新专利" class="article-heading"><a href="#颠覆性创新专利" class="headerlink" title="颠覆性创新专利"></a>颠覆性创新专利<a class="article-anchor" href="#颠覆性创新专利" aria-label="本节链接" title="复制本节链接"></a></h2><p>取上述两种筛选结果的交集即可得到颠覆性创新专利：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2c <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>df3c<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>股票代码<span class="punctuation">,</span> 年份<span class="punctuation">,</span> newipzlid<span class="punctuation">,</span> 行业名称<span class="punctuation">,</span> 三年内被引次数<span class="punctuation">,</span> 创新度 <span class="operator">=</span> Innov<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df4</span><br><span class="line"></span><br><span class="line">df4 <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;2001上市公司颠覆性创新专利筛选结果（SBERT_paraphrase-multilingual-MiniLM-L12-v2模型）.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>再循环所有年份就可以得到全部的上市公司颠覆性创新专利了～</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/b1e28818e8164cfda3430cc45fddaf91">名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（二）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.985Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/81638/" title="高效合并多个 dta 文件：appendall 命令详解"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/62459/" title="使用 R 语言判断每个城市边界是否和河流交汇"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/74064/">名师讲堂｜突破性创新与颠覆性创新：使用BERT和 SBERT 模型计算专利文本相似度（一）</a><span class="tf-related-meta">2025-07-22 · 约 11 分钟</span></li><li><a href="/posts/75606/">名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 10 分钟</span></li><li><a href="/posts/13441/">名师讲堂｜使用 R 语言计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E4%B8%93%E5%88%A9%E5%88%9B%E6%96%B0%E5%BA%A6"><span class="toc-text">计算专利创新度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AD%9B%E9%80%89%E7%AA%81%E7%A0%B4%E6%80%A7%E6%8A%80%E6%9C%AF%E5%88%9B%E6%96%B0%E4%B8%93%E5%88%A9"><span class="toc-text">筛选突破性技术创新专利</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E8%A6%81%E5%BD%B1%E5%93%8D%E5%8A%9B%E6%8A%80%E6%9C%AF%E5%88%9B%E6%96%B0%E4%B8%93%E5%88%A9"><span class="toc-text">重要影响力技术创新专利</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%A0%E8%A6%86%E6%80%A7%E5%88%9B%E6%96%B0%E4%B8%93%E5%88%A9"><span class="toc-text">颠覆性创新专利</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

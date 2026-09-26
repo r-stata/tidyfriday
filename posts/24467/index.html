@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言爬取全国所有的万达广场信息 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/24467/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近有个培训的小伙伴想要爬取万达官网上所有的万达广场信息。这个可以很容易通过 R 语言实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言爬取全国所有的万达广场信息">
+<meta property="og:url" content="https://tidyfriday.cn/posts/24467/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近有个培训的小伙伴想要爬取万达官网上所有的万达广场信息。这个可以很容易通过 R 语言实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/24467.png">
+<meta property="article:published_time" content="2022-09-08T13:31:14.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:44.145Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="数据爬取">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/24467.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言爬取全国所有的万达广场信息">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言爬取全国所有的万达广场信息","description":"最近有个培训的小伙伴想要爬取万达官网上所有的万达广场信息。这个可以很容易通过 R 语言实现。","url":"https://tidyfriday.cn/posts/24467/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/24467/"},"image":["https://tidyfriday.cn/og/24467.png"],"datePublished":"2022-09-08T13:31:14.000Z","dateModified":"2026-09-26T14:18:44.145Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 数据爬取","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言爬取全国所有的万达广场信息","item":"https://tidyfriday.cn/posts/24467/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言爬取全国所有的万达广场信息</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言爬取全国所有的万达广场信息</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-09-08T13:31:14.000Z" itemprop="datePublished">2022-09-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1908 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近有个培训的小伙伴想要爬取万达官网上所有的万达广场信息。这个可以很容易通过 R 语言实现。</p>
+<span id="more"></span>
+
+<p>要爬取的网址是：<a target="_blank" rel="noopener external nofollow noreferrer" href="http://www.wandaplazas.com/intro/plaza/">http://www.wandaplazas.com/intro/plaza/</a></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614944310_641229.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>我们可以按 Fn + F12 打开页面审查（我使用的是 Chrome 浏览器）：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614944766_567389.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>可以看到我们要爬的内容在 Elements 的这个位置，我们可以右键 copy selector:</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614945275_738162.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>然后就可以在 R 语言里面写代码了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>rvest<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># http://www.wandaplazas.com/intro/plaza/</span></span><br><span class="line">read_html<span class="punctuation">(</span><span class="string">&quot;http://www.wandaplazas.com/intro/plaza/&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> html</span><br><span class="line">html <span class="operator">%&gt;%</span></span><br><span class="line">  html_nodes<span class="punctuation">(</span><span class="string">&quot;#con_one_2&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  html_text<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  read_csv<span class="punctuation">(</span>col_names <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 873 × 1</span></span><br><span class="line"><span class="comment">#&gt;    X1</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京市</span></span><br><span class="line"><span class="comment">#&gt;  2 上海市</span></span><br><span class="line"><span class="comment">#&gt;  3 天津市</span></span><br><span class="line"><span class="comment">#&gt;  4 ·北京CBD万达广场</span></span><br><span class="line"><span class="comment">#&gt;  5 项目位于北京市朝阳区，2006年12月开业，商业面积为10.33万平方米。</span></span><br><span class="line"><span class="comment">#&gt;  6 ·北京丰科万达广场</span></span><br><span class="line"><span class="comment">#&gt;  7 项目位于北京市丰台区，2016年12月开业，商业面积为19.07万平方米。</span></span><br><span class="line"><span class="comment">#&gt;  8 ·北京丰台西铁营万达广场</span></span><br><span class="line"><span class="comment">#&gt;  9 项目位于北京市丰台区，2017年12月开业，商业面积为10.83万平方米。</span></span><br><span class="line"><span class="comment">#&gt; 10 ·北京怀柔万达广场</span></span><br><span class="line"><span class="comment">#&gt; # … with 863 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们把爬取到的内容整理下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>X1<span class="punctuation">,</span> <span class="string">&quot;·&quot;</span><span class="punctuation">)</span> <span class="operator">|</span> str_detect<span class="punctuation">(</span>X1<span class="punctuation">,</span> <span class="string">&quot;项目&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>项目信息 <span class="operator">=</span> if_else<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>X1<span class="punctuation">,</span> <span class="string">&quot;·&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> X1<span class="punctuation">,</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  fill<span class="punctuation">(</span>项目信息<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span>str_detect<span class="punctuation">(</span>X1<span class="punctuation">,</span> <span class="string">&quot;·&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>项目 <span class="operator">=</span> 项目信息<span class="punctuation">,</span> 项目信息 <span class="operator">=</span> X1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>项目 <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>项目<span class="punctuation">,</span> <span class="string">&quot;·&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>项目信息 <span class="operator">=</span> if_else<span class="punctuation">(</span>项目 <span class="operator">==</span> <span class="string">&quot;渭南临渭万达广场&quot;</span><span class="punctuation">,</span> <span class="string">&quot;项目位于陕西省渭南市高新区，2015年8月开业，商业面积为12.58万平方米。&quot;</span><span class="punctuation">,</span> 项目信息<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             项目信息 <span class="operator">=</span> if_else<span class="punctuation">(</span>项目 <span class="operator">==</span> <span class="string">&quot;南京江宁万达广场&quot;</span><span class="punctuation">,</span> <span class="string">&quot;项目位于江苏省南京市江宁区，2013年12月开业，商业面积为19.57万平方米。&quot;</span><span class="punctuation">,</span> 项目信息<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             项目信息 <span class="operator">=</span> if_else<span class="punctuation">(</span>项目 <span class="operator">==</span> <span class="string">&quot;泉州浦西万达广场&quot;</span><span class="punctuation">,</span> <span class="string">&quot;项目位于福建省泉州市丰泽区，2012年9月开业，商业面积为21.03万平方米。&quot;</span><span class="punctuation">,</span> 项目信息<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">             项目信息 <span class="operator">=</span> if_else<span class="punctuation">(</span>项目 <span class="operator">==</span> <span class="string">&quot;衡阳蒸湘万达广场&quot;</span><span class="punctuation">,</span> <span class="string">&quot;项目位于湖南省衡阳市蒸湘区，2017年9月开业，商业面积为12.01万平方米。&quot;</span><span class="punctuation">,</span> 项目信息<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>位置 <span class="operator">=</span> str_match<span class="punctuation">(</span>项目信息<span class="punctuation">,</span> <span class="string">&quot;位于(.*)，\\d&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">           开业时间 <span class="operator">=</span> str_match<span class="punctuation">(</span>项目信息<span class="punctuation">,</span> <span class="string">&quot;，(.*)开业&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">           商业面积_万平方米 <span class="operator">=</span> str_match<span class="punctuation">(</span>项目信息<span class="punctuation">,</span> <span class="string">&quot;商业面积为(.*)万平方米&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>开业时间 <span class="operator">=</span> lubridate<span class="operator">::</span>ymd<span class="punctuation">(</span>paste0<span class="punctuation">(</span>开业时间<span class="punctuation">,</span><span class="string">&quot;1日&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 418 × 5</span></span><br><span class="line"><span class="comment">#&gt;    项目                   项目信息            位置  开业时间   商业面积_万平方米</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;                  &lt;chr&gt;               &lt;chr&gt; &lt;date&gt;                 &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京CBD万达广场        项目位于北京市朝阳… 北京… 2006-12-01             10.3</span></span><br><span class="line"><span class="comment">#&gt;  2 北京丰科万达广场       项目位于北京市丰台… 北京… 2016-12-01             19.1</span></span><br><span class="line"><span class="comment">#&gt;  3 北京丰台西铁营万达广场 项目位于北京市丰台… 北京… 2017-12-01             10.8</span></span><br><span class="line"><span class="comment">#&gt;  4 北京怀柔万达广场       项目位于北京市怀柔… 北京… 2018-01-01              9</span></span><br><span class="line"><span class="comment">#&gt;  5 北京槐房万达广场       项目位于北京市丰台… 北京… 2016-12-01             18.9</span></span><br><span class="line"><span class="comment">#&gt;  6 北京乐多港万达广场     项目位于北京市昌平… 北京… 2020-12-01             16.1</span></span><br><span class="line"><span class="comment">#&gt;  7 北京石景山万达广场     项目位于北京市石景… 北京… 2008-12-01             13.7</span></span><br><span class="line"><span class="comment">#&gt;  8 北京双桥万达广场       项目位于北京市朝阳… 北京… 2020-12-01              4.21</span></span><br><span class="line"><span class="comment">#&gt;  9 北京通州万达广场       项目位于北京市通州… 北京… 2014-11-01             12.1</span></span><br><span class="line"><span class="comment">#&gt; 10 北京延庆万达广场       项目位于北京市延庆… 北京… 2020-09-01             13.4</span></span><br><span class="line"><span class="comment">#&gt; # … with 408 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了所有的万达广场信息：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">DT<span class="operator">::</span>datatable<span class="punctuation">(</span>df<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>为了在地图上标注这些地点，我们可以使用百度地图解析下经纬度：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>location <span class="operator">=</span> map_chr<span class="punctuation">(</span>项目<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/geocoding/v3/?address=&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;&amp;output=json&amp;ak=KNfhEZFNPTNL5Gyjm3O81nlE5mURbOhn&amp;ret_coordtype=gcj02ll&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line">      paste0<span class="punctuation">(</span>lst<span class="operator">$</span>result<span class="operator">$</span>location<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 418 × 6</span></span><br><span class="line"><span class="comment">#&gt;    项目                   项目信息    位置  开业时间   商业面积_万平方… location</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;                  &lt;chr&gt;       &lt;chr&gt; &lt;date&gt;                &lt;dbl&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京CBD万达广场        项目位于北… 北京… 2006-12-01            10.3  116.407…</span></span><br><span class="line"><span class="comment">#&gt;  2 北京丰科万达广场       项目位于北… 北京… 2016-12-01            19.1  116.305…</span></span><br><span class="line"><span class="comment">#&gt;  3 北京丰台西铁营万达广场 项目位于北… 北京… 2017-12-01            10.8  116.355…</span></span><br><span class="line"><span class="comment">#&gt;  4 北京怀柔万达广场       项目位于北… 北京… 2018-01-01             9    116.629…</span></span><br><span class="line"><span class="comment">#&gt;  5 北京槐房万达广场       项目位于北… 北京… 2016-12-01            18.9  116.368…</span></span><br><span class="line"><span class="comment">#&gt;  6 北京乐多港万达广场     项目位于北… 北京… 2020-12-01            16.1  116.190…</span></span><br><span class="line"><span class="comment">#&gt;  7 北京石景山万达广场     项目位于北… 北京… 2008-12-01            13.7  116.226…</span></span><br><span class="line"><span class="comment">#&gt;  8 北京双桥万达广场       项目位于北… 北京… 2020-12-01             4.21 116.563…</span></span><br><span class="line"><span class="comment">#&gt;  9 北京通州万达广场       项目位于北… 北京… 2014-11-01            12.1  116.641…</span></span><br><span class="line"><span class="comment">#&gt; 10 北京延庆万达广场       项目位于北… 北京… 2020-09-01            13.4  115.984…</span></span><br><span class="line"><span class="comment">#&gt; # … with 408 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>注意这里的 ak=KNfhEZFNPTNL5Gyjm3O81nlE5mURbOhn 是我的百度 ak，大家需要更换成自己的（参考平台上的课程「使用 R 语言进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县」：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/6f8633b486ed49e398c486d0d9f0f59a）">https://rstata.duanshu.com/#/brief/course/6f8633b486ed49e398c486d0d9f0f59a）</a></p>
+<p>不过这样直接得到的坐标是 GCJ02 坐标，可以使用下面的代码转换成 WGS84 的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">source<span class="punctuation">(</span><span class="string">&quot;坐标转换.R&quot;</span><span class="punctuation">)</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>location<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>经度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>经度<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">           纬度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>纬度<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">           value2 <span class="operator">=</span> map2_chr<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> GCJ02_WGS84<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>value2<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 418 × 7</span></span><br><span class="line"><span class="comment">#&gt;    项目                   项目信息 位置  开业时间   商业面积_万平方…  经度  纬度</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;                  &lt;chr&gt;    &lt;chr&gt; &lt;date&gt;                &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京CBD万达广场        项目位…  北京… 2006-12-01            10.3   116.  39.9</span></span><br><span class="line"><span class="comment">#&gt;  2 北京丰科万达广场       项目位…  北京… 2016-12-01            19.1   116.  39.8</span></span><br><span class="line"><span class="comment">#&gt;  3 北京丰台西铁营万达广场 项目位…  北京… 2017-12-01            10.8   116.  39.9</span></span><br><span class="line"><span class="comment">#&gt;  4 北京怀柔万达广场       项目位…  北京… 2018-01-01             9     117.  40.3</span></span><br><span class="line"><span class="comment">#&gt;  5 北京槐房万达广场       项目位…  北京… 2016-12-01            18.9   116.  39.8</span></span><br><span class="line"><span class="comment">#&gt;  6 北京乐多港万达广场     项目位…  北京… 2020-12-01            16.1   116.  40.2</span></span><br><span class="line"><span class="comment">#&gt;  7 北京石景山万达广场     项目位…  北京… 2008-12-01            13.7   116.  39.9</span></span><br><span class="line"><span class="comment">#&gt;  8 北京双桥万达广场       项目位…  北京… 2020-12-01             4.21  117.  39.9</span></span><br><span class="line"><span class="comment">#&gt;  9 北京通州万达广场       项目位…  北京… 2014-11-01            12.1   117.  39.9</span></span><br><span class="line"><span class="comment">#&gt; 10 北京延庆万达广场       项目位…  北京… 2020-09-01            13.4   116.  40.5</span></span><br><span class="line"><span class="comment">#&gt; # … with 408 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p><code>坐标转换.R</code> 文件在附件中。</p>
+<p>然后就可以保存了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;万达广场的分布.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>最后我们还可以绘制一副地图展示万达广场的分布：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> daloc</span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>leaflet<span class="punctuation">)</span></span><br><span class="line">leaflet<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  addTiles<span class="punctuation">(</span><span class="string">&quot;http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/&#123;z&#125;/&#123;y&#125;/&#123;x&#125;&quot;</span><span class="punctuation">,</span></span><br><span class="line">           attribution <span class="operator">=</span> <span class="string">&quot;绘制：微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  addScaleBar<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  leafem<span class="operator">::</span>addLogo<span class="punctuation">(</span>img <span class="operator">=</span> <span class="string">&quot;https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20201220175301.png&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">80</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">80</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> map</span><br><span class="line"></span><br><span class="line">mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>daloc<span class="punctuation">,</span> map <span class="operator">=</span> map<span class="punctuation">,</span></span><br><span class="line">                 layer.name <span class="operator">=</span> <span class="string">&quot;万达广场分布&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614946088_142314.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>大家放大这幅地图就可以看到标注的万达广场点和底图上的有所偏差，这是因为这个底图是 GCJ02 的，如果换成 WGS84 的底图，例如 OSM 底图就不会有这种问题了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>daloc<span class="punctuation">,</span></span><br><span class="line">                 layer.name <span class="operator">=</span> <span class="string">&quot;万达广场分布&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614946497_882282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>或者不要对坐标进行转换：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">daloc <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>location <span class="operator">=</span> map_chr<span class="punctuation">(</span>项目<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/geocoding/v3/?address=&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;&amp;output=json&amp;ak=KNfhEZFNPTNL5Gyjm3O81nlE5mURbOhn&amp;ret_coordtype=gcj02ll&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line">      paste0<span class="punctuation">(</span>lst<span class="operator">$</span>result<span class="operator">$</span>location<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>location<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> daloc2</span><br><span class="line">mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>daloc2<span class="punctuation">,</span> map <span class="operator">=</span> map<span class="punctuation">,</span></span><br><span class="line">                 layer.name <span class="operator">=</span> <span class="string">&quot;万达广场分布&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614946088_142314.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>例如：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/09/08/13/02b79j1bdbe1b168g4/common/content/1662614945813_359996.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fb183619522b4d8ab0985827f0144a61">使用 R 语言爬取全国所有的万达广场信息</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:44.145Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/86845/" title="日度数据：1980年1月1日～2022年6月30日中国各省市区县地表SO4质量浓度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/66134/" title="R 语言：如何从地图图片上提取数据并重新绘图？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/14967/">使用 R 语言爬取外交部官网驻外报道</a><span class="tf-related-meta">2024-05-06 · 约 2 分钟</span></li><li><a href="/posts/64797/">使用 R 语言爬取宗祠网</a><span class="tf-related-meta">2024-04-30 · 约 4 分钟</span></li><li><a href="/posts/75337/">使用 R 语言调用百度大脑自然语言处理接口进行文本情感倾向分析</a><span class="tf-related-meta">2024-01-22 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Python 绘制填充地图、栅格地图 + 等降水量线 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/41895/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近有小伙伴问到在栅格地图上绘制等降水量线的问题。本课程将 R 版本的代码翻译成 Python，使用 Python 生态中的 xarray、rasterio、geopandas、matplotlib 等库，实现与 R 版本完全等价的三张地图：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Python 绘制填充地图、栅格地图 + 等降水量线">
+<meta property="og:url" content="https://tidyfriday.cn/posts/41895/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近有小伙伴问到在栅格地图上绘制等降水量线的问题。本课程将 R 版本的代码翻译成 Python，使用 Python 生态中的 xarray、rasterio、geopandas、matplotlib 等库，实现与 R 版本完全等价的三张地图：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/41895.png">
+<meta property="article:published_time" content="2026-05-08T17:25:49.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:43.453Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="气象">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta property="article:tag" content="栅格数据">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/41895.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Python 绘制填充地图、栅格地图 + 等降水量线">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Python 绘制填充地图、栅格地图 + 等降水量线","description":"最近有小伙伴问到在栅格地图上绘制等降水量线的问题。本课程将 R 版本的代码翻译成 Python，使用 Python 生态中的 xarray、rasterio、geopandas、matplotlib 等库，实现与 R 版本完全等价的三张地图：","url":"https://tidyfriday.cn/posts/41895/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/41895/"},"image":["https://tidyfriday.cn/og/41895.png"],"datePublished":"2026-05-08T17:25:49.000Z","dateModified":"2026-09-26T14:18:43.453Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"气象, 可视化与绘图, 地图, 栅格数据, Python","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Python 绘制填充地图、栅格地图 + 等降水量线","item":"https://tidyfriday.cn/posts/41895/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Python 绘制填充地图、栅格地图 + 等降水量线</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Python 绘制填充地图、栅格地图 + 等降水量线</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-08T17:25:49.000Z" itemprop="datePublished">2026-05-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4216 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 16 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E6%B0%94%E8%B1%A1">气象</a><a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a><a href="/tags/#tag=%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE">栅格数据</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近有小伙伴问到在栅格地图上绘制等降水量线的问题。本课程将 R 版本的代码翻译成 Python，使用 Python 生态中的 <code>xarray</code>、<code>rasterio</code>、<code>geopandas</code>、<code>matplotlib</code> 等库，实现与 R 版本完全等价的三张地图：</p>
+<span id="more"></span>
+
+<ol>
+<li>各省份年均降水量填充地图（分段色彩）</li>
+<li>降水量栅格地图 + 等降水量线（连续渐变色）</li>
+<li>栅格地图 + 带文字标签的等降水量线</li>
+</ol>
+<p>附件中提供了 2021 年各月的降水量栅格数据：<code>pre_2021.nc</code>，数据来源于 中国1km分辨率逐月降水量数据集（1901-2023）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://data.tpdc.ac.cn/zh-hans/data/faae7605-a0f2-4d18-b28f-5cee413766a2">https://data.tpdc.ac.cn/zh-hans/data/faae7605-a0f2-4d18-b28f-5cee413766a2</a> 。</p>
+<p>在学习本课程之前，建议预先了解：</p>
+<blockquote>
+<p>使用 Python 绘制历年中国省市区县地图（小地图版本+长版）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/72c36d788f9d4497a7e33f23f9437598">https://rstata.duanshu.com/#/brief/course/72c36d788f9d4497a7e33f23f9437598</a></p>
+</blockquote>
+<hr>
+<h2 id="一、R-语言与-Python-的包对应关系" class="article-heading"><a href="#一、R-语言与-Python-的包对应关系" class="headerlink" title="一、R 语言与 Python 的包对应关系"></a>一、R 语言与 Python 的包对应关系<a class="article-anchor" href="#一、R-语言与-Python-的包对应关系" aria-label="本节链接" title="复制本节链接"></a></h2><p>绘制降水量地图涉及的核心 R 包及其 Python 对应关系：</p>
+<table>
+<thead>
+<tr>
+<th>R 包</th>
+<th>Python 对应</th>
+<th>主要用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>terra / raster</td>
+<td>rasterio + xarray</td>
+<td>读取、裁剪、处理栅格数据</td>
+</tr>
+<tr>
+<td>sf</td>
+<td>geopandas + shapely</td>
+<td>矢量数据读取和处理</td>
+</tr>
+<tr>
+<td>ggplot2 + ggspatial</td>
+<td>matplotlib + geopandas</td>
+<td>地图绘制</td>
+</tr>
+<tr>
+<td>nngeo::st_remove_holes</td>
+<td>shapely exterior 提取</td>
+<td>去除多边形孔洞</td>
+</tr>
+<tr>
+<td>rasterToContour</td>
+<td>matplotlib.contour</td>
+<td>生成等值线</td>
+</tr>
+<tr>
+<td>rasterToPolygons</td>
+<td>scipy.ndimage + shapely.geometry.box</td>
+<td>栅格转多边形</td>
+</tr>
+<tr>
+<td>geomtextpath</td>
+<td>matplotlib ax.text + 旋转角度</td>
+<td>等值线文字标签</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#二、使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="二、使用 reticulate 创建与管理 Python 虚拟环境"></a>二、使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#二、使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错。因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径。</p>
+</blockquote>
+<h3 id="2-1-安装-reticulate（仅首次）" class="article-heading"><a href="#2-1-安装-reticulate（仅首次）" class="headerlink" title="2.1 安装 reticulate（仅首次）"></a>2.1 安装 reticulate（仅首次）<a class="article-anchor" href="#2-1-安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="2.2 虚拟环境初始化原理（已在 setup chunk 中完成）"></a>2.2 虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-安装-Python-包（仅首次）" class="article-heading"><a href="#2-3-安装-Python-包（仅首次）" class="headerlink" title="2.3 安装 Python 包（仅首次）"></a>2.3 安装 Python 包（仅首次）<a class="article-anchor" href="#2-3-安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本课程需要以下 Python 包：</p>
+<ul>
+<li>xarray：读取 NetCDF 格式的气象数据</li>
+<li>rasterio：栅格数据的裁剪、掩膜操作</li>
+<li>geopandas：矢量地理数据处理</li>
+<li>shapely：几何对象操作</li>
+<li>numpy / pandas：数值计算和表格处理</li>
+<li>matplotlib：地图绘制</li>
+<li>scipy：栅格降采样（zoom 函数）</li>
+<li>netCDF4：NetCDF 文件读取后端</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;shapely&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span> <span class="string">&quot;xarray&quot;</span><span class="punctuation">,</span> <span class="string">&quot;netCDF4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scipy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;正在安装缺失的包: &quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;安装完成！&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-验证激活状态" class="article-heading"><a href="#2-4-验证激活状态" class="headerlink" title="2.4 验证激活状态"></a>2.4 验证激活状态<a class="article-anchor" href="#2-4-验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-查看已安装的包" class="article-heading"><a href="#2-5-查看已安装的包" class="headerlink" title="2.5 查看已安装的包"></a>2.5 查看已安装的包<a class="article-anchor" href="#2-5-查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="string">&quot;xarray&quot;</span><span class="punctuation">,</span> <span class="string">&quot;netCDF4&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scipy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;matplotlib&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-6-虚拟环境管理常用命令" class="article-heading"><a href="#2-6-虚拟环境管理常用命令" class="headerlink" title="2.6 虚拟环境管理常用命令"></a>2.6 虚拟环境管理常用命令<a class="article-anchor" href="#2-6-虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, packages = &quot;geopandas&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、全局配置与数据读取" class="article-heading"><a href="#三、全局配置与数据读取" class="headerlink" title="三、全局配置与数据读取"></a>三、全局配置与数据读取<a class="article-anchor" href="#三、全局配置与数据读取" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="3-1-全局参数配置" class="article-heading"><a href="#3-1-全局参数配置" class="headerlink" title="3.1 全局参数配置"></a>3.1 全局参数配置<a class="article-anchor" href="#3-1-全局参数配置" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">import os</span><br><span class="line">import warnings</span><br><span class="line">warnings.filterwarnings<span class="punctuation">(</span><span class="string">&quot;ignore&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line">import pandas as pd</span><br><span class="line">import geopandas as gpd</span><br><span class="line">import rasterio</span><br><span class="line">import xarray as xr</span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line">import matplotlib.patches as mpatches</span><br><span class="line">import matplotlib.colors as mcolors</span><br><span class="line">import matplotlib.font_manager as fm</span><br><span class="line">from matplotlib.patches import Rectangle</span><br><span class="line">from matplotlib.colors import LinearSegmentedColormap</span><br><span class="line">from shapely.geometry import box<span class="punctuation">,</span> mapping</span><br><span class="line">from shapely.ops import unary_union</span><br><span class="line"></span><br><span class="line"><span class="comment"># 工作目录（与 Rmd 文件所在目录一致）</span></span><br><span class="line">BASE_DIR <span class="operator">=</span> os.getcwd<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;工作目录: &#123;BASE_DIR&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 中国地图常用等积圆锥投影（Albers，单位：米）</span></span><br><span class="line"><span class="comment"># 与 R 版本完全一致</span></span><br><span class="line">MYCRS <span class="operator">=</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 小地图（南海诸岛）在 Albers 投影下的 bbox</span></span><br><span class="line"><span class="comment"># 等价于 R 的 small_bbox &lt;- st_bbox(c(xmin=120000, xmax=1766004.1, ymax=2557786.0, ymin=320000))</span></span><br><span class="line">SMALL_BBOX <span class="operator">=</span> box<span class="punctuation">(</span><span class="number">120000</span><span class="punctuation">,</span> <span class="number">320000</span><span class="punctuation">,</span> <span class="number">1766004.1</span><span class="punctuation">,</span> <span class="number">2557786.0</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主图绘制范围（Albers）</span></span><br><span class="line"><span class="comment"># 等价于 R 的 plotbbox &lt;- st_bbox(c(xmin=-2725586, xmax=2982768, ymax=6000000, ymin=1800655))</span></span><br><span class="line">PLOT_BBOX <span class="operator">=</span> box<span class="punctuation">(</span><span class="operator">-</span><span class="number">2725586</span><span class="punctuation">,</span> <span class="number">1800655</span><span class="punctuation">,</span> <span class="number">2982768</span><span class="punctuation">,</span> <span class="number">6000000</span><span class="punctuation">)</span></span><br><span class="line">XMIN<span class="punctuation">,</span> YMIN<span class="punctuation">,</span> XMAX<span class="punctuation">,</span> YMAX <span class="operator">=</span> <span class="operator">-</span><span class="number">2725586</span><span class="punctuation">,</span> <span class="number">1800655</span><span class="punctuation">,</span> <span class="number">2982768</span><span class="punctuation">,</span> <span class="number">6000000</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;全局参数配置完成&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;坐标系: &#123;MYCRS[:50]&#125;...&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-中文字体设置" class="article-heading"><a href="#3-2-中文字体设置" class="headerlink" title="3.2 中文字体设置"></a>3.2 中文字体设置<a class="article-anchor" href="#3-2-中文字体设置" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">setup_chinese_font</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;尝试设置中文字体，按优先级依次尝试&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> fname <span class="keyword">in</span> [<span class="string">&quot;LXGWWenKai-Regular.ttf&quot;</span>, <span class="string">&quot;SimHei.ttf&quot;</span>]:</span><br><span class="line">        fpath = os.path.join(BASE_DIR, fname)</span><br><span class="line">        <span class="keyword">if</span> os.path.exists(fpath):</span><br><span class="line">            fm.fontManager.addfont(fpath)</span><br><span class="line">            prop = fm.FontProperties(fname=fpath)</span><br><span class="line">            plt.rcParams[<span class="string">&quot;font.family&quot;</span>] = prop.get_name()</span><br><span class="line">            plt.rcParams[<span class="string">&quot;axes.unicode_minus&quot;</span>] = <span class="literal">False</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  使用字体文件: <span class="subst">&#123;fpath&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> prop</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> sys_font <span class="keyword">in</span> [<span class="string">&quot;Heiti TC&quot;</span>, <span class="string">&quot;PingFang SC&quot;</span>, <span class="string">&quot;Noto Sans CJK SC&quot;</span>, <span class="string">&quot;STHeiti&quot;</span>, <span class="string">&quot;SimHei&quot;</span>]:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            prop = fm.FontProperties(family=sys_font)</span><br><span class="line">            plt.rcParams[<span class="string">&quot;font.family&quot;</span>] = sys_font</span><br><span class="line">            plt.rcParams[<span class="string">&quot;axes.unicode_minus&quot;</span>] = <span class="literal">False</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  使用系统字体: <span class="subst">&#123;sys_font&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> prop</span><br><span class="line">        <span class="keyword">except</span> Exception:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    plt.rcParams[<span class="string">&quot;axes.unicode_minus&quot;</span>] = <span class="literal">False</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;  使用默认字体（中文可能无法正常显示）&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> fm.FontProperties()</span><br><span class="line"></span><br><span class="line">CNFONT = setup_chinese_font()</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-读取降水量栅格数据" class="article-heading"><a href="#3-3-读取降水量栅格数据" class="headerlink" title="3.3 读取降水量栅格数据"></a>3.3 读取降水量栅格数据<a class="article-anchor" href="#3-3-读取降水量栅格数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>降水量数据为 NetCDF 格式，包含 12 个月的月均降水量。我们需要计算年均值。</p>
+<blockquote>
+<p>R 代码等价操作：<code>rast(&quot;pre_2021.nc&quot;) -&gt; rst; app(rst, mean, na.rm=T) -&gt; rst</code></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> rasterio.transform <span class="keyword">import</span> from_bounds</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_precipitation_raster</span>(<span class="params">nc_path</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    读取 NetCDF 降水量数据，计算年均值</span></span><br><span class="line"><span class="string">    等价于 R: rast(&quot;pre_2021.nc&quot;) |&gt; app(mean, na.rm=T)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    ds = xr.open_dataset(nc_path, engine=<span class="string">&quot;netcdf4&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;数据集变量: <span class="subst">&#123;<span class="built_in">list</span>(ds.data_vars)&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;数据集坐标: <span class="subst">&#123;<span class="built_in">list</span>(ds.coords)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 找到降水量变量</span></span><br><span class="line">    var_name = [v <span class="keyword">for</span> v <span class="keyword">in</span> ds.data_vars <span class="keyword">if</span> <span class="string">&quot;pre&quot;</span> <span class="keyword">in</span> v.lower() <span class="keyword">or</span> <span class="string">&quot;prec&quot;</span> <span class="keyword">in</span> v.lower()]</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> var_name:</span><br><span class="line">        var_name = <span class="built_in">list</span>(ds.data_vars)</span><br><span class="line">    var_name = var_name[<span class="number">0</span>]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;降水量变量名: <span class="subst">&#123;var_name&#125;</span>, shape: <span class="subst">&#123;ds[var_name].shape&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    da = ds[var_name]</span><br><span class="line">    da_float = da.astype(<span class="built_in">float</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理 nodata 值（R 的 terra 自动处理）</span></span><br><span class="line">    nodata_val = da.encoding.get(<span class="string">&quot;_FillValue&quot;</span>, <span class="literal">None</span>) <span class="keyword">or</span> da.attrs.get(<span class="string">&quot;_FillValue&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">    <span class="keyword">if</span> nodata_val <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        da_float = da_float.where(da != nodata_val)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;nodata 值: <span class="subst">&#123;nodata_val&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 计算年均值（沿时间维度，等价于 app(rst, mean, na.rm=T)）</span></span><br><span class="line">    <span class="keyword">if</span> da_float.ndim == <span class="number">3</span>:</span><br><span class="line">        annual_mean = da_float.mean(dim=da_float.dims[<span class="number">0</span>], skipna=<span class="literal">True</span>).values</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        annual_mean = da_float.values</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取经纬度坐标</span></span><br><span class="line">    lat = ds[<span class="string">&quot;lat&quot;</span>].values <span class="keyword">if</span> <span class="string">&quot;lat&quot;</span> <span class="keyword">in</span> ds <span class="keyword">else</span> ds[<span class="string">&quot;latitude&quot;</span>].values</span><br><span class="line">    lon = ds[<span class="string">&quot;lon&quot;</span>].values <span class="keyword">if</span> <span class="string">&quot;lon&quot;</span> <span class="keyword">in</span> ds <span class="keyword">else</span> ds[<span class="string">&quot;longitude&quot;</span>].values</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建 rasterio affine transform</span></span><br><span class="line">    lon_min, lon_max = <span class="built_in">float</span>(lon.<span class="built_in">min</span>()), <span class="built_in">float</span>(lon.<span class="built_in">max</span>())</span><br><span class="line">    lat_min, lat_max = <span class="built_in">float</span>(lat.<span class="built_in">min</span>()), <span class="built_in">float</span>(lat.<span class="built_in">max</span>())</span><br><span class="line">    height, width = annual_mean.shape</span><br><span class="line">    transform = from_bounds(lon_min, lat_min, lon_max, lat_max, width, height)</span><br><span class="line"></span><br><span class="line">    ds.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;年均降水量范围: <span class="subst">&#123;np.nanmin(annual_mean):<span class="number">.1</span>f&#125;</span> ~ <span class="subst">&#123;np.nanmax(annual_mean):<span class="number">.1</span>f&#125;</span> mm&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> annual_mean, transform, <span class="string">&quot;EPSG:4326&quot;</span></span><br><span class="line"></span><br><span class="line">annual_mean, rst_transform, rst_crs = load_precipitation_raster(<span class="string">&quot;pre_2021.nc&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;栅格大小: <span class="subst">&#123;annual_mean.shape&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-裁剪到中国范围" class="article-heading"><a href="#3-4-裁剪到中国范围" class="headerlink" title="3.4 裁剪到中国范围"></a>3.4 裁剪到中国范围<a class="article-anchor" href="#3-4-裁剪到中国范围" aria-label="本节链接" title="复制本节链接"></a></h3><blockquote>
+<p>R 代码等价操作：<code>st_union(prov) |&gt; nngeo::st_remove_holes() -&gt; cn; terra::crop(vect(cn)) |&gt; terra::mask(vect(cn))</code></p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">from rasterio.mask import mask as rasterio_mask</span><br><span class="line">from rasterio.io import MemoryFile</span><br><span class="line">import rasterio.crs as rcrs</span><br><span class="line">import rasterio.features</span><br><span class="line"></span><br><span class="line">def clip_raster_to_china<span class="punctuation">(</span>data<span class="punctuation">,</span> transform<span class="punctuation">,</span> crs_str<span class="punctuation">,</span> prov_shp_path<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">    将栅格裁剪到中国范围（合并省级行政区，去除内部孔洞）</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    prov <span class="operator">=</span> gpd.read_file<span class="punctuation">(</span>prov_shp_path<span class="punctuation">)</span></span><br><span class="line">    cn <span class="operator">=</span> unary_union<span class="punctuation">(</span>prov.geometry<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 去除内部孔洞（等价于 nngeo::st_remove_holes）</span></span><br><span class="line">    <span class="keyword">if</span> cn.geom_type <span class="operator">==</span> <span class="string">&quot;Polygon&quot;</span><span class="operator">:</span></span><br><span class="line">        from shapely.geometry import Polygon</span><br><span class="line">        cn <span class="operator">=</span> Polygon<span class="punctuation">(</span>cn.exterior<span class="punctuation">)</span></span><br><span class="line">    elif cn.geom_type <span class="operator">==</span> <span class="string">&quot;MultiPolygon&quot;</span><span class="operator">:</span></span><br><span class="line">        from shapely.geometry import MultiPolygon<span class="punctuation">,</span> Polygon</span><br><span class="line">        cn <span class="operator">=</span> MultiPolygon<span class="punctuation">(</span><span class="punctuation">[</span>Polygon<span class="punctuation">(</span>p.exterior<span class="punctuation">)</span> <span class="keyword">for</span> p <span class="keyword">in</span> cn.geoms<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    height<span class="punctuation">,</span> width <span class="operator">=</span> data.shape</span><br><span class="line">    profile <span class="operator">=</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="string">&quot;driver&quot;</span><span class="operator">:</span> <span class="string">&quot;GTiff&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;dtype&quot;</span><span class="operator">:</span> <span class="string">&quot;float32&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;width&quot;</span><span class="operator">:</span> width<span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;height&quot;</span><span class="operator">:</span> height<span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;count&quot;</span><span class="operator">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;crs&quot;</span><span class="operator">:</span> rcrs.CRS.from_string<span class="punctuation">(</span>crs_str<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;transform&quot;</span><span class="operator">:</span> transform<span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;nodata&quot;</span><span class="operator">:</span> float<span class="punctuation">(</span><span class="string">&quot;nan&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">    with MemoryFile<span class="punctuation">(</span><span class="punctuation">)</span> as memfile<span class="operator">:</span></span><br><span class="line">        with memfile.open<span class="punctuation">(</span><span class="operator">*</span><span class="operator">*</span>profile<span class="punctuation">)</span> as dataset<span class="operator">:</span></span><br><span class="line">            dataset.write<span class="punctuation">(</span>data.astype<span class="punctuation">(</span><span class="string">&quot;float32&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span></span><br><span class="line">        with memfile.open<span class="punctuation">(</span><span class="punctuation">)</span> as dataset<span class="operator">:</span></span><br><span class="line">            masked_data<span class="punctuation">,</span> masked_transform <span class="operator">=</span> rasterio_mask<span class="punctuation">(</span></span><br><span class="line">                dataset<span class="punctuation">,</span> <span class="punctuation">[</span>mapping<span class="punctuation">(</span>cn<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">,</span> crop<span class="operator">=</span>True<span class="punctuation">,</span> all_touched<span class="operator">=</span>True<span class="punctuation">,</span> nodata<span class="operator">=</span>float<span class="punctuation">(</span><span class="string">&quot;nan&quot;</span><span class="punctuation">)</span></span><br><span class="line">            <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    result <span class="operator">=</span> masked_data<span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span>.astype<span class="punctuation">(</span>float<span class="punctuation">)</span></span><br><span class="line">    result<span class="punctuation">[</span>result <span class="operator">==</span> float<span class="punctuation">(</span><span class="string">&quot;nan&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> np.nan</span><br><span class="line">    print<span class="punctuation">(</span>f<span class="string">&quot;裁剪后栅格大小: &#123;result.shape&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="built_in">return</span> result<span class="punctuation">,</span> masked_transform<span class="punctuation">,</span> rcrs.CRS.from_string<span class="punctuation">(</span>crs_str<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">data_cn<span class="punctuation">,</span> transform_cn<span class="punctuation">,</span> crs_cn <span class="operator">=</span> clip_raster_to_china<span class="punctuation">(</span></span><br><span class="line">    annual_mean<span class="punctuation">,</span> rst_transform<span class="punctuation">,</span> rst_crs<span class="punctuation">,</span> <span class="string">&quot;2021行政区划/省.shp&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、分区域提取均值（各省降水量）" class="article-heading"><a href="#四、分区域提取均值（各省降水量）" class="headerlink" title="四、分区域提取均值（各省降水量）"></a>四、分区域提取均值（各省降水量）<a class="article-anchor" href="#四、分区域提取均值（各省降水量）" aria-label="本节链接" title="复制本节链接"></a></h2><blockquote>
+<p>R 代码等价操作：<code>terra::extract(rst, vect(prov), fun=mean, na.rm=T)</code></p>
+</blockquote>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><h3 id="年均降水量直方图" class="article-heading"><a href="#年均降水量直方图" class="headerlink" title="年均降水量直方图"></a>年均降水量直方图<a class="article-anchor" href="#年均降水量直方图" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 等价于 R 的 hist(provmap2$年度降水量_mm)</span><br><span class="line">fig, ax = plt.subplots(figsize=(7, 4))</span><br><span class="line">ax.hist(df_prov[&quot;年度降水量_mm&quot;].dropna(), bins=15, color=&quot;#3288bd&quot;,</span><br><span class="line">        edgecolor=&quot;white&quot;, linewidth=0.5)</span><br><span class="line">ax.set_xlabel(&quot;年均降水量 (mm)&quot;, fontproperties=CNFONT)</span><br><span class="line">ax.set_ylabel(&quot;省份数量&quot;, fontproperties=CNFONT)</span><br><span class="line">ax.set_title(&quot;各省份年均降水量分布&quot;, fontproperties=CNFONT)</span><br><span class="line">ax.spines[&quot;top&quot;].set_visible(False)</span><br><span class="line">ax.spines[&quot;right&quot;].set_visible(False)</span><br><span class="line">plt.tight_layout()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/17/02b79j1bdbe1b168g4/common/content/1778232117558_825986.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="五、读取地图数据" class="article-heading"><a href="#五、读取地图数据" class="headerlink" title="五、读取地图数据"></a>五、读取地图数据<a class="article-anchor" href="#五、读取地图数据" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 读取小地图版本的中国省级地图</span><br><span class="line"># 等价于 R 的 read_sf(&quot;chinaprov2019mini/chinaprov2019mini.shp&quot;)</span><br><span class="line">provmap = gpd.read_file(&quot;chinaprov2019mini/chinaprov2019mini.shp&quot;)</span><br><span class="line">provmap = provmap[provmap[&quot;省代码&quot;].notna()].copy()</span><br><span class="line">print(f&quot;省级地图要素数: &#123;len(provmap)&#125;&quot;)</span><br><span class="line">print(provmap.columns.tolist())</span><br><span class="line"></span><br><span class="line"># 线条要素：九段线、海岸线、小地图框格</span><br><span class="line"># 等价于 R 的 read_sf(&quot;chinaprov2019mini/chinaprov2019mini_line.shp&quot;)</span><br><span class="line">linemap = gpd.read_file(&quot;chinaprov2019mini/chinaprov2019mini_line.shp&quot;)</span><br><span class="line">linemap = linemap[linemap[&quot;class&quot;].isin([&quot;九段线&quot;, &quot;海岸线&quot;, &quot;小地图框格&quot;])].copy()</span><br><span class="line">print(f&quot;线条要素数: &#123;len(linemap)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、绘制填充地图（pic1）" class="article-heading"><a href="#六、绘制填充地图（pic1）" class="headerlink" title="六、绘制填充地图（pic1）"></a>六、绘制填充地图（pic1）<a class="article-anchor" href="#六、绘制填充地图（pic1）" aria-label="本节链接" title="复制本节链接"></a></h2><p>各省份年均降水量填充地图，等价于 R 版本的 pic1.png。</p>
+<h3 id="6-1-合并省级数据与地图" class="article-heading"><a href="#6-1-合并省级数据与地图" class="headerlink" title="6.1 合并省级数据与地图"></a>6.1 合并省级数据与地图<a class="article-anchor" href="#6-1-合并省级数据与地图" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 找合并键</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find_join_key</span>(<span class="params">left_df, right_df</span>):</span><br><span class="line">    left_cols = <span class="built_in">set</span>(left_df.columns) - &#123;<span class="string">&quot;geometry&quot;</span>&#125;</span><br><span class="line">    right_cols = <span class="built_in">set</span>(right_df.columns) - &#123;<span class="string">&quot;geometry&quot;</span>&#125;</span><br><span class="line">    <span class="keyword">for</span> c <span class="keyword">in</span> [<span class="string">&quot;省&quot;</span>, <span class="string">&quot;省代码&quot;</span>, <span class="string">&quot;省份&quot;</span>, <span class="string">&quot;NAME&quot;</span>, <span class="string">&quot;PNAME&quot;</span>]:</span><br><span class="line">        <span class="keyword">if</span> c <span class="keyword">in</span> left_cols <span class="keyword">and</span> c <span class="keyword">in</span> right_cols:</span><br><span class="line">            <span class="keyword">return</span> c</span><br><span class="line">    common = left_cols &amp; right_cols</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">next</span>(<span class="built_in">iter</span>(common)) <span class="keyword">if</span> common <span class="keyword">else</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">join_key = find_join_key(provmap, df_prov)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;合并键: <span class="subst">&#123;join_key&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">provmap2 = provmap.merge(df_prov, how=<span class="string">&quot;left&quot;</span>, on=join_key)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;合并后: <span class="subst">&#123;<span class="built_in">len</span>(provmap2)&#125;</span> 行&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(provmap2[[<span class="string">&quot;省&quot;</span>, <span class="string">&quot;年度降水量_mm&quot;</span>]].head(<span class="number">10</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-数据分组" class="article-heading"><a href="#6-2-数据分组" class="headerlink" title="6.2 数据分组"></a>6.2 数据分组<a class="article-anchor" href="#6-2-数据分组" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 等价于 R 的 cut(年度降水量_mm, breaks=seq(-400,2400,by=400))</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">classify_precip</span>(<span class="params">val</span>):</span><br><span class="line">    <span class="keyword">if</span> pd.isna(val):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;No data&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;No data&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">400</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;0 ~ 400&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">800</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;400 ~ 800&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">1200</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;800 ~ 1200&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">1600</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;1200 ~ 1600&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> val &lt;= <span class="number">2000</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;1600 ~ 2000&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;2000 ~ 2400&quot;</span></span><br><span class="line"></span><br><span class="line">provmap2[<span class="string">&quot;group&quot;</span>] = provmap2[<span class="string">&quot;年度降水量_mm&quot;</span>].apply(classify_precip)</span><br><span class="line"><span class="built_in">print</span>(provmap2[<span class="string">&quot;group&quot;</span>].value_counts())</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-绘图" class="article-heading"><a href="#6-3-绘图" class="headerlink" title="6.3 绘图"></a>6.3 绘图<a class="article-anchor" href="#6-3-绘图" aria-label="本节链接" title="复制本节链接"></a></h3><h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/17/02b79j1bdbe1b168g4/common/content/1778232113307_352242.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="七、栅格地图-等降水量线" class="article-heading"><a href="#七、栅格地图-等降水量线" class="headerlink" title="七、栅格地图 + 等降水量线"></a>七、栅格地图 + 等降水量线<a class="article-anchor" href="#七、栅格地图-等降水量线" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="7-1-将栅格重投影到-Albers（关键步骤）" class="article-heading"><a href="#7-1-将栅格重投影到-Albers（关键步骤）" class="headerlink" title="7.1 将栅格重投影到 Albers（关键步骤）"></a>7.1 将栅格重投影到 Albers（关键步骤）<a class="article-anchor" href="#7-1-将栅格重投影到-Albers（关键步骤）" aria-label="本节链接" title="复制本节链接"></a></h3><p>原始栅格是 WGS84 坐标，绘制等降水量线时需要与地图投影（Albers）一致。<strong>正确做法是先把栅格重投影到 Albers，然后直接在地图坐标系的 axes 上调用 <code>ax.contour</code> 绘制等值线</strong>，无需生成 GeoDataFrame 中转。</p>
+<blockquote>
+<p><strong>为什么之前的做法（WGS84 → GeoDataFrame → 转 Albers → plot）效果不好？</strong><br>裁剪后的栅格边界有大量 NaN，<code>contour</code> 会把连续等值线切成成千上万条碎片线段，这些碎片拼接后虽然位置正确，但密集的重叠会让线条看起来很粗且凌乱。<code>ax.clabel</code> 也无法正确找到适合放标签的位置。<br>直接在重投影栅格上调用 <code>contour</code>，则等值线是连续的，标签也能自动沿线排布。</p>
+</blockquote>
+<p>等价于 R 中对 <code>raster</code> 对象做 <code>projectRaster</code> 再 <code>rasterToContour</code>。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">from rasterio.warp import calculate_default_transform, reproject, Resampling</span><br><span class="line">import rasterio.transform</span><br><span class="line"></span><br><span class="line">def reproject_raster_to_albers(data, transform, src_crs_str=<span class="string">&quot;EPSG:4326&quot;</span>):</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    将 WGS84 栅格重投影到 Albers 等积圆锥投影。</span><br><span class="line">    等价于 R 的 projectRaster(rst, crs=mycrs)</span><br><span class="line">    返回 (data_albers, albers_transform, x_arr, y_arr)</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    <span class="keyword">h</span>, w = data.shape</span><br><span class="line">    src_crs = rasterio.crs.CRS.from_string(src_crs_str)</span><br><span class="line">    dst_crs = rasterio.crs.CRS.from_string(MYCRS)</span><br><span class="line"></span><br><span class="line">    bounds = rasterio.transform.array_bounds(<span class="keyword">h</span>, w, transform)</span><br><span class="line">    dst_transform, dst_width, dst_height = calculate_default_transform(</span><br><span class="line">        src_crs, dst_crs, w, <span class="keyword">h</span>, *bounds</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    data_albers = np.full((dst_height, dst_width), np.nan, dtype=np.float32)</span><br><span class="line"></span><br><span class="line">    with MemoryFile() <span class="keyword">as</span> memfile:</span><br><span class="line">        with memfile.<span class="keyword">open</span>(driver=<span class="string">&quot;GTiff&quot;</span>, dtype=<span class="string">&quot;float32&quot;</span>,</span><br><span class="line">                          width=w, height=<span class="keyword">h</span>, <span class="keyword">count</span>=1,</span><br><span class="line">                          crs=src_crs, transform=transform, nodata=np.nan) <span class="keyword">as</span> src_ds:</span><br><span class="line">            src_ds.write(data.astype(<span class="string">&quot;float32&quot;</span>), 1)</span><br><span class="line">        with memfile.<span class="keyword">open</span>() <span class="keyword">as</span> src_ds:</span><br><span class="line">            reproject(</span><br><span class="line">                source=rasterio.band(src_ds, 1),</span><br><span class="line">                destination=data_albers,</span><br><span class="line">                src_transform=transform, src_crs=src_crs,</span><br><span class="line">                dst_transform=dst_transform, dst_crs=dst_crs,</span><br><span class="line">                resampling=Resampling.bilinear,</span><br><span class="line">                src_nodata=np.nan, dst_nodata=np.nan,</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">    # 生成像元中心坐标（x 递增，y 递减=北到南）</span><br><span class="line">    x_arr = np.array([dst_transform.c + dst_transform.a * (j + 0.5)</span><br><span class="line">                      <span class="keyword">for</span> j <span class="keyword">in</span> <span class="keyword">range</span>(dst_width)])</span><br><span class="line">    y_arr = np.array([dst_transform.f + dst_transform.<span class="keyword">e</span> * (i + 0.5)</span><br><span class="line">                      <span class="keyword">for</span> i <span class="keyword">in</span> <span class="keyword">range</span>(dst_height)])</span><br><span class="line">    <span class="keyword">return</span> data_albers, dst_transform, x_arr, y_arr</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;正在重投影栅格到 Albers...&quot;</span>)</span><br><span class="line">data_albers, albers_transform, albers_x, albers_y = reproject_raster_to_albers(</span><br><span class="line">    data_cn, transform_cn</span><br><span class="line">)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;Albers 栅格大小: &#123;data_albers.shape&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;值范围: &#123;np.nanmin(data_albers):.1f&#125; ~ &#123;np.nanmax(data_albers):.1f&#125; mm&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-栅格数据转多边形（降采样）" class="article-heading"><a href="#7-2-栅格数据转多边形（降采样）" class="headerlink" title="7.2 栅格数据转多边形（降采样）"></a>7.2 栅格数据转多边形（降采样）<a class="article-anchor" href="#7-2-栅格数据转多边形（降采样）" aria-label="本节链接" title="复制本节链接"></a></h3><p>等价于 R 的 <code>rst |&gt; aggregate(fact=10) |&gt; rasterToPolygons() |&gt; st_as_sf()</code></p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">from scipy.ndimage import zoom</span><br><span class="line"></span><br><span class="line">def raster_to_polygons<span class="punctuation">(</span>data<span class="punctuation">,</span> transform<span class="punctuation">,</span> resample_factor<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">    将栅格数据降采样后转成多边形</span></span><br><span class="line"><span class="string">    等价于 raster::aggregate(fact=10) + rasterToPolygons()</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    h<span class="punctuation">,</span> w <span class="operator">=</span> data.shape</span><br><span class="line">    new_h <span class="operator">=</span> <span class="built_in">max</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> h <span class="operator">/</span><span class="operator">/</span> resample_factor<span class="punctuation">)</span></span><br><span class="line">    new_w <span class="operator">=</span> <span class="built_in">max</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> w <span class="operator">/</span><span class="operator">/</span> resample_factor<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 降采样（等价于 aggregate(fact=10)）</span></span><br><span class="line">    data_f <span class="operator">=</span> data.astype<span class="punctuation">(</span>float<span class="punctuation">)</span></span><br><span class="line">    scale_h <span class="operator">=</span> new_h <span class="operator">/</span> h</span><br><span class="line">    scale_w <span class="operator">=</span> new_w <span class="operator">/</span> w</span><br><span class="line">    data_small <span class="operator">=</span> zoom<span class="punctuation">(</span>data_f<span class="punctuation">,</span> <span class="punctuation">(</span>scale_h<span class="punctuation">,</span> scale_w<span class="punctuation">)</span><span class="punctuation">,</span> order<span class="operator">=</span><span class="number">1</span><span class="punctuation">,</span> prefilter<span class="operator">=</span>False<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 新的 transform</span></span><br><span class="line">    lon_min <span class="operator">=</span> transform.c</span><br><span class="line">    lat_max <span class="operator">=</span> transform.f</span><br><span class="line">    lon_max <span class="operator">=</span> transform.c <span class="operator">+</span> transform.a <span class="operator">*</span> w</span><br><span class="line">    lat_min <span class="operator">=</span> transform.f <span class="operator">+</span> transform.e <span class="operator">*</span> h</span><br><span class="line">    new_transform <span class="operator">=</span> from_bounds<span class="punctuation">(</span>lon_min<span class="punctuation">,</span> lat_min<span class="punctuation">,</span> lon_max<span class="punctuation">,</span> lat_max<span class="punctuation">,</span> new_w<span class="punctuation">,</span> new_h<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 每个像元转成一个矩形多边形</span></span><br><span class="line">    rows_list <span class="operator">=</span> <span class="punctuation">[</span><span class="punctuation">]</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span><span class="punctuation">(</span>new_h<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span><span class="punctuation">(</span>new_w<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">            val <span class="operator">=</span> data_small<span class="punctuation">[</span>i<span class="punctuation">,</span> j<span class="punctuation">]</span></span><br><span class="line">            <span class="keyword">if</span> np.isnan<span class="punctuation">(</span>val<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">                continue</span><br><span class="line">            x0 <span class="operator">=</span> new_transform.c <span class="operator">+</span> j <span class="operator">*</span> new_transform.a</span><br><span class="line">            y1 <span class="operator">=</span> new_transform.f <span class="operator">+</span> i <span class="operator">*</span> new_transform.e</span><br><span class="line">            x1 <span class="operator">=</span> x0 <span class="operator">+</span> new_transform.a</span><br><span class="line">            y0 <span class="operator">=</span> y1 <span class="operator">+</span> new_transform.e</span><br><span class="line">            geom <span class="operator">=</span> box<span class="punctuation">(</span><span class="built_in">min</span><span class="punctuation">(</span>x0<span class="punctuation">,</span> x1<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">min</span><span class="punctuation">(</span>y0<span class="punctuation">,</span> y1<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">max</span><span class="punctuation">(</span>x0<span class="punctuation">,</span> x1<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">max</span><span class="punctuation">(</span>y0<span class="punctuation">,</span> y1<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">            rows_list.append<span class="punctuation">(</span><span class="punctuation">&#123;</span><span class="string">&quot;mean&quot;</span><span class="operator">:</span> val<span class="punctuation">,</span> <span class="string">&quot;geometry&quot;</span><span class="operator">:</span> geom<span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    gdf <span class="operator">=</span> gpd.GeoDataFrame<span class="punctuation">(</span>rows_list<span class="punctuation">,</span> crs<span class="operator">=</span><span class="string">&quot;EPSG:4326&quot;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="built_in">return</span> gdf</span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;正在生成栅格多边形（约需1分钟）...&quot;</span><span class="punctuation">)</span></span><br><span class="line">rstpoints <span class="operator">=</span> raster_to_polygons<span class="punctuation">(</span>data_cn<span class="punctuation">,</span> transform_cn<span class="punctuation">,</span> resample_factor<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;多边形数量: &#123;len(rstpoints)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 转到 Albers 投影</span></span><br><span class="line">rstpoints <span class="operator">=</span> rstpoints.to_crs<span class="punctuation">(</span>MYCRS<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-分离主图和小地图区域" class="article-heading"><a href="#7-3-分离主图和小地图区域" class="headerlink" title="7.3 分离主图和小地图区域"></a>7.3 分离主图和小地图区域<a class="article-anchor" href="#7-3-分离主图和小地图区域" aria-label="本节链接" title="复制本节链接"></a></h3><p>等价于 R 中用 <code>st_intersection</code> 分离南海小地图和主图的操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 小地图内的多边形</span><br><span class="line">small_bbox_gdf = gpd.GeoDataFrame(geometry=[SMALL_BBOX], crs=MYCRS)</span><br><span class="line">rstpoints_small = gpd.overlay(rstpoints, small_bbox_gdf, how=&quot;intersection&quot;)</span><br><span class="line">print(f&quot;小地图多边形数: &#123;len(rstpoints_small)&#125;&quot;)</span><br><span class="line"></span><br><span class="line"># 主图内的多边形</span><br><span class="line">plot_bbox_gdf = gpd.GeoDataFrame(geometry=[PLOT_BBOX], crs=MYCRS)</span><br><span class="line">rstpoints_main = gpd.overlay(rstpoints, plot_bbox_gdf, how=&quot;intersection&quot;)</span><br><span class="line">print(f&quot;主图多边形数: &#123;len(rstpoints_main)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-移动小地图到恰当位置" class="article-heading"><a href="#7-4-移动小地图到恰当位置" class="headerlink" title="7.4 移动小地图到恰当位置"></a>7.4 移动小地图到恰当位置<a class="article-anchor" href="#7-4-移动小地图到恰当位置" aria-label="本节链接" title="复制本节链接"></a></h3><p>等价于 R 的 <code>mutate(geometry = geometry * 0.5 + c(2100000, 1665139))</code></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> shapely.affinity <span class="keyword">import</span> scale <span class="keyword">as</span> affine_scale, translate</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">scale_translate_geom</span>(<span class="params">geom, scale=<span class="number">0.5</span>, tx=<span class="number">2100000</span>, ty=<span class="number">1665139</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    等价于 R 的 geometry * 0.5 + c(2100000, 1665139)</span></span><br><span class="line"><span class="string">    先以原点缩放 0.5 倍，再平移</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    scaled = affine_scale(geom, xfact=scale, yfact=scale, origin=(<span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">    <span class="keyword">return</span> translate(scaled, xoff=tx, yoff=ty)</span><br><span class="line"></span><br><span class="line">rstpoints_small = rstpoints_small.copy()</span><br><span class="line">rstpoints_small[<span class="string">&quot;geometry&quot;</span>] = rstpoints_small[<span class="string">&quot;geometry&quot;</span>].apply(scale_translate_geom)</span><br><span class="line">rstpoints_small = rstpoints_small.set_crs(MYCRS, allow_override=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并主图和小地图的多边形</span></span><br><span class="line">rstpoints_all = pd.concat([rstpoints_main, rstpoints_small], ignore_index=<span class="literal">True</span>)</span><br><span class="line">rstpoints_all = gpd.GeoDataFrame(rstpoints_all, crs=MYCRS)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;合并后多边形数: <span class="subst">&#123;<span class="built_in">len</span>(rstpoints_all)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-绘制栅格地图-等降水量线（pic2）" class="article-heading"><a href="#7-5-绘制栅格地图-等降水量线（pic2）" class="headerlink" title="7.5 绘制栅格地图 + 等降水量线（pic2）"></a>7.5 绘制栅格地图 + 等降水量线（pic2）<a class="article-anchor" href="#7-5-绘制栅格地图-等降水量线（pic2）" aria-label="本节链接" title="复制本节链接"></a></h3><p>等降水量线直接在 Albers 坐标系的 axes 上调用 <code>ax.contour</code> 绘制，与地图坐标系完全对齐。<br>这等价于 R 的 <code>geom_sf(data=line, color=&quot;white&quot;, linewidth=0.5)</code>。</p>
+<h1 id="此处代码需下载讲义材料查看～-2" class="article-heading"><a href="#此处代码需下载讲义材料查看～-2" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-2" aria-label="本节链接" title="复制本节链接"></a></h1><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/17/02b79j1bdbe1b168g4/common/content/1778232113797_159233.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样我们就把等降水量线添加到了地图上。</p>
+<hr>
+<h2 id="八、添加等降水量线文字标签（pic3）" class="article-heading"><a href="#八、添加等降水量线文字标签（pic3）" class="headerlink" title="八、添加等降水量线文字标签（pic3）"></a>八、添加等降水量线文字标签（pic3）<a class="article-anchor" href="#八、添加等降水量线文字标签（pic3）" aria-label="本节链接" title="复制本节链接"></a></h2><p>R 版本使用 <code>geomtextpath::geom_textsf</code> 在线上自动添加文字标签。<br>Python 中使用 <code>ax.clabel</code> 实现相同效果——它会在等值线的合适位置插入标签，并将线切断，防止文字与线条重叠。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 等价于 R 的:</span></span><br><span class="line"><span class="comment"># line %&gt;% st_cast(&quot;LINESTRING&quot;) %&gt;% mutate(level = paste0(level, &quot; mm&quot;)) -&gt; line2</span></span><br><span class="line"><span class="comment"># geom_textsf(data=line2, aes(label=level), linecolour=&quot;white&quot;, color=&quot;gray30&quot;, ...)</span></span><br><span class="line"></span><br><span class="line">fig<span class="punctuation">,</span> ax <span class="operator">=</span> plt.subplots<span class="punctuation">(</span>figsize<span class="operator">=</span><span class="punctuation">(</span><span class="number">10</span><span class="punctuation">,</span> <span class="number">8.5</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">fig.patch.set_facecolor<span class="punctuation">(</span><span class="string">&quot;white&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制栅格多边形</span></span><br><span class="line">rstpoints_all.plot<span class="punctuation">(</span>ax<span class="operator">=</span>ax<span class="punctuation">,</span> column<span class="operator">=</span><span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> cmap<span class="operator">=</span>cmap<span class="punctuation">,</span> norm<span class="operator">=</span>norm<span class="punctuation">,</span></span><br><span class="line">                   linewidth<span class="operator">=</span><span class="number">0</span><span class="punctuation">,</span> edgecolor<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">,</span> zorder<span class="operator">=</span><span class="number">1</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制省级轮廓</span></span><br><span class="line">provmap.plot<span class="punctuation">(</span>ax<span class="operator">=</span>ax<span class="punctuation">,</span> facecolor<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">,</span> edgecolor<span class="operator">=</span><span class="string">&quot;gray&quot;</span><span class="punctuation">,</span></span><br><span class="line">             linewidth<span class="operator">=</span><span class="number">0.03</span><span class="punctuation">,</span> zorder<span class="operator">=</span><span class="number">3</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制线条</span></span><br><span class="line"><span class="keyword">for</span> cls<span class="punctuation">,</span> style <span class="keyword">in</span> LINE_STYLES.items<span class="punctuation">(</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    subset <span class="operator">=</span> linemap<span class="punctuation">[</span>linemap<span class="punctuation">[</span><span class="string">&quot;class&quot;</span><span class="punctuation">]</span> <span class="operator">==</span> cls<span class="punctuation">]</span></span><br><span class="line">    <span class="keyword">if</span> len<span class="punctuation">(</span>subset<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">:</span></span><br><span class="line">        subset.plot<span class="punctuation">(</span>ax<span class="operator">=</span>ax<span class="punctuation">,</span> color<span class="operator">=</span>style<span class="punctuation">[</span><span class="string">&quot;color&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                    linewidth<span class="operator">=</span>style<span class="punctuation">[</span><span class="string">&quot;linewidth&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> zorder<span class="operator">=</span><span class="number">5</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 等降水量线 + 文字标签（等价于 geomtextpath::geom_textsf）</span></span><br><span class="line"><span class="comment"># 同样直接在 Albers 坐标系中绘制</span></span><br><span class="line">cs3 <span class="operator">=</span> ax.contour<span class="punctuation">(</span></span><br><span class="line">    albers_x<span class="punctuation">,</span></span><br><span class="line">    albers_y<span class="punctuation">[</span><span class="operator">::</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    np.flipud<span class="punctuation">(</span>data_albers<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    levels<span class="operator">=</span>contour_levels<span class="punctuation">,</span></span><br><span class="line">    colors<span class="operator">=</span><span class="string">&quot;white&quot;</span><span class="punctuation">,</span></span><br><span class="line">    linewidths<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span></span><br><span class="line">    zorder<span class="operator">=</span><span class="number">6</span><span class="punctuation">,</span></span><br><span class="line">    alpha<span class="operator">=</span><span class="number">0.9</span><span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># clabel：只标注 4 个 level，用 FontProperties 控制字体大小</span></span><br><span class="line">labeled_levels <span class="operator">=</span> <span class="punctuation">[</span><span class="number">800</span><span class="punctuation">,</span> <span class="number">1200</span><span class="punctuation">,</span> <span class="number">1600</span><span class="punctuation">,</span> <span class="number">2000</span><span class="punctuation">]</span></span><br><span class="line">labels <span class="operator">=</span> ax.clabel<span class="punctuation">(</span></span><br><span class="line">    cs3<span class="punctuation">,</span></span><br><span class="line">    levels<span class="operator">=</span>labeled_levels<span class="punctuation">,</span></span><br><span class="line">    inline<span class="operator">=</span>True<span class="punctuation">,</span></span><br><span class="line">    inline_spacing<span class="operator">=</span><span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">    fmt<span class="operator">=</span>lambda v<span class="operator">:</span> f<span class="string">&quot;&#123;int(v)&#125; mm&quot;</span><span class="punctuation">,</span></span><br><span class="line">    colors<span class="operator">=</span><span class="string">&quot;dimgray&quot;</span><span class="punctuation">,</span></span><br><span class="line">    use_clabeltext<span class="operator">=</span>True<span class="punctuation">,</span></span><br><span class="line">    zorder<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 强制设置标签字体和大小（clabel 的 fontsize 参数不总生效，需逐个设置）</span></span><br><span class="line">_font_path <span class="operator">=</span> os.path.join<span class="punctuation">(</span>BASE_DIR<span class="punctuation">,</span> <span class="string">&quot;LXGWWenKai-Regular.ttf&quot;</span><span class="punctuation">)</span></span><br><span class="line">label_font <span class="operator">=</span> fm.FontProperties<span class="punctuation">(</span>fname<span class="operator">=</span>_font_path<span class="punctuation">,</span> size<span class="operator">=</span><span class="number">4</span><span class="punctuation">)</span> <span class="keyword">if</span> os.path.exists<span class="punctuation">(</span>_font_path<span class="punctuation">)</span> <span class="keyword">else</span> fm.FontProperties<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">4</span><span class="punctuation">)</span></span><br><span class="line"><span class="keyword">for</span> lbl <span class="keyword">in</span> labels<span class="operator">:</span></span><br><span class="line">    lbl.set_fontproperties<span class="punctuation">(</span>label_font<span class="punctuation">)</span></span><br><span class="line">    lbl.set_fontsize<span class="punctuation">(</span><span class="number">4</span><span class="punctuation">)</span></span><br><span class="line">    lbl.set_bbox<span class="punctuation">(</span>dict<span class="punctuation">(</span>facecolor<span class="operator">=</span><span class="string">&quot;white&quot;</span><span class="punctuation">,</span> edgecolor<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">,</span></span><br><span class="line">                      alpha<span class="operator">=</span><span class="number">0.75</span><span class="punctuation">,</span> pad<span class="operator">=</span><span class="number">0.3</span><span class="punctuation">,</span> boxstyle<span class="operator">=</span><span class="string">&quot;round,pad=0.08&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 省份名称</span></span><br><span class="line"><span class="keyword">for</span> _<span class="punctuation">,</span> row <span class="keyword">in</span> provmap.iterrows<span class="punctuation">(</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    try<span class="operator">:</span></span><br><span class="line">        pt <span class="operator">=</span> row.geometry.representative_point<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">        prov_name <span class="operator">=</span> row.get<span class="punctuation">(</span><span class="string">&quot;省&quot;</span><span class="punctuation">,</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">        <span class="keyword">if</span> prov_name<span class="operator">:</span></span><br><span class="line">            ax.text<span class="punctuation">(</span>pt.x<span class="punctuation">,</span> pt.y<span class="punctuation">,</span> prov_name<span class="punctuation">,</span></span><br><span class="line">                    fontsize<span class="operator">=</span><span class="number">5.5</span><span class="punctuation">,</span> color<span class="operator">=</span><span class="string">&quot;gray&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    ha<span class="operator">=</span><span class="string">&quot;center&quot;</span><span class="punctuation">,</span> va<span class="operator">=</span><span class="string">&quot;center&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    fontproperties<span class="operator">=</span>CNFONT<span class="punctuation">,</span> zorder<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br><span class="line">    except Exception<span class="operator">:</span></span><br><span class="line">        pass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 等比例保存</span></span><br><span class="line">xlim <span class="operator">=</span> ax.get_xlim<span class="punctuation">(</span><span class="punctuation">)</span>; ylim <span class="operator">=</span> ax.get_ylim<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">dw <span class="operator">=</span> xlim<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span> <span class="operator">-</span> xlim<span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span>; dh <span class="operator">=</span> ylim<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span> <span class="operator">-</span> ylim<span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span></span><br><span class="line">fig.set_size_inches<span class="punctuation">(</span><span class="number">10</span><span class="punctuation">,</span> <span class="number">10</span> <span class="operator">*</span> dh <span class="operator">/</span> dw<span class="punctuation">)</span></span><br><span class="line">ax.set_xlim<span class="punctuation">(</span>xlim<span class="punctuation">)</span>; ax.set_ylim<span class="punctuation">(</span>ylim<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">fig.savefig<span class="punctuation">(</span><span class="string">&quot;pic3.png&quot;</span><span class="punctuation">,</span> dpi<span class="operator">=</span><span class="number">400</span><span class="punctuation">,</span> bbox_inches<span class="operator">=</span><span class="string">&quot;tight&quot;</span><span class="punctuation">,</span></span><br><span class="line">            facecolor<span class="operator">=</span><span class="string">&quot;white&quot;</span><span class="punctuation">,</span> edgecolor<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;pic3.png 已保存&quot;</span><span class="punctuation">)</span></span><br><span class="line">plt.show<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/17/02b79j1bdbe1b168g4/common/content/1778232111000_762337.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="九、直接运行-Python-脚本" class="article-heading"><a href="#九、直接运行-Python-脚本" class="headerlink" title="九、直接运行 Python 脚本"></a>九、直接运行 Python 脚本<a class="article-anchor" href="#九、直接运行-Python-脚本" aria-label="本节链接" title="复制本节链接"></a></h2><p>除了在 Rmd 文档中逐步演示，也可以直接运行 <code>main.py</code> 脚本一次性生成所有地图：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 在虚拟环境中运行 main.py</span><br><span class="line">py_run_file(&quot;main.py&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>或者在终端中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 激活虚拟环境后运行</span><br><span class="line">.venv/bin/python main.py</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="附录：R-与-Python-函数对照表" class="article-heading"><a href="#附录：R-与-Python-函数对照表" class="headerlink" title="附录：R 与 Python 函数对照表"></a>附录：R 与 Python 函数对照表<a class="article-anchor" href="#附录：R-与-Python-函数对照表" aria-label="本节链接" title="复制本节链接"></a></h2><table>
+<thead>
+<tr>
+<th>R 代码</th>
+<th>Python 等价</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rast(&quot;pre_2021.nc&quot;)</code></td>
+<td><code>xr.open_dataset(nc_path)</code></td>
+<td>读取 NetCDF 栅格</td>
+</tr>
+<tr>
+<td><code>app(rst, mean, na.rm=T)</code></td>
+<td><code>.mean(dim=..., skipna=True)</code></td>
+<td>计算多波段均值</td>
+</tr>
+<tr>
+<td><code>st_union(prov)</code></td>
+<td><code>unary_union(prov.geometry)</code></td>
+<td>合并多边形</td>
+</tr>
+<tr>
+<td><code>nngeo::st_remove_holes()</code></td>
+<td><code>Polygon(geom.exterior)</code></td>
+<td>去除多边形孔洞</td>
+</tr>
+<tr>
+<td><code>terra::crop(vect(cn))</code></td>
+<td><code>rasterio.mask.mask(crop=True)</code></td>
+<td>裁剪栅格</td>
+</tr>
+<tr>
+<td><code>terra::mask(vect(cn))</code></td>
+<td><code>rasterio.mask.mask(all_touched=True)</code></td>
+<td>掩膜裁剪</td>
+</tr>
+<tr>
+<td><code>terra::extract(fun=mean)</code></td>
+<td><code>geometry_mask + np.nanmean</code></td>
+<td>区域均值提取</td>
+</tr>
+<tr>
+<td><code>rasterToContour</code></td>
+<td><code>ax.contour</code>（直接在 Albers axes 上）</td>
+<td>生成等值线</td>
+</tr>
+<tr>
+<td><code>aggregate(fact=10)</code></td>
+<td><code>scipy.ndimage.zoom</code></td>
+<td>降采样</td>
+</tr>
+<tr>
+<td><code>rasterToPolygons</code></td>
+<td><code>shapely.geometry.box</code> 逐像元</td>
+<td>栅格转多边形</td>
+</tr>
+<tr>
+<td><code>st_transform(mycrs)</code></td>
+<td><code>.to_crs(MYCRS)</code></td>
+<td>坐标系转换</td>
+</tr>
+<tr>
+<td><code>st_intersection</code></td>
+<td><code>gpd.overlay(how=&quot;intersection&quot;)</code></td>
+<td>空间相交</td>
+</tr>
+<tr>
+<td><code>geometry * 0.5 + c(tx, ty)</code></td>
+<td><code>affine_scale + translate</code></td>
+<td>几何变换</td>
+</tr>
+<tr>
+<td><code>geom_textsf</code></td>
+<td><code>ax.clabel(inline=True, fmt=...)</code></td>
+<td>等值线文字标签</td>
+</tr>
+<tr>
+<td><code>annotation_scale</code></td>
+<td>手动绘制矩形比例尺</td>
+<td>比例尺</td>
+</tr>
+<tr>
+<td><code>annotation_north_arrow</code></td>
+<td><code>ax.annotate + ax.text</code></td>
+<td>指北针</td>
+</tr>
+<tr>
+<td><code>scale_fill_gradientn</code></td>
+<td><code>LinearSegmentedColormap.from_list</code></td>
+<td>渐变色板</td>
+</tr>
+<tr>
+<td><code>ggsave(dpi=400)</code></td>
+<td><code>fig.savefig(dpi=400)</code></td>
+<td>保存高分辨率图</td>
+</tr>
+</tbody></table>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 为生成的图片添加水印（如需要）</span></span><br><span class="line"><span class="comment"># lapply(fs::dir_ls(regexp = &quot;png&quot;), rstatatools::addrswm)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/c6628d405a91435bb1f40835dc9e8ded">使用 Python 绘制填充地图、栅格地图 + 等降水量线</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:43.453Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/36417/" title="2000～2022 年各省市区县城乡夜间灯光平均亮度及比值面板数据（余柏蒗版本2）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/10976/" title="名师讲堂｜使用 Python 根据上市公司及其子公司与税调匹配结果测算碳排放"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/81983/">使用 R 语言绘制填充地图、栅格地图 + 等降水量线</a><span class="tf-related-meta">2024-11-25 · 约 8 分钟</span></li><li><a href="/posts/89500/">使用 Python 绘制历年中国省市区县地图（小地图版本+长版）</a><span class="tf-related-meta">2026-04-24 · 约 16 分钟</span></li><li><a href="/posts/96491/">使用 Python 绘制带邻国地区的中国地图</a><span class="tf-related-meta">2026-04-24 · 约 11 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81R-%E8%AF%AD%E8%A8%80%E4%B8%8E-Python-%E7%9A%84%E5%8C%85%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="toc-text">一、R 语言与 Python 的包对应关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">二、使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.1 安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">2.2 虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.3 安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">2.4 验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">2.5 查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">2.6 虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">三、全局配置与数据读取</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%85%A8%E5%B1%80%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-text">3.1 全局参数配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%AD%E6%96%87%E5%AD%97%E4%BD%93%E8%AE%BE%E7%BD%AE"><span class="toc-text">3.2 中文字体设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%AF%BB%E5%8F%96%E9%99%8D%E6%B0%B4%E9%87%8F%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE"><span class="toc-text">3.3 读取降水量栅格数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E8%A3%81%E5%89%AA%E5%88%B0%E4%B8%AD%E5%9B%BD%E8%8C%83%E5%9B%B4"><span class="toc-text">3.4 裁剪到中国范围</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%88%86%E5%8C%BA%E5%9F%9F%E6%8F%90%E5%8F%96%E5%9D%87%E5%80%BC%EF%BC%88%E5%90%84%E7%9C%81%E9%99%8D%E6%B0%B4%E9%87%8F%EF%BC%89"><span class="toc-text">四、分区域提取均值（各省降水量）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B4%E5%9D%87%E9%99%8D%E6%B0%B4%E9%87%8F%E7%9B%B4%E6%96%B9%E5%9B%BE"><span class="toc-text">年均降水量直方图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%AF%BB%E5%8F%96%E5%9C%B0%E5%9B%BE%E6%95%B0%E6%8D%AE"><span class="toc-text">五、读取地图数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%98%E5%88%B6%E5%A1%AB%E5%85%85%E5%9C%B0%E5%9B%BE%EF%BC%88pic1%EF%BC%89"><span class="toc-text">六、绘制填充地图（pic1）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%90%88%E5%B9%B6%E7%9C%81%E7%BA%A7%E6%95%B0%E6%8D%AE%E4%B8%8E%E5%9C%B0%E5%9B%BE"><span class="toc-text">6.1 合并省级数据与地图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%95%B0%E6%8D%AE%E5%88%86%E7%BB%84"><span class="toc-text">6.2 数据分组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E7%BB%98%E5%9B%BE"><span class="toc-text">6.3 绘图</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%A0%85%E6%A0%BC%E5%9C%B0%E5%9B%BE-%E7%AD%89%E9%99%8D%E6%B0%B4%E9%87%8F%E7%BA%BF"><span class="toc-text">七、栅格地图 + 等降水量线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%B0%86%E6%A0%85%E6%A0%BC%E9%87%8D%E6%8A%95%E5%BD%B1%E5%88%B0-Albers%EF%BC%88%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%EF%BC%89"><span class="toc-text">7.1 将栅格重投影到 Albers（关键步骤）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE%E8%BD%AC%E5%A4%9A%E8%BE%B9%E5%BD%A2%EF%BC%88%E9%99%8D%E9%87%87%E6%A0%B7%EF%BC%89"><span class="toc-text">7.2 栅格数据转多边形（降采样）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%88%86%E7%A6%BB%E4%B8%BB%E5%9B%BE%E5%92%8C%E5%B0%8F%E5%9C%B0%E5%9B%BE%E5%8C%BA%E5%9F%9F"><span class="toc-text">7.3 分离主图和小地图区域</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E7%A7%BB%E5%8A%A8%E5%B0%8F%E5%9C%B0%E5%9B%BE%E5%88%B0%E6%81%B0%E5%BD%93%E4%BD%8D%E7%BD%AE"><span class="toc-text">7.4 移动小地图到恰当位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E7%BB%98%E5%88%B6%E6%A0%85%E6%A0%BC%E5%9C%B0%E5%9B%BE-%E7%AD%89%E9%99%8D%E6%B0%B4%E9%87%8F%E7%BA%BF%EF%BC%88pic2%EF%BC%89"><span class="toc-text">7.5 绘制栅格地图 + 等降水量线（pic2）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-2"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%B7%BB%E5%8A%A0%E7%AD%89%E9%99%8D%E6%B0%B4%E9%87%8F%E7%BA%BF%E6%96%87%E5%AD%97%E6%A0%87%E7%AD%BE%EF%BC%88pic3%EF%BC%89"><span class="toc-text">八、添加等降水量线文字标签（pic3）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%9B%B4%E6%8E%A5%E8%BF%90%E8%A1%8C-Python-%E8%84%9A%E6%9C%AC"><span class="toc-text">九、直接运行 Python 脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9AR-%E4%B8%8E-Python-%E5%87%BD%E6%95%B0%E5%AF%B9%E7%85%A7%E8%A1%A8"><span class="toc-text">附录：R 与 Python 函数对照表</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

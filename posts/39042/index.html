@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/39042/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在论文「数字产业集群政策与关键核心技术突破式创新」中，作者提出了一种衡量专利关键数字技术突破创新性的指标：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/39042/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在论文「数字产业集群政策与关键核心技术突破式创新」中，作者提出了一种衡量专利关键数字技术突破创新性的指标：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/39042.png">
+<meta property="article:published_time" content="2025-04-01T23:06:59.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.773Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/39042.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）","description":"在论文「数字产业集群政策与关键核心技术突破式创新」中，作者提出了一种衡量专利关键数字技术突破创新性的指标：","url":"https://tidyfriday.cn/posts/39042/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/39042/"},"image":["https://tidyfriday.cn/og/39042.png"],"datePublished":"2025-04-01T23:06:59.000Z","dateModified":"2026-09-26T14:18:48.773Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）","item":"https://tidyfriday.cn/posts/39042/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-04-01T23:06:59.000Z" itemprop="datePublished">2025-04-01</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2919 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在论文「数字产业集群政策与关键核心技术突破式创新」中，作者提出了一种衡量专利关键数字技术突破创新性的指标：</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743519781293_977223.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>虽然论文中的模型部分使用的是地区层面的突破创新性的指标，不过论文中似乎没有提及如何从专利层面到地区层面进行汇总。所以我们今天仅仅分享专利层面的计算方法。</p>
+<p>该指标的计算包含专利的前向相似度和后向相似度，参考的是 Kelly et al.（2021）中的方法：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743519781838_694415.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>其中前向相似度的计算是指和之后年份申请的专利进行计算；后向相似度的计算是指和和之前年份申请的专利进行计算。</p>
+<blockquote>
+<p>前向相似度是 <code>forward similarity</code>，后向相似度是 <code>backward similarity</code>。感觉翻译成前向、后向非常容易让人混淆，可能翻译成 <code>前瞻相似度</code> 和 <code>回溯相似度</code>。然后我又问了下 deepseek：</p>
+</blockquote>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743519782105_886127.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>非常神奇。</p>
+<p>由于内容较多，本课程会分三次讲解：</p>
+<ol>
+<li>专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）：计算每个专利的关键数字技术类 TF-IDF 指标；</li>
+<li>专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）：基于 Mata 程序的专利间前瞻、回溯相似度计算；</li>
+<li>专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）：使用并行技术提升计算速度。</li>
+</ol>
+<h2 id="TF-IDF" class="article-heading"><a href="#TF-IDF" class="headerlink" title="TF-IDF"></a>TF-IDF<a class="article-anchor" href="#TF-IDF" aria-label="本节链接" title="复制本节链接"></a></h2><p>在处理数据之前，我们先介绍下 TF-IDF 指标。</p>
+<p>在之前的课程中也有讲解过这个指标：</p>
+<blockquote>
+<p>R 语言文本分析：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/bf37cf50eef04d38b43541cc52114c96">https://rstata.duanshu.com/#/brief/course/bf37cf50eef04d38b43541cc52114c96</a></p>
+</blockquote>
+<blockquote>
+<p>名师讲堂｜Stata 中文文本分析：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b6a9efd94e5a48c2bba52dc9fdfd4291">https://rstata.duanshu.com/#/brief/course/b6a9efd94e5a48c2bba52dc9fdfd4291</a></p>
+</blockquote>
+<p>TF-IDF 的主要思想是：如果某个词或短语（term）在一篇文章中出现的频率高（tf 高），并且在其他文章中很少出现，则认为此词或者短语具有很好的类别区分能力，适合用来分类。例如一篇文档的总术语数是 100 ，而词汇 “母牛” 出现了 3 次，那么“母牛”一词在该文档中的词频就是 <code>3/100=0.03</code>。计算文件频率 (idf) 的方法是文件集里包含的文件总数除以测定有多少份文件出现过“母牛”一词。所以，如果“母牛”一词在 1000 份文档出现过，而文件总数是 10000000 份的话，其逆向文件频率就是 <code>ln(10000000/1000)=4</code>。最后的 tf-idf 的分数为 <code>0.03×4=0.12</code>。</p>
+<h2 id="准备专利数据" class="article-heading"><a href="#准备专利数据" class="headerlink" title="准备专利数据"></a>准备专利数据<a class="article-anchor" href="#准备专利数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>专利数据使用的就是之前给大家分享的这个：</p>
+<blockquote>
+<p>1985～2024 年专利申请与授权数据（版本 3，含申请人所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988">https://rstata.duanshu.com/#/brief/course/2397451274c546d3a36e156ffc865988</a></p>
+</blockquote>
+<p>使用下面的代码就可以分年读取专利数据、去除重复专利以及保留本次计算所需的变量了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 提取专利数据所需指标</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;patent_small3&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 1985/2024 &#123;</span><br><span class="line">  <span class="keyword">use</span> /Volumes/rstata2t/newIP专利数据分年/<span class="symbol">`y&#x27;</span>.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> 专利类型 == <span class="string">&quot;外观设计&quot;</span></span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC)</span><br><span class="line"><span class="comment">  *- 去除重复专利</span></span><br><span class="line">  <span class="keyword">gen</span> value = 公开公告号</span><br><span class="line">  <span class="keyword">replace</span> value = <span class="built_in">subinstr</span>(value, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">replace</span> value = <span class="built_in">subinstr</span>(value, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">replace</span> value = <span class="built_in">subinstr</span>(value, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">replace</span> value = <span class="built_in">subinstr</span>(value, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line">  <span class="keyword">duplicates</span> <span class="keyword">drop</span> value, force</span><br><span class="line"></span><br><span class="line"><span class="comment">  *- 保留所需变量</span></span><br><span class="line">  <span class="keyword">keep</span> newipzlid IPC 申请日 省 省代码 市 市代码 县 县代码</span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(县代码)</span><br><span class="line">  <span class="keyword">save</span> patent_small3/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过由于数据很大，所以附件中仅仅保留了 2010、2011 和 2012 三个年份的。</p>
+<h2 id="IPC-与关键数字技术领域" class="article-heading"><a href="#IPC-与关键数字技术领域" class="headerlink" title="IPC 与关键数字技术领域"></a>IPC 与关键数字技术领域<a class="article-anchor" href="#IPC-与关键数字技术领域" aria-label="本节链接" title="复制本节链接"></a></h2><p>按照参考文献的介绍，计算 TF 的过程如下：</p>
+<ol>
+<li>根据 IPC 匹配每个 IPC 对应的行业小类 -&gt; 根据「国际专利分类与国民经济行业分类参照关系表（2018）」</li>
+<li>根据 IPC 匹配每个 IPC 对应的关键数字技术领域 -&gt; 根据「关键数字技术专利分类体系（2023）」</li>
+<li>计算 TF 公式中的相关指标。</li>
+</ol>
+<p>「国际专利分类与国民经济行业分类参照关系表（2018）」的处理在之前的课程「名师讲堂｜使用 Stata 测算数实融合水平（二）： 基于真实专利数据」中已经进行过了：</p>
+<blockquote>
+<p>名师讲堂｜使用 Stata 测算数实融合水平（二）： 基于真实专利数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/7397f6f81ed24bfab1a39bb9c2796b67">https://rstata.duanshu.com/#/brief/course/7397f6f81ed24bfab1a39bb9c2796b67</a></p>
+</blockquote>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 专利数据与行业小类代码简易对照表.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +---------------------+</span></span><br><span class="line"><span class="comment">*&gt;      | uniq_ipc    国民~码 |</span></span><br><span class="line"><span class="comment">*&gt;      |---------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | G06F15/48   I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   2. | G06F3/03    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   3. | G06K9/62    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   4. | G06F3/00    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   5. | G06F3/01    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;      |---------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | G06F3/041   I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   7. | G06F3/045   I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   8. | G06K9/24    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;   9. | G06K9/68    I6532   |</span></span><br><span class="line"><span class="comment">*&gt;  10. | G06V10/12   I6532   |</span></span><br><span class="line"><span class="comment">*&gt;      +---------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>「关键数字技术专利分类体系（2023）」可以从国家知识产权局下载到，附件中也提供了 pdf 文件。</p>
+<p>附件中的「关键数字技术专利IPC对照表.dta」文件是从 pdf 中提取的表格：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 关键数字技术专利IPC对照表.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743519782397_821681.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下面我们把它处理成 <code>ipc - 关键数字领域</code> 的格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>不过这样还不能直接使用，这里的 IPC 还只是类别。</p>
+<p><code>uniq_ipc.dta</code> 文件里面存储了所有专利数据的 IPC 号，这个也是上述数实融合课程里面处理得到的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> uniq_ipc.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +-----------+</span></span><br><span class="line"><span class="comment">*&gt;      | uniq_ipc  |</span></span><br><span class="line"><span class="comment">*&gt;      |-----------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | A47G21/10 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | A47G21/00 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | B28B3/22  |</span></span><br><span class="line"><span class="comment">*&gt;   4. | B28B3/20  |</span></span><br><span class="line"><span class="comment">*&gt;   5. | B22D11/06 |</span></span><br><span class="line"><span class="comment">*&gt;      |-----------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | B22D11/10 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | B22D11/18 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | A47L13/24 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | A47L13/20 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | G02B21/14 |</span></span><br><span class="line"><span class="comment">*&gt;      +-----------+</span></span><br></pre></td></tr></table></figure>
+
+<p>我们下面的目标就是把每个 IPC 对应上关键数字技术领域：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 关键核心技术领域IPC分类标准, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">gen</span> len = <span class="built_in">strlen</span>(keyIPC)</span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"><span class="comment">*&gt;         len |      Freq.     Percent        Cum.</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;           4 |        613       11.98       11.98</span></span><br><span class="line"><span class="comment">*&gt;           5 |        747       14.60       26.59</span></span><br><span class="line"><span class="comment">*&gt;           6 |      1,759       34.39       60.98</span></span><br><span class="line"><span class="comment">*&gt;           7 |          9        0.18       61.15</span></span><br><span class="line"><span class="comment">*&gt;           8 |        332        6.49       67.64</span></span><br><span class="line"><span class="comment">*&gt;           9 |      1,035       20.23       87.88</span></span><br><span class="line"><span class="comment">*&gt;          10 |        468        9.15       97.03</span></span><br><span class="line"><span class="comment">*&gt;          11 |        144        2.82       99.84</span></span><br><span class="line"><span class="comment">*&gt;          12 |          8        0.16      100.00</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;       Total |      5,115      100.00</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;keyIPCtab&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 4/12 &#123;</span><br><span class="line">  <span class="keyword">preserve</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> len == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">drop</span> len</span><br><span class="line">  <span class="keyword">save</span> keyIPCtab/<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">  <span class="keyword">restore</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- uniqIPCtab</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;uniqIPCtab&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 4/12 &#123;</span><br><span class="line">  <span class="keyword">use</span> uniq_ipc.dta, <span class="keyword">clear</span></span><br><span class="line">  <span class="keyword">gen</span> keyIPC = <span class="built_in">substr</span>(uniq_ipc, 1, <span class="symbol">`i&#x27;</span>)</span><br><span class="line">  <span class="keyword">joinby</span> keyIPC using keyIPCtab/<span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">save</span> uniqIPCtab/<span class="symbol">`i&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 合并</span><br><span class="line">appendall uniqIPCtab</span><br><span class="line">*&gt; (777 observations deleted)</span><br><span class="line">drop keyIPC</span><br><span class="line">duplicates drop _all, force</span><br><span class="line">*&gt; Duplicates in terms of uniq_ipc 关键核心技术领域</span><br><span class="line">*&gt; (263,741 observations deleted)</span><br><span class="line">drop if mi(关键核心技术领域)</span><br><span class="line">*&gt; (0 observations deleted)</span><br><span class="line">save &quot;每种IPC对应的关键核心技术领域&quot;, replace</span><br><span class="line">*&gt; file 每种IPC对应的关键核心技术领域.dta saved</span><br><span class="line">list in 1/10</span><br><span class="line">*&gt;      +---------------------------+</span><br><span class="line">*&gt;      | uniq_ipc      关键核心~域 |</span><br><span class="line">*&gt;      |---------------------------|</span><br><span class="line">*&gt;   1. | H01L21/205   高端芯片技术 |</span><br><span class="line">*&gt;   2. | H01L21/302   高端芯片技术 |</span><br><span class="line">*&gt;   3. | H01L21/203   高端芯片技术 |</span><br><span class="line">*&gt;   4. | H01L21/365   高端芯片技术 |</span><br><span class="line">*&gt;   5. | H04N21/472     元宇宙技术 |</span><br><span class="line">*&gt;      |---------------------------|</span><br><span class="line">*&gt;   6. | H04N21/472   人工智能技术 |</span><br><span class="line">*&gt;   7. | H01L21/312   高端芯片技术 |</span><br><span class="line">*&gt;   8. | H01L21/265   高端芯片技术 |</span><br><span class="line">*&gt;   9. | C01B15/013   高端芯片技术 |</span><br><span class="line">*&gt;  10. | H01L21/306   高端芯片技术 |</span><br><span class="line">*&gt;      +---------------------------+</span><br></pre></td></tr></table></figure>
+
+<p><code>appendall.ado</code> 在附件中有提供，把它放在工作目录下面即可使用。可以用于快速 append 某个文件夹下的所有 dta 文件。</p>
+<p>合并下面两个数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 每种IPC对应的关键核心技术领域, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">joinby</span> uniq_ipc using 专利数据与行业小类代码简易对照表, unmatched(both)</span><br><span class="line"><span class="keyword">tab</span> _m</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(国民经济行业代码)</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">save</span> classdf, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br></pre></td></tr></table></figure>
+
+<p>这样就同时知道了每个 IPC 对应的关键数字领域和行业。</p>
+<h2 id="处理专利数据" class="article-heading"><a href="#处理专利数据" class="headerlink" title="处理专利数据"></a>处理专利数据<a class="article-anchor" href="#处理专利数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于专利数据中的 IPC 分类号是用分号分隔的，所以我们需要先把它们分隔开：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 选择 2010-2012年数据为例：</span></span><br><span class="line"><span class="keyword">use</span> patent_small3/2010.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">append</span> using patent_small3/2011.dta</span><br><span class="line"><span class="comment">*&gt; (variable newipzlid was str10, now str11 to accommodate using data&#x27;s values)</span></span><br><span class="line"><span class="comment">*&gt; (variable IPC was str733, now str891 to accommodate using data&#x27;s values)</span></span><br><span class="line"><span class="keyword">append</span> using patent_small3/2012.dta</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC)</span><br><span class="line"><span class="comment">*&gt; (0 observations deleted)</span></span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="comment">*&gt;   variable 省代码 was double now long</span></span><br><span class="line"><span class="comment">*&gt;   variable 市代码 was double now long</span></span><br><span class="line"><span class="comment">*&gt;   variable 县代码 was double now long</span></span><br><span class="line"><span class="comment">*&gt;   (24,342,384 bytes saved)</span></span><br><span class="line"><span class="keyword">keep</span> newipzlid IPC 申请日</span><br><span class="line"><span class="keyword">save</span> tempdata, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; (file tempdata.dta not found)</span></span><br><span class="line"><span class="comment">*&gt; file tempdata.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<p>拆分 IPC：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以直接把 v3 创建成变量了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">stata(&quot;cap drop IPC&quot;)</span><br><span class="line">st_addvar(&quot;strL&quot;, &quot;IPC&quot;)</span><br><span class="line">st_sstore(., &quot;IPC&quot;, v3&#x27;)</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop n</span><br><span class="line">duplicates drop _all, force</span><br><span class="line">*&gt; Duplicates in terms of newipzlid 申请日 IPC</span><br><span class="line">*&gt; (0 observations are duplicates)</span><br><span class="line">*- 合并两部分</span><br><span class="line">append using tempdata1</span><br><span class="line">gsort newipzlid</span><br><span class="line">save tempdata2, replace</span><br><span class="line">*&gt; (file tempdata2.dta not found)</span><br><span class="line">*&gt; file tempdata2.dta saved</span><br><span class="line">list in 1/5</span><br><span class="line">*&gt;      +-------------------------------------+</span><br><span class="line">*&gt;      |  newipzlid       申请日         IPC |</span><br><span class="line">*&gt;      |-------------------------------------|</span><br><span class="line">*&gt;   1. | 2010000002   2010-06-02   A47J37/08 |</span><br><span class="line">*&gt;   2. | 2010000003   2010-01-28   A47J37/10 |</span><br><span class="line">*&gt;   3. | 2010000004   2010-06-18   A47J37/12 |</span><br><span class="line">*&gt;   4. | 2010000005   2010-06-18    A21B5/08 |</span><br><span class="line">*&gt;   5. | 2010000005   2010-06-18   A47J37/12 |</span><br><span class="line">*&gt;      +-------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>匹配行业：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以计算 TF 公式里面的各个变量了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata3, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="comment">*- 每个专利 IPC 所涉及的关键核心技术领域数量</span></span><br><span class="line"><span class="keyword">bysort</span> newipzlid: <span class="keyword">egen</span> C_pwt = nvals(关键核心技术领域)</span><br><span class="line"><span class="comment">*&gt; (7,284,048 missing values generated)</span></span><br><span class="line"><span class="keyword">replace</span> C_pwt = 0 <span class="keyword">if</span> <span class="built_in">mi</span>(C_pwt)</span><br><span class="line"><span class="comment">*&gt; (7,284,048 real changes made)</span></span><br><span class="line"><span class="comment">*- 每个专利 IPC 所涉及的所有技术领域数量</span></span><br><span class="line"><span class="keyword">bysort</span> newipzlid: <span class="keyword">egen</span> C_pt = nvals(国民经济行业代码)</span><br><span class="line"><span class="comment">*- 截止 t 年的专利数量</span></span><br><span class="line"><span class="keyword">gen</span> year = <span class="built_in">substr</span>(newipzlid, 1, 4)</span><br><span class="line"><span class="keyword">destring</span> year, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; year: all characters numeric; replaced as int</span></span><br><span class="line"><span class="keyword">order</span> year</span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; newipzlid: all characters numeric; replaced as double</span></span><br><span class="line"><span class="keyword">save</span> tempdata4, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; (file tempdata4.dta not found)</span></span><br><span class="line"><span class="comment">*&gt; file tempdata4.dta saved</span></span><br><span class="line"><span class="keyword">use</span> tempdata4, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">bysort</span> year: <span class="keyword">egen</span> patents_t = nvals(newipzlid)</span><br><span class="line"><span class="keyword">keep</span> year patents_t</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of year patents_t</span></span><br><span class="line"><span class="comment">*&gt; (27,231,460 observations deleted)</span></span><br><span class="line"><span class="keyword">gsort</span> year</span><br><span class="line"><span class="keyword">replace</span> patents_t = <span class="built_in">sum</span>(patents_t)</span><br><span class="line"><span class="comment">*&gt; (2 real changes made)</span></span><br><span class="line"><span class="keyword">save</span> tempdata5, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; (file tempdata5.dta not found)</span></span><br><span class="line"><span class="comment">*&gt; file tempdata5.dta saved</span></span><br><span class="line"><span class="comment">*- 截至 t 年，包含技术领域 w 的专利数</span></span><br><span class="line"><span class="keyword">use</span> tempdata4, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(关键核心技术领域)</span><br><span class="line"><span class="comment">*&gt; (7,284,048 observations deleted)</span></span><br><span class="line"><span class="keyword">bysort</span> year 关键核心技术领域: <span class="keyword">egen</span> patents_wt = nvals(newipzlid)</span><br><span class="line"><span class="keyword">keep</span> year 关键核心技术领域 patents_wt</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of year 关键核心技术领域 patents_wt</span></span><br><span class="line"><span class="comment">*&gt; (19,947,394 observations deleted)</span></span><br><span class="line"><span class="keyword">bysort</span> 关键核心技术领域: <span class="keyword">replace</span> patents_wt = <span class="built_in">sum</span>(patents_wt)</span><br><span class="line"><span class="comment">*&gt; (14 real changes made)</span></span><br><span class="line"><span class="keyword">save</span> tempdata6, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; (file tempdata6.dta not found)</span></span><br><span class="line"><span class="comment">*&gt; file tempdata6.dta saved</span></span><br><span class="line"><span class="comment">*- 合并 tempdata4、tempdata5、tempdata6</span></span><br><span class="line"><span class="keyword">use</span> tempdata4, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 year using tempdata5</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                             0</span></span><br><span class="line"><span class="comment">*&gt;     Matched                        27,231,463  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 year 关键核心技术领域 using tempdata6</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                     7,284,048</span></span><br><span class="line"><span class="comment">*&gt;         from master                 7,284,048  (_merge==1)</span></span><br><span class="line"><span class="comment">*&gt;         from using                          0  (_merge==2)</span></span><br><span class="line"><span class="comment">*&gt;     Matched                        19,947,415  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(patents_wt)</span><br><span class="line"><span class="comment">*&gt; (7,284,048 observations deleted)</span></span><br><span class="line"><span class="keyword">gen</span> z = <span class="built_in">log</span>(patents_t/patents_wt) * C_pwt / C_pt</span><br><span class="line"><span class="keyword">keep</span> newipzlid 关键核心技术领域 z 申请日</span><br><span class="line"><span class="keyword">gsort</span> newipzlid 关键核心技术领域</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of newipzlid 申请日 关键核心技术领域 z</span></span><br><span class="line"><span class="comment">*&gt; (18,008,601 observations deleted)</span></span><br><span class="line">spread 关键核心技术领域 z</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"><span class="comment">*&gt;   2.   cap replace `i&#x27; = 0 if mi(`i&#x27;)</span></span><br><span class="line"><span class="comment">*&gt;   3. &#125;</span></span><br><span class="line"><span class="keyword">tostring</span> newipzlid, <span class="keyword">replace</span> <span class="keyword">format</span>(%12.0f)</span><br><span class="line"><span class="comment">*&gt; newipzlid was double now str11</span></span><br><span class="line"><span class="keyword">save</span> tempdata7, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; (file tempdata7.dta not found)</span></span><br><span class="line"><span class="comment">*&gt; file tempdata7.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743519782878_212247.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样我们就得到了每个专利的各个关键数字技术领域的 TF-IDF 指标，如果某个维度的指标值很高，就表示这个领域在该专利中出现的次数多，而在其他专利中出现的较少。这里其实也就是相当于把关键数字技术领域看作术语，然后每个专利的 IPC 集合看作一篇文档。</p>
+<p>下次课程我们会继续讲解如何计算每个专利的前瞻与回溯相似度。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bcb7f4d90a8445e48c18e4ed769ef071">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.773Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/73859/" title="名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/57004/" title="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/99815/">名师讲堂｜使用 Stata 测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 11 分钟</span></li><li><a href="/posts/79211/">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</a><span class="tf-related-meta">2026-03-30 · 约 12 分钟</span></li><li><a href="/posts/39533/">名师讲堂｜使用 Stata 测算专利的创新突破度：CD指数（废弃）</a><span class="tf-related-meta">2026-01-21 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#TF-IDF"><span class="toc-text">TF-IDF</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE"><span class="toc-text">准备专利数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IPC-%E4%B8%8E%E5%85%B3%E9%94%AE%E6%95%B0%E5%AD%97%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F"><span class="toc-text">IPC 与关键数字技术领域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE"><span class="toc-text">处理专利数据</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

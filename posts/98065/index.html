@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/98065/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="去年就给大家提供了一份 1998～2013 年工企业地理位置数据，但是那个时候的数据没有成体系，最近我们重新整理了工企、海关、污染、专利的数据，给每个数据生成一个 ID 变量用以标志观测值：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/98065/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="去年就给大家提供了一份 1998～2013 年工企业地理位置数据，但是那个时候的数据没有成体系，最近我们重新整理了工企、海关、污染、专利的数据，给每个数据生成一个 ID 变量用以标志观测值：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/98065.png">
+<meta property="article:published_time" content="2023-03-27T17:23:28.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:29.277Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="地形与地理">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/98065.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）","description":"去年就给大家提供了一份 1998～2013 年工企业地理位置数据，但是那个时候的数据没有成体系，最近我们重新整理了工企、海关、污染、专利的数据，给每个数据生成一个 ID 变量用以标志观测值：","url":"https://tidyfriday.cn/posts/98065/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/98065/"},"image":["https://tidyfriday.cn/og/98065.png"],"datePublished":"2023-03-27T17:23:28.000Z","dateModified":"2026-09-26T14:18:29.277Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, 地形与地理, 上市公司","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）","item":"https://tidyfriday.cn/posts/98065/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-03-27T17:23:28.000Z" itemprop="datePublished">2023-03-27</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1888 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 5 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=%E5%9C%B0%E5%BD%A2%E4%B8%8E%E5%9C%B0%E7%90%86">地形与地理</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>去年就给大家提供了一份 1998～2013 年工企业地理位置数据，但是那个时候的数据没有成体系，最近我们重新整理了工企、海关、污染、专利的数据，给每个数据生成一个 ID 变量用以标志观测值：</p>
+<span id="more"></span>
+
+<ol>
+<li>工企数据里面我们生成了一个 gqid 变量；</li>
+<li>海关数据里面我们生成了一个 hgid 变量；</li>
+<li>污染数据里面我们生成了一个 wrid 变量；</li>
+<li>专利数据里面也可以生成一个 zlid 变量（暂不提供）。</li>
+</ol>
+<p>那么工企和海关匹配的结果里面就会有 gqid 和 hgid 变量；工企和污染匹配的结果里面就会有 gqid 和 wrid 变量；今天提供的工企地理位置数据里面也会有个 gqid 变量，这样就能很容易得到<code>工企+海关+地理位置</code>或者<code>工企+污染+地理位置</code>，甚至 <code>工企+海关+污染+地理位置</code>的联合匹配结果了！</p>
+<p>此次分享的数据包含如下几份：</p>
+<h3 id="1-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据-dta（16-13GB）" class="article-heading"><a href="#1-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据-dta（16-13GB）" class="headerlink" title="1. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据.dta（16.13GB）"></a>1. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据.dta（16.13GB）<a class="article-anchor" href="#1-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据-dta（16-13GB）" aria-label="本节链接" title="复制本节链接"></a></h3><p>这个数据包含了工企数据库的所有变量和经纬度数据，另外还有一些根据经纬度数据生成的变量：</p>
+<ol>
+<li>gqid：用于标志工企库的每个观测值（每个观测值的 gqid 值都是唯一的）；</li>
+<li>经度：根据高德地图地理编码接口解析得到的经度（已经转成了 WGS84 坐标系）；</li>
+<li>纬度：根据高德地图地理编码接口解析得到的纬度（已经转成了 WGS84 坐标系）；</li>
+<li>县代码：根据上面的经纬度判断所处的区县代码；</li>
+<li>县：根据上面的经纬度判断所处的区县；</li>
+<li>省代码：根据上面的经纬度判断所处的省份代码；</li>
+<li>省：根据上面的经纬度判断所处的省份；</li>
+<li>市代码：根据上面的经纬度判断所处的城市代码；</li>
+<li>市：根据上面的经纬度判断所处的城市；</li>
+<li>是否和省界接触：所在的区县是否和省界相接触；</li>
+<li>是否和海岸线接触：所在的区县是否和海岸线相接触；</li>
+<li>是否和陆地国界线接触：所在的区县是否和陆地国界线相接触；</li>
+<li>是否为内部县：所在的区县是否同时不和省界、国界、海岸线相接触；</li>
+<li>与秦岭淮河线的距离：距离秦岭-淮河线的距离；</li>
+<li>北方或南方：根据经纬度判断的所处位置是北方还是南方。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%889.44.53_20210724094456.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h3 id="2-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）" class="article-heading"><a href="#2-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）" class="headerlink" title="2. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）"></a>2. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）<a class="article-anchor" href="#2-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于上面的数据太大了，所以我们把数据拆分成了逐年的（每年一个文件），这样即使电脑内存不大也可以逐一处理了。</p>
+<table>
+<thead>
+<tr>
+<th>数据预览</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%889.52.23_20210724095227.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h3 id="3-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表-dta" class="article-heading"><a href="#3-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表-dta" class="headerlink" title="3. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表.dta"></a>3. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表.dta<a class="article-anchor" href="#3-1998-2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表-dta" aria-label="本节链接" title="复制本节链接"></a></h3><p>这份数据和上面的一样，不过不再包含工企数据库里面的变量，而是只包含 gqid、经纬度等变量，但是可以通过 gqid 变量很容易的和平台上提供的工企数据库进行合并：</p>
+<table>
+<thead>
+<tr>
+<th>数据预览</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%889.54.38_20210724095442.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h3 id="4-2014-年的数据" class="article-heading"><a href="#4-2014-年的数据" class="headerlink" title="4. 2014 年的数据"></a>4. 2014 年的数据<a class="article-anchor" href="#4-2014-年的数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于 2014 年的数据来源不同，也没有企业匹配唯一标识码变量，所以就没有合并，有需要的小伙伴可以自行选择使用。</p>
+<table>
+<thead>
+<tr>
+<th>数据预览</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%889.58.06_20210724095809.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="注意事项" class="article-heading"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项<a class="article-anchor" href="#注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
+<li>经纬度是根据省自治区直辖市 + 地区市州盟 + 县区市旗 + 乡镇 + 街道办事处 + 企业名称生成的地址变量再通过高德地图地理编码接口生成的，可能存在错误，不过也没有很好的判断是否错误的方法（一种粗略的方法是比较数据里面的省 和 省自治区直辖市 变量，如果不同就认为是错误的）；</li>
+<li>高德地图地理编码接口返回的是 GCJ02 坐标系的坐标，为了方便大家使用已经转换成了 WGS84 坐标；</li>
+<li>高德地图地理编码接口解析经纬度的方法是如果没有在地址库里面搜索到某个地点的名称就返回上一级地址的经纬度。例如，没有找到广东省广州市珠江新城的坐标，那么就返回广东省广州市的坐标。这也就导致了数据里面很多不是一家企业的经纬度却相同（这些也可以认为是解析错误）；</li>
+<li>由于工企数据库是 1998～2014 年的，里面的地址自然也是 1998～2014 年的，而高德地图接口返回的经纬度是最新地址的，这也可能导致经纬度错误（这个应该问题不大，毕竟公司搬家的不多。且也没有什么好的办法了）；</li>
+</ol>
+<h2 id="企业的地理分布" class="article-heading"><a href="#企业的地理分布" class="headerlink" title="企业的地理分布"></a>企业的地理分布<a class="article-anchor" href="#企业的地理分布" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了让大家更直观的感受这份数据，下图展示了 2013 年工企的地理位置分布：</p>
+<table>
+<thead>
+<tr>
+<th>企业的地理分布</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%8810.21.13_20210724102117.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="距离秦岭淮河的距离" class="article-heading"><a href="#距离秦岭淮河的距离" class="headerlink" title="距离秦岭淮河的距离"></a>距离秦岭淮河的距离<a class="article-anchor" href="#距离秦岭淮河的距离" aria-label="本节链接" title="复制本节链接"></a></h2><p>秦岭淮河线在地理断点回归中很常用，所以我们使用解析得到的经纬度计算了每家企业距离秦岭淮河线的最短距离，也就是数据集中的 <code>与秦岭淮河线的距离</code> 变量以及 <code>北方或南方</code>，下图展示了 2013 年的数据：</p>
+<table>
+<thead>
+<tr>
+<th>工企业距离秦岭淮河线的距离</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210724102826.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县" class="article-heading"><a href="#是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县" class="headerlink" title="是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县"></a>是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县<a class="article-anchor" href="#是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县" aria-label="本节链接" title="复制本节链接"></a></h2><p>这几个变量都是指工企业所处的区县的，可以用于快速筛选工企业的。例如省界，经常也被作为地理断点回归的分界线，假如计算省界附近的工企业距离省界的距离就可以先用 <code>是否和省界接触</code> 变量筛选出来需要的工企业再计算距离，下图展示了河南省省界附近的边界县与工企企业距离省界的距离：</p>
+<table>
+<thead>
+<tr>
+<th>河南省省界附近的区县和工企业</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-24%20%E4%B8%8A%E5%8D%8810.31.46_20210724103149.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="相关课程推荐" class="article-heading"><a href="#相关课程推荐" class="headerlink" title="相关课程推荐"></a>相关课程推荐<a class="article-anchor" href="#相关课程推荐" aria-label="本节链接" title="复制本节链接"></a></h2><p>这些指标的计算都有课程讲解的！推荐学习下面几个课程（欢迎购买会员参加下载的所有课程）：</p>
+<ol>
+<li>中国的工业企业都在哪里？—— Stata、高德接口与地理编码：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/aa4f5af4fb6340bb952e169d2276cd8b">https://rstata.duanshu.com/#/course/aa4f5af4fb6340bb952e169d2276cd8b</a></li>
+<li>R 语言与高德地图接口的使用：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/52da904ee94b4068858aae2e23d53f49">https://rstata.duanshu.com/#/course/52da904ee94b4068858aae2e23d53f49</a></li>
+<li>R 语言｜如何根据经纬度判断该地点所处的省份或者区县：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/afbca7ec779d4280ba30c843a35e701c">https://rstata.duanshu.com/#/course/afbca7ec779d4280ba30c843a35e701c</a></li>
+<li>哪些县与省界接触？工企业距离省界的距离？｜空间拓扑关系与地理距离计算：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/5793b1c8fed7473288050de20e2b3c6e">https://rstata.duanshu.com/#/course/5793b1c8fed7473288050de20e2b3c6e</a></li>
+<li>如何判断工企业在南方还是北方 &amp; 计算每个工企业距离秦岭淮河线的距离？：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/8a4e1e28c1e54c30a7d6996823648242">https://rstata.duanshu.com/#/brief/course/8a4e1e28c1e54c30a7d6996823648242</a></li>
+<li>使用 Stata 绘制中国省级地图！比例尺、指北针、秦岭-淮河线、胡焕庸线、海岸线、未定国界都有！：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/a9423c3d0db84629b14ab35f67c4e3dd">https://rstata.duanshu.com/#/brief/course/a9423c3d0db84629b14ab35f67c4e3dd</a></li>
+</ol>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/1c0d065e272c46b49cc528a445c2d3d9">1998～2014 年工业企业数据库地理位置数据（含经纬度、所处省市区县、南北方属性、东西部属性及相关距离）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:29.277Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/79840/" title="名师讲堂｜Stata 中的面板数据方法与实证论文写作"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/64920/" title="旧版本｜1980年1月1日～2023年7月31日中国各城市逆温数据&amp;每年各城市逆温天数数据（空气污染影响相关研究的工具变量）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/38756/">旧版本｜2000～2022 年上市公司的办公地址和注册地址（含经纬度、省市区县及搬迁距离）</a><span class="tf-related-meta">2024-04-04 · 约 2 分钟</span></li><li><a href="/posts/90512/">1999～2024年上市公司子公司经纬度及其所处的省市区县数据</a><span class="tf-related-meta">2026-08-20 · 约 6 分钟</span></li><li><a href="/posts/63034/">2000～2025 年上市公司注册地址与办公地址（含经纬度及其所处的省市区县）</a><span class="tf-related-meta">2026-08-10 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1998-2013%E5%B9%B4%E5%B7%A5%E4%BC%81%E4%B8%9A%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E3%80%81%E4%B8%8E%E7%A7%A6%E5%B2%AD%E6%B7%AE%E6%B2%B3%E7%BA%BF%E8%B7%9D%E7%A6%BB%E3%80%81%E5%8D%97%E5%8C%97%E6%96%B9%E5%B1%9E%E6%80%A7%E6%95%B0%E6%8D%AE-dta%EF%BC%8816-13GB%EF%BC%89"><span class="toc-text">1. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据.dta（16.13GB）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1998-2013%E5%B9%B4%E5%B7%A5%E4%BC%81%E4%B8%9A%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E3%80%81%E4%B8%8E%E7%A7%A6%E5%B2%AD%E6%B7%AE%E6%B2%B3%E7%BA%BF%E8%B7%9D%E7%A6%BB%E3%80%81%E5%8D%97%E5%8C%97%E6%96%B9%E5%B1%9E%E6%80%A7%E6%95%B0%E6%8D%AE%EF%BC%88%E5%88%86%E5%B9%B4%EF%BC%89"><span class="toc-text">2. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据（分年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1998-2013%E5%B9%B4%E5%B7%A5%E4%BC%81%E4%B8%9A%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E3%80%81%E4%B8%8E%E7%A7%A6%E5%B2%AD%E6%B7%AE%E6%B2%B3%E7%BA%BF%E8%B7%9D%E7%A6%BB%E3%80%81%E5%8D%97%E5%8C%97%E6%96%B9%E5%B1%9E%E6%80%A7%E6%95%B0%E6%8D%AEID%E5%AF%B9%E7%85%A7%E8%A1%A8-dta"><span class="toc-text">3. 1998~2013年工企业地理位置、与秦岭淮河线距离、南北方属性数据ID对照表.dta</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2014-%E5%B9%B4%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="toc-text">4. 2014 年的数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%81%E4%B8%9A%E7%9A%84%E5%9C%B0%E7%90%86%E5%88%86%E5%B8%83"><span class="toc-text">企业的地理分布</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%9D%E7%A6%BB%E7%A7%A6%E5%B2%AD%E6%B7%AE%E6%B2%B3%E7%9A%84%E8%B7%9D%E7%A6%BB"><span class="toc-text">距离秦岭淮河的距离</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%AF%E5%90%A6%E5%92%8C%E7%9C%81%E7%95%8C%E6%8E%A5%E8%A7%A6%E3%80%81%E6%98%AF%E5%90%A6%E5%92%8C%E6%B5%B7%E5%B2%B8%E7%BA%BF%E6%8E%A5%E8%A7%A6%E3%80%81%E6%98%AF%E5%90%A6%E5%92%8C%E9%99%86%E5%9C%B0%E5%9B%BD%E7%95%8C%E7%BA%BF%E6%8E%A5%E8%A7%A6%E3%80%81%E5%90%A6%E4%B8%BA%E5%86%85%E9%83%A8%E5%8E%BF"><span class="toc-text">是否和省界接触、是否和海岸线接触、是否和陆地国界线接触、否为内部县</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E8%AF%BE%E7%A8%8B%E6%8E%A8%E8%8D%90"><span class="toc-text">相关课程推荐</span></a>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

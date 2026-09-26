@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>R 语言：使用夜间灯光数据构造城市形态指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/19129/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="在「城市空间结构与劳动者工资收入（刘修岩等，2019）」一文中，作者提出了三个描述城市区域在地面投影的平面几何形状特征的指标：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R 语言：使用夜间灯光数据构造城市形态指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/19129/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="在「城市空间结构与劳动者工资收入（刘修岩等，2019）」一文中，作者提出了三个描述城市区域在地面投影的平面几何形状特征的指标：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/19129.png">
+<meta property="article:published_time" content="2025-08-06T14:21:11.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:40.093Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="夜间灯光">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/19129.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="R 语言：使用夜间灯光数据构造城市形态指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"R 语言：使用夜间灯光数据构造城市形态指标","description":"在「城市空间结构与劳动者工资收入（刘修岩等，2019）」一文中，作者提出了三个描述城市区域在地面投影的平面几何形状特征的指标：","url":"https://tidyfriday.cn/posts/19129/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/19129/"},"image":["https://tidyfriday.cn/og/19129.png"],"datePublished":"2025-08-06T14:21:11.000Z","dateModified":"2026-09-26T14:18:40.093Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, R 语言, 夜间灯光","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"R 语言：使用夜间灯光数据构造城市形态指标","item":"https://tidyfriday.cn/posts/19129/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">R 语言：使用夜间灯光数据构造城市形态指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">R 语言：使用夜间灯光数据构造城市形态指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-08-06T14:21:11.000Z" itemprop="datePublished">2025-08-06</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2284 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 9 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E5%A4%9C%E9%97%B4%E7%81%AF%E5%85%89">夜间灯光</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>在「城市空间结构与劳动者工资收入（刘修岩等，2019）」一文中，作者提出了三个描述城市区域在地面投影的平面几何形状特征的指标：</p>
+<span id="more"></span>
+
+<ul>
+<li><strong>road</strong>：城市中所有夜间灯光栅格之间地表直线距离的均值除以城市面积的平方根。反映城市内各地点之间的平均相互距离，代表绝大多数居民的出行成本。</li>
+<li><strong>max</strong>：城市内所有夜间灯光栅格间距中的最大值除以城市面积的平方根。表征城市可能出现的最远距离，突出”形态不规则”或”多中心”特征。</li>
+<li><strong>center</strong>：城市内每个夜间灯光栅格离城市中心点地表直线距离的均值除以城市面积的平方根。衡量城市中心的通达性，值越大说明大多数居民到市中心距离越远。</li>
+</ul>
+<p>这三个指标从不同角度反映城市内部空间距离：road 关注平均距离，max 关注极端距离，center 关注中心可达性。指标值越高，城市形态越”劣质”。研究表明，城市形态通过影响居民出行成本和企业运输效率，对城市经济绩效和劳动者工资收入产生显著影响。</p>
+<h3 id="灯光阈值选择依据" class="article-heading"><a href="#灯光阈值选择依据" class="headerlink" title="灯光阈值选择依据"></a>灯光阈值选择依据<a class="article-anchor" href="#灯光阈值选择依据" aria-label="本节链接" title="复制本节链接"></a></h3><p>夜间灯光数据记录了城市、城镇和乡村中相对稳定的灯光，年度夜光数据分辨率为 <code>1kmx1km</code>。作者选择亮度阈值40来界定城市化区域，基于以下考虑：</p>
+<ol>
+<li><strong>国际比较基准</strong>：Harari(2015) 对印度城市化区域的判定标准为亮度大于 35。考虑到中国的经济发展水平和能源消耗水平高于印度，我们适当提高阈值至40。</li>
+<li><strong>实证稳健性检验</strong>：使用 35 作为阈值重新计算城市形态指标后，研究结论保持一致，说明结果不依赖于特定阈值选择。</li>
+<li><strong>数据质量保证</strong>：阈值 40 能有效过滤乡村和小城镇的零星灯光，聚焦于真正的城市化区域。</li>
+</ol>
+<p>本课程中将以 40 为例展示这几个指标的 R 语言计算过程。</p>
+<h2 id="数据处理流程与-R-代码详解" class="article-heading"><a href="#数据处理流程与-R-代码详解" class="headerlink" title="数据处理流程与 R 代码详解"></a>数据处理流程与 R 代码详解<a class="article-anchor" href="#数据处理流程与-R-代码详解" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据准备与重采样" class="article-heading"><a href="#数据准备与重采样" class="headerlink" title="数据准备与重采样"></a>数据准备与重采样<a class="article-anchor" href="#数据准备与重采样" aria-label="本节链接" title="复制本节链接"></a></h3><p>夜间灯光数据使用的是平台上分享的这个：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74">https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74</a>，原始栅格数据可以从 Harvard dataverse 下载：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GIYGJU">https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GIYGJU</a></p>
+<p>这里我仅仅选择 2022～2024 年的数据演示：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>raw-data</code> 里面存放的是 2022～2024 年的夜间灯光栅格数据，不过存在各年数据范围、分辨率不一致的问题，不方便进行批量运算，因此需要先通过重采样对齐：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;raw-data&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ls</span><br><span class="line">rast<span class="punctuation">(</span>ls<span class="punctuation">[</span><span class="built_in">length</span><span class="punctuation">(</span>ls<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rsttemplate</span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;newrst&quot;</span><span class="punctuation">)</span></span><br><span class="line">lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="built_in">length</span><span class="punctuation">(</span>ls<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  print<span class="punctuation">(</span>x<span class="punctuation">)</span></span><br><span class="line">  rast<span class="punctuation">(</span>ls<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    terra<span class="operator">::</span>resample<span class="punctuation">(</span>rsttemplate<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    writeRaster<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;newrst/&quot;</span><span class="punctuation">,</span> str_extract<span class="punctuation">(</span>ls<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;\\d&#123;4&#125;&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;.tif&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 这样就可以一次性读取全部栅格数据文件了</span></span><br><span class="line">rast<span class="punctuation">(</span>fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;newrst&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line"></span><br><span class="line">rst</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; class       : SpatRaster</span></span><br><span class="line"><span class="comment">#&gt; dimensions  : 4055, 4856, 3  (nrow, ncol, nlyr)</span></span><br><span class="line"><span class="comment">#&gt; resolution  : 1000, 1000  (x, y)</span></span><br><span class="line"><span class="comment">#&gt; extent      : -2643773, 2212227, 1871897, 5926897  (xmin, xmax, ymin, ymax)</span></span><br><span class="line"><span class="comment">#&gt; coord. ref. : WGS_1984_Albers</span></span><br><span class="line"><span class="comment">#&gt; sources     : 2022.tif</span></span><br><span class="line"><span class="comment">#&gt;               2023.tif</span></span><br><span class="line"><span class="comment">#&gt;               2024.tif</span></span><br><span class="line"><span class="comment">#&gt; names       : DMSP2022, DMSP2023, DMSP2024</span></span><br><span class="line"><span class="comment">#&gt; min values  :        0,        0,        0</span></span><br><span class="line"><span class="comment">#&gt; max values  :       63,       63,       63</span></span><br></pre></td></tr></table></figure>
+
+<p>按照作者的定义：城市区域为市辖区灯光亮度大于 40 的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取县级行政区划（里面有县类型变量）</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/县.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> county</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并每个城市市辖区的部分</span></span><br><span class="line">county <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>县类型 <span class="operator">==</span> <span class="string">&quot;市辖区&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>省<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 市代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br><span class="line"></span><br><span class="line">city</span><br><span class="line"></span><br><span class="line"><span class="comment"># 夜间灯光数据</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;newrst&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rast<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line"></span><br><span class="line">rst</span><br><span class="line"><span class="comment">#&gt; class       : SpatRaster</span></span><br><span class="line"><span class="comment">#&gt; dimensions  : 4055, 4856, 3  (nrow, ncol, nlyr)</span></span><br><span class="line"><span class="comment">#&gt; resolution  : 1000, 1000  (x, y)</span></span><br><span class="line"><span class="comment">#&gt; extent      : -2643773, 2212227, 1871897, 5926897  (xmin, xmax, ymin, ymax)</span></span><br><span class="line"><span class="comment">#&gt; coord. ref. : WGS_1984_Albers</span></span><br><span class="line"><span class="comment">#&gt; sources     : 2022.tif</span></span><br><span class="line"><span class="comment">#&gt;               2023.tif</span></span><br><span class="line"><span class="comment">#&gt;               2024.tif</span></span><br><span class="line"><span class="comment">#&gt; names       : DMSP2022, DMSP2023, DMSP2024</span></span><br><span class="line"><span class="comment">#&gt; min values  :        0,        0,        0</span></span><br><span class="line"><span class="comment">#&gt; max values  :       63,       63,       63</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保持矢量数据和栅格数据坐标参考系一致：</span></span><br><span class="line">city <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>crs<span class="punctuation">(</span>rst<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br><span class="line">city</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 293 features and 4 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: GEOMETRY</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 84.57693 ymin: 3.83703 xmax: 131.9267 ymax: 50.98134</span></span><br><span class="line"><span class="comment">#&gt; Geodetic CRS:  WGS 84</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 293 × 5</span></span><br><span class="line"><span class="comment">#&gt;    省           省代码 市         市代码                                geometry</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;                          &lt;GEOMETRY [°]&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 上海市       310000 上海市     310000 MULTIPOLYGON (((121.9953 31.16712, 122…</span></span><br><span class="line"><span class="comment">#&gt;  2 云南省       530000 临沧市     530900 POLYGON ((100.3887 23.95409, 100.3872 …</span></span><br><span class="line"><span class="comment">#&gt;  3 云南省       530000 丽江市     530700 POLYGON ((100.445 27.16406, 100.4444 2…</span></span><br><span class="line"><span class="comment">#&gt;  4 云南省       530000 保山市     530500 POLYGON ((99.32547 25.51959, 99.3251 2…</span></span><br><span class="line"><span class="comment">#&gt;  5 云南省       530000 昆明市     530100 MULTIPOLYGON (((103.0588 26.53958, 103…</span></span><br><span class="line"><span class="comment">#&gt;  6 云南省       530000 昭通市     530600 POLYGON ((103.9223 27.58819, 103.9226 …</span></span><br><span class="line"><span class="comment">#&gt;  7 云南省       530000 普洱市     530800 POLYGON ((101.2431 22.79965, 101.2419 …</span></span><br><span class="line"><span class="comment">#&gt;  8 云南省       530000 曲靖市     530300 POLYGON ((104.013 25.50248, 104.0135 2…</span></span><br><span class="line"><span class="comment">#&gt;  9 云南省       530000 玉溪市     530400 POLYGON ((102.8801 24.52073, 102.8751 …</span></span><br><span class="line"><span class="comment">#&gt; 10 内蒙古自治区 150000 乌兰察布市 150900 POLYGON ((113.2284 41.17408, 113.2188 …</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 283 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以分区域计算每个城市中夜光亮度大于等于 40 的面积了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算每个栅格的面积</span></span><br><span class="line">cellSize<span class="punctuation">(</span>rst<span class="punctuation">,</span> unit <span class="operator">=</span> <span class="string">&quot;km&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> arearst</span><br><span class="line"></span><br><span class="line">arearst<span class="punctuation">[</span>rst <span class="operator">&lt;</span> <span class="number">40</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line"><span class="built_in">names</span><span class="punctuation">(</span>arearst<span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="built_in">names</span><span class="punctuation">(</span>rst<span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>arearst<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/06/14/02b79j1bdbe1b168g4/common/content/1754460949060_226821.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>可以看出在当前坐标系下各个像元的面积基本是一样的，不过我们还是直接加总每个城市区域里面的栅格面积，而不是仅仅统计数量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">terra<span class="operator">::</span>extract<span class="punctuation">(</span>arearst<span class="punctuation">,</span> vect<span class="punctuation">(</span>city<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               fun <span class="operator">=</span> <span class="string">&quot;sum&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br><span class="line"></span><br><span class="line">bind_cols<span class="punctuation">(</span>city<span class="punctuation">,</span> res<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>ID<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  gather<span class="punctuation">(</span>contains<span class="punctuation">(</span><span class="string">&quot;DMSP&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> key <span class="operator">=</span> <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> value <span class="operator">=</span> <span class="string">&quot;area&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>year <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>year<span class="punctuation">,</span> <span class="string">&quot;DMSP&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         year <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>year<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> areadf</span><br><span class="line"></span><br><span class="line">areadf</span><br><span class="line"><span class="comment">#&gt; # A tibble: 879 × 6</span></span><br><span class="line"><span class="comment">#&gt;    省           省代码 市         市代码  year   area</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 上海市       310000 上海市     310000  2022 5651.</span></span><br><span class="line"><span class="comment">#&gt;  2 云南省       530000 临沧市     530900  2022   47.0</span></span><br><span class="line"><span class="comment">#&gt;  3 云南省       530000 丽江市     530700  2022   88.0</span></span><br><span class="line"><span class="comment">#&gt;  4 云南省       530000 保山市     530500  2022   82.0</span></span><br><span class="line"><span class="comment">#&gt;  5 云南省       530000 昆明市     530100  2022 1012.</span></span><br><span class="line"><span class="comment">#&gt;  6 云南省       530000 昭通市     530600  2022  101.</span></span><br><span class="line"><span class="comment">#&gt;  7 云南省       530000 普洱市     530800  2022   69.0</span></span><br><span class="line"><span class="comment">#&gt;  8 云南省       530000 曲靖市     530300  2022  289.</span></span><br><span class="line"><span class="comment">#&gt;  9 云南省       530000 玉溪市     530400  2022  144.</span></span><br><span class="line"><span class="comment">#&gt; 10 内蒙古自治区 150000 乌兰察布市 150900  2022  150.</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 869 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="road、max、center-指标" class="article-heading"><a href="#road、max、center-指标" class="headerlink" title="road、max、center 指标"></a>road、max、center 指标<a class="article-anchor" href="#road、max、center-指标" aria-label="本节链接" title="复制本节链接"></a></h2><p>然后就可以计算各年各城市的三个指标了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算区域内栅格单元间平均直线距离的函数</span></span><br><span class="line">mean_distance <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>r<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  dist_matrix <span class="operator">&lt;-</span> terra<span class="operator">::</span>distance<span class="punctuation">(</span>as.points<span class="punctuation">(</span>r<span class="punctuation">)</span><span class="punctuation">,</span>as.points<span class="punctuation">(</span>r<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  mean<span class="punctuation">(</span>dist_matrix<span class="punctuation">[</span>lower.tri<span class="punctuation">(</span>dist_matrix<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 最大距离函数也可以顺便写好：</span></span><br><span class="line">max_distance <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>r<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  dist_matrix <span class="operator">&lt;-</span> terra<span class="operator">::</span>distance<span class="punctuation">(</span>as.points<span class="punctuation">(</span>r<span class="punctuation">)</span><span class="punctuation">,</span>as.points<span class="punctuation">(</span>r<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="built_in">max</span><span class="punctuation">(</span>dist_matrix<span class="punctuation">[</span>lower.tri<span class="punctuation">(</span>dist_matrix<span class="punctuation">)</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 城市区域</span></span><br><span class="line">rst<span class="punctuation">[</span>rst <span class="operator">&lt;</span> <span class="number">40</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line"></span><br><span class="line">rst</span><br><span class="line"><span class="comment">#&gt; class       : SpatRaster</span></span><br><span class="line"><span class="comment">#&gt; dimensions  : 4055, 4856, 3  (nrow, ncol, nlyr)</span></span><br><span class="line"><span class="comment">#&gt; resolution  : 1000, 1000  (x, y)</span></span><br><span class="line"><span class="comment">#&gt; extent      : -2643773, 2212227, 1871897, 5926897  (xmin, xmax, ymin, ymax)</span></span><br><span class="line"><span class="comment">#&gt; coord. ref. : WGS_1984_Albers</span></span><br><span class="line"><span class="comment">#&gt; source(s)   : memory</span></span><br><span class="line"><span class="comment">#&gt; names       : DMSP2022, DMSP2023, DMSP2024</span></span><br><span class="line"><span class="comment">#&gt; min values  :       40,       40,       40</span></span><br><span class="line"><span class="comment">#&gt; max values  :       63,       63,       63</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一个城市</span></span><br><span class="line">fc <span class="operator">&lt;-</span> city<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">,</span><span class="punctuation">]</span></span><br><span class="line">fc</span><br><span class="line"><span class="comment">#&gt; Simple feature collection with 1 feature and 4 fields</span></span><br><span class="line"><span class="comment">#&gt; Geometry type: MULTIPOLYGON</span></span><br><span class="line"><span class="comment">#&gt; Dimension:     XY</span></span><br><span class="line"><span class="comment">#&gt; Bounding box:  xmin: 1485102 ymin: 3373740 xmax: 1607977 ymax: 3506828</span></span><br><span class="line"><span class="comment">#&gt; Projected CRS: WGS_1984_Albers</span></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1 × 5</span></span><br><span class="line"><span class="comment">#&gt;   省     省代码 市     市代码                                           geometry</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;                                 &lt;MULTIPOLYGON [m]&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 上海市 310000 上海市 310000 (((1589979 3439151, 1590292 3440561, 1590559 3441…</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取该城市的城市区域</span></span><br><span class="line">rst <span class="operator">%&gt;%</span></span><br><span class="line">  crop<span class="punctuation">(</span>vect<span class="punctuation">(</span>fc<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mask<span class="punctuation">(</span>vect<span class="punctuation">(</span>fc<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> frst</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算该城市所有年份的这样循环即可</span></span><br><span class="line">lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span>nlyr<span class="punctuation">(</span>frst<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  mean_distance<span class="punctuation">(</span>frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres</span><br><span class="line">unlist<span class="punctuation">(</span>tempres<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [1] 41912.46 44974.35 43500.98</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># center 指标的计算示例：</span></span><br><span class="line"></span><br><span class="line">frst<span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as.polygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_union<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_cast<span class="punctuation">(</span><span class="string">&quot;POLYGON&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>area <span class="operator">=</span> st_area<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>desc<span class="punctuation">(</span>area<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_centroid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> centroids</span><br><span class="line"></span><br><span class="line">centroids</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>frst<span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>centroids<span class="punctuation">,</span> add <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> col <span class="operator">=</span> <span class="string">&quot;red&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/06/14/02b79j1bdbe1b168g4/common/content/1754461027723_581982.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>然后就可以计算所有年份、所有城市的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;res&quot;</span><span class="punctuation">)</span></span><br><span class="line">lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>city<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>y<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  fc <span class="operator">&lt;-</span> city<span class="punctuation">[</span>y<span class="punctuation">,</span><span class="punctuation">]</span></span><br><span class="line">  rst <span class="operator">%&gt;%</span></span><br><span class="line">    crop<span class="punctuation">(</span>vect<span class="punctuation">(</span>fc<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    mask<span class="punctuation">(</span>vect<span class="punctuation">(</span>fc<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> frst</span><br><span class="line"></span><br><span class="line">  lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span>nlyr<span class="punctuation">(</span>frst<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>mean<span class="punctuation">(</span>frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line"></span><br><span class="line">      frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">        as.polygons<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        st_as_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        st_union<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        st_cast<span class="punctuation">(</span><span class="string">&quot;POLYGON&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        st_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        mutate<span class="punctuation">(</span>area <span class="operator">=</span> st_area<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        arrange<span class="punctuation">(</span>desc<span class="punctuation">(</span>area<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        slice<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        st_centroid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> centroids</span><br><span class="line"></span><br><span class="line">      <span class="comment"># 所有栅格和这个点的距离</span></span><br><span class="line">      frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">%&gt;%</span></span><br><span class="line">        as.points<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        distance<span class="punctuation">(</span>vect<span class="punctuation">(</span>centroids<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> distmat</span><br><span class="line"></span><br><span class="line">      fc <span class="operator">%&gt;%</span></span><br><span class="line">        st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        mutate<span class="punctuation">(</span>mean <span class="operator">=</span> mean_distance<span class="punctuation">(</span>frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               <span class="built_in">max</span> <span class="operator">=</span> max_distance<span class="punctuation">(</span>frst<span class="punctuation">[[</span>x<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">               center <span class="operator">=</span> mean<span class="punctuation">(</span>distmat<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">/</span> <span class="number">1000</span><span class="punctuation">,</span></span><br><span class="line">               year <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>str_extract<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">(</span>frst<span class="punctuation">)</span><span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;\\d&#123;4&#125;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">        write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;res/&quot;</span><span class="punctuation">,</span> y<span class="punctuation">,</span> <span class="string">&quot;_&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres1</span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> tempres2</span><br></pre></td></tr></table></figure>
+
+<p>合并计算结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;res&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  lapply<span class="punctuation">(</span>readr<span class="operator">::</span>read_rds<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 873 × 8</span></span><br><span class="line"><span class="comment">#&gt;    省     省代码 市     市代码   mean    max center  year</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 广东省 440000 梅州市 441400 13004. 53235.   8.62  2022</span></span><br><span class="line"><span class="comment">#&gt;  2 广东省 440000 梅州市 441400  8003. 18028.   5.87  2023</span></span><br><span class="line"><span class="comment">#&gt;  3 广东省 440000 梅州市 441400 12091. 53712.   8.12  2024</span></span><br><span class="line"><span class="comment">#&gt;  4 广东省 440000 汕头市 440500 26953. 78102.  20.1   2022</span></span><br><span class="line"><span class="comment">#&gt;  5 广东省 440000 汕头市 440500 27456. 80281.  20.2   2023</span></span><br><span class="line"><span class="comment">#&gt;  6 广东省 440000 汕头市 440500 27219. 79649.  20.1   2024</span></span><br><span class="line"><span class="comment">#&gt;  7 广东省 440000 汕尾市 441500 11761. 36878.   8.43  2022</span></span><br><span class="line"><span class="comment">#&gt;  8 广东省 440000 汕尾市 441500  8933. 23431.   6.53  2023</span></span><br><span class="line"><span class="comment">#&gt;  9 广东省 440000 汕尾市 441500 10895. 35609.   7.72  2024</span></span><br><span class="line"><span class="comment">#&gt; 10 广东省 440000 江门市 440700 20917. 69721.  15.1   2022</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 863 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>再合并两部分计算结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  full_join<span class="punctuation">(</span>areadf<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>road <span class="operator">=</span> mean <span class="operator">/</span> <span class="punctuation">(</span><span class="number">1000</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span>area<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         <span class="built_in">max</span> <span class="operator">=</span> <span class="built_in">max</span> <span class="operator">/</span> <span class="punctuation">(</span><span class="number">1000</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span>area<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         center <span class="operator">=</span> center <span class="operator">/</span> <span class="punctuation">(</span><span class="built_in">sqrt</span><span class="punctuation">(</span>area<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>mean<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>省<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 市代码<span class="punctuation">,</span> year<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>省<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 市代码<span class="punctuation">,</span> year<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>年份 <span class="operator">=</span> year<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;2022～2024年各城市形态指标面板数据.dta&quot;</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/06/14/02b79j1bdbe1b168g4/common/content/1754461044543_249855.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这里需要注意 mean 和 max 本来的单位是 m，所以除以 1000，center 我计算的单位就是 km 就不用再除以 1000 了。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/641566c4bec6430fa796c07d8de3f5bf">R 语言：使用夜间灯光数据构造城市形态指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:40.093Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/90812/" title="2000～2024 年上市公司注册地址与办公地址（含经纬度及其所处的省市区县）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/81638/" title="高效合并多个 dta 文件：appendall 命令详解"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/88774/">使用 R 语言绘图展示 2020 年中国各省市地区生产总值（地图 + 柱状图）</a><span class="tf-related-meta">2022-06-28 · 约 6 分钟</span></li><li><a href="/posts/61456/">使用 R 语言绘制中国夜间灯光地图</a><span class="tf-related-meta">2021-10-24 · 约 1 分钟</span></li><li><a href="/posts/51315/">如何使用 R 语言绘制双坐标轴堆叠面积图：1992～2020 年中国 GDP 增长与产业结构变化</a><span class="tf-related-meta">2021-03-24 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%81%AF%E5%85%89%E9%98%88%E5%80%BC%E9%80%89%E6%8B%A9%E4%BE%9D%E6%8D%AE"><span class="toc-text">灯光阈值选择依据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E4%B8%8E-R-%E4%BB%A3%E7%A0%81%E8%AF%A6%E8%A7%A3"><span class="toc-text">数据处理流程与 R 代码详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87%E4%B8%8E%E9%87%8D%E9%87%87%E6%A0%B7"><span class="toc-text">数据准备与重采样</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#road%E3%80%81max%E3%80%81center-%E6%8C%87%E6%A0%87"><span class="toc-text">road、max、center 指标</span></a>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

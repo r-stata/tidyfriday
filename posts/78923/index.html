@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 绘制散点连接图 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/78923/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="昨天有个小伙伴问了这样一个问题：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 绘制散点连接图">
+<meta property="og:url" content="https://tidyfriday.cn/posts/78923/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="昨天有个小伙伴问了这样一个问题：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/78923.png">
+<meta property="article:published_time" content="2021-12-11T12:19:46.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:46.432Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/78923.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 绘制散点连接图">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 绘制散点连接图","description":"昨天有个小伙伴问了这样一个问题：","url":"https://tidyfriday.cn/posts/78923/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/78923/"},"image":["https://tidyfriday.cn/og/78923.png"],"datePublished":"2021-12-11T12:19:46.000Z","dateModified":"2026-09-26T14:18:46.432Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, Stata","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 绘制散点连接图","item":"https://tidyfriday.cn/posts/78923/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 绘制散点连接图</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 绘制散点连接图</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-12-11T12:19:46.000Z" itemprop="datePublished">2021-12-11</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1755 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>昨天有个小伙伴问了这样一个问题：</p>
+<span id="more"></span>
+
+<p>如何在 Stata 中绘制这样的图：</p>
+<table>
+<thead>
+<tr>
+<th>图1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211093906.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>这个图其实很简单，就是 散点图 + 连接图。今天我们就一起来学习下这种图的绘制。</p>
+<table>
+<thead>
+<tr>
+<th>图2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211094034.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>首先我们准备示例数据。</p>
+<p>我选择的示例数据是 2018 年到 2019 年部分城市的常住人口和人均 GDP 的变化关系，数据来源于 2019 和 2010 年中国城市统计年鉴。</p>
+<p>设定工作目录：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd &quot;~/Desktop/使用 Stata 绘制连接图&quot;</span><br></pre></td></tr></table></figure>
+
+<p>读取 2019 年统计年鉴的数据（里面实际上是 2018 年的数据）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2019地区生产总值.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">* 保留需要的变量</span></span><br><span class="line"><span class="keyword">keep</span> 城市 地区生产总值_当年价格_万元_全市 人均地区生产总值_元_全市</span><br><span class="line"><span class="comment">* 常住人口可以用 GDP 除以人均 GDP 得到</span></span><br><span class="line"><span class="keyword">gen</span> 常住人口_万人_2018 = 地区生产总值_当年价格_万元_全市 / 人均地区生产总值_元_全市</span><br><span class="line"><span class="keyword">replace</span> 地区生产总值_当年价格_万元_全市 = 地区生产总值_当年价格_万元_全市 / 10000</span><br><span class="line"><span class="keyword">ren</span> 地区生产总值_当年价格_万元_全市 地区生产总值_当年价格_亿元_全市_2018</span><br><span class="line"><span class="keyword">ren</span> 人均地区生产总值_元_全市 人均地区生产总值_元_全市_2018</span><br><span class="line"><span class="keyword">save</span> temp, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>再用同样的方法处理 2020 年统计年鉴的数据，然后和上面处理得到的 temp.dta 合并：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2020地区生产总值.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 城市 地区生产总值_当年价格_亿元_全市 人均地区生产总值_元_全市</span><br><span class="line"><span class="keyword">gen</span> 常住人口_万人_2019 = (地区生产总值_当年价格_亿元_全市 / 人均地区生产总值_元_全市) * 10000</span><br><span class="line"><span class="keyword">ren</span> 地区生产总值_当年价格_亿元_全市 地区生产总值_当年价格_亿元_全市_2019</span><br><span class="line"><span class="keyword">ren</span> 人均地区生产总值_元_全市 人均地区生产总值_元_全市_2019</span><br><span class="line"><span class="keyword">merge</span> 1:1 城市 using temp</span><br></pre></td></tr></table></figure>
+
+<p>保留不缺失的以及删除 _merge 变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">keep if !missing(地区生产总值_当年价格_亿元_全市_2019) &amp; !missing(地区生产总值_当年价格_亿元_全市_2018)</span><br><span class="line">drop _m</span><br></pre></td></tr></table></figure>
+
+<p>保留 2019 年人均地区生产总值最高的 30 个城市：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gsort -人均地区生产总值_元_全市_2019</span><br><span class="line">keep in 1/30</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以绘图了。</p>
+<p>首先我们把两个散点图层画上去：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw sc 人均地区生产总值_元_全市_2018 常住人口_万人_2018, mc(&quot;102 194 165&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019, mc(&quot;252 141 98&quot;) m(o) msize(*2)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211115501.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后再给一些散点标上文本标签（实际上还是添加了两个散点图层，只不过只有 m(i) 隐藏了散点）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw sc 人均地区生产总值_元_全市_2018 常住人口_万人_2018, mc(&quot;102 194 165&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019, mc(&quot;252 141 98&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &gt; 1000, m(i) mlab(城市) mlabpos(12) mlabcolor(gray) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &lt; 1000 &amp; 人均地区生产总值_元_全市_2019 &gt; 180000, m(i) mlab(城市) mlabpos(3) mlabcolor(gray)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图4</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211115619.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后使用 pcarrow 图层把连接线绘制上去：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw sc 人均地区生产总值_元_全市_2018 常住人口_万人_2018, mc(&quot;102 194 165&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019, mc(&quot;252 141 98&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &gt; 1000, m(i) mlab(城市) mlabpos(12) mlabcolor(gray) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &lt; 1000 &amp; 人均地区生产总值_元_全市_2019 &gt; 180000, m(i) mlab(城市) mlabpos(3) mlabcolor(gray) || ///</span><br><span class="line"> pcarrow 人均地区生产总值_元_全市_2018 常住人口_万人_2018 人均地区生产总值_元_全市_2019 常住人口_万人_2019, ///</span><br><span class="line">   color(gray)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图5</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211115654.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>这个时候图例就变得很丑了，我们再把图例设置下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw sc 人均地区生产总值_元_全市_2018 常住人口_万人_2018, mc(&quot;102 194 165&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019, mc(&quot;252 141 98&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &gt; 1000, m(i) mlab(城市) mlabpos(12) mlabcolor(gray) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &lt; 1000 &amp; 人均地区生产总值_元_全市_2019 &gt; 180000, m(i) mlab(城市) mlabpos(3) mlabcolor(gray) || ///</span><br><span class="line"> pcarrow 人均地区生产总值_元_全市_2018 常住人口_万人_2018 人均地区生产总值_元_全市_2019 常住人口_万人_2019, ///</span><br><span class="line">   color(gray) ///</span><br><span class="line">   leg(pos(2) row(2) ring(0) order(1 &quot;2018 年&quot; 2 &quot;2019 年&quot;))</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图6</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211115731.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后再修修：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw sc 人均地区生产总值_元_全市_2018 常住人口_万人_2018, mc(&quot;102 194 165&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019, mc(&quot;252 141 98&quot;) m(o) msize(*2) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &gt; 1000, m(i) mlab(城市) mlabpos(12) mlabcolor(gray) || ///</span><br><span class="line"> sc 人均地区生产总值_元_全市_2019 常住人口_万人_2019 ///</span><br><span class="line">   if 常住人口_万人_2019 &lt; 1000 &amp; 人均地区生产总值_元_全市_2019 &gt; 180000, m(i) mlab(城市) mlabpos(3) mlabcolor(gray) || ///</span><br><span class="line"> pcarrow 人均地区生产总值_元_全市_2018 常住人口_万人_2018 人均地区生产总值_元_全市_2019 常住人口_万人_2019, ///</span><br><span class="line">   color(gray) ///</span><br><span class="line">   leg(pos(2) row(2) ring(0) order(1 &quot;2018 年&quot; 2 &quot;2019 年&quot;)) ///</span><br><span class="line"> xti(&quot;常住人口(万人)&quot;) yti(&quot;人均地区生产总值(元)&quot;) ///</span><br><span class="line"> yla(100000 &quot;10万&quot; 120000 &quot;12万&quot; 140000 &quot;14万&quot; ///</span><br><span class="line">     160000 &quot;16万&quot; 180000 &quot;18万&quot; 200000 &quot;20万&quot; ///</span><br><span class="line">     210000 &quot;21万&quot;) ///</span><br><span class="line"> ti(&quot;中国部分城市人均地区生产总值与常住人口的关系&quot;) ///</span><br><span class="line"> subti(&quot;绘制：微信公众号 RStata&quot;) ///</span><br><span class="line"> caption(&quot;数据来源：中国城市统计年鉴 2019、2020&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>这样就把这幅图画好啦！</p>
+<table>
+<thead>
+<tr>
+<th>图7</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211115820.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>最后，其实上面的图还使用了自定义主题，主题安装文件也在附件里：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* 安装</span><br><span class="line">* 需要先安装 blindschemes：</span><br><span class="line">ssc install blindschemes</span><br><span class="line">* 然后再：</span><br><span class="line">net install rstata_scheme.pkg, from(&quot;/Users/ac/Desktop/使用 Stata 绘制连接图/rstata_scheme/&quot;) replace</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>&quot;/Users/ac/Desktop/使用 Stata 绘制连接图/rstata_scheme/&quot;</code> 是 <code>rstata_scheme.pkg</code> 文件在我电脑上的文件夹路径，替换成你自己电脑上的即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* 设置绘图主题</span><br><span class="line">set scheme lightrstata, perm</span><br></pre></td></tr></table></figure>
+
+<p>自然还有 darkrstata：</p>
+<table>
+<thead>
+<tr>
+<th>图8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20211211120442.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>在上面的绘图代码结尾添加 <code>sch(darkrstata)</code> 选项即可。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/52da63ab932245d1b59781ced7f4d5c3">使用 Stata 绘制散点连接图</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:46.432Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/20477/" title="旧版本｜1998年1月～2021年12月中国各省、各城市、各区县 PM2.5 浓度月度面板数据 &amp; 栅格数据（华盛顿大学圣路易斯分校）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/69623/" title="使用 Stata 绘制 2020 年中国各省市行政区划地图的数据和代码"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/31379/">如何编写一个使用 Stata 绘制地图的 SKILLS？</a><span class="tf-related-meta">2026-03-22 · 约 4 分钟</span></li><li><a href="/posts/42594/">如何从论文图表中提取数据重新使用 Stata 或者 R 语言绘图</a><span class="tf-related-meta">2025-09-09 · 约 6 分钟</span></li><li><a href="/posts/38277/">使用 Stata 绘制中国地图+台风路径（线条+箭头）</a><span class="tf-related-meta">2025-07-18 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

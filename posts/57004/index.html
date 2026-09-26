@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/57004/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="上次课程主页：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;bcb7f4d90a8445e48c18e4ed769ef071">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/57004/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="上次课程主页：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;bcb7f4d90a8445e48c18e4ed769ef071">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/57004.png">
+<meta property="article:published_time" content="2025-04-01T23:46:17.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.824Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/57004.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）","description":"上次课程主页：https://rstata.duanshu.com/#/course/bcb7f4d90a8445e48c18e4ed769ef071","url":"https://tidyfriday.cn/posts/57004/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/57004/"},"image":["https://tidyfriday.cn/og/57004.png"],"datePublished":"2025-04-01T23:46:17.000Z","dateModified":"2026-09-26T14:18:48.824Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）","item":"https://tidyfriday.cn/posts/57004/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-04-01T23:46:17.000Z" itemprop="datePublished">2025-04-01</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2110 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>上次课程主页：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/bcb7f4d90a8445e48c18e4ed769ef071">https://rstata.duanshu.com/#/course/bcb7f4d90a8445e48c18e4ed769ef071</a></p>
+<span id="more"></span>
+
+<p>继续上次课的内容，今天我们继续讲解第二部分：</p>
+<blockquote>
+<p>专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）：基于 Mata 程序的专利间前瞻、回溯相似度计算；</p>
+</blockquote>
+<p><code>tempdata7.dta</code> 是上次课的处理结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata7.dta, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743521088770_724272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="一个简单的例子" class="article-heading"><a href="#一个简单的例子" class="headerlink" title="一个简单的例子"></a>一个简单的例子<a class="article-anchor" href="#一个简单的例子" aria-label="本节链接" title="复制本节链接"></a></h2><p>在开始计算之前，我们先考虑一个简单的例子。</p>
+<p>data 数据包含 9 个变量，第一列是专利的编号，第二列是专利的申请年份，后面 7 列就是专利的 7 个属性维度，我们来计算每个专利的前瞻和回溯相似度：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">mata clear</span><br><span class="line">// 假设数据已经加载到 Mata 中</span><br><span class="line">data = (1, 2000, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7</span><br><span class="line">        2, 2001, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8</span><br><span class="line">        3, 2002, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9</span><br><span class="line">        4, 2001, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)</span><br><span class="line"></span><br><span class="line">// 提取专利编号、申请日和属性</span><br><span class="line">patent_id = data[., 1]</span><br><span class="line">application_date = data[., 2]</span><br><span class="line">attributes = data[., 3..cols(data)]</span><br><span class="line"></span><br><span class="line">// 第 3 个专利</span><br><span class="line">// 早于该专利的</span><br><span class="line">index_p = selectindex(application_date :&lt; application_date[3])</span><br><span class="line">index_p</span><br><span class="line"></span><br><span class="line">// 这些专利的属性矩阵</span><br><span class="line">M = attributes[index_p, .]</span><br><span class="line"></span><br><span class="line">M</span><br><span class="line"></span><br><span class="line">sqrt(attributes[3, .] * attributes[3, .]&#x27;)</span><br><span class="line"></span><br><span class="line">// 余弦相似度</span><br><span class="line"></span><br><span class="line">attributes[3, .] * M&#x27;</span><br><span class="line">attributes[3, .] * attributes[3, .]&#x27;</span><br><span class="line">M * M&#x27;</span><br><span class="line"></span><br><span class="line">// 提取对角线元素再开根号</span><br><span class="line">sqrt(diagonal(M * M&#x27;)&#x27;)</span><br><span class="line"></span><br><span class="line">// 计算余弦相似度</span><br><span class="line">cos = (attributes[3, .] * M&#x27;) :/ (sqrt(attributes[3, .] * attributes[3, .]&#x27;) :* sqrt(diagonal(M * M&#x27;)&#x27;))</span><br><span class="line">rowsum(cos)</span><br><span class="line"></span><br><span class="line">// 晚于该专利的</span><br><span class="line">index_l = selectindex(application_date :&gt; application_date[1])</span><br><span class="line">index_l</span><br><span class="line"></span><br><span class="line">// 这些专利的属性矩阵</span><br><span class="line">M = attributes[index_l, .]</span><br><span class="line"></span><br><span class="line">M</span><br><span class="line"></span><br><span class="line">sqrt(attributes[1, .] * attributes[1, .]&#x27;)</span><br><span class="line"></span><br><span class="line">// 余弦相似度</span><br><span class="line"></span><br><span class="line">attributes[1, .] * M&#x27;</span><br><span class="line">attributes[1, .] * attributes[1, .]&#x27;</span><br><span class="line">M * M&#x27;</span><br><span class="line"></span><br><span class="line">// 提取对角线元素再开根号</span><br><span class="line">sqrt(diagonal(M * M&#x27;)&#x27;)</span><br><span class="line"></span><br><span class="line">// 计算余弦相似度</span><br><span class="line">cos2 = (attributes[1, .] * M&#x27;) :/ (sqrt(attributes[1, .] * attributes[1, .]&#x27;) :* sqrt(diagonal(M * M&#x27;)&#x27;))</span><br><span class="line">rowsum(cos2)</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>计算原理非常简单，就是分别提取申请时间早于和晚于该专利的，使用余弦相似度公式进行计算即可。</p>
+<p>然后我们就可以循环计算简单示例中所有专利的了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">mata clear</span><br><span class="line">// 假设数据已经加载到 Mata 中</span><br><span class="line">data = (1, 2000, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7</span><br><span class="line">        2, 2001, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8</span><br><span class="line">        3, 2002, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9</span><br><span class="line">        4, 2001, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)</span><br><span class="line"></span><br><span class="line">// 提取专利编号、申请日和属性</span><br><span class="line">patent_id = data[., 1]</span><br><span class="line">application_date = data[., 2]</span><br><span class="line">attributes = data[., 3..cols(data)]</span><br><span class="line"></span><br><span class="line">// 创建文件保存结果</span><br><span class="line">stata(&quot;cap erase res1.csv&quot;)</span><br><span class="line">filename = &quot;res1.csv&quot;</span><br><span class="line">fh = fopen(filename, &quot;rw&quot;)</span><br><span class="line">for(i = 1; i &lt;= rows(data); i++) &#123;</span><br><span class="line">    index_p = selectindex(application_date :&lt; application_date[i])</span><br><span class="line">    index_l = selectindex(application_date :&gt; application_date[i])</span><br><span class="line"></span><br><span class="line">    M_p = attributes[index_p, .]</span><br><span class="line">    M_l = attributes[index_l, .]</span><br><span class="line"></span><br><span class="line">    cos_p = (attributes[i, .] * M_p&#x27;) :/ (sqrt(attributes[i, .] * attributes[i, .]&#x27;) :* sqrt(diagonal(M_p * M_p&#x27;)&#x27;))</span><br><span class="line">    cos_l = (attributes[i, .] * M_l&#x27;) :/ (sqrt(attributes[i, .] * attributes[i, .]&#x27;) :* sqrt(diagonal(M_l * M_l&#x27;)&#x27;))</span><br><span class="line">    fput(fh, invtokens(strofreal((patent_id[i], application_date[i], rowsum(cos_p), rowsum(cos_l)), &quot;%16.12g&quot;), &quot;,&quot;))</span><br><span class="line">&#125;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>处理结果如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using res1.csv, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (encoding automatically selected: UTF-8)</span></span><br><span class="line"><span class="comment">*&gt; (4 vars, 4 obs)</span></span><br><span class="line"><span class="keyword">list</span></span><br><span class="line"><span class="comment">*&gt;      +---------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      | v1     v2         v3         v4 |</span></span><br><span class="line"><span class="comment">*&gt;      |---------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. |  1   2000          0   2.969368 |</span></span><br><span class="line"><span class="comment">*&gt;   2. |  2   2001   .9965457   .9982744 |</span></span><br><span class="line"><span class="comment">*&gt;   3. |  3   2002    2.98728          0 |</span></span><br><span class="line"><span class="comment">*&gt;   4. |  4   2001   .9828722   .9990562 |</span></span><br><span class="line"><span class="comment">*&gt;      +---------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="基于真实的专利数据" class="article-heading"><a href="#基于真实的专利数据" class="headerlink" title="基于真实的专利数据"></a>基于真实的专利数据<a class="article-anchor" href="#基于真实的专利数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>然后我们就可以把这个代码应用到真实的专利数据了，首先尝试 100 条专利的计算：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata7, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">in</span> 1/100</span><br><span class="line"><span class="comment">*&gt; (586,192 observations deleted)</span></span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; newipzlid: all characters numeric; replaced as long</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using res2.csv, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br></pre></td></tr></table></figure>
+
+<p>这里仅仅演示了 100 条的计算结果，不过想要靠这段代码计算所有的是不太可能的（一个几十万 x 几十万维度的矩阵计算是非常耗时的）。所以下面我们得思考下如何提升计算效率。</p>
+<p>观察 tempdata7.dta 的数据可以发现，其实大多数专利的 7 个指标都是相同的，互不相同的并不多：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/04/01/23/02b79j1bdbe1b168g4/common/content/1743521088770_724272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata7, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 人工智能技术 - 高端芯片技术, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of 人工智能技术 元宇宙技术 区块链技术 工业互联网技术 物联网技术 量子信息技术 高端芯片技术</span></span><br><span class="line"><span class="comment">*&gt; (585,755 observations deleted)</span></span><br><span class="line"><span class="keyword">di</span> `=_N&#x27;</span><br><span class="line"><span class="comment">*&gt; 537</span></span><br></pre></td></tr></table></figure>
+
+<p>那么在计算余弦相似度的时候，我们实际上并不需要计算所有的，只需要计算互不相同的，然后再根据数量加权求和即可。下面我们再来改进下代码。</p>
+<p>为了更好的分辨哪些是相等的，我们再生成一个 group 变量，group 值相等的就是完全一样的：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata7, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 如果 group 相等，那么就是同样的属性</span></span><br><span class="line"><span class="keyword">egen</span> group = <span class="built_in">group</span>(人工智能技术 元宇宙技术 区块链技术 工业互联网技术 物联网技术 量子信息技术 高端芯片技术)</span><br><span class="line"></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">in</span> 1/100</span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">data = st_data(., .)</span><br><span class="line"><span class="comment">// 提取专利编号、申请日和属性</span></span><br><span class="line">patent_id = data[., 1]</span><br><span class="line">application_date = data[., 2]</span><br><span class="line">attributes = data[., 3..cols(data)]</span><br><span class="line"></span><br><span class="line">i = 2</span><br><span class="line">index_p = selectindex(application_date :&lt; application_date[i])</span><br><span class="line">index_l = selectindex(application_date :&gt; application_date[i])</span><br><span class="line"></span><br><span class="line">M_p = attributes[index_p, .]</span><br><span class="line">M_l = attributes[index_l, .]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 互不相同的行</span></span><br><span class="line">M_p2 = uniqrows(M_p)</span><br><span class="line">M_l2 = uniqrows(M_l)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 各行的数量（需要循环统计）</span></span><br><span class="line">freq_p = <span class="built_in">J</span>(rows(M_p2), 1, .)</span><br><span class="line"><span class="keyword">for</span> (j=1; j&lt;=rows(M_p2); j++) &#123;</span><br><span class="line">    freq_p[j] = colsum(M_p[., 8] :== M_p2[j, 8])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">freq_l = <span class="built_in">J</span>(rows(M_l2), 1, .)</span><br><span class="line"><span class="keyword">for</span> (j=1; j&lt;=rows(M_l2); j++) &#123;</span><br><span class="line">    freq_l[j] = colsum(M_l[., 8] :== M_l2[j, 8])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 去除最后一列</span></span><br><span class="line">M_p2 = M_p2[., 1..7]</span><br><span class="line">M_l2 = M_l2[., 1..7]</span><br><span class="line">attributes = attributes[., 1..7]</span><br><span class="line"></span><br><span class="line">cos_p = (attributes[i, .] * M_p2&#x27;) :/ (<span class="built_in">sqrt</span>(attributes[i, .] * attributes[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_p2 * M_p2&#x27;)&#x27;))</span><br><span class="line">cos_l = (attributes[i, .] * M_l2&#x27;) :/ (<span class="built_in">sqrt</span>(attributes[i, .] * attributes[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_l2 * M_l2&#x27;)&#x27;))</span><br><span class="line">rowsum(cos_p :* freq_p&#x27;)</span><br><span class="line">rowsum(cos_l :* freq_l&#x27;)</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里的计算结果和前面的结果是一样的。由于时间关系，我们还是只选择前 100 个运行：</p>
+<p>然后就可以循环所有的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using res2.csv, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (encoding automatically selected: UTF-8)</span></span><br><span class="line"><span class="comment">*&gt; (4 vars, 100 obs)</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      |         v1      v2         v3         v4 |</span></span><br><span class="line"><span class="comment">*&gt;      |------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. | 2010000022   18406          1   7.352787 |</span></span><br><span class="line"><span class="comment">*&gt;   2. | 2010000023   18414   4.541115   3.811672 |</span></span><br><span class="line"><span class="comment">*&gt;   3. | 2010000028   18443   24.91969          1 |</span></span><br><span class="line"><span class="comment">*&gt;   4. | 2010000029   18408    12.7567   12.94932 |</span></span><br><span class="line"><span class="comment">*&gt;   5. | 2010000030   18426   21.95129    4.02529 |</span></span><br><span class="line"><span class="comment">*&gt;      |------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. | 2010000031   18409   14.02726   11.94932 |</span></span><br><span class="line"><span class="comment">*&gt;   7. | 2010000033   18452   25.97658          0 |</span></span><br><span class="line"><span class="comment">*&gt;   8. | 2010000042   18408          2    6.08223 |</span></span><br><span class="line"><span class="comment">*&gt;   9. | 2010000043   18339          0   8.352787 |</span></span><br><span class="line"><span class="comment">*&gt;  10. | 2010000044   18438   7.811672   .5411147 |</span></span><br><span class="line"><span class="comment">*&gt;      +------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>不过如果想要运行所有的还是比较耗时的，下次课我们再讲解如何改用并行的方法。</p>
+<p>上面的所有计算都是针对之前和之后所有专利的，按照 Kelly et al.（2021）中的介绍，我们可以限制计算之前 5 年的，例如这里我们可以仅仅计算上个日历年的。这里需要注意，如果选择计算申请日前 365 天的，可以在 Mata 里面使用下面的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">... Other codes ...</span><br><span class="line">index_p = selectindex(application_date[i] :- application_date :&lt;= 365)</span><br><span class="line">... Other codes ...</span><br></pre></td></tr></table></figure>
+
+<p>如果想要计算上个日历年的，就需要在 Stata 数据里面进行调整下了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> tempdata7, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- 抽取 2% 的样本</span></span><br><span class="line"><span class="keyword">set</span> seed 1234</span><br><span class="line"><span class="keyword">sample</span> 0.02</span><br><span class="line"><span class="comment">*- 把申请日变成年份</span></span><br><span class="line"><span class="keyword">replace</span> 申请日 = <span class="built_in">yofd</span>(申请日)</span><br><span class="line"><span class="keyword">format</span> 申请日 %6.0f</span><br><span class="line"><span class="comment">*- 如果 group 相等，那么就是同样的属性</span></span><br><span class="line"><span class="keyword">egen</span> group = <span class="built_in">group</span>(人工智能技术 元宇宙技术 区块链技术 工业互联网技术 物联网技术 量子信息技术 高端芯片技术)</span><br><span class="line"></span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">data = st_data(., .)</span><br><span class="line"><span class="comment">// 提取专利编号、申请日和属性</span></span><br><span class="line">patent_id = data[., 1]</span><br><span class="line">application_date = data[., 2]</span><br><span class="line">attributes = data[., 3..cols(data)]</span><br><span class="line"></span><br><span class="line">stata(<span class="string">&quot;cap erase res3.csv&quot;</span>)</span><br><span class="line">filename = <span class="string">&quot;res3.csv&quot;</span></span><br><span class="line">fh = fopen(filename, <span class="string">&quot;rw&quot;</span>)</span><br><span class="line"><span class="keyword">for</span>(i = 1; i &lt;= rows(data); i++) &#123;</span><br><span class="line">    i</span><br><span class="line">    index_p = selectindex(application_date[i] :- application_date :&gt;= 1)</span><br><span class="line">    index_l = selectindex(application_date :- application_date[i] :&gt;= 1)</span><br><span class="line"></span><br><span class="line">    M_p = attributes[index_p, .]</span><br><span class="line">    M_l = attributes[index_l, .]</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 互不相同的行</span></span><br><span class="line">    M_p2 = uniqrows(M_p)</span><br><span class="line">    M_l2 = uniqrows(M_l)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 各行的数量（需要循环统计）</span></span><br><span class="line">    freq_p = <span class="built_in">J</span>(rows(M_p2), 1, .)</span><br><span class="line">    <span class="keyword">for</span> (j=1; j&lt;=rows(M_p2); j++) &#123;</span><br><span class="line">        freq_p[j] = colsum(M_p[., 8] :== M_p2[j, 8])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    freq_l = <span class="built_in">J</span>(rows(M_l2), 1, .)</span><br><span class="line">    <span class="keyword">for</span> (j=1; j&lt;=rows(M_l2); j++) &#123;</span><br><span class="line">        freq_l[j] = colsum(M_l[., 8] :== M_l2[j, 8])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 去除最后一列</span></span><br><span class="line">    M_p3 = M_p2[., 1..7]</span><br><span class="line">    M_l3 = M_l2[., 1..7]</span><br><span class="line">    attributes3 = attributes[., 1..7]</span><br><span class="line"></span><br><span class="line">    cos_p = (attributes3[i, .] * M_p3&#x27;) :/ (<span class="built_in">sqrt</span>(attributes3[i, .] * attributes3[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_p3 * M_p3&#x27;)&#x27;))</span><br><span class="line">    cos_l = (attributes3[i, .] * M_l3&#x27;) :/ (<span class="built_in">sqrt</span>(attributes3[i, .] * attributes3[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_l3 * M_l3&#x27;)&#x27;))</span><br><span class="line">    fput(fh, invtokens(<span class="built_in">strofreal</span>((patent_id[i], application_date[i], rowsum(cos_p :* freq_p&#x27;), rowsum(cos_l :* freq_l&#x27;)), <span class="string">&quot;%16.12g&quot;</span>), <span class="string">&quot;,&quot;</span>))</span><br><span class="line">&#125;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">import delimited using res3.csv, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就实现了基于指定窗口范围的计算。</p>
+<p>下次课程中我们再讲解如何使用并行运算提升速度。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fb64d7abf9c74710a7e6fffde4d2e136">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.824Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/39042/" title="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/94711/" title="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/99815/">名师讲堂｜使用 Stata 测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 11 分钟</span></li><li><a href="/posts/79211/">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</a><span class="tf-related-meta">2026-03-30 · 约 12 分钟</span></li><li><a href="/posts/39533/">名师讲堂｜使用 Stata 测算专利的创新突破度：CD指数（废弃）</a><span class="tf-related-meta">2026-01-21 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-text">一个简单的例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E7%9C%9F%E5%AE%9E%E7%9A%84%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE"><span class="toc-text">基于真实的专利数据</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

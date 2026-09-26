@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 测算区域技术专业化 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/45787/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Stata 测算区域技术专业化的方法。该方法参考自林原(2018)《技术流动对区域技术专业化的影响研究》，通过IPC专利分类和RTA指数来综合测度区域的技术专业化程度。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 测算区域技术专业化">
+<meta property="og:url" content="https://tidyfriday.cn/posts/45787/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Stata 测算区域技术专业化的方法。该方法参考自林原(2018)《技术流动对区域技术专业化的影响研究》，通过IPC专利分类和RTA指数来综合测度区域的技术专业化程度。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/45787.png">
+<meta property="article:published_time" content="2026-05-26T00:04:17.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.877Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/45787.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 测算区域技术专业化">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 测算区域技术专业化","description":"今天给大家分享使用 Stata 测算区域技术专业化的方法。该方法参考自林原(2018)《技术流动对区域技术专业化的影响研究》，通过IPC专利分类和RTA指数来综合测度区域的技术专业化程度。","url":"https://tidyfriday.cn/posts/45787/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/45787/"},"image":["https://tidyfriday.cn/og/45787.png"],"datePublished":"2026-05-26T00:04:17.000Z","dateModified":"2026-09-26T14:18:50.877Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, Stata","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 测算区域技术专业化","item":"https://tidyfriday.cn/posts/45787/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 测算区域技术专业化</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 测算区域技术专业化</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-26T00:04:17.000Z" itemprop="datePublished">2026-05-26</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1319 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 5 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 Stata 测算区域技术专业化的方法。该方法参考自林原(2018)《技术流动对区域技术专业化的影响研究》，通过<strong>IPC专利分类</strong>和<strong>RTA指数</strong>来综合测度区域的技术专业化程度。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>注意</strong>：Stata 拆分 IPC 的效率非常低。因此本课程采用 <strong>Stata + R 混合工作流程</strong>：Stata 负责数据处理和 CV 计算，R 负责拆分多值 IPC。</p>
+</blockquote>
+<p>附件中提供了该参考文献的 PDF 文件，感兴趣的小伙伴可以阅读原文。</p>
+<h2 id="指标来源与计算原理" class="article-heading"><a href="#指标来源与计算原理" class="headerlink" title="指标来源与计算原理"></a>指标来源与计算原理<a class="article-anchor" href="#指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="区域技术专业化（Regional-Technological-Specialization）" class="article-heading"><a href="#区域技术专业化（Regional-Technological-Specialization）" class="headerlink" title="区域技术专业化（Regional Technological Specialization）"></a>区域技术专业化（Regional Technological Specialization）<a class="article-anchor" href="#区域技术专业化（Regional-Technological-Specialization）" aria-label="本节链接" title="复制本节链接"></a></h3><p>区域技术专业化是衡量地区在特定技术领域集聚程度的重要指标。该方法的核心思想是：</p>
+<ol>
+<li>IPC专利分类：利用世界知识产权组织（WIPO）的 IPC 与技术领域对照表，将专利按 IPC 代码归类到35个技术领域</li>
+<li>RTA 指数（Revealed Technological Advantage）：计算区域在特定技术领域的相对优势</li>
+<li>CV（变异系数）：用调整后 RTA 的变异系数衡量区域技术专业化的整体程度</li>
+</ol>
+<h3 id="RTA指数" class="article-heading"><a href="#RTA指数" class="headerlink" title="RTA指数"></a>RTA指数<a class="article-anchor" href="#RTA指数" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/26/00/02b79j1bdbe1b168g4/common/content/1779724992136_228261.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="调整后RTA" class="article-heading"><a href="#调整后RTA" class="headerlink" title="调整后RTA"></a>调整后RTA<a class="article-anchor" href="#调整后RTA" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/26/00/02b79j1bdbe1b168g4/common/content/1779724991613_422723.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="CV计算" class="article-heading"><a href="#CV计算" class="headerlink" title="CV计算"></a>CV计算<a class="article-anchor" href="#CV计算" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/26/00/02b79j1bdbe1b168g4/common/content/1779724990340_113492.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="Stata-R-混合工作流程" class="article-heading"><a href="#Stata-R-混合工作流程" class="headerlink" title="Stata-R 混合工作流程"></a>Stata-R 混合工作流程<a class="article-anchor" href="#Stata-R-混合工作流程" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">┌─────────────────┐</span><br><span class="line">│  Stata Part 1   │  加载数据、去重、保存中间文件</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">     R 脚本处理       拆分多值IPC、展开数据</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│  Stata Part 2   │  汇总、计算 RTA 和 CV</span><br><span class="line">└─────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-1-Stata-加载数据并去重" class="article-heading"><a href="#Step-1-Stata-加载数据并去重" class="headerlink" title="Step 1: Stata 加载数据并去重"></a>Step 1: Stata 加载数据并去重<a class="article-anchor" href="#Step-1-Stata-加载数据并去重" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/使用 Stata 测算区域技术专业化&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;2010.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;原始数据行数: &quot;</span> _N</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按地区去重</span></span><br><span class="line"><span class="keyword">gen</span> 公开公告号_clean = 公开公告号</span><br><span class="line"><span class="keyword">replace</span> 公开公告号_clean = <span class="built_in">substr</span>(公开公告号, 1, <span class="built_in">length</span>(公开公告号) - 1) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">regexm</span>(公开公告号, <span class="string">&quot;[A-Z]$&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">sort</span> 省 市 县 公开公告号_clean</span><br><span class="line"><span class="keyword">quietly</span> <span class="keyword">by</span> 省 市 县 公开公告号_clean: <span class="keyword">keep</span> <span class="keyword">if</span> _n == 1</span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;按地区+公告号去重后: &quot;</span> _N <span class="string">&quot; 行&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">sort</span> 省 市 县 申请号</span><br><span class="line"><span class="keyword">quietly</span> <span class="keyword">by</span> 省 市 县 申请号: <span class="keyword">keep</span> <span class="keyword">if</span> _n == 1</span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;按地区+申请号去重后: &quot;</span> _N <span class="string">&quot; 行&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">sort</span> 省 市 县 newipzlid</span><br><span class="line"><span class="keyword">quietly</span> <span class="keyword">by</span> 省 市 县 newipzlid: <span class="keyword">keep</span> <span class="keyword">if</span> _n == 1</span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;按地区+专利ID去重后: &quot;</span> _N <span class="string">&quot; 行&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-2-Stata-准备中间文件" class="article-heading"><a href="#Step-2-Stata-准备中间文件" class="headerlink" title="Step 2: Stata 准备中间文件"></a>Step 2: Stata 准备中间文件<a class="article-anchor" href="#Step-2-Stata-准备中间文件" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 只保留有IPC的记录</span><br><span class="line">drop if missing(IPC) | IPC == &quot;&quot;</span><br><span class="line">display &quot;有IPC的专利数: &quot; _N</span><br><span class="line"></span><br><span class="line">*- 保留需要的字段</span><br><span class="line">keep 省 省代码 市 县 newipzlid IPC</span><br><span class="line"></span><br><span class="line">*- 保存中间文件供R处理</span><br><span class="line">save &quot;temp_for_r.dta&quot;, replace</span><br><span class="line">display &quot;已保存: temp_for_r.dta&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-3-R-拆分多值-IPC" class="article-heading"><a href="#Step-3-R-拆分多值-IPC" class="headerlink" title="Step 3: R 拆分多值 IPC"></a>Step 3: R 拆分多值 IPC<a class="article-anchor" href="#Step-3-R-拆分多值-IPC" aria-label="本节链接" title="复制本节链接"></a></h3><p>由于 Stata 拆分 IPC 效率非常低，所以这里还是使用 R 语言处理。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;=== R: 拆分多值IPC ===\n\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取Stata中间文件</span></span><br><span class="line">df <span class="operator">&lt;-</span> read_dta<span class="punctuation">(</span><span class="string">&quot;temp_for_r.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;读取数据行数: %d\n&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>df<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看IPC示例</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\nIPC字段示例:\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">head<span class="punctuation">(</span>df<span class="operator">$</span>IPC<span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> print<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># 构建IPC查找表</span></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n=== 构建IPC查找表 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">wipo <span class="operator">&lt;-</span> read_csv<span class="punctuation">(</span><span class="string">&quot;WIPO_IPC_and_Technology_Concordance_Table.csv&quot;</span><span class="punctuation">,</span></span><br><span class="line">                 locale <span class="operator">=</span> locale<span class="punctuation">(</span>encoding <span class="operator">=</span> <span class="string">&quot;UTF-8&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">pattern_to_prefix <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>pattern<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  prefix <span class="operator">&lt;-</span> str_remove<span class="punctuation">(</span>pattern<span class="punctuation">,</span> <span class="string">&quot;##&quot;</span><span class="punctuation">)</span></span><br><span class="line">  prefix <span class="operator">&lt;-</span> str_remove<span class="punctuation">(</span>prefix<span class="punctuation">,</span> <span class="string">&quot;#&quot;</span><span class="punctuation">)</span></span><br><span class="line">  prefix <span class="operator">&lt;-</span> str_remove_all<span class="punctuation">(</span>prefix<span class="punctuation">,</span> <span class="string">&quot;-&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="built_in">return</span><span class="punctuation">(</span>prefix<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">build_ipc_lookup <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>wipo_df<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  lookup <span class="operator">&lt;-</span> character<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">  exclude_patterns <span class="operator">&lt;-</span> <span class="built_in">list</span><span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> <span class="punctuation">(</span>i <span class="keyword">in</span> <span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>wipo_df<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    tech_seq <span class="operator">&lt;-</span> <span class="built_in">as.character</span><span class="punctuation">(</span>wipo_df<span class="operator">$</span>序号<span class="punctuation">[</span>i<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">    ipc_codes <span class="operator">&lt;-</span> wipo_df<span class="operator">$</span>IPC代码<span class="punctuation">[</span>i<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">    patterns <span class="operator">&lt;-</span> str_split<span class="punctuation">(</span>ipc_codes<span class="punctuation">,</span> <span class="string">&quot;,\\s*&quot;</span><span class="punctuation">)</span><span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> <span class="punctuation">(</span>p <span class="keyword">in</span> patterns<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">      p <span class="operator">&lt;-</span> trimws<span class="punctuation">(</span>p<span class="punctuation">)</span></span><br><span class="line">      p <span class="operator">&lt;-</span> str_remove_all<span class="punctuation">(</span>p<span class="punctuation">,</span> <span class="string">&quot;[()]&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> <span class="punctuation">(</span>str_detect<span class="punctuation">(</span>p<span class="punctuation">,</span> <span class="string">&quot;not&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">        parts <span class="operator">&lt;-</span> str_split<span class="punctuation">(</span>p<span class="punctuation">,</span> <span class="string">&quot;\\s+not\\s+&quot;</span><span class="punctuation">)</span><span class="punctuation">[[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">]</span></span><br><span class="line">        include_part <span class="operator">&lt;-</span> trimws<span class="punctuation">(</span>parts<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">        exclude_parts <span class="operator">&lt;-</span> trimws<span class="punctuation">(</span>parts<span class="punctuation">[</span><span class="operator">-</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">        prefix <span class="operator">&lt;-</span> pattern_to_prefix<span class="punctuation">(</span>include_part<span class="punctuation">)</span></span><br><span class="line">        <span class="keyword">if</span> <span class="punctuation">(</span>prefix <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">          lookup<span class="punctuation">[</span>prefix<span class="punctuation">]</span> <span class="operator">&lt;-</span> tech_seq</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> <span class="punctuation">(</span>ex <span class="keyword">in</span> exclude_parts<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">          ex_prefix <span class="operator">&lt;-</span> pattern_to_prefix<span class="punctuation">(</span>ex<span class="punctuation">)</span></span><br><span class="line">          <span class="keyword">if</span> <span class="punctuation">(</span>ex_prefix <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">is.null</span><span class="punctuation">(</span>exclude_patterns<span class="punctuation">[[</span>prefix<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">              exclude_patterns<span class="punctuation">[[</span>prefix<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> character<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">            exclude_patterns<span class="punctuation">[[</span>prefix<span class="punctuation">]</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span>exclude_patterns<span class="punctuation">[[</span>prefix<span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> ex_prefix<span class="punctuation">)</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">        prefix <span class="operator">&lt;-</span> pattern_to_prefix<span class="punctuation">(</span>p<span class="punctuation">)</span></span><br><span class="line">        <span class="keyword">if</span> <span class="punctuation">(</span>prefix <span class="operator">!=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">          lookup<span class="punctuation">[</span>prefix<span class="punctuation">]</span> <span class="operator">&lt;-</span> tech_seq</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">return</span><span class="punctuation">(</span><span class="built_in">list</span><span class="punctuation">(</span>lookup <span class="operator">=</span> lookup<span class="punctuation">,</span> exclude <span class="operator">=</span> exclude_patterns<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">mapping <span class="operator">&lt;-</span> build_ipc_lookup<span class="punctuation">(</span>wipo<span class="punctuation">)</span></span><br><span class="line">ipc_lookup <span class="operator">&lt;-</span> mapping<span class="operator">$</span>lookup</span><br><span class="line">exclude_map <span class="operator">&lt;-</span> mapping<span class="operator">$</span>exclude</span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;IPC前缀查找表条目数: %d\n&quot;</span><span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">(</span>ipc_lookup<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># IPC匹配函数</span></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># 批量匹配IPC</span></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># 展开数据</span></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n=== 展开多值IPC ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"><span class="comment"># 保存为dta</span></span><br><span class="line"><span class="comment"># ==============================================================================</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n=== 保存结果 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">haven<span class="operator">::</span>write_dta<span class="punctuation">(</span>df_expanded<span class="punctuation">,</span> <span class="string">&quot;temp_expanded_ipc.dta&quot;</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;IPC展开数据&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;已保存: temp_expanded_ipc.dta\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-4-Stata-按省份和技术领域汇总" class="article-heading"><a href="#Step-4-Stata-按省份和技术领域汇总" class="headerlink" title="Step 4: Stata 按省份和技术领域汇总"></a>Step 4: Stata 按省份和技术领域汇总<a class="article-anchor" href="#Step-4-Stata-按省份和技术领域汇总" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;temp_expanded_ipc.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;展开后数据行数: &quot;</span> _N</span><br><span class="line"></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">count</span>) 专利数量 = newipzlid, <span class="keyword">by</span>(省 省代码 技术领域)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ren</span> 技术领域 技术领域序号</span><br><span class="line"><span class="keyword">destring</span> 技术领域序号, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;汇总后行数: &quot;</span> _N</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;01_tech_by_region.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;已保存: 01_tech_by_region.dta&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-5-Stata-计算-RTA-指数" class="article-heading"><a href="#Step-5-Stata-计算-RTA-指数" class="headerlink" title="Step 5: Stata 计算 RTA 指数"></a>Step 5: Stata 计算 RTA 指数<a class="article-anchor" href="#Step-5-Stata-计算-RTA-指数" aria-label="本节链接" title="复制本节链接"></a></h3><p>*- 此处代码需下载讲义材料查看～</p>
+<h3 id="Step-6-Stata-计算-CV" class="article-heading"><a href="#Step-6-Stata-计算-CV" class="headerlink" title="Step 6: Stata 计算 CV"></a>Step 6: Stata 计算 CV<a class="article-anchor" href="#Step-6-Stata-计算-CV" aria-label="本节链接" title="复制本节链接"></a></h3><p>*- 此处代码需下载讲义材料查看～</p>
+<h3 id="Step-7-Stata-保存结果" class="article-heading"><a href="#Step-7-Stata-保存结果" class="headerlink" title="Step 7: Stata 保存结果"></a>Step 7: Stata 保存结果<a class="article-anchor" href="#Step-7-Stata-保存结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">export delimited using <span class="string">&quot;区域技术专业化CV_混合.csv&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;已保存: 区域技术专业化CV_混合.csv&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;04_with_rta.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line">import delimited <span class="string">&quot;WIPO_IPC_and_Technology_Concordance_Table.csv&quot;</span>, <span class="comment">///</span></span><br><span class="line">    encoding(UTF-8) <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 序号 技术领域序号</span><br><span class="line"><span class="keyword">destring</span> 技术领域序号, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">merge</span> 1:<span class="keyword">m</span> 技术领域序号 using <span class="string">&quot;04_with_rta.dta&quot;</span></span><br><span class="line"><span class="keyword">drop</span> _merge</span><br><span class="line"></span><br><span class="line">export delimited using <span class="string">&quot;技术领域按省份汇总_混合.csv&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">display</span> <span class="string">&quot;已保存: 技术领域按省份汇总_混合.csv&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="工作流程总结" class="article-heading"><a href="#工作流程总结" class="headerlink" title="工作流程总结"></a>工作流程总结<a class="article-anchor" href="#工作流程总结" aria-label="本节链接" title="复制本节链接"></a></h2><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>工具</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据加载</td>
+<td>Stata</td>
+<td>读取2010.dta</td>
+</tr>
+<tr>
+<td>按地区去重</td>
+<td>Stata</td>
+<td>三级去重（公告号、申请号、专利ID）</td>
+</tr>
+<tr>
+<td>准备中间文件</td>
+<td>Stata</td>
+<td>保存temp_for_r.dta</td>
+</tr>
+<tr>
+<td>拆分多值IPC</td>
+<td>R</td>
+<td>调用expand_ipc.R</td>
+</tr>
+<tr>
+<td>展开数据</td>
+<td>R</td>
+<td>按分号分隔、去重</td>
+</tr>
+<tr>
+<td>保存dta</td>
+<td>R</td>
+<td>temp_expanded_ipc.dta</td>
+</tr>
+<tr>
+<td>按省份汇总</td>
+<td>Stata</td>
+<td>collapse by 省 技术领域</td>
+</tr>
+<tr>
+<td>计算RTA</td>
+<td>Stata</td>
+<td>公式计算</td>
+</tr>
+<tr>
+<td>计算CV</td>
+<td>Stata</td>
+<td>变异系数</td>
+</tr>
+<tr>
+<td>保存结果</td>
+<td>Stata</td>
+<td>CSV输出</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/a8cd17e6660147d9ad0bd4f36af1a5db">名师讲堂｜使用 Stata 测算区域技术专业化</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.877Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/62613/" title="名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/98850/" title="名师讲堂｜使用 R 语言测算区域技术专业化"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/27665/">名师讲堂｜使用 Stata 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-04 · 约 8 分钟</span></li><li><a href="/posts/53302/">名师讲堂｜使用 Stata 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-07-31 · 约 9 分钟</span></li><li><a href="/posts/37945/">名师讲堂｜使用 Stata 测算各城市数字产业集聚程度</a><span class="tf-related-meta">2026-06-14 · 约 7 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%9F%9F%E6%8A%80%E6%9C%AF%E4%B8%93%E4%B8%9A%E5%8C%96%EF%BC%88Regional-Technological-Specialization%EF%BC%89"><span class="toc-text">区域技术专业化（Regional Technological Specialization）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RTA%E6%8C%87%E6%95%B0"><span class="toc-text">RTA指数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E6%95%B4%E5%90%8ERTA"><span class="toc-text">调整后RTA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CV%E8%AE%A1%E7%AE%97"><span class="toc-text">CV计算</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stata-R-%E6%B7%B7%E5%90%88%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-text">Stata-R 混合工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1-Stata-%E5%8A%A0%E8%BD%BD%E6%95%B0%E6%8D%AE%E5%B9%B6%E5%8E%BB%E9%87%8D"><span class="toc-text">Step 1: Stata 加载数据并去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2-Stata-%E5%87%86%E5%A4%87%E4%B8%AD%E9%97%B4%E6%96%87%E4%BB%B6"><span class="toc-text">Step 2: Stata 准备中间文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3-R-%E6%8B%86%E5%88%86%E5%A4%9A%E5%80%BC-IPC"><span class="toc-text">Step 3: R 拆分多值 IPC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-4-Stata-%E6%8C%89%E7%9C%81%E4%BB%BD%E5%92%8C%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E6%B1%87%E6%80%BB"><span class="toc-text">Step 4: Stata 按省份和技术领域汇总</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-5-Stata-%E8%AE%A1%E7%AE%97-RTA-%E6%8C%87%E6%95%B0"><span class="toc-text">Step 5: Stata 计算 RTA 指数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-6-Stata-%E8%AE%A1%E7%AE%97-CV"><span class="toc-text">Step 6: Stata 计算 CV</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-7-Stata-%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">Step 7: Stata 保存结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93"><span class="toc-text">工作流程总结</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

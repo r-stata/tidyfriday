@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/84187/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家介绍如何使用 Python 基于 LandScan 全球人口栅格数据，按照商玉萍（2022）论文中的方法，同时测算城市多中心结构的 5 大指标，包括中心数量、帕累托指数、多中心指数（含距离）以及去中心化指标。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/84187/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家介绍如何使用 Python 基于 LandScan 全球人口栅格数据，按照商玉萍（2022）论文中的方法，同时测算城市多中心结构的 5 大指标，包括中心数量、帕累托指数、多中心指数（含距离）以及去中心化指标。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/84187.png">
+<meta property="article:published_time" content="2026-04-23T21:41:15.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.898Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/84187.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）","description":"今天给大家介绍如何使用 Python 基于 LandScan 全球人口栅格数据，按照商玉萍（2022）论文中的方法，同时测算城市多中心结构的 5 大指标，包括中心数量、帕累托指数、多中心指数（含距离）以及去中心化指标。","url":"https://tidyfriday.cn/posts/84187/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/84187/"},"image":["https://tidyfriday.cn/og/84187.png"],"datePublished":"2026-04-23T21:41:15.000Z","dateModified":"2026-09-26T14:18:48.898Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）","item":"https://tidyfriday.cn/posts/84187/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-04-23T21:41:15.000Z" itemprop="datePublished">2026-04-23</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4913 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 18 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家介绍如何使用 <strong>Python</strong> 基于 LandScan 全球人口栅格数据，按照商玉萍（2022）论文中的方法，同时测算城市多中心结构的 <strong>5 大指标</strong>，包括中心数量、帕累托指数、多中心指数（含距离）以及去中心化指标。</p>
+<span id="more"></span>
+
+<h2 id="一、指标来源与计算原理" class="article-heading"><a href="#一、指标来源与计算原理" class="headerlink" title="一、指标来源与计算原理"></a>一、指标来源与计算原理<a class="article-anchor" href="#一、指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-1-数据来源" class="article-heading"><a href="#1-1-数据来源" class="headerlink" title="1.1 数据来源"></a>1.1 数据来源<a class="article-anchor" href="#1-1-数据来源" aria-label="本节链接" title="复制本节链接"></a></h3><p>本方法使用的人口数据为美国能源部橡树岭国家实验室提供的 <strong>LandScan 全球人口密度栅格数据</strong>，空间分辨率约为 1 km × 1 km（坐标参考系转换后约 820 m）。</p>
+<h3 id="1-2-文献来源" class="article-heading"><a href="#1-2-文献来源" class="headerlink" title="1.2 文献来源"></a>1.2 文献来源<a class="article-anchor" href="#1-2-文献来源" aria-label="本节链接" title="复制本节链接"></a></h3><p>5 大指标均来自以下论文：</p>
+<blockquote>
+<p>商玉萍. 中国城市多中心空间战略的创新绩效研究——基于集聚经济与舒适度的视角 [J]. 经济学（季刊）, 2022.</p>
+</blockquote>
+<p>该论文从集聚经济与舒适度双重视角，考察城市多中心空间战略对创新绩效的影响，所使用的多中心测量指标体系是目前文献中最为系统的之一。</p>
+<h3 id="1-3-五大指标定义" class="article-heading"><a href="#1-3-五大指标定义" class="headerlink" title="1.3 五大指标定义"></a>1.3 五大指标定义<a class="article-anchor" href="#1-3-五大指标定义" aria-label="本节链接" title="复制本节链接"></a></h3><table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>中文名</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>center</code></td>
+<td>城市中心数量</td>
+<td>识别出的有效城市中心（高密度聚集区）数量</td>
+</tr>
+<tr>
+<td><code>pareto</code></td>
+<td>帕累托指数</td>
+<td>各中心人口规模的秩-规模幂律回归系数（绝对值），越小表示多中心越均衡</td>
+</tr>
+<tr>
+<td><code>poly</code></td>
+<td>多中心指数</td>
+<td>纳入距离的人口规模标准差指数，越小表示分布越均衡</td>
+</tr>
+<tr>
+<td><code>sub3</code></td>
+<td>去中心化指标（3 km）</td>
+<td>CBD 3 千米以外的人口占城市总人口的比例</td>
+</tr>
+<tr>
+<td><code>sub5</code></td>
+<td>去中心化指标（5 km）</td>
+<td>CBD 5 千米以外的人口占城市总人口的比例</td>
+</tr>
+</tbody></table>
+<h3 id="1-4-各指标计算方法" class="article-heading"><a href="#1-4-各指标计算方法" class="headerlink" title="1.4 各指标计算方法"></a>1.4 各指标计算方法<a class="article-anchor" href="#1-4-各指标计算方法" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/23/21/02b79j1bdbe1b168g4/common/content/1776951576888_482726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-5-计算流程总览" class="article-heading"><a href="#1-5-计算流程总览" class="headerlink" title="1.5 计算流程总览"></a>1.5 计算流程总览<a class="article-anchor" href="#1-5-计算流程总览" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算分为以下步骤：</p>
+<ol>
+<li>坐标系转换：将 LandScan 栅格数据投影到等面积坐标系（Albers 投影），确保距离计算准确；</li>
+<li>裁剪与掩膜：按城市行政边界裁剪栅格，获取该城市范围内的人口格点；</li>
+<li>栅格转点：将栅格像元转为空间点数据；</li>
+<li>构建点邻接：使用 1000 m 距离阈值构建邻接关系，生成空间权重矩阵；</li>
+<li>局部 Moran’s I 检验：使用 R spdep::localmoran(conditional=TRUE) 的条件正态近似法（Sokal 1998）计算每个格点的局部莫兰指数和 p 值，识别统计显著的 HH 聚集区格点；</li>
+<li>聚类成中心：将 HH 格点按空间邻接分组，形成连续的”高密度区块”；</li>
+<li>筛选有效中心：要求每个区块格点数 ≥ 3、总人口 ≥ 100,000；</li>
+<li>计算 5 大指标：center、pareto、poly、sub3、sub5。</li>
+</ol>
+<h3 id="1-6-参数设定说明" class="article-heading"><a href="#1-6-参数设定说明" class="headerlink" title="1.6 参数设定说明"></a>1.6 参数设定说明<a class="article-anchor" href="#1-6-参数设定说明" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ANALYSIS_PARAMS = &#123;</span><br><span class="line">    &quot;sig_level&quot;: 0.05,   # 局部莫兰指数显著性阈值</span><br><span class="line">    &quot;min_cells&quot;: 3,      # 中心最小格点数（过滤噪点）</span><br><span class="line">    &quot;min_pop&quot;: 100000,   # 中心最小人口（单位：人），论文基准为 10 万</span><br><span class="line">    &quot;dist_nb&quot;: 1000      # 邻接距离阈值（米）</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for k, v in ANALYSIS_PARAMS.items():</span><br><span class="line">    print(f&quot;  &#123;k&#125;: &#123;v&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关于 <code>dist_nb = 1000</code> 的设定</strong>：LandScan 数据经 Albers 投影后分辨率约为 820 m。相邻格点（上下左右）的距离约为 820 m，对角线方向约为 820 × √2 ≈ 1159 m。将阈值设为 1000 m，可精确选取边邻接格点，不会错误地把对角线邻居算进来。</p>
+</blockquote>
+<hr>
+<h2 id="二、使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#二、使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="二、使用 reticulate 创建与管理 Python 虚拟环境"></a>二、使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#二、使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="2-1-安装-reticulate（仅首次）" class="article-heading"><a href="#2-1-安装-reticulate（仅首次）" class="headerlink" title="2.1 安装 reticulate（仅首次）"></a>2.1 安装 reticulate（仅首次）<a class="article-anchor" href="#2-1-安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装，避免每次 knit 都重装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="2.2 虚拟环境初始化原理（已在 setup chunk 中完成）"></a>2.2 虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#2-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="2-3-在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#2-3-在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="2.3 在虚拟环境中安装 Python 包（仅首次）"></a>2.3 在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#2-3-在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="string">&quot;scipy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scikit-learn&quot;</span><span class="punctuation">,</span> <span class="string">&quot;libpysal&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyreadstat&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-验证激活状态" class="article-heading"><a href="#2-4-验证激活状态" class="headerlink" title="2.4 验证激活状态"></a>2.4 验证激活状态<a class="article-anchor" href="#2-4-验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-查看已安装的包" class="article-heading"><a href="#2-5-查看已安装的包" class="headerlink" title="2.5 查看已安装的包"></a>2.5 查看已安装的包<a class="article-anchor" href="#2-5-查看已安装的包" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 列出虚拟环境中已安装的包</span></span><br><span class="line">pkgs <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 只显示我们关心的包</span></span><br><span class="line">key_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;geopandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rasterio&quot;</span><span class="punctuation">,</span> <span class="string">&quot;libpysal&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scipy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scikit-learn&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pyreadstat&quot;</span><span class="punctuation">)</span></span><br><span class="line">pkgs<span class="punctuation">[</span>pkgs<span class="operator">$</span>package <span class="operator">%in%</span> key_pkgs<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;package&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-6-虚拟环境管理常用命令" class="article-heading"><a href="#2-6-虚拟环境管理常用命令" class="headerlink" title="2.6 虚拟环境管理常用命令"></a>2.6 虚拟环境管理常用命令<a class="article-anchor" href="#2-6-虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, packages = &quot;geopandas&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、全局路径与参数配置" class="article-heading"><a href="#三、全局路径与参数配置" class="headerlink" title="三、全局路径与参数配置"></a>三、全局路径与参数配置<a class="article-anchor" href="#三、全局路径与参数配置" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="3-1-导入依赖包与参数设定" class="article-heading"><a href="#3-1-导入依赖包与参数设定" class="headerlink" title="3.1 导入依赖包与参数设定"></a>3.1 导入依赖包与参数设定<a class="article-anchor" href="#3-1-导入依赖包与参数设定" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import geopandas <span class="keyword">as</span> gpd</span><br><span class="line">import rasterio</span><br><span class="line">from rasterio.mask import mask</span><br><span class="line">from scipy.stats import norm</span><br><span class="line">from sklearn.linear_model import LinearRegression</span><br><span class="line">from libpysal.weights import DistanceBand, lag_spatial</span><br><span class="line">import os</span><br><span class="line">import re</span><br><span class="line">from pathlib import Path</span><br><span class="line"></span><br><span class="line"># 等面积投影（Albers，适合中国范围计算）</span><br><span class="line">MYCRS = <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +ellps=krass +units=m +no_defs&quot;</span></span><br><span class="line"></span><br><span class="line">PATH = &#123;</span><br><span class="line">    <span class="string">&quot;pop_tif&quot;</span>: <span class="string">&quot;pop-tif2&quot;</span>,           # 已重投影到 mycrs 的 tif 文件夹</span><br><span class="line">    <span class="string">&quot;city_shp&quot;</span>: <span class="string">&quot;2021行政区划/市.shp&quot;</span>  # 2021 年市级行政区划</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ANALYSIS_PARAMS = &#123;</span><br><span class="line">    <span class="string">&quot;sig_level&quot;</span>: 0.05,</span><br><span class="line">    <span class="string">&quot;min_cells&quot;</span>: 3,</span><br><span class="line">    <span class="string">&quot;min_pop&quot;</span>: 100000,</span><br><span class="line">    <span class="string">&quot;dist_nb&quot;</span>: 1000</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>数据预处理提示</strong>：如果你的 LandScan tif 文件还是 WGS84 坐标系，需要先转换到 <code>MYCRS</code>：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import rasterio</span><br><span class="line">from rasterio.warp import calculate_default_transform, reproject, Resampling</span><br><span class="line"></span><br><span class="line">def reproject_raster(input_path, output_path, dst_crs):</span><br><span class="line">    with rasterio.<span class="keyword">open</span>(input_path) <span class="keyword">as</span> src:</span><br><span class="line">        transform, width, height = calculate_default_transform(</span><br><span class="line">            src.crs, dst_crs, src.width, src.height, *src.bounds</span><br><span class="line">        )</span><br><span class="line">        kwargs = src.<span class="keyword">meta</span>.<span class="keyword">copy</span>()</span><br><span class="line">        kwargs.<span class="keyword">update</span>(&#123;</span><br><span class="line">            &#x27;crs&#x27;: dst_crs,</span><br><span class="line">            &#x27;transform&#x27;: transform,</span><br><span class="line">            &#x27;width&#x27;: width,</span><br><span class="line">            &#x27;height&#x27;: height</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        with rasterio.<span class="keyword">open</span>(output_path, &#x27;w&#x27;, **kwargs) <span class="keyword">as</span> dst:</span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="keyword">range</span>(1, src.<span class="keyword">count</span> + 1):</span><br><span class="line">                reproject(</span><br><span class="line">                    source=rasterio.band(src, i),</span><br><span class="line">                    destination=rasterio.band(dst, i),</span><br><span class="line">                    src_transform=src.transform,</span><br><span class="line">                    src_crs=src.crs,</span><br><span class="line">                    dst_transform=transform,</span><br><span class="line">                    dst_crs=dst_crs,</span><br><span class="line">                    resampling=Resampling.nearest</span><br><span class="line">                )</span><br></pre></td></tr></table></figure>
+</blockquote>
+<hr>
+<h2 id="四、单城市演示计算（北京市，2020-年）" class="article-heading"><a href="#四、单城市演示计算（北京市，2020-年）" class="headerlink" title="四、单城市演示计算（北京市，2020 年）"></a>四、单城市演示计算（北京市，2020 年）<a class="article-anchor" href="#四、单城市演示计算（北京市，2020-年）" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="4-1-读取城市边界与人口栅格" class="article-heading"><a href="#4-1-读取城市边界与人口栅格" class="headerlink" title="4.1 读取城市边界与人口栅格"></a>4.1 读取城市边界与人口栅格<a class="article-anchor" href="#4-1-读取城市边界与人口栅格" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 读取并转换投影坐标系</span><br><span class="line">city_all = gpd.read_file(PATH[&#x27;city_shp&#x27;])</span><br><span class="line">city_all = city_all.to_crs(MYCRS)</span><br><span class="line">city_all[&#x27;city_code&#x27;] = city_all[&#x27;市代码&#x27;]</span><br><span class="line">city_all[&#x27;city_name&#x27;] = city_all[&#x27;市&#x27;]</span><br><span class="line"></span><br><span class="line"># 筛选示例城市（北京、天津、石家庄）</span><br><span class="line">demo_cities = [110000, 120000, 130100]</span><br><span class="line">city_demo = city_all[city_all[&#x27;city_code&#x27;].isin(demo_cities)]</span><br><span class="line"></span><br><span class="line"># 筛选北京市</span><br><span class="line">city_beijing = city_demo[city_demo[&#x27;city_code&#x27;] == 110000]</span><br><span class="line">print(city_beijing)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-栅格转点函数" class="article-heading"><a href="#4-2-栅格转点函数" class="headerlink" title="4.2 栅格转点函数"></a>4.2 栅格转点函数<a class="article-anchor" href="#4-2-栅格转点函数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">def raster_to_points<span class="punctuation">(</span>raster_path<span class="punctuation">,</span> city_geom<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;读取栅格数据，按城市边界裁剪，并转换为点数据</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Notes</span></span><br><span class="line"><span class="string">    -----</span></span><br><span class="line"><span class="string">    使用 all_touched=True 保留所有与边界多边形接触的像元，</span></span><br><span class="line"><span class="string">    与 R terra::mask(touches=TRUE) 的意图一致。</span></span><br><span class="line"><span class="string">    int32 栅格的 nodata 值无法被 np.isnan() 检测，</span></span><br><span class="line"><span class="string">    需先转为 float64 再替换 nodata 为 NaN。</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># all_touched=True：保留所有与边界多边形接触的像元</span></span><br><span class="line">    <span class="comment"># 与 R terra::mask(touches=TRUE) 的意图一致</span></span><br><span class="line">    with rasterio.open<span class="punctuation">(</span>raster_path<span class="punctuation">)</span> as src<span class="operator">:</span></span><br><span class="line">        nodata_val <span class="operator">=</span> src.nodata  <span class="comment"># 通常是 -2147483648 (int32 最小值)</span></span><br><span class="line">        out_image<span class="punctuation">,</span> out_transform <span class="operator">=</span> mask<span class="punctuation">(</span>src<span class="punctuation">,</span> <span class="punctuation">[</span>city_geom<span class="punctuation">]</span><span class="punctuation">,</span> crop<span class="operator">=</span>True<span class="punctuation">,</span> all_touched<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将栅格数据转为 float64 以支持 NaN</span></span><br><span class="line">    <span class="comment"># 关键：int32 类型的栅格 nodata=-2147483648，np.isnan() 对 int 无效</span></span><br><span class="line">    data <span class="operator">=</span> out_image<span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span>.astype<span class="punctuation">(</span>np.float64<span class="punctuation">)</span></span><br><span class="line">    <span class="keyword">if</span> nodata_val is not None<span class="operator">:</span></span><br><span class="line">        data<span class="punctuation">[</span>data <span class="operator">==</span> nodata_val<span class="punctuation">]</span> <span class="operator">=</span> np.nan</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取非空像元的坐标和值（只保留非 NaN 的格点）</span></span><br><span class="line">    rows<span class="punctuation">,</span> cols <span class="operator">=</span> np.where<span class="punctuation">(</span><span class="operator">~</span>np.isnan<span class="punctuation">(</span>data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    values <span class="operator">=</span> data<span class="punctuation">[</span>rows<span class="punctuation">,</span> cols<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 转换为地理坐标</span></span><br><span class="line">    xs<span class="punctuation">,</span> ys <span class="operator">=</span> rasterio.transform.xy<span class="punctuation">(</span>out_transform<span class="punctuation">,</span> rows<span class="punctuation">,</span> cols<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建 GeoDataFrame</span></span><br><span class="line">    gdf <span class="operator">=</span> gpd.GeoDataFrame<span class="punctuation">(</span></span><br><span class="line">        <span class="punctuation">&#123;</span><span class="string">&#x27;pop&#x27;</span><span class="operator">:</span> values<span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        geometry<span class="operator">=</span>gpd.points_from_xy<span class="punctuation">(</span>xs<span class="punctuation">,</span> ys<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        crs<span class="operator">=</span>MYCRS</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 只去掉 NaN，保留 pop=0 的格点（与 R 的 drop_na(pop) 一致）</span></span><br><span class="line">    <span class="comment"># pop=0 的格点会影响 LISA 分类中的中位数计算</span></span><br><span class="line">    gdf <span class="operator">=</span> gdf.dropna<span class="punctuation">(</span>subset<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;pop&#x27;</span><span class="punctuation">]</span><span class="punctuation">)</span>.reset_index<span class="punctuation">(</span>drop<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">return</span> gdf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取 2020 年人口栅格</span></span><br><span class="line">pop_file <span class="operator">=</span> os.path.join<span class="punctuation">(</span>PATH<span class="punctuation">[</span><span class="string">&#x27;pop_tif&#x27;</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;2020.tif&quot;</span><span class="punctuation">)</span></span><br><span class="line">pts <span class="operator">=</span> raster_to_points<span class="punctuation">(</span>pop_file<span class="punctuation">,</span> city_beijing.geometry.iloc<span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>pts.head<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-构建空间权重矩阵" class="article-heading"><a href="#4-3-构建空间权重矩阵" class="headerlink" title="4.3 构建空间权重矩阵"></a>4.3 构建空间权重矩阵<a class="article-anchor" href="#4-3-构建空间权重矩阵" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_spatial_weights</span>(<span class="params">coords, threshold=<span class="number">1000</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;构建距离阈值空间权重矩阵&quot;&quot;&quot;</span></span><br><span class="line">    w = DistanceBand.from_array(coords, threshold=threshold, silence_warnings=<span class="literal">True</span>)</span><br><span class="line">    w.transform = <span class="string">&#x27;r&#x27;</span>  <span class="comment"># 行标准化</span></span><br><span class="line">    <span class="keyword">return</span> w</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取坐标并构建权重矩阵</span></span><br><span class="line">coords = np.column_stack([pts.geometry.x, pts.geometry.y])</span><br><span class="line">w = build_spatial_weights(coords, ANALYSIS_PARAMS[<span class="string">&#x27;dist_nb&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>参数说明</strong></p>
+<ul>
+<li>transform = ‘r’：行标准化权重。若一个格点有 4 个邻居，则每个邻居权重 = 1/4；有 2 个邻居则权重 = 1/2。</li>
+</ul>
+</blockquote>
+<h3 id="4-4-局部-Moran’s-I-检验" class="article-heading"><a href="#4-4-局部-Moran’s-I-检验" class="headerlink" title="4.4 局部 Moran’s I 检验"></a>4.4 局部 Moran’s I 检验<a class="article-anchor" href="#4-4-局部-Moran’s-I-检验" aria-label="本节链接" title="复制本节链接"></a></h3><p>局部 Moran’s I 的核心作用：找出人口高密度且周围也是高密度的区域（HH 聚集区），这正是城市中心的候选位置。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/23/21/02b79j1bdbe1b168g4/common/content/1776951577876_933267.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">def _local_moran_conditional_p<span class="punctuation">(</span>y<span class="punctuation">,</span> w<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">    使用 R spdep::localmoran(conditional=TRUE) 的条件正态近似法计算 LISA p 值。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    完全复现 R spdep::localmoran 源码中 conditional=TRUE 的计算逻辑：</span></span><br><span class="line"><span class="string">        Ii     = (zi / m2) * lag(zi)           其中 zi = y - mean(y), m2 = sum(z^2)/n</span></span><br><span class="line"><span class="string">        E[Ii]  = -(zi^2 * Wi) / ((n-1) * m2)   条件期望（与 unconditional 的 -Wi/(n-1) 不同）</span></span><br><span class="line"><span class="string">        Var[Ii] = (zi/m2)^2 * (n/(n-2)) * (Wi2 - Wi^2/(n-1)) * (m2 - zi^2/(n-1))</span></span><br><span class="line"><span class="string">        z_score = (Ii - E[Ii]) / sqrt(Var[Ii])</span></span><br><span class="line"><span class="string">        p_i = 2 * (1 - Φ(|z_score|))</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    y <span class="operator">=</span> np.asarray<span class="punctuation">(</span>y<span class="punctuation">,</span> dtype<span class="operator">=</span>np.float64<span class="punctuation">)</span></span><br><span class="line">    n <span class="operator">=</span> len<span class="punctuation">(</span>y<span class="punctuation">)</span></span><br><span class="line">    z <span class="operator">=</span> y <span class="operator">-</span> y.mean<span class="punctuation">(</span><span class="punctuation">)</span>  <span class="comment"># 中心化变量</span></span><br><span class="line"></span><br><span class="line">    m2 <span class="operator">=</span> np.sum<span class="punctuation">(</span>z <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">/</span> n  <span class="comment"># mlvar=TRUE 时的方差</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Ii = (z / m2) * lag(z)</span></span><br><span class="line">    z_lag <span class="operator">=</span> lag_spatial<span class="punctuation">(</span>w<span class="punctuation">,</span> z<span class="punctuation">)</span></span><br><span class="line">    Ii <span class="operator">=</span> <span class="punctuation">(</span>z <span class="operator">/</span> m2<span class="punctuation">)</span> <span class="operator">*</span> z_lag</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Wi 和 Wi2</span></span><br><span class="line">    Wi <span class="operator">=</span> np.zeros<span class="punctuation">(</span>n<span class="punctuation">)</span></span><br><span class="line">    Wi2 <span class="operator">=</span> np.zeros<span class="punctuation">(</span>n<span class="punctuation">)</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span><span class="punctuation">(</span>n<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">        <span class="keyword">if</span> len<span class="punctuation">(</span>w.neighbors<span class="punctuation">[</span>i<span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="operator">:</span></span><br><span class="line">            weights_i <span class="operator">=</span> np.array<span class="punctuation">(</span>w.weights<span class="punctuation">[</span>i<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">            Wi<span class="punctuation">[</span>i<span class="punctuation">]</span> <span class="operator">=</span> np.sum<span class="punctuation">(</span>weights_i<span class="punctuation">)</span></span><br><span class="line">            Wi2<span class="punctuation">[</span>i<span class="punctuation">]</span> <span class="operator">=</span> np.sum<span class="punctuation">(</span>weights_i <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 条件期望：E[Ii] = -(z_i^2 * Wi) / ((n-1) * m2)</span></span><br><span class="line">    E_Ii <span class="operator">=</span> <span class="operator">-</span><span class="punctuation">(</span>z <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span> <span class="operator">*</span> Wi<span class="punctuation">)</span> <span class="operator">/</span> <span class="punctuation">(</span><span class="punctuation">(</span>n <span class="operator">-</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">*</span> m2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 条件方差（Sokal 1998）</span></span><br><span class="line">    zi_over_m2 <span class="operator">=</span> z <span class="operator">/</span> m2</span><br><span class="line">    var_Ii <span class="operator">=</span> <span class="punctuation">(</span>zi_over_m2 <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="punctuation">(</span>n <span class="operator">/</span> <span class="punctuation">(</span>n <span class="operator">-</span> <span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="punctuation">(</span>Wi2 <span class="operator">-</span> Wi <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span> <span class="operator">/</span> <span class="punctuation">(</span>n <span class="operator">-</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="punctuation">(</span>m2 <span class="operator">-</span> z <span class="operator">*</span><span class="operator">*</span> <span class="number">2</span> <span class="operator">/</span> <span class="punctuation">(</span>n <span class="operator">-</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    var_Ii <span class="operator">=</span> np.maximum<span class="punctuation">(</span>var_Ii<span class="punctuation">,</span> <span class="number">0.0</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># z 得分与双侧 p 值</span></span><br><span class="line">    z_score <span class="operator">=</span> np.where<span class="punctuation">(</span>var_Ii <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">,</span> <span class="punctuation">(</span>Ii <span class="operator">-</span> E_Ii<span class="punctuation">)</span> <span class="operator">/</span> np.sqrt<span class="punctuation">(</span>var_Ii<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0.0</span><span class="punctuation">)</span></span><br><span class="line">    p_val <span class="operator">=</span> <span class="number">2.0</span> <span class="operator">*</span> norm.sf<span class="punctuation">(</span>np.abs<span class="punctuation">(</span>z_score<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">return</span> p_val<span class="punctuation">,</span> Ii</span><br><span class="line"></span><br><span class="line">def local_moran_lisa<span class="punctuation">(</span>pop_values<span class="punctuation">,</span> w<span class="punctuation">,</span> sig_level<span class="operator">=</span><span class="number">0.05</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;计算局部 Moran&#x27;s I 并进行 LISA 分类（条件正态近似法）&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 使用条件正态近似法计算 LISA p 值</span></span><br><span class="line">    p_values<span class="punctuation">,</span> Ii <span class="operator">=</span> _local_moran_conditional_p<span class="punctuation">(</span>pop_values<span class="punctuation">,</span> w<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 计算空间滞后（邻居加权平均）</span></span><br><span class="line">    lag_val <span class="operator">=</span> lag_spatial<span class="punctuation">(</span>w<span class="punctuation">,</span> pop_values<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 分类</span></span><br><span class="line">    med <span class="operator">=</span> np.median<span class="punctuation">(</span>pop_values<span class="punctuation">)</span></span><br><span class="line">    self_hl <span class="operator">=</span> np.where<span class="punctuation">(</span>pop_values <span class="operator">&gt;</span> med<span class="punctuation">,</span> <span class="string">&#x27;H&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;L&#x27;</span><span class="punctuation">)</span></span><br><span class="line">    nbr_hl <span class="operator">=</span> np.where<span class="punctuation">(</span>lag_val <span class="operator">&gt;</span> med<span class="punctuation">,</span> <span class="string">&#x27;H&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;L&#x27;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># HH 类型：自身高 + 邻居高 + 显著</span></span><br><span class="line">    sig <span class="operator">=</span> p_values <span class="operator">&lt;</span> sig_level</span><br><span class="line">    types <span class="operator">=</span> np.where<span class="punctuation">(</span><span class="punctuation">(</span>sig<span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="punctuation">(</span>self_hl <span class="operator">==</span> <span class="string">&#x27;H&#x27;</span><span class="punctuation">)</span> <span class="operator">&amp;</span> <span class="punctuation">(</span>nbr_hl <span class="operator">==</span> <span class="string">&#x27;H&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&#x27;HH&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;other&#x27;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">return</span> p_values<span class="punctuation">,</span> lag_val<span class="punctuation">,</span> types</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算局部莫兰指数</span></span><br><span class="line">p_values<span class="punctuation">,</span> lag_val<span class="punctuation">,</span> types <span class="operator">=</span> local_moran_lisa<span class="punctuation">(</span>pts<span class="punctuation">[</span><span class="string">&#x27;pop&#x27;</span><span class="punctuation">]</span>.values<span class="punctuation">,</span> w<span class="punctuation">)</span></span><br><span class="line">pts<span class="punctuation">[</span><span class="string">&#x27;p_val&#x27;</span><span class="punctuation">]</span> <span class="operator">=</span> p_values</span><br><span class="line">pts<span class="punctuation">[</span><span class="string">&#x27;sig&#x27;</span><span class="punctuation">]</span> <span class="operator">=</span> p_values <span class="operator">&lt;</span> ANALYSIS_PARAMS<span class="punctuation">[</span><span class="string">&#x27;sig_level&#x27;</span><span class="punctuation">]</span></span><br><span class="line">pts<span class="punctuation">[</span><span class="string">&#x27;type&#x27;</span><span class="punctuation">]</span> <span class="operator">=</span> types</span><br></pre></td></tr></table></figure>
+
+<p>局部莫兰指数结果包含：</p>
+<table>
+<thead>
+<tr>
+<th>列名</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Ii</code></td>
+<td>局部莫兰指数值</td>
+</tr>
+<tr>
+<td><code>p_val</code></td>
+<td>条件正态近似双侧 p 值</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>LISA 类型（HH 或 other）</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-提取-HH-格点并聚类成中心" class="article-heading"><a href="#4-5-提取-HH-格点并聚类成中心" class="headerlink" title="4.5 提取 HH 格点并聚类成中心"></a>4.5 提取 HH 格点并聚类成中心<a class="article-anchor" href="#4-5-提取-HH-格点并聚类成中心" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 筛选 HH 格点</span></span><br><span class="line">hh = pts[pts[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;HH&#x27;</span>].copy()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;HH 格点数量: <span class="subst">&#123;<span class="built_in">len</span>(hh)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对 HH 格点再次做空间邻接，将连续区域标为同一 cluster</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cluster_centers</span>(<span class="params">hh_gdf, dist_nb=<span class="number">1000</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;对 HH 格点进行空间聚类，识别城市中心&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(hh_gdf) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">    coords = np.column_stack([hh_gdf.geometry.x, hh_gdf.geometry.y])</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 构建邻接关系</span></span><br><span class="line">    w_hh = DistanceBand.from_array(coords, threshold=dist_nb, silence_warnings=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取连通分量（聚类）</span></span><br><span class="line">    components = w_hh.component_labels</span><br><span class="line">    hh_gdf = hh_gdf.copy()</span><br><span class="line">    hh_gdf[<span class="string">&#x27;cluster&#x27;</span>] = components</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 按 cluster 汇总</span></span><br><span class="line">    centers = hh_gdf.groupby(<span class="string">&#x27;cluster&#x27;</span>).agg(&#123;</span><br><span class="line">        <span class="string">&#x27;pop&#x27;</span>: <span class="string">&#x27;sum&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;geometry&#x27;</span>: <span class="keyword">lambda</span> x: (np.mean(x.x), np.mean(x.y))</span><br><span class="line">    &#125;).reset_index()</span><br><span class="line"></span><br><span class="line">    centers[<span class="string">&#x27;n&#x27;</span>] = hh_gdf.groupby(<span class="string">&#x27;cluster&#x27;</span>).size().values</span><br><span class="line">    centers[<span class="string">&#x27;x&#x27;</span>] = centers[<span class="string">&#x27;geometry&#x27;</span>].apply(<span class="keyword">lambda</span> p: p[<span class="number">0</span>])</span><br><span class="line">    centers[<span class="string">&#x27;y&#x27;</span>] = centers[<span class="string">&#x27;geometry&#x27;</span>].apply(<span class="keyword">lambda</span> p: p[<span class="number">1</span>])</span><br><span class="line">    centers = centers.drop(<span class="string">&#x27;geometry&#x27;</span>, axis=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> centers</span><br><span class="line"></span><br><span class="line">centers = cluster_centers(hh, ANALYSIS_PARAMS[<span class="string">&#x27;dist_nb&#x27;</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 筛选有效中心（人口≥10万，格点数≥3）</span></span><br><span class="line">centers = centers[(centers[<span class="string">&#x27;n&#x27;</span>] &gt;= ANALYSIS_PARAMS[<span class="string">&#x27;min_cells&#x27;</span>]) &amp;</span><br><span class="line">                  (centers[<span class="string">&#x27;pop&#x27;</span>] &gt;= ANALYSIS_PARAMS[<span class="string">&#x27;min_pop&#x27;</span>])]</span><br><span class="line"><span class="built_in">print</span>(centers)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-6-计算-5-大指标" class="article-heading"><a href="#4-6-计算-5-大指标" class="headerlink" title="4.6 计算 5 大指标"></a>4.6 计算 5 大指标<a class="article-anchor" href="#4-6-计算-5-大指标" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<hr>
+<h2 id="五、批量串行计算（全国所有城市-×-所有年份）" class="article-heading"><a href="#五、批量串行计算（全国所有城市-×-所有年份）" class="headerlink" title="五、批量串行计算（全国所有城市 × 所有年份）"></a>五、批量串行计算（全国所有城市 × 所有年份）<a class="article-anchor" href="#五、批量串行计算（全国所有城市-×-所有年份）" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="5-1-封装核心计算函数" class="article-heading"><a href="#5-1-封装核心计算函数" class="headerlink" title="5.1 封装核心计算函数"></a>5.1 封装核心计算函数<a class="article-anchor" href="#5-1-封装核心计算函数" aria-label="本节链接" title="复制本节链接"></a></h3><p>将以上步骤封装为函数，接收城市代码和人口 tif 文件路径，返回该城市该年份的 5 大指标：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">calc_paper_indicators</span>(<span class="params">city_code, pop_file, city_all, lw=<span class="literal">None</span>, params=<span class="literal">None</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;计算单个城市单年份的 5 大指标&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> params <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        params = ANALYSIS_PARAMS</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 获取当前城市</span></span><br><span class="line">        city = city_all[city_all[<span class="string">&#x27;city_code&#x27;</span>] == city_code]</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(city) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        city_geom = city.geometry.iloc[<span class="number">0</span>]</span><br><span class="line">        city_name = city[<span class="string">&#x27;city_name&#x27;</span>].iloc[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 栅格转点</span></span><br><span class="line">        pts = raster_to_points(pop_file, city_geom)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(pts) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 构建空间权重矩阵（如果未提供）</span></span><br><span class="line">        coords = np.column_stack([pts.geometry.x, pts.geometry.y])</span><br><span class="line">        <span class="keyword">if</span> lw <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            w = build_spatial_weights(coords, params[<span class="string">&#x27;dist_nb&#x27;</span>])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            w = lw</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 局部 Moran&#x27;s I 和 LISA 分类（条件正态近似法）</span></span><br><span class="line">        p_values, lag_val, types = local_moran_lisa(pts[<span class="string">&#x27;pop&#x27;</span>].values, w, params[<span class="string">&#x27;sig_level&#x27;</span>])</span><br><span class="line">        pts[<span class="string">&#x27;type&#x27;</span>] = types</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 筛选 HH 格点</span></span><br><span class="line">        hh = pts[pts[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;HH&#x27;</span>].copy()</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(hh) &lt; params[<span class="string">&#x27;min_cells&#x27;</span>]:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 聚类识别中心</span></span><br><span class="line">        centers = cluster_centers(hh, params[<span class="string">&#x27;dist_nb&#x27;</span>])</span><br><span class="line">        centers = centers[(centers[<span class="string">&#x27;n&#x27;</span>] &gt;= params[<span class="string">&#x27;min_cells&#x27;</span>]) &amp;</span><br><span class="line">                          (centers[<span class="string">&#x27;pop&#x27;</span>] &gt;= params[<span class="string">&#x27;min_pop&#x27;</span>])]</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(centers) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 计算指标</span></span><br><span class="line">        center_n = <span class="built_in">len</span>(centers)</span><br><span class="line">        pareto = calc_pareto_index(centers)</span><br><span class="line">        poly = calc_polycentric_index(centers)</span><br><span class="line"></span><br><span class="line">        cbd_idx = pts[<span class="string">&#x27;pop&#x27;</span>].idxmax()</span><br><span class="line">        cbd_geom = pts.loc[cbd_idx, <span class="string">&#x27;geometry&#x27;</span>]</span><br><span class="line">        sub_results = calc_decentralization(pts, cbd_geom)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 提取年份</span></span><br><span class="line">        year_match = re.search(<span class="string">r&#x27;(\d&#123;4&#125;)&#x27;</span>, os.path.basename(pop_file))</span><br><span class="line">        year = <span class="built_in">int</span>(year_match.group(<span class="number">1</span>)) <span class="keyword">if</span> year_match <span class="keyword">else</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> pd.DataFrame(&#123;</span><br><span class="line">            <span class="string">&#x27;year&#x27;</span>: [year],</span><br><span class="line">            <span class="string">&#x27;city_code&#x27;</span>: [city_code],</span><br><span class="line">            <span class="string">&#x27;city_name&#x27;</span>: [city_name],</span><br><span class="line">            <span class="string">&#x27;center&#x27;</span>: [center_n],</span><br><span class="line">            <span class="string">&#x27;pareto&#x27;</span>: [<span class="built_in">round</span>(pareto, <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;poly&#x27;</span>: [<span class="built_in">round</span>(poly, <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;sub3&#x27;</span>: [<span class="built_in">round</span>(sub_results[<span class="string">&#x27;sub3&#x27;</span>], <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;sub5&#x27;</span>: [<span class="built_in">round</span>(sub_results[<span class="string">&#x27;sub5&#x27;</span>], <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;total_pop&#x27;</span>: [pts[<span class="string">&#x27;pop&#x27;</span>].<span class="built_in">sum</span>()]</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;计算失败: <span class="subst">&#123;city_code&#125;</span>, <span class="subst">&#123;pop_file&#125;</span>, 错误: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试函数</span></span><br><span class="line">result = calc_paper_indicators(<span class="number">110000</span>, pop_file, city_demo)</span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-加载全部城市与年份文件" class="article-heading"><a href="#5-2-加载全部城市与年份文件" class="headerlink" title="5.2 加载全部城市与年份文件"></a>5.2 加载全部城市与年份文件<a class="article-anchor" href="#5-2-加载全部城市与年份文件" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 加载城市数据</span><br><span class="line">city_all = gpd.read_file(PATH[&#x27;city_shp&#x27;])</span><br><span class="line">city_all = city_all.to_crs(MYCRS)</span><br><span class="line">city_all[&#x27;city_code&#x27;] = city_all[&#x27;市代码&#x27;]</span><br><span class="line">city_all[&#x27;city_name&#x27;] = city_all[&#x27;市&#x27;]</span><br><span class="line"></span><br><span class="line"># 索引所有年份 tif 文件</span><br><span class="line">pop_files = sorted(Path(PATH[&#x27;pop_tif&#x27;]).glob(&quot;*.tif&quot;))</span><br><span class="line">print(f&quot;找到 &#123;len(pop_files)&#125; 个年份文件&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-串行计算所有城市" class="article-heading"><a href="#5-3-串行计算所有城市" class="headerlink" title="5.3 串行计算所有城市"></a>5.3 串行计算所有城市<a class="article-anchor" href="#5-3-串行计算所有城市" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<hr>
+<h2 id="六、改进算法：预计算空间权重矩阵" class="article-heading"><a href="#六、改进算法：预计算空间权重矩阵" class="headerlink" title="六、改进算法：预计算空间权重矩阵"></a>六、改进算法：预计算空间权重矩阵<a class="article-anchor" href="#六、改进算法：预计算空间权重矩阵" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="6-1-为什么可以改进？" class="article-heading"><a href="#6-1-为什么可以改进？" class="headerlink" title="6.1 为什么可以改进？"></a>6.1 为什么可以改进？<a class="article-anchor" href="#6-1-为什么可以改进？" aria-label="本节链接" title="复制本节链接"></a></h3><p>在上面的批量计算中，对同一个城市，<strong>每个年份都重新计算了一次空间权重矩阵</strong>。但实际上，空间权重矩阵只取决于城市边界的形状——它与年份无关，只要城市行政边界不变（本项目使用 2021 年固定边界），同一城市所有年份的权重矩阵完全相同。</p>
+<p>因此，可以<strong>先把所有城市的权重矩阵计算并保存好</strong>，然后在计算各年数据时直接读取，显著减少重复计算。</p>
+<p>对于一个有 N 个城市、T 个年份的数据集：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>权重矩阵计算次数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原始方法</td>
+<td>N×T</td>
+</tr>
+<tr>
+<td>改进方法</td>
+<td>N（预计算一次）</td>
+</tr>
+</tbody></table>
+<p>当 T=25（2000～2024 年）时，改进方法可将权重矩阵的计算量缩减为原来的 <strong>1/25</strong>。</p>
+<h3 id="6-2-预计算并保存所有城市的权重矩阵" class="article-heading"><a href="#6-2-预计算并保存所有城市的权重矩阵" class="headerlink" title="6.2 预计算并保存所有城市的权重矩阵"></a>6.2 预计算并保存所有城市的权重矩阵<a class="article-anchor" href="#6-2-预计算并保存所有城市的权重矩阵" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import pickle</span><br><span class="line"></span><br><span class="line">def compute_lw(city_code, city_all, sample_pop_file, output_dir=<span class="string">&quot;lwres&quot;</span>):</span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;预计算单个城市的空间权重矩阵&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    try:</span><br><span class="line">        city = city_all[city_all[&#x27;city_code&#x27;] == city_code]</span><br><span class="line">        <span class="keyword">if</span> len(city) == 0:</span><br><span class="line">            <span class="keyword">return</span> None</span><br><span class="line"></span><br><span class="line">        city_geom = city.geometry.iloc[0]</span><br><span class="line"></span><br><span class="line">        # 使用样本人口文件确定格点位置</span><br><span class="line">        pts = raster_to_points(sample_pop_file, city_geom)</span><br><span class="line">        <span class="keyword">if</span> len(pts) == 0:</span><br><span class="line">            <span class="keyword">return</span> None</span><br><span class="line"></span><br><span class="line">        coords = np.column_stack([pts.geometry.x, pts.geometry.y])</span><br><span class="line">        w = build_spatial_weights(coords, ANALYSIS_PARAMS[&#x27;dist_nb&#x27;])</span><br><span class="line"></span><br><span class="line">        # 保存权重矩阵</span><br><span class="line">        os.makedirs(output_dir, exist_ok=True)</span><br><span class="line">        output_path = os.path.join(output_dir, f<span class="string">&quot;&#123;city_code&#125;.pkl&quot;</span>)</span><br><span class="line"></span><br><span class="line">        with <span class="keyword">open</span>(output_path, &#x27;wb&#x27;) <span class="keyword">as</span> f:</span><br><span class="line">            pickle.dump(w, f)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> w</span><br><span class="line">    except Exception <span class="keyword">as</span> <span class="keyword">e</span>:</span><br><span class="line">        <span class="keyword">print</span>(f<span class="string">&quot;权重矩阵计算失败: &#123;city_code&#125;, 错误: &#123;e&#125;&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> None</span><br><span class="line"></span><br><span class="line"># 串行计算所有城市的权重矩阵</span><br><span class="line"># （joblib.Parallel 在 reticulate 环境下无法序列化 __main__ 中定义的函数，</span><br><span class="line">#   因此 Rmd 中使用串行循环；如需并行请使用独立的 batch_calculate.py 脚本）</span><br><span class="line">sample_pop_file = os.path.join(PATH[&#x27;pop_tif&#x27;], <span class="string">&quot;2020.tif&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> code <span class="keyword">in</span> city_demo[&#x27;city_code&#x27;].unique():</span><br><span class="line">    compute_lw(code, city_demo, sample_pop_file)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;======== 所有城市权重矩阵计算完成，保存在 lwres/ ========&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-使用预计算权重矩阵的改进版计算函数" class="article-heading"><a href="#6-3-使用预计算权重矩阵的改进版计算函数" class="headerlink" title="6.3 使用预计算权重矩阵的改进版计算函数"></a>6.3 使用预计算权重矩阵的改进版计算函数<a class="article-anchor" href="#6-3-使用预计算权重矩阵的改进版计算函数" aria-label="本节链接" title="复制本节链接"></a></h3><p>改进版函数从外部接收 <code>lw</code> 参数，不在函数内部重新计算权重矩阵：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_lw</span>(<span class="params">city_code, lw_dir=<span class="string">&quot;lwres&quot;</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;加载预计算的空间权重矩阵&quot;&quot;&quot;</span></span><br><span class="line">    lw_path = os.path.join(lw_dir, <span class="string">f&quot;<span class="subst">&#123;city_code&#125;</span>.pkl&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> os.path.exists(lw_path):</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(lw_path, <span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            <span class="keyword">return</span> pickle.load(f)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">calc_paper_indicators2</span>(<span class="params">current_city, pop_file, lw, params=<span class="literal">None</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;改进版计算函数（接受外部 lw）&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> params <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        params = ANALYSIS_PARAMS</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        city_geom = current_city.geometry.iloc[<span class="number">0</span>]</span><br><span class="line">        city_code = current_city[<span class="string">&#x27;city_code&#x27;</span>].iloc[<span class="number">0</span>]</span><br><span class="line">        city_name = current_city[<span class="string">&#x27;city_name&#x27;</span>].iloc[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 栅格转点</span></span><br><span class="line">        pts = raster_to_points(pop_file, city_geom)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(pts) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 直接使用传入的 lw（条件正态近似法）</span></span><br><span class="line">        p_values, lag_val, types = local_moran_lisa(pts[<span class="string">&#x27;pop&#x27;</span>].values, lw, params[<span class="string">&#x27;sig_level&#x27;</span>])</span><br><span class="line">        pts[<span class="string">&#x27;type&#x27;</span>] = types</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 筛选 HH 格点</span></span><br><span class="line">        hh = pts[pts[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;HH&#x27;</span>].copy()</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(hh) &lt; params[<span class="string">&#x27;min_cells&#x27;</span>]:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 聚类识别中心</span></span><br><span class="line">        centers = cluster_centers(hh, params[<span class="string">&#x27;dist_nb&#x27;</span>])</span><br><span class="line">        centers = centers[(centers[<span class="string">&#x27;n&#x27;</span>] &gt;= params[<span class="string">&#x27;min_cells&#x27;</span>]) &amp;</span><br><span class="line">                          (centers[<span class="string">&#x27;pop&#x27;</span>] &gt;= params[<span class="string">&#x27;min_pop&#x27;</span>])]</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(centers) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 计算指标</span></span><br><span class="line">        center_n = <span class="built_in">len</span>(centers)</span><br><span class="line">        pareto = calc_pareto_index(centers)</span><br><span class="line">        poly = calc_polycentric_index(centers)</span><br><span class="line"></span><br><span class="line">        cbd_idx = pts[<span class="string">&#x27;pop&#x27;</span>].idxmax()</span><br><span class="line">        cbd_geom = pts.loc[cbd_idx, <span class="string">&#x27;geometry&#x27;</span>]</span><br><span class="line">        sub_results = calc_decentralization(pts, cbd_geom)</span><br><span class="line"></span><br><span class="line">        year_match = re.search(<span class="string">r&#x27;(\d&#123;4&#125;)&#x27;</span>, os.path.basename(pop_file))</span><br><span class="line">        year = <span class="built_in">int</span>(year_match.group(<span class="number">1</span>)) <span class="keyword">if</span> year_match <span class="keyword">else</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> pd.DataFrame(&#123;</span><br><span class="line">            <span class="string">&#x27;year&#x27;</span>: [year],</span><br><span class="line">            <span class="string">&#x27;city_code&#x27;</span>: [city_code],</span><br><span class="line">            <span class="string">&#x27;city_name&#x27;</span>: [city_name],</span><br><span class="line">            <span class="string">&#x27;center&#x27;</span>: [center_n],</span><br><span class="line">            <span class="string">&#x27;pareto&#x27;</span>: [<span class="built_in">round</span>(pareto, <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;poly&#x27;</span>: [<span class="built_in">round</span>(poly, <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;sub3&#x27;</span>: [<span class="built_in">round</span>(sub_results[<span class="string">&#x27;sub3&#x27;</span>], <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;sub5&#x27;</span>: [<span class="built_in">round</span>(sub_results[<span class="string">&#x27;sub5&#x27;</span>], <span class="number">4</span>)],</span><br><span class="line">            <span class="string">&#x27;total_pop&#x27;</span>: [pts[<span class="string">&#x27;pop&#x27;</span>].<span class="built_in">sum</span>()]</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">return</span> pd.DataFrame()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试改进版函数</span></span><br><span class="line">city_demo_single = city_demo[city_demo[<span class="string">&#x27;city_code&#x27;</span>] == <span class="number">110000</span>]</span><br><span class="line">lw_demo = load_lw(<span class="number">110000</span>)</span><br><span class="line">result = calc_paper_indicators2(city_demo_single, pop_file, lw=lw_demo)</span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-使用改进算法批量计算全部数据" class="article-heading"><a href="#6-4-使用改进算法批量计算全部数据" class="headerlink" title="6.4 使用改进算法批量计算全部数据"></a>6.4 使用改进算法批量计算全部数据<a class="article-anchor" href="#6-4-使用改进算法批量计算全部数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<h3 id="6-5-合并所有结果并保存" class="article-heading"><a href="#6-5-合并所有结果并保存" class="headerlink" title="6.5 合并所有结果并保存"></a>6.5 合并所有结果并保存<a class="article-anchor" href="#6-5-合并所有结果并保存" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">def merge_results<span class="punctuation">(</span>input_dir<span class="operator">=</span><span class="string">&quot;resb&quot;</span><span class="punctuation">,</span> output_file<span class="operator">=</span><span class="string">&quot;results.dta&quot;</span><span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;合并所有结果文件&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    all_files <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>Path<span class="punctuation">(</span>input_dir<span class="punctuation">)</span>.glob<span class="punctuation">(</span><span class="string">&quot;*.csv&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> len<span class="punctuation">(</span>all_files<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">0</span><span class="operator">:</span></span><br><span class="line">        print<span class="punctuation">(</span><span class="string">&quot;未找到结果文件&quot;</span><span class="punctuation">)</span></span><br><span class="line">        <span class="built_in">return</span> pd.DataFrame<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    dfs <span class="operator">=</span> <span class="punctuation">[</span>pd.read_csv<span class="punctuation">(</span>f<span class="punctuation">)</span> <span class="keyword">for</span> f <span class="keyword">in</span> all_files<span class="punctuation">]</span></span><br><span class="line">    result <span class="operator">=</span> pd.concat<span class="punctuation">(</span>dfs<span class="punctuation">,</span> ignore_index<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 保存为 dta 格式（需要 pyreadstat）</span></span><br><span class="line">    try<span class="operator">:</span></span><br><span class="line">        import pyreadstat</span><br><span class="line">        pyreadstat.write_dta<span class="punctuation">(</span>result<span class="punctuation">,</span> output_file<span class="punctuation">)</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;结果已保存为: &#123;output_file&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">    except ImportError<span class="operator">:</span></span><br><span class="line">        <span class="comment"># 如果没有 pyreadstat，保存为 CSV</span></span><br><span class="line">        result.to_csv<span class="punctuation">(</span>output_file.replace<span class="punctuation">(</span><span class="string">&#x27;.dta&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;.csv&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span> index<span class="operator">=</span>False<span class="punctuation">)</span></span><br><span class="line">        print<span class="punctuation">(</span>f<span class="string">&quot;结果已保存为 CSV 格式&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">return</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并结果</span></span><br><span class="line">final_result <span class="operator">=</span> merge_results<span class="punctuation">(</span><span class="string">&quot;resb&quot;</span><span class="punctuation">,</span> <span class="string">&quot;2000～2024年各城市多中心指标（商玉萍版本）.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>final_result.head<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>最终结果数据集包含如下变量：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>year</code></td>
+<td>年份（2000～2024）</td>
+</tr>
+<tr>
+<td><code>city_code</code></td>
+<td>行政区划代码（2021 年版）</td>
+</tr>
+<tr>
+<td><code>city_name</code></td>
+<td>城市名称</td>
+</tr>
+<tr>
+<td><code>center</code></td>
+<td>有效城市中心数量</td>
+</tr>
+<tr>
+<td><code>pareto</code></td>
+<td>帕累托指数，越小越均衡</td>
+</tr>
+<tr>
+<td><code>poly</code></td>
+<td>含距离的多中心指数，越小越均衡</td>
+</tr>
+<tr>
+<td><code>sub3</code></td>
+<td>CBD 3 千米以外的人口占比</td>
+</tr>
+<tr>
+<td><code>sub5</code></td>
+<td>CBD 5 千米以外的人口占比</td>
+</tr>
+<tr>
+<td><code>total_pop</code></td>
+<td>城市总人口</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>通常，<code>pareto</code>、<code>poly</code> 值越小，代表各中心的人口分布越均衡（均等）；<code>sub3</code>、<code>sub5</code> 越大，代表城市人口越去中心化。</p>
+</blockquote>
+<hr>
+<h2 id="七、稳健性检验：放宽中心人口门槛至-1-万人" class="article-heading"><a href="#七、稳健性检验：放宽中心人口门槛至-1-万人" class="headerlink" title="七、稳健性检验：放宽中心人口门槛至 1 万人"></a>七、稳健性检验：放宽中心人口门槛至 1 万人<a class="article-anchor" href="#七、稳健性检验：放宽中心人口门槛至-1-万人" aria-label="本节链接" title="复制本节链接"></a></h2><p>商玉萍（2022）论文中提供了一项稳健性检验：将”总人口在 10 万人以上”的条件改为”总人口在 <strong>1 万人以上</strong>“，重新确定每个城市的中心数量（<code>2center</code>）作为稳健性指标。</p>
+<p>这一操作的实现方式非常简单，只需将 <code>ANALYSIS_PARAMS[&#39;min_pop&#39;]</code> 改为 <code>10000</code>，其余代码完全不变：</p>
+<p>此处代码需下载讲义材料查看～</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/eb9f29edaadb45728360ba8f6aa0c399">名师讲堂｜使用 Python 基于 LandScan 数据测算城市多中心指标（商玉萍版本）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.898Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/55603/" title="名师讲堂｜使用 Python 基于LandScan数据测算城市多中心指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/10258/" title="使用 Python 绘制城市间专利合作申请数量网络图(二)"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 5 分钟</span></li><li><a href="/posts/72197/">名师讲堂｜使用 Python 测算各城市数字产业集聚程度</a><span class="tf-related-meta">2026-06-14 · 约 12 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">一、指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">1.1 数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%96%87%E7%8C%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">1.2 文献来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BA%94%E5%A4%A7%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89"><span class="toc-text">1.3 五大指标定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%90%84%E6%8C%87%E6%A0%87%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">1.4 各指标计算方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B%E6%80%BB%E8%A7%88"><span class="toc-text">1.5 计算流程总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%8F%82%E6%95%B0%E8%AE%BE%E5%AE%9A%E8%AF%B4%E6%98%8E"><span class="toc-text">1.6 参数设定说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">二、使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.1 安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">2.2 虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">2.3 在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">2.4 验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%AE%89%E8%A3%85%E7%9A%84%E5%8C%85"><span class="toc-text">2.5 查看已安装的包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">2.6 虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%A8%E5%B1%80%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-text">三、全局路径与参数配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AF%BC%E5%85%A5%E4%BE%9D%E8%B5%96%E5%8C%85%E4%B8%8E%E5%8F%82%E6%95%B0%E8%AE%BE%E5%AE%9A"><span class="toc-text">3.1 导入依赖包与参数设定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8D%95%E5%9F%8E%E5%B8%82%E6%BC%94%E7%A4%BA%E8%AE%A1%E7%AE%97%EF%BC%88%E5%8C%97%E4%BA%AC%E5%B8%82%EF%BC%8C2020-%E5%B9%B4%EF%BC%89"><span class="toc-text">四、单城市演示计算（北京市，2020 年）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%AF%BB%E5%8F%96%E5%9F%8E%E5%B8%82%E8%BE%B9%E7%95%8C%E4%B8%8E%E4%BA%BA%E5%8F%A3%E6%A0%85%E6%A0%BC"><span class="toc-text">4.1 读取城市边界与人口栅格</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%A0%85%E6%A0%BC%E8%BD%AC%E7%82%B9%E5%87%BD%E6%95%B0"><span class="toc-text">4.2 栅格转点函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%9E%84%E5%BB%BA%E7%A9%BA%E9%97%B4%E6%9D%83%E9%87%8D%E7%9F%A9%E9%98%B5"><span class="toc-text">4.3 构建空间权重矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%B1%80%E9%83%A8-Moran%E2%80%99s-I-%E6%A3%80%E9%AA%8C"><span class="toc-text">4.4 局部 Moran’s I 检验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%8F%90%E5%8F%96-HH-%E6%A0%BC%E7%82%B9%E5%B9%B6%E8%81%9A%E7%B1%BB%E6%88%90%E4%B8%AD%E5%BF%83"><span class="toc-text">4.5 提取 HH 格点并聚类成中心</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-%E8%AE%A1%E7%AE%97-5-%E5%A4%A7%E6%8C%87%E6%A0%87"><span class="toc-text">4.6 计算 5 大指标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%89%B9%E9%87%8F%E4%B8%B2%E8%A1%8C%E8%AE%A1%E7%AE%97%EF%BC%88%E5%85%A8%E5%9B%BD%E6%89%80%E6%9C%89%E5%9F%8E%E5%B8%82-%C3%97-%E6%89%80%E6%9C%89%E5%B9%B4%E4%BB%BD%EF%BC%89"><span class="toc-text">五、批量串行计算（全国所有城市 × 所有年份）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B0%81%E8%A3%85%E6%A0%B8%E5%BF%83%E8%AE%A1%E7%AE%97%E5%87%BD%E6%95%B0"><span class="toc-text">5.1 封装核心计算函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%8A%A0%E8%BD%BD%E5%85%A8%E9%83%A8%E5%9F%8E%E5%B8%82%E4%B8%8E%E5%B9%B4%E4%BB%BD%E6%96%87%E4%BB%B6"><span class="toc-text">5.2 加载全部城市与年份文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%B2%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%89%80%E6%9C%89%E5%9F%8E%E5%B8%82"><span class="toc-text">5.3 串行计算所有城市</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%94%B9%E8%BF%9B%E7%AE%97%E6%B3%95%EF%BC%9A%E9%A2%84%E8%AE%A1%E7%AE%97%E7%A9%BA%E9%97%B4%E6%9D%83%E9%87%8D%E7%9F%A9%E9%98%B5"><span class="toc-text">六、改进算法：预计算空间权重矩阵</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AF%E4%BB%A5%E6%94%B9%E8%BF%9B%EF%BC%9F"><span class="toc-text">6.1 为什么可以改进？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E8%AE%A1%E7%AE%97%E5%B9%B6%E4%BF%9D%E5%AD%98%E6%89%80%E6%9C%89%E5%9F%8E%E5%B8%82%E7%9A%84%E6%9D%83%E9%87%8D%E7%9F%A9%E9%98%B5"><span class="toc-text">6.2 预计算并保存所有城市的权重矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%BD%BF%E7%94%A8%E9%A2%84%E8%AE%A1%E7%AE%97%E6%9D%83%E9%87%8D%E7%9F%A9%E9%98%B5%E7%9A%84%E6%94%B9%E8%BF%9B%E7%89%88%E8%AE%A1%E7%AE%97%E5%87%BD%E6%95%B0"><span class="toc-text">6.3 使用预计算权重矩阵的改进版计算函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E4%BD%BF%E7%94%A8%E6%94%B9%E8%BF%9B%E7%AE%97%E6%B3%95%E6%89%B9%E9%87%8F%E8%AE%A1%E7%AE%97%E5%85%A8%E9%83%A8%E6%95%B0%E6%8D%AE"><span class="toc-text">6.4 使用改进算法批量计算全部数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E5%90%88%E5%B9%B6%E6%89%80%E6%9C%89%E7%BB%93%E6%9E%9C%E5%B9%B6%E4%BF%9D%E5%AD%98"><span class="toc-text">6.5 合并所有结果并保存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%A8%B3%E5%81%A5%E6%80%A7%E6%A3%80%E9%AA%8C%EF%BC%9A%E6%94%BE%E5%AE%BD%E4%B8%AD%E5%BF%83%E4%BA%BA%E5%8F%A3%E9%97%A8%E6%A7%9B%E8%87%B3-1-%E4%B8%87%E4%BA%BA"><span class="toc-text">七、稳健性检验：放宽中心人口门槛至 1 万人</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

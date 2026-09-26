@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/81480/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="引言">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/81480/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="引言">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/81480.png">
+<meta property="article:published_time" content="2021-06-08T12:43:35.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:19:02.367Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="计量与统计方法">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/81480.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据","description":"引言","url":"https://tidyfriday.cn/posts/81480/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/81480/"},"image":["https://tidyfriday.cn/og/81480.png"],"datePublished":"2021-06-08T12:43:35.000Z","dateModified":"2026-09-26T14:19:02.367Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, 计量与统计方法","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据","item":"https://tidyfriday.cn/posts/81480/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-06-08T12:43:35.000Z" itemprop="datePublished">2021-06-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4424 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 15 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=%E8%AE%A1%E9%87%8F%E4%B8%8E%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95">计量与统计方法</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="引言" class="article-heading"><a href="#引言" class="headerlink" title="引言"></a>引言<a class="article-anchor" href="#引言" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<p>文章利用重庆晋升为中国省级直辖市这一政策冲击来考察城市的政治等级对经济发展的影响。重庆市升级为直辖市之后，获得了更高等级的行政权力，其结果可以从以下几个方面来看待：首先，升级后的重庆市获得了省级行政权力，可以采取完全独立于四川的行政政策。第二，重庆官员不再由四川省政府任命或评估。因此，它不需要像以前那样遵守四川省的政策，并可以享受的权力大幅增加。第三，关于财政事务，重庆不再需要与四川省政府分享财政收入，这使得重庆的财政收入留存率更高。</p>
+<p>重庆升级为直辖市的历史事件使得本文能够利用空间断点回归设计来确定因果效应。重庆与四川接壤，生活在重庆-四川边境附近的人们有着相似的民族构成，生活在相似的地理条件下，有着相似的文化。更重要的是，他们长期属于同一个省。因此，在重庆升级时，边境两侧的大多数特征几乎是相同的。因此，四川的城镇是重庆的城镇的理想反事实，本文可以采用空间断点来比较重庆-四川边界的城镇发展情况。</p>
+<h2 id="制度背景" class="article-heading"><a href="#制度背景" class="headerlink" title="制度背景"></a>制度背景<a class="article-anchor" href="#制度背景" aria-label="本节链接" title="复制本节链接"></a></h2><p>在中国，国家以下各级管辖区由四层政府组成：省一级(23个省、5个自治区、4个直辖市以及2个特别行政区)、地一级(约333个地级市)、县一级(约2853个县)和乡一级(约40497个镇)。</p>
+<p>中国政治等级制度的一个显著特征是，下级政府完全从属于上级政府；因此，上级政府比下级政府拥有更大的权力。从宪法上来说，中国是一个单一的国家，而不是一个联邦国家，地区权力由中央政府授予。为了统治一个拥有大量人口和大陆面积的国家，中央政府使用嵌套的多层行政系统，其中上层政府管理和监督下层政府，从而将中央政府的控制扩展到所有级别的地区。因此，地方政府的决策权在很大程度上依赖于城市的等级制度。此外，下级领导人由其直接上级政府评估和任命，而不是由当地居民选举产生。在这种制度下，上级政府可以轻易地干预下级政府的政策决定，因此前者决定了后者的发展道路。最后，与行政系统相似，中国财政系统的特点是不同层级之间严格的垂直等级关系。更高一级的政府有权分配其下一级的财政收入。因此，中央政府决定与省政府分享收入，省政府反过来为各自的地级市制定规则。</p>
+<p>重庆历史上一直是四川省的一部分。自元朝(公元1271-1368年)以来，重庆一直是四川省管辖的一个地区。1996年，四川省由24个地级市组成，包括成都、重庆、涪陵、万县和黔江。重庆当时是一个单列的地级市，其他23个都是地级市，四川省政府所在地为成都。1997年3月14日，中央政府决定将重庆与邻近的涪陵、万县、黔江等地合并，由此产生的单一区划成为重庆直辖市，其地位相当于一个省。重庆市人口3000万，分布在43个县和933个镇(不含县)。四川省的其余部分有8500万人口，分布在20个地级市、180个县和4155个镇。</p>
+<p>根据中国官方的宣传，中央政府决定提升重庆有两个原因：首先，中央政府希望振兴重庆经济，使重庆成为推动中国西部地区增长的引擎。人们认为四川省政府不能在这样一个大省有效地提供公共产品。新成立的重庆市被认为能够制定更适合当地情况的政策，并由于其更高的行政地位而具有更大的促进经济发展的能力。第二，重庆市政府有望更好地协调三峡工程库区居民的安置。三峡工程始于1994年，位于重庆和湖北省之间的长江干流上。为了修建水库，100多万人进行了移民。</p>
+<h2 id="理论框架" class="article-heading"><a href="#理论框架" class="headerlink" title="理论框架"></a>理论框架<a class="article-anchor" href="#理论框架" aria-label="本节链接" title="复制本节链接"></a></h2><p>重庆事的升级，可以从收益和成本两个角度进行考虑：</p>
+<p>第一，升级之后，重庆可以采取完全独立于四川的政策方案，而且重庆官员不再由四川省政府任命或考核，而是直接由中央政府任命或考核；因此，他们不需要像以前那样遵守四川省的政策。由于法律上和事实上的权力大幅增加，重庆政府可以制定更贴近当地人民偏好的政策。特别是，重庆在许多经济事务中获得了更大的决策权，从批准投资项目(政府资助和私人资助)、土地分配和基础设施建设，到立法和执法。因此，重庆可以更容易地进行投资项目，对企业更有吸引力。</p>
+<p>第二，从财政方面考虑，重庆获得了更多的公共服务责任，获得了更高的财政收入留存率。在升级之前，重庆的一部分(万县、黔江和涪陵)需要与四川省政府分享财政收入。升级之后，重庆能够直接与中央政府分享收入，不再与四川省政府分享收入。更高的税收留存率为地方政府提供了更高的激励，促使它们制定有利于发展的政策来增加税收基础。</p>
+<p>第三，尽管在许多发展中国家，权力下放往往会导致更多的地方腐败，中国对地方领导人的奖惩制度可能会降低这种风险。此外，在升级之前，尽管重庆官员有晋升至国家政府的愿望，但他们在促进投资和吸引企业方面受到有限权力的限制。升级后权力下放，有助于鼓励官员促进经济发展。</p>
+<p>最后，重庆的升级也可能会增加行政成本。然而，正如Reingewertz (2012)所建议的那样，规模经济减少所产生的成本可能只有在小城市激增时才有可能。由于重庆是一个人口超过3000万的大城市，它不太可能遭受规模经济的缩减。而且重庆案例中，省级单位只增加一个；因此，增加中央政府处理信息的控制范围的成本也很小。</p>
+<h2 id="数据来源" class="article-heading"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源<a class="article-anchor" href="#数据来源" aria-label="本节链接" title="复制本节链接"></a></h2><table>
+<thead>
+<tr>
+<th>数据来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608103109.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h2 id="实证策略" class="article-heading"><a href="#实证策略" class="headerlink" title="实证策略"></a>实证策略<a class="article-anchor" href="#实证策略" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="计量模型设定" class="article-heading"><a href="#计量模型设定" class="headerlink" title="计量模型设定"></a>计量模型设定<a class="article-anchor" href="#计量模型设定" aria-label="本节链接" title="复制本节链接"></a></h3><p>为了估计重庆升级为直辖市的处理效应，可以把四川省的乡镇作为重庆市的乡镇的反事情，基于两个地区的全样本进行DID估计。然而，作者发现，从全样本来看，重庆乡镇和四川乡镇的一些前变量特征（pre-treatment）并不平衡（imbalance），即1996年重庆和四川的灯光亮度、海拔、少数民族人口占比以及乡镇的数量均呈现出显著差异（见原文附表A2）。因此，简单的DID估计结果可能是有偏的。此外，作者进一步利用1992年到2013年的数据基于时间研究法进行估计，并不满足平行趋势假设（见原文附表A4）。在说明了，DID估计方法不可行之后，作者提出了空间断点回归模型：</p>
+<p>其中， 为乡镇  的灯光亮度增长率，考虑到有些乡镇的亮度为0，因此定义  为：</p>
+<p>为0-1虚拟变量，如果乡镇位于重庆，取值为1，若位于四川，取值为0。 为控制地理位置平滑功能的多项式，依据 Dell（2010），地理位置用乡镇质心的经度和维度表示。在这个模型中，捕获了重庆升级为直辖市的经济增长效应。回归过程中，文章聚类到县级层面。</p>
+<p>断点回归的常用方法有两类：非参数局部线性回归和全局多项式回归。作者首先以距离四川重庆边界线30km为带宽进行了局部线性回归，并进而考虑不同带宽（20-100km）的稳健性（如图2）。此外，作者进一步报告了全局多项式回归的结果。</p>
+<table>
+<thead>
+<tr>
+<th>图 2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608103948.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<h3 id="处理前的平衡性检验" class="article-heading"><a href="#处理前的平衡性检验" class="headerlink" title="处理前的平衡性检验"></a>处理前的平衡性检验<a class="article-anchor" href="#处理前的平衡性检验" aria-label="本节链接" title="复制本节链接"></a></h3><p>断点回归的关键假设是平滑性假设，即除了处理效应，其他相关的变量，如分配变量和协变量，在四川-重庆的边界处都应该是连续的（不存在断点）。这一假设可以保证四川边界的乡镇是重庆边界乡镇的理想反事实对象。由于在1997年之前，重庆辖区隶属于重庆市，因此可以预期，边界处的前特征变量（pre-treatment characteristics）是平滑的。表2给出了比较的结果。根据表2，若将边界30km范围内的样本进行比较，重庆和四川的数据在1996年（处理之前）并没有显示出显著的差异性。图3以边界线为0点，绘制了距离边界线100KM范围以内的灯光亮度，结果进一步佐证了在1996年，重庆和四川边界的灯光亮度是没有断点的。</p>
+<table>
+<thead>
+<tr>
+<th>表2 的 Panel A有代码，Panel B 没有</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608104047.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>Stata 代码如下（相关数据可以在微信公众号 RStata 后台回复 0608 获取）：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 表格 2 Panel A 代码</span></span><br><span class="line"><span class="keyword">use</span> data_si_chong, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">reg</span> mean1996 new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"><span class="keyword">reg</span> elevation new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"><span class="keyword">reg</span> slope new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data_cencus2000.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">reg</span> minorp new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data_si_chong, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> x_chengdu = 104.071208</span><br><span class="line"><span class="keyword">gen</span> y_chengdu = 30.665205</span><br><span class="line"><span class="keyword">gen</span> x_chongqing = 106.557078</span><br><span class="line"><span class="keyword">gen</span> y_chongqing = 29.569389</span><br><span class="line">geodist ycenter xcenter y_chengdu x_chengdu, <span class="keyword">gen</span>(dist_chengdu)</span><br><span class="line">geodist ycenter xcenter y_chongq x_chongq, <span class="keyword">gen</span>(dist_chongqing)</span><br><span class="line"><span class="keyword">reg</span> dist_chengdu new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"><span class="keyword">reg</span> dist_chongqing new <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图 3：边界线附近的初始发展水平</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608105919.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>图 3 的 Stata 代码为：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">use data_si_chong<span class="punctuation">,</span> clear</span><br><span class="line"></span><br><span class="line">gen dist_g <span class="operator">=</span> distance</span><br><span class="line">replace dist_g <span class="operator">=</span> <span class="operator">-</span>distance <span class="keyword">if</span> new <span class="operator">==</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line">keep <span class="keyword">if</span> distance <span class="operator">&lt;=</span> <span class="number">100</span></span><br><span class="line">gen group <span class="operator">=</span> <span class="operator">-</span><span class="number">100</span></span><br><span class="line">forvalues i <span class="operator">=</span> <span class="number">1</span><span class="operator">/</span><span class="number">20</span><span class="punctuation">&#123;</span></span><br><span class="line">replace group <span class="operator">=</span> <span class="operator">-</span><span class="number">100</span><span class="operator">+</span><span class="punctuation">(</span>`i&#x27;*10) if dist_g &gt;= -100 + (`i<span class="string">&#x27; * 10) &amp; dist_g &lt;- 90 + (`i&#x27;</span> <span class="operator">*</span> <span class="number">10</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">egen distance_mean <span class="operator">=</span> mean<span class="punctuation">(</span>dist_g<span class="punctuation">)</span><span class="punctuation">,</span> by<span class="punctuation">(</span>group<span class="punctuation">)</span></span><br><span class="line">egen mean1996_mean <span class="operator">=</span> mean<span class="punctuation">(</span>mean1996<span class="punctuation">)</span><span class="punctuation">,</span> by<span class="punctuation">(</span>group<span class="punctuation">)</span></span><br><span class="line">egen elevation_mean <span class="operator">=</span> mean<span class="punctuation">(</span>elevation<span class="punctuation">)</span><span class="punctuation">,</span> by<span class="punctuation">(</span>group<span class="punctuation">)</span></span><br><span class="line">egen slope_mean <span class="operator">=</span> mean<span class="punctuation">(</span>slope<span class="punctuation">)</span><span class="punctuation">,</span> by<span class="punctuation">(</span>group<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">reg mean1996 new dist_g</span><br><span class="line">predict mean1996_p</span><br><span class="line">predict se1<span class="punctuation">,</span>stdp</span><br><span class="line">gen mean1996_low <span class="operator">=</span> mean1996_p <span class="operator">-</span> <span class="number">1.96</span> <span class="operator">*</span> se1</span><br><span class="line">gen mean1996_high <span class="operator">=</span> mean1996_p <span class="operator">+</span> <span class="number">1.96</span> <span class="operator">*</span> se1</span><br><span class="line">by group<span class="punctuation">,</span> sort<span class="operator">:</span> egen float count <span class="operator">=</span> count<span class="punctuation">(</span>mean1996_p<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">twoway <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">scatter mean1996_mean distance_mean <span class="keyword">if</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   distance <span class="operator">&lt;=</span> <span class="number">100</span><span class="punctuation">,</span> mcolor<span class="punctuation">(</span>black<span class="punctuation">)</span> <span class="operator">||</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">line mean1996_p mean1996_low mean1996_high dist_g <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   <span class="keyword">if</span> dist_g <span class="operator">&lt;</span> <span class="number">0</span> <span class="operator">&amp;</span> dist_g <span class="operator">&gt;=</span> <span class="operator">-</span><span class="number">100</span><span class="punctuation">,</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   pstyle<span class="punctuation">(</span>p p3 p3<span class="punctuation">)</span> lcolor<span class="punctuation">(</span>black<span class="punctuation">)</span> lpattern<span class="punctuation">(</span>solid<span class="punctuation">)</span> <span class="operator">||</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">line mean1996_p mean1996_low mean1996_high dist_g <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   <span class="keyword">if</span> dist_g <span class="operator">&gt;</span> <span class="number">0</span> <span class="operator">&amp;</span> dist_g <span class="operator">&lt;=</span> <span class="number">100</span><span class="punctuation">,</span> pstyle<span class="punctuation">(</span>p p3 p3<span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   lcolor<span class="punctuation">(</span>black<span class="punctuation">)</span> lpattern<span class="punctuation">(</span>solid<span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   ytitle<span class="punctuation">(</span>Light intensity of <span class="number">1996</span><span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   xtitle<span class="punctuation">(</span>Distance to cutoff<span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   legend<span class="punctuation">(</span>off<span class="punctuation">)</span> xline<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span>lpattern<span class="punctuation">(</span>dash<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   text<span class="punctuation">(</span><span class="number">1.7</span> <span class="number">50</span> <span class="string">&quot;Chongqing&quot;</span><span class="punctuation">,</span>size<span class="punctuation">(</span>medlarge<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">/</span><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">   text<span class="punctuation">(</span><span class="number">1.7</span> <span class="operator">-</span><span class="number">50</span> <span class="string">&quot;Sichuan&quot;</span><span class="punctuation">,</span>size<span class="punctuation">(</span>medlarge<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">gr export fig3.png<span class="punctuation">,</span> replace width<span class="punctuation">(</span><span class="number">1200</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来，作者进一步检验了四川和重庆边界的灯光强度的增长率是否在处理前存在平行趋势。为此，作者将（1）式中的因变量替换为：</p>
+<p>并利用1992-2013年的数据，逐年进行回归，结果如图4所示。图4显示靠近边界处的处理和控制组在1997年以前的趋势基本是平衡的。</p>
+<table>
+<thead>
+<tr>
+<th>图 4: 利用1992-2013年的数据，逐年进行回归</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608110459.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>Stata 绘制代码如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> dynamic_1992-2013,<span class="keyword">clear</span></span><br><span class="line"><span class="keyword">twoway</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> beta t || <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> beta t, lcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> beta_low t, lpattern(dash) lcolor(gray) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> beta_high t, lpattern(dash) lcolor(gray) <span class="comment">///</span></span><br><span class="line">   xlabel(1992(2)2013,angle(45)) xtitle(Year) <span class="comment">///</span></span><br><span class="line">   yline(0, lpattern(dash)) <span class="comment">///</span></span><br><span class="line">   xline(1996, lpattern(dash)) <span class="comment">///</span></span><br><span class="line">   legend(off) ylabel(-1(0.5)2)</span><br><span class="line"><span class="keyword">gr</span> export fig4.png, <span class="keyword">replace</span> width(1200)</span><br></pre></td></tr></table></figure>
+
+<h2 id="主要结果" class="article-heading"><a href="#主要结果" class="headerlink" title="主要结果"></a>主要结果<a class="article-anchor" href="#主要结果" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="基本结论" class="article-heading"><a href="#基本结论" class="headerlink" title="基本结论"></a>基本结论<a class="article-anchor" href="#基本结论" aria-label="本节链接" title="复制本节链接"></a></h3><p>作者首先依据（1）式进行了基准回归。回归的因变量为1996-2013年的灯光亮度增长率，回归方法分别为局部线性方法、局部二次项方法以及全部多项式回归，并且分别在带宽为30KM和带宽50KM处进行了回归。结果如表3所示，估计结果显示，重庆乡镇的灯光增长率显著高于四川。接下来，作者进一步以边界线为0点，绘制了距离边界线100KM范围以内的灯光亮度从1996-2013增长率的结果，结果显示存在明显断点。</p>
+<table>
+<thead>
+<tr>
+<th>表 3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608113515.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>表 3 的 Stata 代码如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data_si_chong,<span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter <span class="keyword">if</span> distance &lt;= 50, <span class="keyword">cluster</span>(county)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> x2 = xcenter^2</span><br><span class="line"><span class="keyword">gen</span> y2 = ycenter^2</span><br><span class="line"><span class="keyword">gen</span> xy = xcenter*ycenter</span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter x2 y2 xy <span class="keyword">if</span> distance &lt;= 30, <span class="keyword">cluster</span>(county)</span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter x2 y2 xy <span class="keyword">if</span> distance &lt;= 50, <span class="keyword">cluster</span>(county)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> x3 = xcenter^3</span><br><span class="line"><span class="keyword">gen</span> y3 = ycenter^3</span><br><span class="line"><span class="keyword">gen</span> x2y = x2*ycenter</span><br><span class="line"><span class="keyword">gen</span> xy2 = xcenter*y2</span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new x3 y3 x2y xy2 x2 y2 xy xcenter ycenter, <span class="keyword">cluster</span>(county)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> x4 = xcenter^4</span><br><span class="line"><span class="keyword">gen</span> x3y = xcenter^3*ycenter</span><br><span class="line"><span class="keyword">gen</span> x2y2 = xcenter^2*ycenter^2</span><br><span class="line"><span class="keyword">gen</span> xy3 = xcenter*ycenter^3</span><br><span class="line"><span class="keyword">gen</span> y4 = ycenter^4</span><br><span class="line"><span class="keyword">reg</span> ln_diff_2013_1996 new x4 x3y x2y2 xy3 y4 x3 y3 x2y xy2 x2 y2 xy xcenter ycenter, <span class="keyword">cluster</span>(county)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图 5</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608114315.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>图 5 的 Stata 代码为：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data_si_chong,<span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> dist_g = distance</span><br><span class="line"><span class="keyword">replace</span> dist_g = -distance <span class="keyword">if</span> new == 0</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> group = -100 <span class="keyword">if</span> distance &lt;= 100</span><br><span class="line"><span class="keyword">forvalues</span> i = 1(1)20&#123;</span><br><span class="line">   <span class="keyword">replace</span> group = -100 + (<span class="symbol">`i&#x27;</span>*10) <span class="keyword">if</span> dist_g &gt;= -100 + (<span class="symbol">`i&#x27;</span>*10) &amp; dist_g &lt; -90 + (<span class="symbol">`i&#x27;</span>*10)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> growthrate = <span class="built_in">ln</span>(mean2013 + 0.01) - <span class="built_in">ln</span>(mean1996 + 0.01)</span><br><span class="line"><span class="keyword">egen</span> growthrate_mean = <span class="keyword">mean</span>(growthrate), <span class="keyword">by</span>(group)</span><br><span class="line"><span class="keyword">egen</span> distance_mean = <span class="keyword">mean</span>(dist_g), <span class="keyword">by</span>(group)</span><br><span class="line"></span><br><span class="line"><span class="keyword">qui</span> <span class="keyword">reg</span> growthrate new dist_g <span class="keyword">if</span> distance &lt;= 100</span><br><span class="line"><span class="keyword">predict</span> growthrate_p</span><br><span class="line"><span class="keyword">predict</span> <span class="keyword">se</span>, stdp</span><br><span class="line"><span class="keyword">gen</span> growthrate_low = growthrate_p - 1.96 * <span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> growthrate_high = growthrate_p + 1.96 * <span class="keyword">se</span></span><br><span class="line"><span class="keyword">by</span> group, <span class="keyword">sort</span>: <span class="keyword">egen</span> float <span class="keyword">count</span> = <span class="keyword">count</span>(growthrate_p)</span><br><span class="line"></span><br><span class="line"><span class="keyword">twoway</span> <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> growthrate_mean distance_mean <span class="comment">///</span></span><br><span class="line">   <span class="keyword">if</span> distance &lt;= 100, mcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> growthrate_p growthrate_low growthrate_high dist_g <span class="comment">///</span></span><br><span class="line">   <span class="keyword">if</span> dist_g &lt; 0 &amp; dist_g &gt;= -100, pstyle(p p3 p3) <span class="comment">///</span></span><br><span class="line">   lcolor(black) lpattern(solid) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">line</span> growthrate_p growthrate_low growthrate_high dist_g <span class="keyword">if</span> dist_g &gt; 0 &amp; dist_g &lt;= 100, <span class="comment">///</span></span><br><span class="line">   pstyle(p p3 p3) lcolor(black) lpattern(solid) <span class="comment">///</span></span><br><span class="line">   ytitle(Night light growth rate 1996-2013) <span class="comment">///</span></span><br><span class="line">   xtitle(Distance to cutoff) legend(off) <span class="comment">///</span></span><br><span class="line">   xline(0, lpattern(dash)) <span class="comment">///</span></span><br><span class="line">   text(0.75 50 <span class="string">&quot;Chongqing&quot;</span>, size(medlarge)) <span class="comment">///</span></span><br><span class="line">   text(0.75 -50 <span class="string">&quot;Sichuan&quot;</span>, size(medlarge))</span><br><span class="line"><span class="keyword">gr</span> export fig5.png, <span class="keyword">replace</span> width(1200)</span><br></pre></td></tr></table></figure>
+
+<h3 id="稳健性检验" class="article-heading"><a href="#稳健性检验" class="headerlink" title="稳健性检验"></a>稳健性检验<a class="article-anchor" href="#稳健性检验" aria-label="本节链接" title="复制本节链接"></a></h3><p>作者基于不同的带宽和模型设定进行了一系列的稳健性检验。图6中作者以10km的距离为增量，估计了20-100km带宽的结果。图A模型设定为线性；图B为二次多项式；图C为增加了一系列控制变量；图D为使用矩形核函数作为权重。结果均显示较为稳健。</p>
+<table>
+<thead>
+<tr>
+<th>图 6</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210608120443.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>Stata 代码为：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 图 6 代码 panel A Linear</span></span><br><span class="line"><span class="keyword">use</span> data_si_chong,<span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">matrix</span> A = <span class="built_in">J</span>(9, 2, 0)</span><br><span class="line"></span><br><span class="line"><span class="keyword">forvalues</span> i = 1/9&#123;</span><br><span class="line">   <span class="keyword">qui</span> <span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter <span class="keyword">if</span> distance &lt;= (<span class="symbol">`i&#x27;</span>+1)*10, <span class="keyword">cluster</span>(county)</span><br><span class="line">   <span class="keyword">matrix</span> a<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(b)</span><br><span class="line">   <span class="keyword">matrix</span> b<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(V)</span><br><span class="line">   <span class="keyword">scalar</span> A<span class="symbol">`i&#x27;</span>1 = a<span class="symbol">`i&#x27;</span>[1,1]</span><br><span class="line">   <span class="keyword">scalar</span> A<span class="symbol">`i&#x27;</span>2 = <span class="built_in">sqrt</span>(b<span class="symbol">`i&#x27;</span>[1,1])</span><br><span class="line">   <span class="keyword">matrix</span> A[<span class="symbol">`i&#x27;</span>,1] = A<span class="symbol">`i&#x27;</span>1</span><br><span class="line">   <span class="keyword">matrix</span> A[<span class="symbol">`i&#x27;</span>,2] = A<span class="symbol">`i&#x27;</span>2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">mat2txt, <span class="built_in">matrix</span>(A) saving(matrixa) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">insheet</span> using matrixa.txt,<span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> c1 coff</span><br><span class="line"><span class="keyword">rename</span> c2 <span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> low = coff-1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> high = coff+1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">egen</span> v2 = <span class="built_in">group</span>(v1)</span><br><span class="line"><span class="keyword">gen</span> bw = (v2+1)*10</span><br><span class="line"><span class="keyword">twoway</span> <span class="comment">///</span></span><br><span class="line">rcap low high bw, lcolor(cranberry) <span class="comment">///</span></span><br><span class="line">   mcolor(midred) msymbol(O) mlabcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> coff bw, mcolor(midblue) <span class="comment">///</span></span><br><span class="line">   msymbol(O) mlabcolor(black) <span class="comment">///</span></span><br><span class="line">   yline(0, lpattern(dash) lcolor(black)) <span class="comment">///</span></span><br><span class="line">   legend(off) xtitle(<span class="string">&quot;Brandwidth&quot;</span>) <span class="comment">///</span></span><br><span class="line">   xlabel(20(10)100) ylabel(-0.5(0.5)2) <span class="comment">///</span></span><br><span class="line">   ti(<span class="string">&quot;Panel A: Linear Polynomial&quot;</span>) <span class="comment">///</span></span><br><span class="line">   name(a, <span class="keyword">replace</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">* 图 6 Panel B Quadratic</span></span><br><span class="line"><span class="keyword">use</span> data_si_chong,<span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> x2 = xcenter^2</span><br><span class="line"><span class="keyword">gen</span> y2 = ycenter^2</span><br><span class="line"><span class="keyword">gen</span> xy = xcenter*ycenter</span><br><span class="line"></span><br><span class="line"><span class="keyword">matrix</span> B = <span class="built_in">J</span>(9,2,0)</span><br><span class="line"></span><br><span class="line"><span class="keyword">forvalues</span> i = 1/9&#123;</span><br><span class="line">   <span class="keyword">qui</span> <span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter x2 y2 xy <span class="keyword">if</span> distance &lt;= (<span class="symbol">`i&#x27;</span>+1)*10, <span class="keyword">cluster</span>(county)</span><br><span class="line">   <span class="keyword">matrix</span> a<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(b)</span><br><span class="line">   <span class="keyword">matrix</span> b<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(V)</span><br><span class="line">   <span class="keyword">scalar</span> B<span class="symbol">`i&#x27;</span>1 = a<span class="symbol">`i&#x27;</span>[1,1]</span><br><span class="line">   <span class="keyword">scalar</span> B<span class="symbol">`i&#x27;</span>2 = <span class="built_in">sqrt</span>(b<span class="symbol">`i&#x27;</span>[1,1])</span><br><span class="line">   <span class="keyword">matrix</span> B[<span class="symbol">`i&#x27;</span>,1] = B<span class="symbol">`i&#x27;</span>1</span><br><span class="line">   <span class="keyword">matrix</span> B[<span class="symbol">`i&#x27;</span>,2] = B<span class="symbol">`i&#x27;</span>2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">mat2txt, <span class="built_in">matrix</span>(B) saving(matrixb) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">insheet</span> using matrixb.txt,<span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> c1 coff</span><br><span class="line"><span class="keyword">rename</span> c2 <span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> low = coff-1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> high = coff+1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">egen</span> v2 = <span class="built_in">group</span>(v1)</span><br><span class="line"><span class="keyword">gen</span> bw = (v2+1)*10</span><br><span class="line"><span class="keyword">twoway</span> <span class="comment">///</span></span><br><span class="line">rcap low high bw, lcolor(cranberry) <span class="comment">///</span></span><br><span class="line">   mcolor(midred) msymbol(O) mlabcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> coff bw, mcolor(midblue) <span class="comment">///</span></span><br><span class="line">   msymbol(O) mlabcolor(black) <span class="comment">///</span></span><br><span class="line">   yline(0, lpattern(dash) lcolor(black)) <span class="comment">///</span></span><br><span class="line">   legend(off) xtitle(<span class="string">&quot;Brandwidth&quot;</span>) <span class="comment">///</span></span><br><span class="line">   xlabel(20(10)100) ylabel(-0.5(0.5)2) <span class="comment">///</span></span><br><span class="line">   ti(<span class="string">&quot;Panel B: Quadratic Polynomial&quot;</span>) <span class="comment">///</span></span><br><span class="line">   name(b, <span class="keyword">replace</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">* 图 6 Panel C Control</span></span><br><span class="line"><span class="keyword">use</span> data_si_chong, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">matrix</span> C = <span class="built_in">J</span>(9,2,0)</span><br><span class="line"></span><br><span class="line"><span class="keyword">forvalues</span> i = 1/9&#123;</span><br><span class="line">   <span class="keyword">qui</span> <span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter slope elevation seg1 seg2 seg3 seg4 <span class="keyword">if</span> distance &lt;= (<span class="symbol">`i&#x27;</span>+1)*10, <span class="keyword">cluster</span>(county)</span><br><span class="line">   <span class="keyword">matrix</span> a<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(b)</span><br><span class="line">   <span class="keyword">matrix</span> b<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(V)</span><br><span class="line">   <span class="keyword">scalar</span> C<span class="symbol">`i&#x27;</span>1 = a<span class="symbol">`i&#x27;</span>[1,1]</span><br><span class="line">   <span class="keyword">scalar</span> C<span class="symbol">`i&#x27;</span>2 = <span class="built_in">sqrt</span>(b<span class="symbol">`i&#x27;</span>[1,1])</span><br><span class="line">   <span class="keyword">matrix</span> C[<span class="symbol">`i&#x27;</span>,1] = C<span class="symbol">`i&#x27;</span>1</span><br><span class="line">   <span class="keyword">matrix</span> C[<span class="symbol">`i&#x27;</span>,2] = C<span class="symbol">`i&#x27;</span>2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">mat2txt, <span class="built_in">matrix</span>(C) saving(matrixc) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">insheet</span> using matrixc.txt, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> c1 coff</span><br><span class="line"><span class="keyword">rename</span> c2 <span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> low = coff-1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> high = coff+1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">egen</span> v2 = <span class="built_in">group</span>(v1)</span><br><span class="line"><span class="keyword">gen</span> bw = (v2+1)*10</span><br><span class="line"><span class="keyword">twoway</span> <span class="comment">///</span></span><br><span class="line">rcap low high bw, lcolor(cranberry) <span class="comment">///</span></span><br><span class="line">   mcolor(midred) msymbol(O) mlabcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> coff bw, mcolor(midblue) msymbol(O) <span class="comment">///</span></span><br><span class="line">   mlabcolor(black) yline(0, lpattern(dash) <span class="comment">///</span></span><br><span class="line">   lcolor(black)) legend(off) <span class="comment">///</span></span><br><span class="line">   xtitle(<span class="string">&quot;Brandwidth&quot;</span>) xlabel(20(10)100) <span class="comment">///</span></span><br><span class="line">   ylabel(-0.5(0.5)2) <span class="comment">///</span></span><br><span class="line">   ti(<span class="string">&quot;Panel C: Additional Controls&quot;</span>) <span class="comment">///</span></span><br><span class="line">   name(c, <span class="keyword">replace</span>)</span><br><span class="line"><span class="keyword">gr</span> export fig6C.png, <span class="keyword">replace</span> width(1200)</span><br><span class="line"></span><br><span class="line"><span class="comment">* 图 6 Panel D Weight</span></span><br><span class="line"><span class="keyword">use</span> data_si_chong,<span class="keyword">clear</span></span><br><span class="line"><span class="keyword">matrix</span> <span class="keyword">D</span> = <span class="built_in">J</span>(9,2,0)</span><br><span class="line"><span class="keyword">forvalue</span> i = 1/9&#123;</span><br><span class="line">   <span class="keyword">gen</span> weight<span class="symbol">`i&#x27;</span> = 1 - distance/(<span class="symbol">`i&#x27;</span>+1)/10 <span class="keyword">if</span> distance &lt;= (<span class="symbol">`i&#x27;</span>+1)*10</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">forvalues</span> i = 1/9&#123;</span><br><span class="line">   <span class="keyword">qui</span> <span class="keyword">reg</span> ln_diff_2013_1996 new xcenter ycenter <span class="keyword">if</span> distance &lt;= (<span class="symbol">`i&#x27;</span>+1)*10 [weight = weight<span class="symbol">`i&#x27;</span>],<span class="keyword">cluster</span>(county)</span><br><span class="line">   <span class="keyword">matrix</span> a<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(b)</span><br><span class="line">   <span class="keyword">matrix</span> b<span class="symbol">`i&#x27;</span> = <span class="built_in">e</span>(V)</span><br><span class="line">   <span class="keyword">scalar</span> <span class="keyword">D</span><span class="symbol">`i&#x27;</span>1 = a<span class="symbol">`i&#x27;</span>[1,1]</span><br><span class="line">   <span class="keyword">scalar</span> <span class="keyword">D</span><span class="symbol">`i&#x27;</span>2 = <span class="built_in">sqrt</span>(b<span class="symbol">`i&#x27;</span>[1,1])</span><br><span class="line">   <span class="keyword">matrix</span> <span class="keyword">D</span>[<span class="symbol">`i&#x27;</span>,1] = <span class="keyword">D</span><span class="symbol">`i&#x27;</span>1</span><br><span class="line">   <span class="keyword">matrix</span> <span class="keyword">D</span>[<span class="symbol">`i&#x27;</span>,2] = <span class="keyword">D</span><span class="symbol">`i&#x27;</span>2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">mat2txt, <span class="built_in">matrix</span>(<span class="keyword">D</span>) saving(matrixd) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">insheet</span> using matrixd.txt, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> c1 coff</span><br><span class="line"><span class="keyword">rename</span> c2 <span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> low = coff-1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">gen</span> high = coff+1.96*<span class="keyword">se</span></span><br><span class="line"><span class="keyword">egen</span> v2 = <span class="built_in">group</span>(v1)</span><br><span class="line"><span class="keyword">gen</span> bw = (v2+1)*10</span><br><span class="line"><span class="keyword">twoway</span> rcap low high bw, lcolor(cranberry) <span class="comment">///</span></span><br><span class="line">   mcolor(midred) msymbol(O) mlabcolor(black) || <span class="comment">///</span></span><br><span class="line"><span class="keyword">scatter</span> coff bw, mcolor(midblue) msymbol(O) <span class="comment">///</span></span><br><span class="line">   mlabcolor(black) yline(0, lpattern(dash) <span class="comment">///</span></span><br><span class="line">   lcolor(black)) legend(off) <span class="comment">///</span></span><br><span class="line">   xtitle(<span class="string">&quot;Brandwidth&quot;</span>) xlabel(20(10)100) <span class="comment">///</span></span><br><span class="line">   ylabel(-0.5(0.5)2) <span class="comment">///</span></span><br><span class="line">   ti(<span class="string">&quot;Panel D: Triangular Kernel Weights&quot;</span>) <span class="comment">///</span></span><br><span class="line">   name(<span class="keyword">d</span>, <span class="keyword">replace</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> combine a b c <span class="keyword">d</span>, row(2)</span><br><span class="line"><span class="keyword">gr</span> export fig6.png, <span class="keyword">replace</span> width(1200)</span><br></pre></td></tr></table></figure>
+
+<p>更多内容欢迎参加该课程学习～</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/7e9e7484609c4fba811952c8ed21d579">论文解读与复现｜政治等级与区域经济发展：来自中国空间断点回归的证据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:19:02.367Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/34731/" title="县域统计年鉴是如何整理的？Stata 和 R 齐上阵！"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/98806/" title="论文解读与复现｜排污权交易机制是否提高了企业全要素生产率？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/25510/">2007～2020 年位于高新区、开发区、产业园、工业园内的税调企业</a><span class="tf-related-meta">2026-09-06 · 约 3 分钟</span></li><li><a href="/posts/74341/">2001～2023年上市公司供应商、客户与数字经济专利匹配结果</a><span class="tf-related-meta">2026-08-26 · 约 5 分钟</span></li><li><a href="/posts/52343/">1949～2023 年各省市区县产业专业化指标面板数据</a><span class="tf-related-meta">2026-08-07 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B6%E5%BA%A6%E8%83%8C%E6%99%AF"><span class="toc-text">制度背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%90%86%E8%AE%BA%E6%A1%86%E6%9E%B6"><span class="toc-text">理论框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">数据来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E8%AF%81%E7%AD%96%E7%95%A5"><span class="toc-text">实证策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E9%87%8F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E5%AE%9A"><span class="toc-text">计量模型设定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E5%89%8D%E7%9A%84%E5%B9%B3%E8%A1%A1%E6%80%A7%E6%A3%80%E9%AA%8C"><span class="toc-text">处理前的平衡性检验</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E7%BB%93%E6%9E%9C"><span class="toc-text">主要结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E8%AE%BA"><span class="toc-text">基本结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A8%B3%E5%81%A5%E6%80%A7%E6%A3%80%E9%AA%8C"><span class="toc-text">稳健性检验</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

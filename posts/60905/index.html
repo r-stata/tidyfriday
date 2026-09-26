@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 R 语言进行地理编码：地址解析经纬度、坐标转换 & 根据经纬度判断所处的省市区县 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/60905/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="由于高德地图接口的更新，之前的代码不再适用了，主要是两个更新：  高德地图的接口会根据一个地址返回多个结果； 高德地图不再建议一次解析多个地址了，会返回混乱的结果。 如果需要进行大量的解析，可以联系李老师帮忙，费用参考这个：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;6b44ce2712af47b6ba7b2a2fd74a4e68">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 R 语言进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县">
+<meta property="og:url" content="https://tidyfriday.cn/posts/60905/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="由于高德地图接口的更新，之前的代码不再适用了，主要是两个更新：  高德地图的接口会根据一个地址返回多个结果； 高德地图不再建议一次解析多个地址了，会返回混乱的结果。 如果需要进行大量的解析，可以联系李老师帮忙，费用参考这个：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;6b44ce2712af47b6ba7b2a2fd74a4e68">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/60905.png">
+<meta property="article:published_time" content="2022-06-06T17:27:41.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:45.181Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="地形与地理">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/60905.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 R 语言进行地理编码：地址解析经纬度、坐标转换 & 根据经纬度判断所处的省市区县">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 R 语言进行地理编码：地址解析经纬度、坐标转换 \u0026 根据经纬度判断所处的省市区县","description":"由于高德地图接口的更新，之前的代码不再适用了，主要是两个更新： 高德地图的接口会根据一个地址返回多个结果； 高德地图不再建议一次解析多个地址了，会返回混乱的结果。 如果需要进行大量的解析，可以联系李老师帮忙，费用参考这个：https://rstata.duanshu.com/#/course/6b44ce2712af47b6ba7b2a2fd74a4e68","url":"https://tidyfriday.cn/posts/60905/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/60905/"},"image":["https://tidyfriday.cn/og/60905.png"],"datePublished":"2022-06-06T17:27:41.000Z","dateModified":"2026-09-26T14:18:45.181Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"地形与地理, R 语言","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 R 语言进行地理编码：地址解析经纬度、坐标转换 \u0026 根据经纬度判断所处的省市区县","item":"https://tidyfriday.cn/posts/60905/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 R 语言进行地理编码：地址解析经纬度、坐标转换 & 根据经纬度判断所处的省市区县</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 R 语言进行地理编码：地址解析经纬度、坐标转换 & 根据经纬度判断所处的省市区县</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-06-06T17:27:41.000Z" itemprop="datePublished">2022-06-06</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3751 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 13 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%9C%B0%E5%BD%A2%E4%B8%8E%E5%9C%B0%E7%90%86">地形与地理</a><a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>由于高德地图接口的更新，之前的代码不再适用了，主要是两个更新：</p>
+<ol>
+<li>高德地图的接口会根据一个地址返回多个结果；</li>
+<li>高德地图不再建议一次解析多个地址了，会返回混乱的结果。</li>
+<li>如果需要进行大量的解析，可以联系李老师帮忙，费用参考这个：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/6b44ce2712af47b6ba7b2a2fd74a4e68">https://rstata.duanshu.com/#/course/6b44ce2712af47b6ba7b2a2fd74a4e68</a></li>
+</ol>
+</blockquote>
+<span id="more"></span>
+
+<p>之前给大家讲解过根据地址解析经纬度并根据经纬度判断所处的省市区县的方法，不过那个方法效率较低，面对数百万地址的工作就显得力不从心了。今天再给大家介绍一套无比高效的解析流程。</p>
+<p>这套工作流程包含下面几个过程：</p>
+<ol>
+<li>使用高德地图地理编码接口解析（多线程）；</li>
+<li>反复重复上述过程，直到筛选出那些无法使用高德地图地理编码接口解析成功的地址；</li>
+<li>然后使用百度地图地理编码接口解析上面的操作没有成功的部分；</li>
+<li>合并所有的解析结果；</li>
+<li>GCJ02 坐标转换成 WGS84 坐标；</li>
+<li>使用地理计算根据经纬度判断所处的省市区县。</li>
+</ol>
+<p>下面就让我们以金融机构网点数据的地理编码为例进行讲解。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/03/23/17/02b79j1bdbe1b168g4/common/content/1711186201210_361189.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="加载所需的-R-包" class="article-heading"><a href="#加载所需的-R-包" class="headerlink" title="加载所需的 R 包"></a>加载所需的 R 包<a class="article-anchor" href="#加载所需的-R-包" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载 R 包</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>parallel<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="读取金融机构网点数据" class="article-heading"><a href="#读取金融机构网点数据" class="headerlink" title="读取金融机构网点数据"></a>读取金融机构网点数据<a class="article-anchor" href="#读取金融机构网点数据" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 读取 xlsx 文件</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;金融机构网点数据.xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 选择前 1000 个</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">1000</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成 id 变量来标识观测值</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> row.names<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br></pre></td></tr></table></figure>
+
+<p>我们下面就以这一千个地址为例进行讲解。</p>
+<p>选择感兴趣的变量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> 机构名称<span class="punctuation">,</span> 机构所在地<span class="punctuation">,</span> 机构地址<span class="punctuation">,</span> 地址代码<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsim</span><br></pre></td></tr></table></figure>
+
+<h2 id="申请高德地图和百度地图的密钥" class="article-heading"><a href="#申请高德地图和百度地图的密钥" class="headerlink" title="申请高德地图和百度地图的密钥"></a>申请高德地图和百度地图的密钥<a class="article-anchor" href="#申请高德地图和百度地图的密钥" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
+<li>高德地图文档：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://lbs.amap.com/api/webservice/guide/api/georegeo">https://lbs.amap.com/api/webservice/guide/api/georegeo</a></li>
+<li>百度地图文档：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-geocoding-base">https://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-geocoding-base</a></li>
+</ol>
+<p>高德地图的 city 参数既可以是城市名称也可以是城市区划代码，百度地图的 city 参数只能是城市名称，所以我们需要准备两个 city 变量。</p>
+<h2 id="准备数据" class="article-heading"><a href="#准备数据" class="headerlink" title="准备数据"></a>准备数据<a class="article-anchor" href="#准备数据" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsim <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>address <span class="operator">=</span> 机构地址<span class="punctuation">,</span></span><br><span class="line">         citygd <span class="operator">=</span> 地址代码<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>citybd <span class="operator">=</span> str_match<span class="punctuation">(</span>机构所在地<span class="punctuation">,</span> <span class="string">&quot;-+(.*)&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">         citybd <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>citybd<span class="punctuation">)</span><span class="punctuation">,</span> 机构所在地<span class="punctuation">,</span> citybd<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> 机构名称<span class="punctuation">,</span> address<span class="punctuation">,</span> citybd<span class="punctuation">,</span> citygd<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsim</span><br><span class="line">dfsim</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,000 × 5</span></span><br><span class="line"><span class="comment">#&gt;    id    机构名称                         address                  citybd citygd</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;chr&gt;                            &lt;chr&gt;                    &lt;chr&gt;  &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 1     中国农业发展银行北京市分行       北京市丰台区南四环西路1… 北京市 1100</span></span><br><span class="line"><span class="comment">#&gt;  2 2     中国农业发展银行天津市分行       天津市河西区吴家窑大街…  天津市 1200</span></span><br><span class="line"><span class="comment">#&gt;  3 3     中国农业发展银行河北省分行       河北省石家庄市中华南大…  石家…  1301</span></span><br><span class="line"><span class="comment">#&gt;  4 4     中国农业发展银行山西省分行       山西省太原市康乐街38号   太原市 1401</span></span><br><span class="line"><span class="comment">#&gt;  5 5     中国农业发展银行内蒙古自治区分行 内蒙古自治区呼和浩特市…  呼和…  1501</span></span><br><span class="line"><span class="comment">#&gt;  6 6     中国农业发展银行辽宁省分行       辽宁省沈阳市沈河区惠工…  沈阳市 2101</span></span><br><span class="line"><span class="comment">#&gt;  7 7     中国农业发展银行吉林省分行       吉林省长春市解放大路273… 长春市 2201</span></span><br><span class="line"><span class="comment">#&gt;  8 8     中国农业发展银行黑龙江省分行     黑龙江省哈尔滨市道里区…  哈尔…  2301</span></span><br><span class="line"><span class="comment">#&gt;  9 9     中国农业发展银行上海市分行       上海市延安东路45号       上海市 3100</span></span><br><span class="line"><span class="comment">#&gt; 10 10    中国农业发展银行江苏省分行       江苏省南京市汉中路120号… 南京市 3201</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 990 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="使用高德地图解析" class="article-heading"><a href="#使用高德地图解析" class="headerlink" title="使用高德地图解析"></a>使用高德地图解析<a class="article-anchor" href="#使用高德地图解析" aria-label="本节链接" title="复制本节链接"></a></h2><p>在这套工作流程中我们会优先使用高德地图地理编码接口进行解析，因为高德地图支持更高的 QPS（每秒请求的次数）。不过不幸运的是现在的高德和百度都只提供每日 5000 次的免费额度，难以进行大量的解析。</p>
+<blockquote>
+<p>这里插播一条广告。如果大家需要大量的解析，可以考虑联系李老师帮忙解析。费用可以参考这个：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/6b44ce2712af47b6ba7b2a2fd74a4e68">https://rstata.duanshu.com/#/course/6b44ce2712af47b6ba7b2a2fd74a4e68</a></p>
+</blockquote>
+<p>例如解析 1 条地址：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsim <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>address <span class="operator">=</span> paste0<span class="punctuation">(</span>address<span class="punctuation">,</span> 机构名称<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         address <span class="operator">=</span> str_replace_all<span class="punctuation">(</span>address<span class="punctuation">,</span> <span class="string">&quot;#&quot;</span><span class="punctuation">,</span> <span class="string">&quot;号&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsim2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果数据里面没有城市变量，直接去掉 “&amp;city=...” 即可</span></span><br><span class="line">paste0<span class="punctuation">(</span><span class="string">&quot;https://restapi.amap.com/v3/geocode/geo?address=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>address<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;&amp;key=50828d53749c02431a65192f7c092a77&amp;city=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>citygd<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> url</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取解析 json 文件</span></span><br><span class="line">fromJSON<span class="punctuation">(</span>url<span class="punctuation">)</span> <span class="operator">-&gt;</span> <span class="built_in">list</span></span><br><span class="line"><span class="built_in">list</span><span class="operator">$</span>geocodes <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>formatted_address<span class="punctuation">,</span> province<span class="punctuation">,</span> city<span class="punctuation">,</span></span><br><span class="line">         district<span class="punctuation">,</span> location<span class="punctuation">,</span> level<span class="punctuation">)</span> <span class="operator">-&gt;</span> geodf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 与之前的 temp 合并</span></span><br><span class="line">geodf<span class="operator">$</span>id <span class="operator">&lt;-</span> dfsim2<span class="operator">$</span>id<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">geodf</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 3 × 7</span></span><br><span class="line"><span class="comment">#&gt;   formatted_address                province city   district location level id</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;                            &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 北京市丰台区中国农业发展银行(北… 北京市   北京市 丰台区   116.329… 兴趣… 1</span></span><br><span class="line"><span class="comment">#&gt; 2 北京市丰台区南四环西路186号院    北京市   北京市 丰台区   116.295… 门址  1</span></span><br><span class="line"><span class="comment">#&gt; 3 北京市丰台区南四环西路186号      北京市   北京市 丰台区   116.283… 门牌… 1</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就完成了 1 个地址的解析，得到了三个结果。我们先把所有的结果都保留，最后再筛选。</p>
+<p>由此我们就可以设计一个循环处理所有的了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建一个文件夹保存结果</span></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;rds1&quot;</span><span class="punctuation">)</span></span><br><span class="line">lapply<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>dfsim2<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="comment"># print(x)</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;rds1/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    suppressMessages<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      suppressWarnings<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">        try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">          paste0<span class="punctuation">(</span><span class="string">&quot;https://restapi.amap.com/v3/geocode/geo?address=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>address<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                 <span class="string">&quot;&amp;key=50828d53749c02431a65192f7c092a77&amp;city=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>citygd<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> url</span><br><span class="line"></span><br><span class="line">          <span class="comment"># 读取解析 json 文件</span></span><br><span class="line">          fromJSON<span class="punctuation">(</span>url<span class="punctuation">)</span> <span class="operator">-&gt;</span> <span class="built_in">list</span></span><br><span class="line">          <span class="built_in">list</span><span class="operator">$</span>geocodes <span class="operator">%&gt;%</span></span><br><span class="line">            as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">            select<span class="punctuation">(</span>formatted_address<span class="punctuation">,</span> province<span class="punctuation">,</span> city<span class="punctuation">,</span></span><br><span class="line">                   district<span class="punctuation">,</span> location<span class="punctuation">,</span> level<span class="punctuation">)</span> <span class="operator">-&gt;</span> geodf</span><br><span class="line"></span><br><span class="line">          <span class="comment"># 添加 id 变量</span></span><br><span class="line">          geodf<span class="operator">$</span>id <span class="operator">&lt;-</span> dfsim2<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">          <span class="comment"># 保存</span></span><br><span class="line">          geodf <span class="operator">%&gt;%</span></span><br><span class="line">            mutate_all<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">            write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;rds1/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<h2 id="多线程解析" class="article-heading"><a href="#多线程解析" class="headerlink" title="多线程解析"></a>多线程解析<a class="article-anchor" href="#多线程解析" aria-label="本节链接" title="复制本节链接"></a></h2><p>搭配上多线程，这个解析效率就会被极大的提高，当然这个线程数量得根据你自己电脑的实际情况来设定。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看自己电脑的最大线程数</span><br><span class="line">detectCores()</span><br><span class="line"># 创建线程，也别太高：</span><br><span class="line">makeCluster(36) -&gt; cl</span><br><span class="line"></span><br><span class="line"># 分发对象</span><br><span class="line">clusterExport(cl, &quot;dfsim2&quot;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载 R 包</span></span><br><span class="line">clusterEvalQ<span class="punctuation">(</span>cl<span class="punctuation">,</span> expr <span class="operator">=</span> <span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">  library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">  library<span class="punctuation">(</span>jsonlite<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环（可以多运行几次）</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>dfsim2<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;rds1/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    suppressMessages<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      suppressWarnings<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">        try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">          paste0<span class="punctuation">(</span><span class="string">&quot;https://restapi.amap.com/v3/geocode/geo?address=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>address<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                 <span class="string">&quot;&amp;key=50828d53749c02431a65192f7c092a77&amp;city=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>citygd<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> url</span><br><span class="line"></span><br><span class="line">          <span class="comment"># 读取解析 json 文件</span></span><br><span class="line">          fromJSON<span class="punctuation">(</span>url<span class="punctuation">)</span> <span class="operator">-&gt;</span> <span class="built_in">list</span></span><br><span class="line">          <span class="built_in">list</span><span class="operator">$</span>geocodes <span class="operator">%&gt;%</span></span><br><span class="line">            as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">            select<span class="punctuation">(</span>formatted_address<span class="punctuation">,</span> province<span class="punctuation">,</span> city<span class="punctuation">,</span></span><br><span class="line">                   district<span class="punctuation">,</span> location<span class="punctuation">,</span> level<span class="punctuation">)</span> <span class="operator">-&gt;</span> geodf</span><br><span class="line"></span><br><span class="line">          <span class="comment"># 添加 id 变量</span></span><br><span class="line">          geodf<span class="operator">$</span>id <span class="operator">&lt;-</span> dfsim2<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line">          <span class="comment"># 保存</span></span><br><span class="line">          geodf <span class="operator">%&gt;%</span></span><br><span class="line">            mutate_all<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">            write_rds<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;rds1/&quot;</span><span class="punctuation">,</span> x<span class="punctuation">,</span> <span class="string">&quot;.rds&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<p>合并结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;rds1&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> readr<span class="operator">::</span>read_rds<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1</span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,487 × 7</span></span><br><span class="line"><span class="comment">#&gt;    formatted_address                province city  district location level id</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt;                            &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 北京市丰台区中国农业发展银行(北… 北京市   北京… 丰台区   116.329… 兴趣… 1</span></span><br><span class="line"><span class="comment">#&gt;  2 北京市丰台区南四环西路186号院    北京市   北京… 丰台区   116.295… 门址  1</span></span><br><span class="line"><span class="comment">#&gt;  3 北京市丰台区南四环西路186号      北京市   北京… 丰台区   116.283… 门牌… 1</span></span><br><span class="line"><span class="comment">#&gt;  4 江苏省南京市鼓楼区汉中路120号青… 江苏省   南京… 鼓楼区   118.777… 兴趣… 10</span></span><br><span class="line"><span class="comment">#&gt;  5 河北省秦皇岛市海港区燕山大街东…  河北省   秦皇… 海港区   119.622… 门牌… 100</span></span><br><span class="line"><span class="comment">#&gt;  6 河北省秦皇岛市                   河北省   秦皇… charact… 119.520… 市    100</span></span><br><span class="line"><span class="comment">#&gt;  7 山西省吕梁市岚县向阳路122号      山西省   吕梁… 岚县     111.669… 门址  1000</span></span><br><span class="line"><span class="comment">#&gt;  8 山西省吕梁市交口县农业发展银行(… 山西省   吕梁… 交口县   111.171… 公交… 1000</span></span><br><span class="line"><span class="comment">#&gt;  9 河北省邯郸市丛台区百信大厦       河北省   邯郸… 丛台区   114.540… 兴趣… 101</span></span><br><span class="line"><span class="comment">#&gt; 10 河北省邯郸市丛台区东环北街       河北省   邯郸… 丛台区   114.527… 道路  101</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 1,477 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这一轮中解析成功的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  inner_join<span class="punctuation">(</span>dfsim2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_detect<span class="punctuation">(</span>location<span class="punctuation">,</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span>str_sub<span class="punctuation">(</span>city<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">==</span> str_sub<span class="punctuation">(</span>citybd<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dplyr<span class="operator">::</span>filter<span class="punctuation">(</span><span class="operator">!</span>level <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;省&quot;</span><span class="punctuation">,</span> <span class="string">&quot;市&quot;</span><span class="punctuation">,</span> <span class="string">&quot;县&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1success</span><br></pre></td></tr></table></figure>
+
+<p>筛选出没成功的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsim2 <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>select<span class="punctuation">(</span>df1success<span class="punctuation">,</span> id<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsim2</span><br><span class="line"></span><br><span class="line">dfsim2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 47 × 5</span></span><br><span class="line"><span class="comment">#&gt;    id    机构名称                                   address        citybd citygd</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;chr&gt;                                      &lt;chr&gt;          &lt;chr&gt;  &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 65    中国农业发展银行天津市武清区支行           天津市武清区…  天津市 1200</span></span><br><span class="line"><span class="comment">#&gt;  2 178   中国农业发展银行巢湖市分行                 巢湖市健康东…  巢湖市 3414</span></span><br><span class="line"><span class="comment">#&gt;  3 210   中国农业发展银行莱芜市分行                 济南市莱芜区…  莱芜市 3712</span></span><br><span class="line"><span class="comment">#&gt;  4 291   中国农业发展银行重庆市万州分行             重庆市万州区…  万州   5001</span></span><br><span class="line"><span class="comment">#&gt;  5 292   中国农业发展银行重庆市涪陵分行             重庆市涪陵区…  涪陵   5002</span></span><br><span class="line"><span class="comment">#&gt;  6 317   中国农业发展银行黔西南布依族苗族自治州分行 贵州省兴义市…  黔西…  5223</span></span><br><span class="line"><span class="comment">#&gt;  7 328   中国农业发展银行楚雄彝族自治州分行         云南省楚雄市…  楚雄…  5323</span></span><br><span class="line"><span class="comment">#&gt;  8 332   中国农业发展银行大理白族自治州分行         大理市雪人路2… 大理…  5329</span></span><br><span class="line"><span class="comment">#&gt;  9 360   中国农业发展银行海东市分行                 青海省平安县…  海东…  6321</span></span><br><span class="line"><span class="comment">#&gt; 10 366   中国农业发展银行海西蒙古族藏族自治州分行   青海省德令哈…  海西…  6328</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 37 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以对解析没成功的地址进行调整，反复使用上面的代码尝试，最后实在无法成功的可以用百度地图再试试。</p>
+<h2 id="使用百度地图解析" class="article-heading"><a href="#使用百度地图解析" class="headerlink" title="使用百度地图解析"></a>使用百度地图解析<a class="article-anchor" href="#使用百度地图解析" aria-label="本节链接" title="复制本节链接"></a></h2><p>以“新疆石河子市东环路17号”为例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/geocoding/v3/?address=&quot;</span><span class="punctuation">,</span> <span class="string">&quot;新疆石河子市东环路17号&quot;</span><span class="punctuation">,</span></span><br><span class="line">       <span class="string">&quot;&amp;output=json&amp;ak=h4jN43d3ajnnXGzBHmIowERWwM2o6PIe&amp;ret_coordtype=gcj02ll&amp;city=&quot;</span><span class="punctuation">,</span> <span class="string">&quot;石河子市&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> url</span><br><span class="line">url <span class="operator">%&gt;%</span></span><br><span class="line">  fromJSON<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line"><span class="comment"># 经纬度</span></span><br><span class="line">tibble<span class="punctuation">(</span></span><br><span class="line">  location <span class="operator">=</span> paste0<span class="punctuation">(</span>lst<span class="operator">$</span>result<span class="operator">$</span>location<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  level <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>level<span class="punctuation">,</span></span><br><span class="line">  precise <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>precise<span class="punctuation">,</span></span><br><span class="line">  confidence <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>confidence<span class="punctuation">,</span></span><br><span class="line">  comprehension <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>comprehension</span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1 × 5</span></span><br><span class="line"><span class="comment">#&gt;   location                          level precise confidence comprehension</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;                             &lt;chr&gt;   &lt;int&gt;      &lt;int&gt;         &lt;int&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 86.0438761147316,44.2956824882995 门址        1         80           100</span></span><br></pre></td></tr></table></figure>
+
+<p>于是就可以编写程序使用百度地图地理编码接口解析最后的了，百度地图的 QPS 较低，可以设置 5 进程：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfsim2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>address <span class="operator">=</span> str_remove_all<span class="punctuation">(</span>address<span class="punctuation">,</span> <span class="string">&quot; &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfsim2</span><br><span class="line"></span><br><span class="line">makeCluster<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cl</span><br><span class="line">clusterExport<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="string">&quot;dfsim2&quot;</span><span class="punctuation">)</span></span><br><span class="line">dir.create<span class="punctuation">(</span><span class="string">&quot;rds2&quot;</span><span class="punctuation">)</span></span><br><span class="line">parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> <span class="number">1</span><span class="operator">:</span>nrow<span class="punctuation">(</span>dfsim2<span class="punctuation">)</span><span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">if</span><span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;rds2/&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;.json&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    try<span class="punctuation">(</span><span class="punctuation">&#123;</span></span><br><span class="line">      download.file<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;https://api.map.baidu.com/geocoding/v3/?address=&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>address<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                           <span class="string">&quot;&amp;output=json&amp;ak=h4jN43d3ajnnXGzBHmIowERWwM2o6PIe&amp;ret_coordtype=gcj02ll&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                    paste0<span class="punctuation">(</span><span class="string">&quot;rds2/&quot;</span><span class="punctuation">,</span> dfsim2<span class="operator">$</span>id<span class="punctuation">[</span>x<span class="punctuation">]</span><span class="punctuation">,</span> <span class="string">&quot;.json&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br></pre></td></tr></table></figure>
+
+<p>合并结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fs<span class="operator">::</span>dir_ls<span class="punctuation">(</span><span class="string">&quot;rds2&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  parLapply<span class="punctuation">(</span>cl<span class="punctuation">,</span> .<span class="punctuation">,</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    jsonlite<span class="operator">::</span>fromJSON<span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="operator">-&gt;</span> lst</span><br><span class="line">    tibble<span class="operator">::</span>tibble<span class="punctuation">(</span></span><br><span class="line">      file <span class="operator">=</span> x<span class="punctuation">,</span></span><br><span class="line">      location <span class="operator">=</span> paste0<span class="punctuation">(</span>lst<span class="operator">$</span>result<span class="operator">$</span>location<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">      level <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>level<span class="punctuation">,</span></span><br><span class="line">      precise <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>precise<span class="punctuation">,</span></span><br><span class="line">      confidence <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>confidence<span class="punctuation">,</span></span><br><span class="line">      comprehension <span class="operator">=</span> lst<span class="operator">$</span>result<span class="operator">$</span>comprehension</span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  bind_rows<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfres2</span><br><span class="line">dfres2 <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>file <span class="operator">=</span> str_match<span class="punctuation">(</span>file<span class="punctuation">,</span> <span class="string">&quot;/(\\d+)&quot;</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>id <span class="operator">=</span> file<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfres2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 都成功了</span></span><br><span class="line">dfsim2 <span class="operator">%&gt;%</span></span><br><span class="line">  anti_join<span class="punctuation">(</span>dfres2 <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>id<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dfres2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> location<span class="punctuation">)</span> <span class="operator">-&gt;</span> df2success</span><br></pre></td></tr></table></figure>
+
+<h2 id="合并两轮结果" class="article-heading"><a href="#合并两轮结果" class="headerlink" title="合并两轮结果"></a>合并两轮结果<a class="article-anchor" href="#合并两轮结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>然后就可以一股脑的合并了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">bind_rows<span class="punctuation">(</span>df1success<span class="punctuation">,</span> df2success<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> location<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>id<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall</span><br><span class="line"></span><br><span class="line">dfall</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,000 × 2</span></span><br><span class="line"><span class="comment">#&gt;    id    location</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 1     116.329972,39.865275</span></span><br><span class="line"><span class="comment">#&gt;  2 10    118.777444,32.042588</span></span><br><span class="line"><span class="comment">#&gt;  3 100   119.622184,39.954267</span></span><br><span class="line"><span class="comment">#&gt;  4 1000  111.669041,38.278174</span></span><br><span class="line"><span class="comment">#&gt;  5 101   114.540470,36.609797</span></span><br><span class="line"><span class="comment">#&gt;  6 102   114.514144,37.081957</span></span><br><span class="line"><span class="comment">#&gt;  7 103   115.464429,38.877626</span></span><br><span class="line"><span class="comment">#&gt;  8 104   114.876108,40.785560</span></span><br><span class="line"><span class="comment">#&gt;  9 105   117.965845,40.912065</span></span><br><span class="line"><span class="comment">#&gt; 10 106   116.844956,38.282990</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 990 more rows</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="GCJ02-转-WGS84" class="article-heading"><a href="#GCJ02-转-WGS84" class="headerlink" title="GCJ02 转 WGS84"></a>GCJ02 转 WGS84<a class="article-anchor" href="#GCJ02-转-WGS84" aria-label="本节链接" title="复制本节链接"></a></h2><p>解析的结果是 GCJ02 坐标系的，不能直接使用，需要转换成 WGS84。</p>
+<p><code>坐标转换.R</code> 文件中有转换函数，具体函数的编写方法不重要，会使用即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">source<span class="punctuation">(</span><span class="string">&quot;坐标转换.R&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dfall <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>location<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;lng&quot;</span><span class="punctuation">,</span> <span class="string">&quot;lat&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">,</span> remove <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>经度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>lng<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         纬度 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>lat<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         value2 <span class="operator">=</span> map2_chr<span class="punctuation">(</span>经度<span class="punctuation">,</span> 纬度<span class="punctuation">,</span> GCJ02_WGS84<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  separate<span class="punctuation">(</span>value2<span class="punctuation">,</span> into <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;,&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  type_convert<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>lat<span class="punctuation">,</span> <span class="operator">-</span>lng<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> lat <span class="operator">=</span> 纬度<span class="punctuation">,</span> lng <span class="operator">=</span> 经度<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall2</span><br><span class="line"></span><br><span class="line">dfall2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,000 × 4</span></span><br><span class="line"><span class="comment">#&gt;       id   lat   lng location</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1     1  39.9  116. 116.329972,39.865275</span></span><br><span class="line"><span class="comment">#&gt;  2    10  32.0  119. 118.777444,32.042588</span></span><br><span class="line"><span class="comment">#&gt;  3   100  40.0  120. 119.622184,39.954267</span></span><br><span class="line"><span class="comment">#&gt;  4  1000  38.3  112. 111.669041,38.278174</span></span><br><span class="line"><span class="comment">#&gt;  5   101  36.6  115. 114.540470,36.609797</span></span><br><span class="line"><span class="comment">#&gt;  6   102  37.1  115. 114.514144,37.081957</span></span><br><span class="line"><span class="comment">#&gt;  7   103  38.9  115. 115.464429,38.877626</span></span><br><span class="line"><span class="comment">#&gt;  8   104  40.8  115. 114.876108,40.785560</span></span><br><span class="line"><span class="comment">#&gt;  9   105  40.9  118. 117.965845,40.912065</span></span><br><span class="line"><span class="comment">#&gt; 10   106  38.3  117. 116.844956,38.282990</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 990 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就完成了这一千个地址解析经纬度的工作。</p>
+<h2 id="根据经纬度判断所处的省市区县" class="article-heading"><a href="#根据经纬度判断所处的省市区县" class="headerlink" title="根据经纬度判断所处的省市区县"></a>根据经纬度判断所处的省市区县<a class="article-anchor" href="#根据经纬度判断所处的省市区县" aria-label="本节链接" title="复制本节链接"></a></h2><p>虽然上面的代码返回的有省市区县的结果，但是不够“整洁”，所以还不如用地理计算判断下。</p>
+<p>这里以 2021 年的数据为例，这里分别把地图数据和坐标数据都转换成了 mycrs 坐标系，这样进行判断的会更快：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/县.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> county</span><br><span class="line"></span><br><span class="line">dfall2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>location<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;lng&quot;</span><span class="punctuation">,</span> <span class="string">&quot;lat&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">,</span> remove <span class="operator">=</span> <span class="built_in">F</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>county<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>经度 <span class="operator">=</span> lng<span class="punctuation">,</span> 纬度 <span class="operator">=</span> lat<span class="punctuation">)</span> <span class="operator">-&gt;</span> dfall3</span><br><span class="line"></span><br><span class="line">dfall3</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,000 × 9</span></span><br><span class="line"><span class="comment">#&gt;       id  纬度  经度 省     省代码 市     市代码 县       县代码</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1   173  30.5  117. 安徽省 340000 安庆市 340800 迎江区   340802</span></span><br><span class="line"><span class="comment">#&gt;  2   455  30.5  117. 安徽省 340000 安庆市 340800 迎江区   340802</span></span><br><span class="line"><span class="comment">#&gt;  3   168  32.9  117. 安徽省 340000 蚌埠市 340300 龙子湖区 340302</span></span><br><span class="line"><span class="comment">#&gt;  4   450  32.9  117. 安徽省 340000 蚌埠市 340300 龙子湖区 340302</span></span><br><span class="line"><span class="comment">#&gt;  5   180  33.9  116. 安徽省 340000 亳州市 341600 谯城区   341602</span></span><br><span class="line"><span class="comment">#&gt;  6   181  30.7  117. 安徽省 340000 池州市 341700 贵池区   341702</span></span><br><span class="line"><span class="comment">#&gt;  7   175  32.3  118. 安徽省 340000 滁州市 341100 琅琊区   341102</span></span><br><span class="line"><span class="comment">#&gt;  8   457  32.3  118. 安徽省 340000 滁州市 341100 琅琊区   341102</span></span><br><span class="line"><span class="comment">#&gt;  9   176  32.9  116. 安徽省 340000 阜阳市 341200 颍州区   341202</span></span><br><span class="line"><span class="comment">#&gt; 10   458  32.9  116. 安徽省 340000 阜阳市 341200 颍州区   341202</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 990 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>最后再合并原数据即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>id<span class="punctuation">,</span> 机构名称<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>dfall3 <span class="operator">%&gt;%</span> mutate<span class="punctuation">(</span>id <span class="operator">=</span> <span class="built_in">as.character</span><span class="punctuation">(</span>id<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> dfres</span><br><span class="line"></span><br><span class="line">dfres</span><br><span class="line"></span><br><span class="line">dfres <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;经纬度解析结果.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 1,000 × 10</span></span><br><span class="line"><span class="comment">#&gt;    id    机构名称             纬度  经度 省     省代码 市    市代码 县    县代码</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;chr&gt;               &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 1     中国农业发展银行北…  39.9  116. 北京市 110000 北京… 110000 丰台… 110106</span></span><br><span class="line"><span class="comment">#&gt;  2 2     中国农业发展银行天…  39.1  117. 天津市 120000 天津… 120000 河西… 120103</span></span><br><span class="line"><span class="comment">#&gt;  3 3     中国农业发展银行河…  38.0  114. 河北省 130000 石家… 130100 桥西… 130104</span></span><br><span class="line"><span class="comment">#&gt;  4 4     中国农业发展银行山…  37.9  113. 山西省 140000 太原… 140100 迎泽… 140106</span></span><br><span class="line"><span class="comment">#&gt;  5 5     中国农业发展银行内…  40.8  112. 内蒙…  150000 呼和… 150100 赛罕… 150105</span></span><br><span class="line"><span class="comment">#&gt;  6 6     中国农业发展银行辽…  41.8  123. 辽宁省 210000 沈阳… 210100 沈河… 210103</span></span><br><span class="line"><span class="comment">#&gt;  7 7     中国农业发展银行吉…  43.9  125. 吉林省 220000 长春… 220100 朝阳… 220104</span></span><br><span class="line"><span class="comment">#&gt;  8 8     中国农业发展银行黑…  45.8  127. 黑龙…  230000 哈尔… 230100 道里… 230102</span></span><br><span class="line"><span class="comment">#&gt;  9 9     中国农业发展银行上…  31.2  121. 上海市 310000 上海… 310000 黄浦… 310101</span></span><br><span class="line"><span class="comment">#&gt; 10 10    中国农业发展银行江…  32.0  119. 江苏省 320000 南京… 320100 鼓楼… 320106</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 990 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就完成了经纬度解析。当然时间操作中经常会遇到更糟糕的情况，例如地址很乱、只有企业名称等。这个时候要非常谨慎，特别是对于只有企业名称的地址，建议先根据企业名称匹配工商注册信息，再根据工商注册信息中的地址解析经纬度。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/6f8633b486ed49e398c486d0d9f0f59a">使用 R 语言进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:45.181Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/63973/" title="2001～2020 年中国各省市区县归一化植被指数年度面板数据 &amp; 栅格数据（根据月度数据最大值合成的年度数据）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/58214/" title="使用 Stata 进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/24352/">R 语言：如何计算各国各地区质心经纬度、质心间距离矩阵及邻接矩阵</a><span class="tf-related-meta">2025-05-01 · 约 5 分钟</span></li><li><a href="/posts/94957/">如何计算区县质心的地理距离：R 语言和 Stata 的对比使用</a><span class="tf-related-meta">2024-04-13 · 约 5 分钟</span></li><li><a href="/posts/74173/">使用 R 语言绘制中国乡镇地图及根据经纬度判断所处的乡镇</a><span class="tf-related-meta">2024-03-19 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E6%89%80%E9%9C%80%E7%9A%84-R-%E5%8C%85"><span class="toc-text">加载所需的 R 包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E9%87%91%E8%9E%8D%E6%9C%BA%E6%9E%84%E7%BD%91%E7%82%B9%E6%95%B0%E6%8D%AE"><span class="toc-text">读取金融机构网点数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B3%E8%AF%B7%E9%AB%98%E5%BE%B7%E5%9C%B0%E5%9B%BE%E5%92%8C%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E7%9A%84%E5%AF%86%E9%92%A5"><span class="toc-text">申请高德地图和百度地图的密钥</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E6%95%B0%E6%8D%AE"><span class="toc-text">准备数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E9%AB%98%E5%BE%B7%E5%9C%B0%E5%9B%BE%E8%A7%A3%E6%9E%90"><span class="toc-text">使用高德地图解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%A7%A3%E6%9E%90"><span class="toc-text">多线程解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E8%A7%A3%E6%9E%90"><span class="toc-text">使用百度地图解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E4%B8%A4%E8%BD%AE%E7%BB%93%E6%9E%9C"><span class="toc-text">合并两轮结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GCJ02-%E8%BD%AC-WGS84"><span class="toc-text">GCJ02 转 WGS84</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B9%E6%8D%AE%E7%BB%8F%E7%BA%AC%E5%BA%A6%E5%88%A4%E6%96%AD%E6%89%80%E5%A4%84%E7%9A%84%E7%9C%81%E5%B8%82%E5%8C%BA%E5%8E%BF"><span class="toc-text">根据经纬度判断所处的省市区县</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 测算地区产业专业化指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/27665/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 Stata 测算地区产业专业化指标的方法。该指标参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 测算地区产业专业化指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/27665/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 Stata 测算地区产业专业化指标的方法。该指标参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/27665.png">
+<meta property="article:published_time" content="2026-08-04T22:20:31.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.048Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/27665.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 测算地区产业专业化指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 测算地区产业专业化指标","description":"今天给大家分享使用 Stata 测算地区产业专业化指标的方法。该指标参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 Krugman 式专业化指数。","url":"https://tidyfriday.cn/posts/27665/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/27665/"},"image":["https://tidyfriday.cn/og/27665.png"],"datePublished":"2026-08-04T22:20:31.000Z","dateModified":"2026-09-26T14:18:51.048Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, Stata","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 测算地区产业专业化指标","item":"https://tidyfriday.cn/posts/27665/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 测算地区产业专业化指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 测算地区产业专业化指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-08-04T22:20:31.000Z" itemprop="datePublished">2026-08-04</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2364 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享<strong>使用 Stata 测算地区产业专业化指标</strong>的方法。该指标参考自杨本建、唐金汶（2022）《数字经济与区域产业布局》中的公式 (2)，其思想源于 Kalemli-Ozcan et al. (2003) 与 Du et al. (2022) 的 <strong>Krugman 式专业化指数</strong>。</p>
+<span id="more"></span>
+
+<p>附件中提供了该参考文献的 PDF 文件（<code>数字经济与区域产业布局.pdf</code>），感兴趣的小伙伴可以阅读原文。</p>
+<p>本文使用工商企业注册信息（已裁剪为测算所需的 9 个变量，置于 <code>sample_data/</code> 文件夹），以 2000–2005 年为例，演示<strong>完整的 Stata 实现</strong>。对应思路亦可参考同一项目的 R 语言版本讲义。</p>
+<hr>
+<h2 id="指标来源与计算过程" class="article-heading"><a href="#指标来源与计算过程" class="headerlink" title="指标来源与计算过程"></a>指标来源与计算过程<a class="article-anchor" href="#指标来源与计算过程" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="地区产业专业化指数（公式）" class="article-heading"><a href="#地区产业专业化指数（公式）" class="headerlink" title="地区产业专业化指数（公式）"></a>地区产业专业化指数（公式）<a class="article-anchor" href="#地区产业专业化指数（公式）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/04/22/02b79j1bdbe1b168g4/common/content/1785853037944_423167.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="行业范围：制造业-C13–C43，剔除-C39" class="article-heading"><a href="#行业范围：制造业-C13–C43，剔除-C39" class="headerlink" title="行业范围：制造业 C13–C43，剔除 C39"></a>行业范围：制造业 C13–C43，剔除 C39<a class="article-anchor" href="#行业范围：制造业-C13–C43，剔除-C39" aria-label="本节链接" title="复制本节链接"></a></h3><p>按国民经济行业分类（GB/T 4754）的<strong>制造业门类</strong>，取 2 位行业大类代码 <strong>C13–C43</strong>，并<strong>剔除 C39（计算机、通信和其他电子设备制造业）</strong>。剔除 C39 的依据是论文第 248 页附录 1 的说明。</p>
+<h3 id="产业规模的代理变量" class="article-heading"><a href="#产业规模的代理变量" class="headerlink" title="产业规模的代理变量"></a>产业规模的代理变量<a class="article-anchor" href="#产业规模的代理变量" aria-label="本节链接" title="复制本节链接"></a></h3><p>以企业的<strong>注册资本</strong>作为行业规模的代理变量（主指标）；同时以<strong>企业数量</strong>作为稳健性口径。两者计算逻辑完全一致，仅在汇总时替换聚合字段。</p>
+<h3 id="存续企业的界定（进入与退出）" class="article-heading"><a href="#存续企业的界定（进入与退出）" class="headerlink" title="存续企业的界定（进入与退出）"></a>存续企业的界定（进入与退出）<a class="article-anchor" href="#存续企业的界定（进入与退出）" aria-label="本节链接" title="复制本节链接"></a></h3><p>参考李磊等（2023）的做法，按“进入—退出”口径统计每年各城市各行业的<strong>存续企业</strong>：</p>
+<ul>
+<li>进入：以企业的成立年份作为进入年份；</li>
+<li>退出：当经营状态含“注销/吊销/异常”时视为退出企业，退出年份取核准日期的年份；</li>
+<li>存续：在年份 t 满足“成立年份 ≤ t，且（未退出 或 退出年份 &gt; t）”的企业。</li>
+</ul>
+<h3 id="计算步骤概述" class="article-heading"><a href="#计算步骤概述" class="headerlink" title="计算步骤概述"></a>计算步骤概述<a class="article-anchor" href="#计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><ol>
+<li>读取与清洗：读取各年工商注册数据，仅保留制造业、有效城市代码、必需变量，并界定进入/退出年份；</li>
+<li>构建存续面板：对每个目标年份 t，筛选存活企业，按“城市 × 行业”汇总规模，得到城市×行业×年份存续企业规模面板；</li>
+<li>计算专业化指数：对每一年，按公式计算各城市的 spec 指数（注册资本口径 + 企业数量口径）；</li>
+<li>输出与可视化：导出结果 dta，并绘制趋势、分布与 Top 城市等图表。</li>
+</ol>
+<hr>
+<h2 id="详细讲解计算代码（Stata）" class="article-heading"><a href="#详细讲解计算代码（Stata）" class="headerlink" title="详细讲解计算代码（Stata）"></a>详细讲解计算代码（Stata）<a class="article-anchor" href="#详细讲解计算代码（Stata）" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="0-路径与参数" class="article-heading"><a href="#0-路径与参数" class="headerlink" title="0. 路径与参数"></a>0. 路径与参数<a class="article-anchor" href="#0-路径与参数" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先设定工程目录、输出目录、数据目录，以及制造业行业代码（正则形式）与所需变量。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- ---- 0. 路径与参数 ----</span><br><span class="line">cd &quot;/Users/ac/Desktop/使用 Stata 测算地区产业专业化指标/&quot;</span><br><span class="line">global proj_dir = c(pwd)</span><br><span class="line">global out_dir  &quot;$&#123;proj_dir&#125;/输出&quot;</span><br><span class="line">global data_dir &quot;$&#123;proj_dir&#125;/sample_data&quot;</span><br><span class="line">cap mkdir &quot;$&#123;out_dir&#125;&quot;</span><br><span class="line"></span><br><span class="line">*- 目标年份</span><br><span class="line">global file_years   2000 2001 2002 2003 2004 2005</span><br><span class="line">global target_years 2000 2001 2002 2003 2004 2005</span><br><span class="line"></span><br><span class="line">*- 制造业大类：C13-C43，剔除 C39（论文 248 页附录 1）</span><br><span class="line">*- 用正则判定行业大类落在 C13-C43 且非 C39（C39 不列入 alternation 即被排除）</span><br><span class="line">local mfg_pat &quot;13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|40|41|42|43&quot;</span><br><span class="line">di &quot;制造业大类正则（剔除 C39）：^C(`mfg_pat&#x27;)$&quot;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码中：</p>
+<ul>
+<li>脚本开头通过 cd “…” 切换到工程目录，再用 global proj_dir = c(pwd) 固定工程根目录，直接 do 运行即可，无需手动指定；</li>
+<li>制造业大类通过正则表达式 ^C(13|14|…|43)$ 判定（C39 不列入 alternation 即被排除）；</li>
+<li>因 Stata 变量名须为 ASCII，CSV 按列位置导入（varnames(nonames)），并 drop in 1 删除中文表头行，再用 rename (v1 v2 … v9) 改为英文变量名。</li>
+</ul>
+<h3 id="1-读取并清洗单个年份文件" class="article-heading"><a href="#1-读取并清洗单个年份文件" class="headerlink" title="1. 读取并清洗单个年份文件"></a>1. 读取并清洗单个年份文件<a class="article-anchor" href="#1-读取并清洗单个年份文件" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>import delimited</code> 读取每年 CSV，仅保留制造业且大类在 C13–C43（非 C39）、城市代码为 6 位数字，解析进入/退出年份，并剔除关键指标缺失或逻辑异常样本；最后把各年合并为企业级长表并缓存为 dta。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- ---- 1. 读取并清洗单个年份文件，合并为企业级长表 ----</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">use</span> <span class="string">&quot;$&#123;out_dir&#125;/firms_manufacturing_2000_2005.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">if</span> _rc != 0 &#123;</span><br><span class="line">    <span class="keyword">tempfile</span> all</span><br><span class="line">    <span class="keyword">local</span> first = 1</span><br><span class="line">    <span class="keyword">foreach</span> yr of <span class="keyword">global</span> file_years &#123;</span><br><span class="line">        <span class="keyword">di</span> <span class="string">&quot;读取 `yr&#x27;.csv ...&quot;</span></span><br><span class="line">        import delimited using <span class="string">&quot;$&#123;data_dir&#125;/`yr&#x27;.csv&quot;</span>, <span class="comment">///</span></span><br><span class="line">            varnames(nonames) encoding(<span class="string">&quot;utf-8&quot;</span>) <span class="keyword">clear</span></span><br><span class="line">        <span class="keyword">drop</span> <span class="keyword">in</span> 1   <span class="comment">// 删除中文表头行（varnames(nonames) 时首行被当作数据）</span></span><br><span class="line"><span class="comment">        *- 原始 9 列依次为：注册 行业门类 行业大类代码 经营状态 成立年份 核准日期 市 市代码</span></span><br><span class="line">        <span class="keyword">rename</span> (v1 v2 v3 v4 v5 v6 v7 v8 v9) <span class="comment">///</span></span><br><span class="line">               (cap_reg cap_paid ind_sector ind_code op_status entry_year_raw approve_date city city_code)</span><br><span class="line"><span class="comment">        *- (1) 仅保留制造业，且大类在 C13-C43 且非 C39</span></span><br><span class="line">        <span class="keyword">keep</span> <span class="keyword">if</span> ind_sector == <span class="string">&quot;制造业&quot;</span></span><br><span class="line">        <span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">regexm</span>(ind_code, <span class="string">&quot;^C(`mfg_pat&#x27;)$&quot;</span>)</span><br><span class="line"><span class="comment">        *- (2) 城市代码有效（6 位数字行政区划码）</span></span><br><span class="line">        <span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">regexm</span>(city_code, <span class="string">&quot;^[0-9][0-9][0-9][0-9][0-9][0-9]$&quot;</span>)</span><br><span class="line"><span class="comment">        *- 解析年份</span></span><br><span class="line">        <span class="keyword">destring</span> entry_year_raw, <span class="keyword">replace</span></span><br><span class="line">        <span class="keyword">rename</span> entry_year_raw entry_year</span><br><span class="line">        <span class="keyword">gen</span> approve_year = <span class="built_in">real</span>(<span class="built_in">substr</span>(approve_date, 1, 4))</span><br><span class="line">        <span class="keyword">destring</span> cap_reg cap_paid, <span class="keyword">replace</span> ignore(<span class="string">&quot;,&quot;</span>)</span><br><span class="line"><span class="comment">        *- (3) 经营状态含&quot;注销/吊销/异常&quot; 视为退出企业</span></span><br><span class="line">        <span class="keyword">gen</span> exited = (<span class="built_in">regexm</span>(op_status, <span class="string">&quot;销&quot;</span>) | <span class="built_in">regexm</span>(op_status, <span class="string">&quot;退&quot;</span>) | <span class="built_in">regexm</span>(op_status, <span class="string">&quot;异常&quot;</span>))</span><br><span class="line">        <span class="keyword">gen</span> exit_year = .</span><br><span class="line">        <span class="keyword">replace</span> exit_year = int(approve_year) <span class="keyword">if</span> exited &amp; !<span class="built_in">missing</span>(approve_year)</span><br><span class="line"><span class="comment">        *- (4) 剔除关键指标缺失、注册资本非正、退出早于成立</span></span><br><span class="line">        <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(entry_year) | <span class="built_in">missing</span>(cap_reg) | cap_reg &lt;= 0</span><br><span class="line">        <span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">missing</span>(exit_year) &amp; exit_year &lt; entry_year</span><br><span class="line"><span class="comment">        *- 仅保留需要的变量</span></span><br><span class="line">        <span class="keyword">keep</span> city_code city ind_code entry_year exit_year cap_reg cap_paid</span><br><span class="line">        <span class="keyword">if</span> <span class="symbol">`first&#x27;</span> == 1 &#123;</span><br><span class="line">            <span class="keyword">save</span> <span class="symbol">`all&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">            <span class="keyword">local</span> first = 0</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">append</span> using <span class="symbol">`all&#x27;</span></span><br><span class="line">            <span class="keyword">save</span> <span class="symbol">`all&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">di</span> <span class="string">&quot;清洗后制造业企业记录：`=_N&#x27; 条&quot;</span></span><br><span class="line">    <span class="keyword">save</span> <span class="string">&quot;$&#123;out_dir&#125;/firms_manufacturing_2000_2005.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">di</span> <span class="string">&quot;复用已存在的 firms_manufacturing_2000_2005.dta，共 `=_N&#x27; 条&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要点：</p>
+<ul>
+<li>keep if ind_sector == “制造业” 与 keep if regexm(ind_code, “^C(mfg_pat’)$”)` 完成行业筛选；</li>
+<li>regexm(op_status, “销”) | regexm(op_status, “退”) | regexm(op_status, “异常”) 判定退出企业；</li>
+<li>drop if missing(entry_year) | missing(cap_reg) | cap_reg &lt;= 0 与 drop if !missing(exit_year) &amp; exit_year &lt; entry_year 剔除无效/异常样本。</li>
+</ul>
+<h3 id="2-构建-城市×行业×年份-存续企业规模面板" class="article-heading"><a href="#2-构建-城市×行业×年份-存续企业规模面板" class="headerlink" title="2. 构建 城市×行业×年份 存续企业规模面板"></a>2. 构建 城市×行业×年份 存续企业规模面板<a class="article-anchor" href="#2-构建-城市×行业×年份-存续企业规模面板" aria-label="本节链接" title="复制本节链接"></a></h3><p>对目标年份 t 筛选“存续企业”（成立年份 ≤ t，且未退出或退出年份 &gt; t），按<code>城市 × 行业</code>汇总该年注册资本总额（<code>output_reg</code>）与企业数（<code>n_firm</code>），逐年份 append 后得到<code>城市×行业×年份</code>面板。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- ---- 2. 构建 城市×行业×年份 存续企业规模面板 ----</span><br><span class="line">*- 此处代码需要下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-计算-Krugman-式地区产业专业化指数" class="article-heading"><a href="#3-计算-Krugman-式地区产业专业化指数" class="headerlink" title="3. 计算 Krugman 式地区产业专业化指数"></a>3. 计算 Krugman 式地区产业专业化指数<a class="article-anchor" href="#3-计算-Krugman-式地区产业专业化指数" aria-label="本节链接" title="复制本节链接"></a></h3><p>对某一年的<code>城市×行业</code>规模数据，计算各城市专业化指数。核心逻辑：</p>
+<ol>
+<li>求各城市该口径总规模 city_total，并计算各行业份额 share；</li>
+<li>通过 cross 补全“城市 × 行业”全网格，该城市该行业无企业时份额记为 0；</li>
+<li>对每个行业求全部城市份额之和 sum_share，则“其他城市平均份额”为 (sum_share - share)/(J-1)；</li>
+<li>计算差的平方 (share - other_avg)^2，跨行业求和即得该城市 spec。</li>
+</ol>
+<p>注册资本（<code>output_reg</code>）与企业数（<code>n_firm</code>）两个口径分别循环计算后合并。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- ---- 3. 计算 Krugman 式地区产业专业化指数 ----</span><br><span class="line">*- 此处代码需要下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="合并结果并预览" class="article-heading"><a href="#合并结果并预览" class="headerlink" title="合并结果并预览"></a>合并结果并预览<a class="article-anchor" href="#合并结果并预览" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 合并两个口径的结果</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$&#123;out_dir&#125;/spec_spec_reg.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 year city_code using <span class="string">&quot;$&#123;out_dir&#125;/spec_spec_count.dta&quot;</span>, <span class="keyword">keep</span>(3) nogenerate</span><br><span class="line"><span class="keyword">keep</span> year city_code city n_city spec_reg spec_count</span><br><span class="line"><span class="keyword">sort</span> year city_code</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;$&#123;out_dir&#125;/地区产业专业化指数_2000_2005.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;步骤 4/4：输出结果 ……&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 各年城市数 J</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;各年城市数(J)：&quot;</span></span><br><span class="line"><span class="keyword">tabstat</span> n_city, <span class="keyword">by</span>(year) stat(<span class="keyword">mean</span>) <span class="keyword">format</span>(%9.0f) nototal</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 结果预览：2005 年专业化程度最高的 10 个城市</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;2005 年产业专业化指数最高的 10 个城市：&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$&#123;out_dir&#125;/地区产业专业化指数_2000_2005.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> year == 2005</span><br><span class="line"><span class="keyword">gsort</span> -spec_reg</span><br><span class="line"><span class="keyword">list</span> city spec_reg spec_count <span class="keyword">in</span> 1/10, noobs</span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;完成！结果已写入：$&#123;out_dir&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>运行结束后，<code>输出/地区产业专业化指数_2000_2005.dta</code> 包含变量：<code>year, city_code, city, n_city, spec_reg, spec_count</code>。</p>
+<hr>
+<h2 id="结果预览" class="article-heading"><a href="#结果预览" class="headerlink" title="结果预览"></a>结果预览<a class="article-anchor" href="#结果预览" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面用 R 的 <code>haven</code> 包读取 Stata 输出的 dta，展示 2005 年专业化指数最高的若干城市，便于核对（R 仅用于读表与制表，核心测算由上面的 Stata 代码完成）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">spec <span class="operator">&lt;-</span> read_dta<span class="punctuation">(</span>file.path<span class="punctuation">(</span>out_dir<span class="punctuation">,</span> <span class="string">&quot;地区产业专业化指数_2000_2005.dta&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">spec <span class="operator">&lt;-</span> spec <span class="operator">|&gt;</span></span><br><span class="line">  mutate<span class="punctuation">(</span>across<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>spec_reg<span class="punctuation">,</span> spec_count<span class="punctuation">,</span> n_city<span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">as.numeric</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">spec <span class="operator">|&gt;</span></span><br><span class="line">  filter<span class="punctuation">(</span>year <span class="operator">==</span> <span class="number">2005</span><span class="punctuation">)</span> <span class="operator">|&gt;</span></span><br><span class="line">  slice_max<span class="punctuation">(</span>spec_reg<span class="punctuation">,</span> n <span class="operator">=</span> <span class="number">15</span><span class="punctuation">)</span> <span class="operator">|&gt;</span></span><br><span class="line">  select<span class="punctuation">(</span>year<span class="punctuation">,</span> city<span class="punctuation">,</span> n_city<span class="punctuation">,</span> spec_reg<span class="punctuation">,</span> spec_count<span class="punctuation">)</span> <span class="operator">|&gt;</span></span><br><span class="line">  knitr<span class="operator">::</span>kable<span class="punctuation">(</span>digits <span class="operator">=</span> <span class="number">4</span><span class="punctuation">,</span></span><br><span class="line">               caption <span class="operator">=</span> <span class="string">&quot;2005 年产业专业化指数最高的 15 个城市（Stata 测算结果）&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/04/22/02b79j1bdbe1b168g4/common/content/1785853038378_991793.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="插图" class="article-heading"><a href="#插图" class="headerlink" title="插图"></a>插图<a class="article-anchor" href="#插图" aria-label="本节链接" title="复制本节链接"></a></h2><h2 id="数据可视化（Stata）" class="article-heading"><a href="#数据可视化（Stata）" class="headerlink" title="数据可视化（Stata）"></a>数据可视化（Stata）<a class="article-anchor" href="#数据可视化（Stata）" aria-label="本节链接" title="复制本节链接"></a></h2><p>结果可视化由 <code>02_可视化.do</code> 完成，使用 Stata 的 <code>twoway</code> / <code>graph box</code> / <code>graph hbar</code> 绘制三张图表。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/使用 Stata 测算地区产业专业化指标/&quot;</span></span><br><span class="line"><span class="keyword">global</span> proj_dir = c(<span class="keyword">pwd</span>)</span><br><span class="line"><span class="keyword">global</span> out_dir <span class="string">&quot;$&#123;proj_dir&#125;/输出&quot;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;$&#123;out_dir&#125;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;$&#123;out_dir&#125;/地区产业专业化指数_2000_2005.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 图1：各城市平均专业化指数随年份变化趋势 ----</span></span><br><span class="line"><span class="comment">*- 此处代码需要下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 图2：各年专业化指数分布（箱线图） ----</span></span><br><span class="line"><span class="keyword">graph</span> box spec_reg, over(year)  <span class="comment">///</span></span><br><span class="line">    ytitle(<span class="string">&quot;产业专业化指数 spec&quot;</span>) <span class="comment">///</span></span><br><span class="line">    title(<span class="string">&quot;各年份城市产业专业化指数分布 (2000-2005)&quot;</span>)                     <span class="comment">///</span></span><br><span class="line">    subtitle(<span class="string">&quot;箱线图展示全部城市的专业化指数分布及其演变&quot;</span>)                <span class="comment">///</span></span><br><span class="line">    <span class="keyword">note</span>(<span class="string">&quot;数据处理 &amp; 绘图：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">    ylabel(,<span class="keyword">format</span>(%6.1f))</span><br><span class="line"><span class="keyword">graph</span> export <span class="string">&quot;$&#123;out_dir&#125;/图2_专业化指数分布.png&quot;</span>, <span class="keyword">replace</span> width(2000) height(1200)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- ---- 图3：2005 年专业化程度最高的 20 城市 ----</span></span><br><span class="line"><span class="comment">*- 此处代码需要下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">di</span> <span class="string">&quot;三张图表已导出至：$&#123;out_dir&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="图1：各城市平均专业化指数随年份变化趋势" class="article-heading"><a href="#图1：各城市平均专业化指数随年份变化趋势" class="headerlink" title="图1：各城市平均专业化指数随年份变化趋势"></a>图1：各城市平均专业化指数随年份变化趋势<a class="article-anchor" href="#图1：各城市平均专业化指数随年份变化趋势" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/04/22/02b79j1bdbe1b168g4/common/content/1785853060686_943468.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="图2：各年专业化指数分布（箱线图）" class="article-heading"><a href="#图2：各年专业化指数分布（箱线图）" class="headerlink" title="图2：各年专业化指数分布（箱线图）"></a>图2：各年专业化指数分布（箱线图）<a class="article-anchor" href="#图2：各年专业化指数分布（箱线图）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/04/22/02b79j1bdbe1b168g4/common/content/1785853060931_216791.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="图3：2005-年专业化程度最高的-20-城市" class="article-heading"><a href="#图3：2005-年专业化程度最高的-20-城市" class="headerlink" title="图3：2005 年专业化程度最高的 20 城市"></a>图3：2005 年专业化程度最高的 20 城市<a class="article-anchor" href="#图3：2005-年专业化程度最高的-20-城市" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/04/22/02b79j1bdbe1b168g4/common/content/1785853061210_242837.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/9b63487fb7a6439ca747b3165b3e9364">名师讲堂｜使用 Stata 测算地区产业专业化指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.048Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/61278/" title="名师讲堂｜使用 Python 测算城市数字经济发展的工具变量"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/75631/" title="名师讲堂｜使用 R 语言测算地区产业专业化指标"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/53302/">名师讲堂｜使用 Stata 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-01 · 约 9 分钟</span></li><li><a href="/posts/37945/">名师讲堂｜使用 Stata 测算各城市数字产业集聚程度</a><span class="tf-related-meta">2026-06-15 · 约 7 分钟</span></li><li><a href="/posts/45787/">名师讲堂｜使用 Stata 测算区域技术专业化</a><span class="tf-related-meta">2026-05-26 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">指标来源与计算过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E5%8C%BA%E4%BA%A7%E4%B8%9A%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%EF%BC%88%E5%85%AC%E5%BC%8F%EF%BC%89"><span class="toc-text">地区产业专业化指数（公式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E4%B8%9A%E8%8C%83%E5%9B%B4%EF%BC%9A%E5%88%B6%E9%80%A0%E4%B8%9A-C13%E2%80%93C43%EF%BC%8C%E5%89%94%E9%99%A4-C39"><span class="toc-text">行业范围：制造业 C13–C43，剔除 C39</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A7%E4%B8%9A%E8%A7%84%E6%A8%A1%E7%9A%84%E4%BB%A3%E7%90%86%E5%8F%98%E9%87%8F"><span class="toc-text">产业规模的代理变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E7%9A%84%E7%95%8C%E5%AE%9A%EF%BC%88%E8%BF%9B%E5%85%A5%E4%B8%8E%E9%80%80%E5%87%BA%EF%BC%89"><span class="toc-text">存续企业的界定（进入与退出）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%B2%E8%A7%A3%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81%EF%BC%88Stata%EF%BC%89"><span class="toc-text">详细讲解计算代码（Stata）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0-%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%8F%82%E6%95%B0"><span class="toc-text">0. 路径与参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AF%BB%E5%8F%96%E5%B9%B6%E6%B8%85%E6%B4%97%E5%8D%95%E4%B8%AA%E5%B9%B4%E4%BB%BD%E6%96%87%E4%BB%B6"><span class="toc-text">1. 读取并清洗单个年份文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9E%84%E5%BB%BA-%E5%9F%8E%E5%B8%82%C3%97%E8%A1%8C%E4%B8%9A%C3%97%E5%B9%B4%E4%BB%BD-%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E8%A7%84%E6%A8%A1%E9%9D%A2%E6%9D%BF"><span class="toc-text">2. 构建 城市×行业×年份 存续企业规模面板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%AE%A1%E7%AE%97-Krugman-%E5%BC%8F%E5%9C%B0%E5%8C%BA%E4%BA%A7%E4%B8%9A%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0"><span class="toc-text">3. 计算 Krugman 式地区产业专业化指数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C%E5%B9%B6%E9%A2%84%E8%A7%88"><span class="toc-text">合并结果并预览</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E9%A2%84%E8%A7%88"><span class="toc-text">结果预览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E5%9B%BE"><span class="toc-text">插图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%EF%BC%88Stata%EF%BC%89"><span class="toc-text">数据可视化（Stata）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE1%EF%BC%9A%E5%90%84%E5%9F%8E%E5%B8%82%E5%B9%B3%E5%9D%87%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%E9%9A%8F%E5%B9%B4%E4%BB%BD%E5%8F%98%E5%8C%96%E8%B6%8B%E5%8A%BF"><span class="toc-text">图1：各城市平均专业化指数随年份变化趋势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE2%EF%BC%9A%E5%90%84%E5%B9%B4%E4%B8%93%E4%B8%9A%E5%8C%96%E6%8C%87%E6%95%B0%E5%88%86%E5%B8%83%EF%BC%88%E7%AE%B1%E7%BA%BF%E5%9B%BE%EF%BC%89"><span class="toc-text">图2：各年专业化指数分布（箱线图）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE3%EF%BC%9A2005-%E5%B9%B4%E4%B8%93%E4%B8%9A%E5%8C%96%E7%A8%8B%E5%BA%A6%E6%9C%80%E9%AB%98%E7%9A%84-20-%E5%9F%8E%E5%B8%82"><span class="toc-text">图3：2005 年专业化程度最高的 20 城市</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

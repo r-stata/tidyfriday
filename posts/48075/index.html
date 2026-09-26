@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/48075/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近有个小伙伴问到了这样的一个问题，他想对所有自变量的组合进行回归，然后从中筛选系数估计值均显著的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/48075/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近有个小伙伴问到了这样的一个问题，他想对所有自变量的组合进行回归，然后从中筛选系数估计值均显著的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/48075.png">
+<meta property="article:published_time" content="2023-06-03T16:27:12.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:52.666Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="计量与统计方法">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/48075.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？","description":"最近有个小伙伴问到了这样的一个问题，他想对所有自变量的组合进行回归，然后从中筛选系数估计值均显著的。","url":"https://tidyfriday.cn/posts/48075/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/48075/"},"image":["https://tidyfriday.cn/og/48075.png"],"datePublished":"2023-06-03T16:27:12.000Z","dateModified":"2026-09-26T14:18:52.666Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 计量与统计方法","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？","item":"https://tidyfriday.cn/posts/48075/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-06-03T16:27:12.000Z" itemprop="datePublished">2023-06-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1273 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E8%AE%A1%E9%87%8F%E4%B8%8E%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95">计量与统计方法</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近有个小伙伴问到了这样的一个问题，他想对所有自变量的组合进行回归，然后从中筛选系数估计值均显著的。</p>
+<span id="more"></span>
+
+<p>为此我们使用 auto 数据集进行演示：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>leaps<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>modelr<span class="punctuation">)</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;auto.dta&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> auto</span><br></pre></td></tr></table></figure>
+
+<p>假如我们想考虑这些变量：headroom trunk length displacement 对 mpg 的影响：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">auto <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>mpg<span class="punctuation">,</span> headroom<span class="punctuation">,</span> trunk<span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">,</span> displacement<span class="punctuation">)</span> <span class="operator">-&gt;</span> df</span><br><span class="line"></span><br><span class="line">df</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 74 × 5</span></span><br><span class="line"><span class="comment">#&gt;      mpg headroom trunk length displacement</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1    22      2.5    11    186          121</span></span><br><span class="line"><span class="comment">#&gt;  2    17      3      11    173          258</span></span><br><span class="line"><span class="comment">#&gt;  3    22      3      12    168          121</span></span><br><span class="line"><span class="comment">#&gt;  4    20      4.5    16    196          196</span></span><br><span class="line"><span class="comment">#&gt;  5    15      4      20    222          350</span></span><br><span class="line"><span class="comment">#&gt;  6    18      4      21    218          231</span></span><br><span class="line"><span class="comment">#&gt;  7    26      3      10    170          304</span></span><br><span class="line"><span class="comment">#&gt;  8    20      2      16    200          196</span></span><br><span class="line"><span class="comment">#&gt;  9    16      3.5    17    207          231</span></span><br><span class="line"><span class="comment">#&gt; 10    19      3.5    13    200          231</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 64 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>leaps 包可以实现选择最优模型的操作，不过结果不是很符合我们的需求，但是 leaps 包的 leaps() 函数可以返回所有可能的自变量组合，这样使用即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>leaps<span class="punctuation">)</span></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>headroom<span class="punctuation">,</span> trunk<span class="punctuation">,</span> <span class="built_in">length</span><span class="punctuation">,</span> displacement<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as.matrix<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> xm</span><br><span class="line"></span><br><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>mpg<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> y</span><br><span class="line"></span><br><span class="line">leaps<span class="punctuation">(</span>x <span class="operator">=</span> xm<span class="punctuation">,</span> y <span class="operator">=</span> y<span class="punctuation">)</span> <span class="operator">-&gt;</span> leapsdf</span><br><span class="line"></span><br><span class="line">leapsdf<span class="operator">$</span>which <span class="operator">-&gt;</span> regm</span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>regm<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt;       1     2     3     4</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE  TRUE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE FALSE  TRUE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE  TRUE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1  TRUE FALSE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 2 FALSE FALSE  TRUE  TRUE</span></span><br><span class="line"><span class="comment">#&gt; 2 FALSE  TRUE  TRUE FALSE</span></span><br></pre></td></tr></table></figure>
+
+<p>然后依次循环所有的 15 个模型：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">regm <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;headroom&quot;</span><span class="punctuation">,</span> <span class="string">&quot;trunk&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length&quot;</span><span class="punctuation">,</span> <span class="string">&quot;displacement&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>m <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>lmfit <span class="operator">=</span> map<span class="punctuation">(</span>m<span class="punctuation">,</span> <span class="operator">~</span>lm<span class="punctuation">(</span>y <span class="operator">~</span> xm<span class="punctuation">[</span><span class="punctuation">,</span>regm<span class="punctuation">[</span>.x<span class="punctuation">,</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> regdf</span><br><span class="line"><span class="comment">#&gt; # A tibble: 6 × 11</span></span><br><span class="line"><span class="comment">#&gt;       m headroom trunk length displacement term     estimate std.error statistic</span></span><br><span class="line"><span class="comment">#&gt;   &lt;int&gt; &lt;lgl&gt;    &lt;lgl&gt; &lt;lgl&gt;  &lt;lgl&gt;        &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1     1 FALSE    FALSE TRUE   FALSE        xm[, re…  -0.207    0.0185     -11.2</span></span><br><span class="line"><span class="comment">#&gt; 2     2 FALSE    FALSE FALSE  TRUE         xm[, re…  -0.0445   0.00526     -8.45</span></span><br><span class="line"><span class="comment">#&gt; 3     3 FALSE    TRUE  FALSE  FALSE        xm[, re…  -0.787    0.130       -6.07</span></span><br><span class="line"><span class="comment">#&gt; 4     4 TRUE     FALSE FALSE  FALSE        xm[, re…  -2.83     0.734       -3.86</span></span><br><span class="line"><span class="comment">#&gt; 5     8 FALSE    TRUE  FALSE  TRUE         xm[, re…  -0.327    0.138       -2.37</span></span><br><span class="line"><span class="comment">#&gt; 6     8 FALSE    TRUE  FALSE  TRUE         xm[, re…  -0.0352   0.00643     -5.47</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2 more variables: p.value &lt;dbl&gt;, pvalmax &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>broom 包的 tidy() 函数可以自动从模型中提取整洁的估计结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">regdf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>lmfit <span class="operator">=</span> map<span class="punctuation">(</span>lmfit<span class="punctuation">,</span> broom<span class="operator">::</span>tidy<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>lmfit<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>term <span class="operator">!=</span> <span class="string">&quot;(Intercept)&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>m<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 计算最大的 p 值</span></span><br><span class="line">  mutate<span class="punctuation">(</span>pvalmax <span class="operator">=</span> <span class="built_in">max</span><span class="punctuation">(</span>p.value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  <span class="comment"># 筛选 p 值均小于 0.05 的模型</span></span><br><span class="line">  filter<span class="punctuation">(</span>pvalmax <span class="operator">&lt;=</span> <span class="number">0.05</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>m<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 6 × 11</span></span><br><span class="line"><span class="comment">#&gt;       m headroom trunk length displacement term     estimate std.error statistic</span></span><br><span class="line"><span class="comment">#&gt;   &lt;int&gt; &lt;lgl&gt;    &lt;lgl&gt; &lt;lgl&gt;  &lt;lgl&gt;        &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1     1 FALSE    FALSE TRUE   FALSE        xm[, re…  -0.207    0.0185     -11.2</span></span><br><span class="line"><span class="comment">#&gt; 2     2 FALSE    FALSE FALSE  TRUE         xm[, re…  -0.0445   0.00526     -8.45</span></span><br><span class="line"><span class="comment">#&gt; 3     3 FALSE    TRUE  FALSE  FALSE        xm[, re…  -0.787    0.130       -6.07</span></span><br><span class="line"><span class="comment">#&gt; 4     4 TRUE     FALSE FALSE  FALSE        xm[, re…  -2.83     0.734       -3.86</span></span><br><span class="line"><span class="comment">#&gt; 5     8 FALSE    TRUE  FALSE  TRUE         xm[, re…  -0.327    0.138       -2.37</span></span><br><span class="line"><span class="comment">#&gt; 6     8 FALSE    TRUE  FALSE  TRUE         xm[, re…  -0.0352   0.00643     -5.47</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 2 more variables: p.value &lt;dbl&gt;, pvalmax &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了我们想要的结果。</p>
+<p>变量多一些也不是问题。首先我们生成一些新的随机变量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df <span class="operator">%&gt;%</span></span><br><span class="line">  mutate_at<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;headroom&quot;</span><span class="punctuation">,</span> <span class="string">&quot;trunk&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length&quot;</span><span class="punctuation">,</span> <span class="string">&quot;displacement&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            funs<span class="punctuation">(</span>`<span class="number">2</span>` = . * runif(n = 74))) %&gt;%</span><br><span class="line">  mutate_at(c(&quot;headroom&quot;, &quot;trunk&quot;, &quot;length&quot;, &quot;displacement&quot;),</span><br><span class="line">            funs(`3` = . * runif(n = 74))) -&gt; df2</span><br><span class="line">df2</span><br><span class="line"></span><br><span class="line">#&gt; # A tibble: 74 × 13</span><br><span class="line">#&gt;      mpg headroom trunk length displacement headroom_2 trunk_2 length_2</span><br><span class="line">#&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;</span><br><span class="line">#&gt;  1    22      2.5    11    186          121      1.54    2.07    178.</span><br><span class="line">#&gt;  2    17      3      11    173          258      1.35    4.11    152.</span><br><span class="line">#&gt;  3    22      3      12    168          121      2.25   10.2       1.19</span><br><span class="line">#&gt;  4    20      4.5    16    196          196      2.72   11.8     110.</span><br><span class="line">#&gt;  5    15      4      20    222          350      0.650   1.31    101.</span><br><span class="line">#&gt;  6    18      4      21    218          231      2.28   19.8      44.5</span><br><span class="line">#&gt;  7    26      3      10    170          304      2.51    5.08     20.9</span><br><span class="line">#&gt;  8    20      2      16    200          196      1.42    7.27     36.6</span><br><span class="line">#&gt;  9    16      3.5    17    207          231      3.44    0.790   128.</span><br><span class="line">#&gt; 10    19      3.5    13    200          231      2.00    7.18    150.</span><br><span class="line">#&gt; # ℹ 64 more rows</span><br><span class="line">#&gt; # ℹ 5 more variables: displacement_2 &lt;dbl&gt;, headroom_3 &lt;dbl&gt;, trunk_3 &lt;dbl&gt;,</span><br><span class="line">#&gt; #   length_3 &lt;dbl&gt;, displacement_3 &lt;dbl&gt;</span><br></pre></td></tr></table></figure>
+
+<p>现在总共有这么些变量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  colnames<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  dput<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; c(&quot;mpg&quot;, &quot;headroom&quot;, &quot;trunk&quot;, &quot;length&quot;, &quot;displacement&quot;, &quot;headroom_2&quot;,</span></span><br><span class="line"><span class="comment">#&gt; &quot;trunk_2&quot;, &quot;length_2&quot;, &quot;displacement_2&quot;, &quot;headroom_3&quot;, &quot;trunk_3&quot;,</span></span><br><span class="line"><span class="comment">#&gt; &quot;length_3&quot;, &quot;displacement_3&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p>为了不至于组合过多，选择这些变量：”mpg”, “headroom”, “trunk”, “length”, “displacement”, “headroom_2”, “trunk_2”, “length_2”, “displacement_2”, “headroom_3”：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="string">&quot;mpg&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom&quot;</span><span class="punctuation">,</span> <span class="string">&quot;trunk&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;displacement&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;trunk_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;displacement_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_3&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br></pre></td></tr></table></figure>
+
+<p>获取所有的组合：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="string">&quot;headroom&quot;</span><span class="punctuation">,</span> <span class="string">&quot;trunk&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;displacement&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;trunk_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">         <span class="string">&quot;displacement_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_3&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as.matrix<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> xm</span><br><span class="line"></span><br><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>mpg<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  pull<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> y</span><br><span class="line"></span><br><span class="line">leaps<span class="punctuation">(</span>x <span class="operator">=</span> xm<span class="punctuation">,</span> y <span class="operator">=</span> y<span class="punctuation">)</span> <span class="operator">-&gt;</span> leapsdf</span><br><span class="line"></span><br><span class="line">leapsdf<span class="operator">$</span>which <span class="operator">-&gt;</span> regm</span><br><span class="line"></span><br><span class="line">head<span class="punctuation">(</span>regm<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt;       1     2     3     4     5     6     7     8     9</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span></span><br><span class="line"><span class="comment">#&gt; 1 FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE</span></span><br></pre></td></tr></table></figure>
+
+<p>循环回归所有的组合并保留符合要求的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 循环</span></span><br><span class="line">regm <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  set_names<span class="punctuation">(</span><span class="string">&quot;headroom&quot;</span><span class="punctuation">,</span> <span class="string">&quot;trunk&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;displacement&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;trunk_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;length_2&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;displacement_2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;headroom_3&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>m <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>lmfit <span class="operator">=</span> map<span class="punctuation">(</span>m<span class="punctuation">,</span> <span class="operator">~</span>lm<span class="punctuation">(</span>y <span class="operator">~</span> xm<span class="punctuation">[</span><span class="punctuation">,</span>regm<span class="punctuation">[</span>.x<span class="punctuation">,</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> regdf</span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>broom<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">regdf <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>lmfit <span class="operator">=</span> map<span class="punctuation">(</span>lmfit<span class="punctuation">,</span> broom<span class="operator">::</span>tidy<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>lmfit<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>term <span class="operator">!=</span> <span class="string">&quot;(Intercept)&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>m<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>pvalmax <span class="operator">=</span> <span class="built_in">max</span><span class="punctuation">(</span>p.value<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>pvalmax <span class="operator">&lt;=</span> <span class="number">0.05</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>m<span class="punctuation">,</span> everything<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 8 × 16</span></span><br><span class="line"><span class="comment">#&gt;       m headroom trunk length displacement headroom_2 trunk_2 length_2</span></span><br><span class="line"><span class="comment">#&gt;   &lt;int&gt; &lt;lgl&gt;    &lt;lgl&gt; &lt;lgl&gt;  &lt;lgl&gt;        &lt;lgl&gt;      &lt;lgl&gt;   &lt;lgl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1     1 FALSE    FALSE TRUE   FALSE        FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 2     2 FALSE    FALSE FALSE  TRUE         FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 3     3 FALSE    TRUE  FALSE  FALSE        FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 4     4 FALSE    FALSE FALSE  FALSE        FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 5     5 TRUE     FALSE FALSE  FALSE        FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 6     6 FALSE    FALSE FALSE  FALSE        FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 7    18 FALSE    TRUE  FALSE  TRUE         FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; 8    18 FALSE    TRUE  FALSE  TRUE         FALSE      FALSE   FALSE</span></span><br><span class="line"><span class="comment">#&gt; # ℹ 8 more variables: displacement_2 &lt;lgl&gt;, headroom_3 &lt;lgl&gt;, term &lt;chr&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   estimate &lt;dbl&gt;, std.error &lt;dbl&gt;, statistic &lt;dbl&gt;, p.value &lt;dbl&gt;,</span></span><br><span class="line"><span class="comment">#&gt; #   pvalmax &lt;dbl&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就解决了这个问题。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/6bd79e8a332d4eb09c89adc5bb1f30d0">如何使用 R 语言生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:52.666Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/90178/" title="1929～2023 年 GSOD 气象站点数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/56187/" title="​如何使用 Stata 生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/89643/">Stata 和 R 语言绘图中如何快速的使用调色板？（新）</a><span class="tf-related-meta">2026-08-19 · 约 4 分钟</span></li><li><a href="/posts/14215/">2013～2024 年专精特新企业关键核心技术突破指标面板数据（熵权法）</a><span class="tf-related-meta">2026-05-05 · 约 5 分钟</span></li><li><a href="/posts/96076/">2007～2020 年税调企业关键核心技术突破指标面板数据（熵权法）</a><span class="tf-related-meta">2026-05-05 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

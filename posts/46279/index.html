@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/46279/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="中国城市温室气体工作组在其官网上公布了 2005、2010、2015 和 2020 四个年份的中国各城市 CO2 总排放数据，为了方便大家使用，这里分享一下这个数据的整理和绘图方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/46279/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="中国城市温室气体工作组在其官网上公布了 2005、2010、2015 和 2020 四个年份的中国各城市 CO2 总排放数据，为了方便大家使用，这里分享一下这个数据的整理和绘图方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/46279.png">
+<meta property="article:published_time" content="2023-05-29T17:53:45.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:34.473Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="人口">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="碳排放">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/46279.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标","description":"中国城市温室气体工作组在其官网上公布了 2005、2010、2015 和 2020 四个年份的中国各城市 CO2 总排放数据，为了方便大家使用，这里分享一下这个数据的整理和绘图方法。","url":"https://tidyfriday.cn/posts/46279/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/46279/"},"image":["https://tidyfriday.cn/og/46279.png"],"datePublished":"2023-05-29T17:53:45.000Z","dateModified":"2026-09-26T14:18:34.473Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"人口, 区域经济, 碳排放","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标","item":"https://tidyfriday.cn/posts/46279/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-05-29T17:53:45.000Z" itemprop="datePublished">2023-05-29</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1583 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BA%BA%E5%8F%A3">人口</a><a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=%E7%A2%B3%E6%8E%92%E6%94%BE">碳排放</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>中国城市温室气体工作组在其官网上公布了 2005、2010、2015 和 2020 四个年份的中国各城市 CO2 总排放数据，为了方便大家使用，这里分享一下这个数据的整理和绘图方法。</p>
+<span id="more"></span>
+
+<p>除了 CO2 总排放数据，该数据集还包含各领域的碳排放、常住人口、GDP 等指标：</p>
+<blockquote>
+<p>常住人口_万人、GDP_亿元、人均GDP_万元、农业、服务业、工业能源、工业过程、工业、城镇生活、农村生活、生活、道路、铁路、水运、航空、交通、能源、间接排放、直接排放、总排放、人均排放吨每人、单位总GDP二氧化碳排放、非化石能源占比</p>
+</blockquote>
+<p>首先我们从网站上下载四个年份的数据并重命名为：2005.xlsx、2010.xlsx、2015.xlsx 和 2020.xlsx。</p>
+<p>每个文件均包含二氧化碳排放数据和社会经济数据两个数据 sheet：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353533221_842599.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>循环处理 CO2 排放 sheet：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/中国城市CO2排放数据集/&quot;</span></span><br><span class="line"><span class="keyword">foreach</span> y <span class="keyword">in</span> 2005 2010 2015 2020 &#123;</span><br><span class="line"> import excel using <span class="string">&quot;`y&#x27;.xlsx&quot;</span>, first sheet(<span class="string">&quot;二氧化碳排放(万吨)&quot;</span>) <span class="keyword">clear</span></span><br><span class="line"> <span class="keyword">gen</span> 年份 = <span class="symbol">`y&#x27;</span></span><br><span class="line"> <span class="keyword">save</span> <span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并</span></span><br><span class="line"><span class="keyword">use</span> 2005, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using 2010</span><br><span class="line"><span class="keyword">append</span> using 2015</span><br><span class="line"><span class="keyword">append</span> using 2020</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 重命名</span></span><br><span class="line"><span class="keyword">ren</span> 省份Province 省份</span><br><span class="line"><span class="keyword">ren</span> 城市名称City 城市</span><br><span class="line"><span class="keyword">drop</span> C</span><br><span class="line"><span class="keyword">ren</span> 农业Agriculture 农业</span><br><span class="line"><span class="keyword">ren</span> 服务业Service 服务业</span><br><span class="line"><span class="keyword">ren</span> 工业能源Industrialenergy 工业能源</span><br><span class="line"><span class="keyword">ren</span> 工业过程Industrialprocesses 工业过程</span><br><span class="line"><span class="keyword">ren</span> 工业Industrialtotal 工业</span><br><span class="line"><span class="keyword">ren</span> 城镇生活Urbanhousehold 城镇生活</span><br><span class="line"><span class="keyword">ren</span> 农村生活Ruralhousehold 农村生活</span><br><span class="line"><span class="keyword">ren</span> 生活Household 生活</span><br><span class="line"><span class="keyword">ren</span> 道路Road 道路</span><br><span class="line"><span class="keyword">ren</span> 铁路Railway 铁路</span><br><span class="line"><span class="keyword">ren</span> 水运Waterbornenavigation 水运</span><br><span class="line"><span class="keyword">ren</span> 航空Aviation 航空</span><br><span class="line"><span class="keyword">ren</span> 交通Transport 交通</span><br><span class="line"><span class="keyword">ren</span> 能源Energy 能源</span><br><span class="line"><span class="keyword">ren</span> 间接排放Indirect 间接排放</span><br><span class="line"><span class="keyword">ren</span> 直接排放Direct 直接排放</span><br><span class="line"><span class="keyword">ren</span> 总排放<span class="keyword">Total</span> 总排放</span><br><span class="line"><span class="keyword">ren</span> 人均排放吨人Percapitaemissions 人均排放吨每人</span><br><span class="line"><span class="keyword">ren</span> 单位总GDP二氧化碳排放CO2emissionsperG 单位总GDP二氧化碳排放_吨每万元</span><br><span class="line"><span class="keyword">ren</span> 非化石能源占比Nonfossilenergy 非化石能源占比</span><br><span class="line"></span><br><span class="line"><span class="keyword">order</span> 年份</span><br><span class="line"><span class="keyword">save</span> CO2排放数据集, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>循环处理社会经济数据并和刚刚的数据合并：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 社会经济数据</span></span><br><span class="line"><span class="keyword">foreach</span> y <span class="keyword">in</span> 2005 2010 2015 2020 &#123;</span><br><span class="line"> import excel using <span class="string">&quot;`y&#x27;.xlsx&quot;</span>, first sheet(<span class="string">&quot;社会经济数据&quot;</span>) <span class="keyword">clear</span></span><br><span class="line"> <span class="keyword">gen</span> 年份 = <span class="symbol">`y&#x27;</span></span><br><span class="line"> <span class="keyword">save</span> <span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 2005, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using 2010</span><br><span class="line"><span class="keyword">append</span> using 2015</span><br><span class="line"><span class="keyword">append</span> using 2020</span><br><span class="line"><span class="keyword">ren</span> 省份Province 省份</span><br><span class="line"><span class="keyword">ren</span> 城市名称NameofCities 城市</span><br><span class="line"><span class="keyword">drop</span> 城市英文名称NameofCities</span><br><span class="line"><span class="keyword">ren</span> 常住人口万人Permanentpopulation104 常住人口_万人</span><br><span class="line"><span class="keyword">ren</span> GDP亿元GrossDomesticProduct10 GDP_亿元</span><br><span class="line"><span class="keyword">ren</span> 人均GDP万元GDPpercapita104RMB 人均GDP_万元</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">G</span> - <span class="keyword">L</span></span><br><span class="line"><span class="keyword">order</span> 年份</span><br><span class="line"><span class="keyword">merge</span> 1:1 年份 省份 城市 using CO2排放数据集</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">label</span> data <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2005～2020年中国各城市CO2排放与社会经济指标数据&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>删除无用的中间数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 删除中间数据</span><br><span class="line">cap erase 2005.dta</span><br><span class="line">cap erase 2010.dta</span><br><span class="line">cap erase 2015.dta</span><br><span class="line">cap erase 2020.dta</span><br><span class="line">cap erase CO2排放数据集.dta</span><br></pre></td></tr></table></figure>
+
+<p>为了方便大家使用，下面再给这个数据添加省市区县行政区划代码：</p>
+<p>首先根据 <code>2020cityco2map_db.dta</code> 文件提取省份区划代码列表和城市区划代码列表。这个文件是我特意为下面的地图绘制设计的地理数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 2020cityco2map_db.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 省 - 市代码</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">keep</span> 省*</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 省, force</span><br><span class="line"><span class="keyword">gen</span> z = <span class="built_in">substr</span>(省, 1, 6)</span><br><span class="line"><span class="keyword">save</span> provlist, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 2020cityco2map_db.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> 省 - 市代码</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="keyword">gen</span> z = <span class="built_in">substr</span>(市, 1, 6)</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">report</span> 省 z</span><br><span class="line"><span class="keyword">save</span> citylist, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后依次匹配上省份和城市的区划代码：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;2005～2020年中国各城市CO2排放与社会经济指标数据&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 省份匹配使用每个省的前两个字：</span></span><br><span class="line"><span class="keyword">gen</span> z = <span class="built_in">substr</span>(省, 1, 6)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 z using provlist</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> _m == 2</span><br><span class="line"><span class="keyword">drop</span> z _m 省份</span><br><span class="line"><span class="keyword">order</span> 年份 省*</span><br><span class="line"><span class="keyword">gen</span> z = <span class="built_in">substr</span>(城市, 1, 6)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 省 省代码 z using citylist</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> _m == 2</span><br><span class="line"></span><br><span class="line"><span class="keyword">order</span> 年份 省* 市*</span><br><span class="line"><span class="keyword">drop</span> z _merge</span><br><span class="line"><span class="keyword">destring</span> 市代码, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">drop</span> 城市</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2005～2020年中国各城市CO2排放与社会经济指标数据(带行政区划代码)&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">erase</span> <span class="string">&quot;2005～2020年中国各城市CO2排放与社会经济指标数据.dta&quot;</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">erase</span> citylist.dta</span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">erase</span> provlist.dta</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就处理好了这份数据。</p>
+<p>附件中我准备一份 Stata 绘制市级地图的数据，是为这份数据特意设计的，例如绘制各城市 CO2 总排放：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/中国城市CO2排放数据集/CO2排放城市地图数据/&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;2005～2020年中国各城市CO2排放与社会经济指标数据(带行政区划代码).dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tostring</span> 市代码, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">replace</span> 市代码 = <span class="string">&quot;&quot;</span> <span class="keyword">if</span> 市代码 == <span class="string">&quot;.&quot;</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 省 省代码 市 市代码 using 2020cityco2map_db.dta</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 总排放 = -1 <span class="keyword">if</span> <span class="built_in">missing</span>(总排放)</span><br><span class="line">nicecut 总排放, <span class="keyword">n</span>(8) unit(<span class="string">&quot;万吨&quot;</span>) <span class="keyword">format</span>(%6.0f)</span><br><span class="line">grmap 总排放 <span class="keyword">if</span> 年份 == 2020 | <span class="built_in">missing</span>(年份) using <span class="comment">///</span></span><br><span class="line">  2020cityco2map_coord.dta, <span class="comment">///</span></span><br><span class="line"> id(ID) osize(vvthin ...) ocolor(white ...) <span class="comment">///</span></span><br><span class="line"> clmethod(custom) clbreaks(`<span class="built_in">r</span>(cutpoints)&#x27;) <span class="comment">///</span></span><br><span class="line">    fcolor(gray <span class="string">&quot;255 255 229&quot;</span> <span class="string">&quot;247 252 185&quot;</span> <span class="string">&quot;217 240 163&quot;</span> <span class="string">&quot;173 221 142&quot;</span> <span class="string">&quot;120 198 121&quot;</span> <span class="string">&quot;65 171 93&quot;</span> <span class="string">&quot;35 132 67&quot;</span> <span class="string">&quot;0 90 50&quot;</span>) <span class="comment">///</span></span><br><span class="line">    leg(<span class="keyword">order</span>(`<span class="built_in">r</span>(legorder)&#x27;)) <span class="comment">///</span></span><br><span class="line"> graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line"> <span class="keyword">line</span>(data(2020cityco2map_line_coord3.dta) <span class="keyword">by</span>(group) <span class="comment">///</span></span><br><span class="line">  select(<span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 4, 7)) <span class="comment">///</span></span><br><span class="line">  size(vvthin *1 *0.5 *0.5 *0.5) pattern(solid ...) <span class="comment">///</span></span><br><span class="line">  color(white <span class="comment">/// 市界颜色</span></span><br><span class="line">     black <span class="comment">/// 国界线颜色</span></span><br><span class="line">     <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">     black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">     black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">     )) <span class="comment">///</span></span><br><span class="line"> polygon(data(polygon3) fcolor(black) <span class="comment">///</span></span><br><span class="line">  osize(vvthin)) <span class="comment">///</span></span><br><span class="line"> <span class="keyword">label</span>(data(2020cityco2map_label3) x(X) <span class="built_in">y</span>(Y)  <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.6) <span class="comment">///</span></span><br><span class="line">  select(<span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(cname, <span class="string">&quot;1000km&quot;</span>, <span class="string">&quot;N&quot;</span>))) <span class="comment">///</span></span><br><span class="line"> ti(<span class="string">&quot;2020 年中国各城市总碳排放分布&quot;</span>) <span class="comment">///</span></span><br><span class="line"> subti(<span class="string">&quot;绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line"> caption(<span class="string">&quot;数据来源：中国城市温室气体工作组&quot;</span>, size(*0.7))</span><br><span class="line"><span class="keyword">gr</span> export pic1.png, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353774222_277257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>比较历年的 CO2 排放量：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353773660_415148.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这里我是使用 grc1leg 命令（类似 graph combine，不过可以自动合并图例）直接合并四个地图，不过感觉效果不好，实际使用中还是建议大家使用 PPT 等工具后期拼图。</p>
+<p>该数据里面还有常住人口和地区生产总值数据：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353774667_271772.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353775072_717164.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>除了 CO2 总排放量，该数据里面还有各个领域的碳排放量，例如农业和工业的：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353775566_298334.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/05/29/17/02b79j1bdbe1b168g4/common/content/1685353775971_775619.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/608f6e3072544db1afa41f8b78d81e56">2005～2020 年各城市总碳排放、人均碳排放、各领域碳排放、常住人口、地区生产总值等指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:34.473Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/29944/" title="旧版本｜1999～2022 年中国城市统计年鉴面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/52885/" title="使用 Stata 绘制欧洲各国地图（带指北针和比例尺）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/50044/">2000～2024 年各城市多中心程度和人口集聚程度面板数据（Landscan 来源）</a><span class="tf-related-meta">2026-03-17 · 约 2 分钟</span></li><li><a href="/posts/34510/">1990～2022 年各城市多中心程度和人口集聚程度面板数据（GlobPOP来源）</a><span class="tf-related-meta">2024-11-20 · 约 2 分钟</span></li><li><a href="/posts/90001/">2000～2023 年各城市多中心程度和人口集聚程度面板数据（Landscan 来源）</a><span class="tf-related-meta">2024-11-14 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

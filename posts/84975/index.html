@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 计算上市公司供应链地理加权距离 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/84975/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="插图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 计算上市公司供应链地理加权距离">
+<meta property="og:url" content="https://tidyfriday.cn/posts/84975/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="插图">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/84975.png">
+<meta property="article:published_time" content="2026-05-08T23:28:12.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.332Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/84975.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 计算上市公司供应链地理加权距离">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 计算上市公司供应链地理加权距离","description":"插图","url":"https://tidyfriday.cn/posts/84975/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/84975/"},"image":["https://tidyfriday.cn/og/84975.png"],"datePublished":"2026-05-08T23:28:12.000Z","dateModified":"2026-09-26T14:18:49.332Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, 上市公司, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 计算上市公司供应链地理加权距离","item":"https://tidyfriday.cn/posts/84975/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 计算上市公司供应链地理加权距离</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 计算上市公司供应链地理加权距离</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-08T23:28:12.000Z" itemprop="datePublished">2026-05-08</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4033 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 13 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>插图</p>
+<span id="more"></span>
+
+<p>由于借助 AI 工具学习编程已经变得非常容易了，因此之后的课程就不再默认进行视频讲解了，如果特别需要视频讲解也可以联系李老师预约讲解～讲义材料学习过程中遇到的问题也可以及时与李老师联系。</p>
+<p>购买 RStata 名师讲堂会员即可参加该课程啦（之前的和未来的都可以参加）！</p>
+<blockquote>
+<p>价格：2800/年 或者 4800/长期</p>
+</blockquote>
+<p>购买会员可以从这里下单：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/card/list/">https://rstata.duanshu.com/#/card/list/</a></p>
+<p>名师讲堂会员权益：</p>
+<ol>
+<li>参加每个月 3～4 次的名师讲堂课程；</li>
+<li>参加平台上的其他 R 语言和 Stata 的课程；</li>
+<li>以会员折扣价购买我们分享的数据资料（10 元/份）；</li>
+<li>课程内外的提问解答服务（课程外的尽量帮忙解决）。</li>
+</ol>
+<blockquote>
+<p>* 如果发票可添加小编微信 r_stata2 （RStata 李老师）开具。如需数据资料，购买后可添加小编微信免费领取数据折扣卡。</p>
+</blockquote>
+<p>更多关于 RStata 会员的更多信息可添加微信号 r_stata2 咨询：</p>
+<blockquote>
+<p>课程主页（点击文末的阅读原文即可跳转）：&lt;&gt;</p>
+</blockquote>
+<hr>
+<h2 id="指标来源" class="article-heading"><a href="#指标来源" class="headerlink" title="指标来源"></a>指标来源<a class="article-anchor" href="#指标来源" aria-label="本节链接" title="复制本节链接"></a></h2><p>供应链地理加权距离指标来自邹颖、石福安、祁亚发表在《世界经济》2026 年第 1 期的论文《以数促联：公共数据开放与企业供应链地理布局》。</p>
+<p>该论文采用堆叠双重差分模型考察公共数据开放对企业供应链地理布局的影响，其中核心被解释变量即为<strong>供应链地理加权距离</strong>，包括两个维度：</p>
+<ul>
+<li>供应商加权距离（Disws）：衡量上市企业与主要供应商之间的地理距离（加权）；</li>
+<li>客户加权距离（Diswc）：衡量上市企业与主要客户之间的地理距离（加权）。</li>
+</ul>
+<p>论文发现，公共数据开放能打破地理距离约束，拓宽企业供应链分布范围。</p>
+<h2 id="指标定义与计算公式" class="article-heading"><a href="#指标定义与计算公式" class="headerlink" title="指标定义与计算公式"></a>指标定义与计算公式<a class="article-anchor" href="#指标定义与计算公式" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据来源" class="article-heading"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源<a class="article-anchor" href="#数据来源" aria-label="本节链接" title="复制本节链接"></a></h3><p>该指标的测算需要三类数据：</p>
+<ol>
+<li>上市公司注册地址与办公地址数据：包含 2000～2024 年所有沪深 A 股上市公司的注册地址和办公地址经纬度信息，以及所处省市区县。</li>
+<li>上市公司前 5 大供应商数据：包含 2001～2024 年上市公司前 5 大供应商的工商注册信息匹配结果，含供应商经纬度、采购额及采购额占比。</li>
+<li>上市公司前 5 大客户数据：包含 2001～2024 年上市公司前 5 大客户的工商注册信息匹配结果，含客户经纬度、销售额及销售额占比。</li>
+</ol>
+<h3 id="计算公式" class="article-heading"><a href="#计算公式" class="headerlink" title="计算公式"></a>计算公式<a class="article-anchor" href="#计算公式" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/23/02b79j1bdbe1b168g4/common/content/1778254384484_894382.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="地理距离计算方法" class="article-heading"><a href="#地理距离计算方法" class="headerlink" title="地理距离计算方法"></a>地理距离计算方法<a class="article-anchor" href="#地理距离计算方法" aria-label="本节链接" title="复制本节链接"></a></h3><p>地理距离采用 <strong>Haversine 大圆距离公式</strong>计算，与 R 语言 <code>sf::st_distance(crs=4326)</code> 使用完全相同的公式，保证了结果的可复现性。Python 实现如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">def haversine_km(lat1, lon1, lat2, lon2):</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    计算两点之间的 Haversine 大圆距离（千米）。</span><br><span class="line">    参数为 pandas Series，支持向量化运算。</span><br><span class="line">    <span class="string">&quot;&quot;</span>&quot;</span><br><span class="line">    R = 6371.0  # 地球平均半径（千米）</span><br><span class="line">    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])</span><br><span class="line">    dlat = lat2 - lat1</span><br><span class="line">    dlon = lon2 - lon1</span><br><span class="line">    a = np.<span class="built_in">sin</span>(dlat / 2)**2 + np.<span class="built_in">cos</span>(lat1) * np.<span class="built_in">cos</span>(lat2) * np.<span class="built_in">sin</span>(dlon / 2)**2</span><br><span class="line">    c = 2 * np.arcsin(np.<span class="built_in">sqrt</span>(a))</span><br><span class="line">    <span class="keyword">return</span> R * c</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>R = 6371.0 为地球平均半径（千米）；</li>
+<li>使用 numpy 的向量化运算，支持对整列数据批量计算；</li>
+<li>最终结果单位为千米（km）。</li>
+</ul>
+<p>上市公司地址使用的是<strong>办公地址</strong>（而非注册地址），这与论文中基于实际经营地址的选择一致。</p>
+<h3 id="加权方式说明" class="article-heading"><a href="#加权方式说明" class="headerlink" title="加权方式说明"></a>加权方式说明<a class="article-anchor" href="#加权方式说明" aria-label="本节链接" title="复制本节链接"></a></h3><p>权重采用的是<strong>供应商采购额占前五大供应商采购总额的比例</strong>（而非供应商采购额占企业总采购额的比例）。这是因为上市公司年报中通常只披露前五大供应商/客户的名称和交易金额，无法获取完整的采购/销售总额数据。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/08/23/02b79j1bdbe1b168g4/common/content/1778254385678_893832.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="计算过程" class="article-heading"><a href="#计算过程" class="headerlink" title="计算过程"></a>计算过程<a class="article-anchor" href="#计算过程" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="第-1-步：参数设置与数据读取" class="article-heading"><a href="#第-1-步：参数设置与数据读取" class="headerlink" title="第 1 步：参数设置与数据读取"></a>第 1 步：参数设置与数据读取<a class="article-anchor" href="#第-1-步：参数设置与数据读取" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先设置数据路径并读取三类数据：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line">dir_path = <span class="string">&quot;/Users/ac/Desktop/使用 Python 计算上市公司供应链地理加权距离&quot;</span></span><br><span class="line"></span><br><span class="line">gys_file  = os.path.join(dir_path,</span><br><span class="line">    <span class="string">&quot;2001~2024年上市公司前5大供应商工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span>)</span><br><span class="line">kh_file   = os.path.join(dir_path,</span><br><span class="line">    <span class="string">&quot;2001~2024年上市公司前5大客户工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span>)</span><br><span class="line">addr_file = os.path.join(dir_path,</span><br><span class="line">    <span class="string">&quot;2000～2024年上市公司注册地址与办公地址（含经纬度、所处的省市区县及搬迁距离）.dta&quot;</span>)</span><br><span class="line"><span class="keyword">outfile</span>   = os.path.join(dir_path,</span><br><span class="line">    <span class="string">&quot;2001～2024年上市公司供应链地理加权距离_Python.dta&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 读取数据</span><br><span class="line">gys = pd.read_stata(gys_file)</span><br><span class="line">kh  = pd.read_stata(kh_file)</span><br><span class="line">addr = pd.read_stata(addr_file)</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;供应商记录数: &#123;len(gys)&#125;, 客户记录数: &#123;len(kh)&#125;, 地址记录数: &#123;len(addr)&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 准备上市公司办公地址</span><br><span class="line">addr_sub = addr[[<span class="string">&quot;股票代码&quot;</span>, <span class="string">&quot;年份&quot;</span>, <span class="string">&quot;办公地址_经度&quot;</span>, <span class="string">&quot;办公地址_纬度&quot;</span>]].<span class="keyword">copy</span>()</span><br><span class="line">addr_sub = addr_sub.<span class="keyword">rename</span>(columns=&#123;<span class="string">&quot;年份&quot;</span>: <span class="string">&quot;统计年份&quot;</span>&#125;)</span><br><span class="line">addr_sub = addr_sub.dropna(subset=[<span class="string">&quot;统计年份&quot;</span>, <span class="string">&quot;办公地址_经度&quot;</span>, <span class="string">&quot;办公地址_纬度&quot;</span>])</span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;有效地址记录: &#123;len(addr_sub)&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>说明</strong>：使用 <code>pandas.read_stata()</code> 直接读取 Stata 的 <code>.dta</code> 格式文件，无需格式转换。<code>dropna()</code> 用于过滤经纬度缺失的记录。</p>
+</blockquote>
+<h3 id="第-2-步：计算供应商加权距离" class="article-heading"><a href="#第-2-步：计算供应商加权距离" class="headerlink" title="第 2 步：计算供应商加权距离"></a>第 2 步：计算供应商加权距离<a class="article-anchor" href="#第-2-步：计算供应商加权距离" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先读取供应商数据，筛选有效记录（年报、有经纬度、有采购额），然后合并办公地址并计算距离：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"># 按公司-年度汇总</span><br><span class="line">gys_weighted = gys_matched.groupby([&quot;股票代码&quot;, &quot;统计年份&quot;]).agg(</span><br><span class="line">    Disw_s=(&quot;weighted_dist&quot;, lambda x: np.log(1 + x.sum())),</span><br><span class="line">    供应商有效数=(&quot;ratio_s&quot;, &quot;count&quot;)</span><br><span class="line">).reset_index()</span><br><span class="line">print(f&quot;Disw_s 计算完成: &#123;len(gys_weighted)&#125; 个公司-年度观测值&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关键逻辑说明</strong>：<code>haversine_km</code> 的参数顺序是 <strong>(纬度, 经度, 纬度, 经度)</strong>，注意不要写反经纬度的位置。<code>groupby().transform(&quot;sum&quot;)</code> 计算组内总额，再除以总额得到权重比例。<code>lambda x: np.log(1 + x.sum())</code> 在 <code>agg()</code> 中直接计算加权距离的对数值。</p>
+</blockquote>
+<h3 id="第-3-步：计算客户加权距离" class="article-heading"><a href="#第-3-步：计算客户加权距离" class="headerlink" title="第 3 步：计算客户加权距离"></a>第 3 步：计算客户加权距离<a class="article-anchor" href="#第-3-步：计算客户加权距离" aria-label="本节链接" title="复制本节链接"></a></h3><p>客户加权距离的计算逻辑与供应商完全对称，只是将”供应商采购额”替换为”客户销售额”：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 筛选有效记录</span><br><span class="line">kh_work = kh[</span><br><span class="line">    (kh[&quot;报表类型&quot;] == 1) &amp;</span><br><span class="line">    kh[&quot;经度&quot;].notna() &amp; kh[&quot;纬度&quot;].notna() &amp;</span><br><span class="line">    kh[&quot;客户销售额&quot;].notna() &amp; kh[&quot;客户销售额占比&quot;].notna()</span><br><span class="line">].copy()</span><br><span class="line">print(f&quot;有效客户记录（年报+有经纬度+有销售额）: &#123;len(kh_work)&#125; / &#123;len(kh)&#125;&quot;)</span><br><span class="line"></span><br><span class="line">kh_work = kh_work.merge(addr_sub, on=[&quot;股票代码&quot;, &quot;统计年份&quot;], how=&quot;left&quot;)</span><br><span class="line">kh_matched = kh_work.dropna(subset=[&quot;办公地址_经度&quot;, &quot;办公地址_纬度&quot;])</span><br><span class="line">print(f&quot;成功匹配公司地址的记录: &#123;len(kh_matched)&#125;&quot;)</span><br><span class="line"></span><br><span class="line"># 计算距离</span><br><span class="line">kh_matched = kh_matched.copy()</span><br><span class="line">kh_matched[&quot;dist_km&quot;] = haversine_km(</span><br><span class="line">    kh_matched[&quot;办公地址_纬度&quot;], kh_matched[&quot;办公地址_经度&quot;],</span><br><span class="line">    kh_matched[&quot;纬度&quot;], kh_matched[&quot;经度&quot;]</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 计算加权距离</span><br><span class="line">此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="第-4-步：合并结果并输出" class="article-heading"><a href="#第-4-步：合并结果并输出" class="headerlink" title="第 4 步：合并结果并输出"></a>第 4 步：合并结果并输出<a class="article-anchor" href="#第-4-步：合并结果并输出" aria-label="本节链接" title="复制本节链接"></a></h3><p>将供应商加权距离和客户加权距离合并到上市公司信息表中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 合并公司信息</span><br><span class="line">info = addr[[&quot;股票代码&quot;, &quot;年份&quot;, &quot;股票简称&quot;, &quot;行业代码C&quot;,</span><br><span class="line">             &quot;办公地址_经度&quot;, &quot;办公地址_纬度&quot;, &quot;办公地址_省&quot;, &quot;办公地址_市&quot;]].copy()</span><br><span class="line">info = info.rename(columns=&#123;&quot;年份&quot;: &quot;统计年份&quot;&#125;)</span><br><span class="line"></span><br><span class="line">result = info.merge(gys_weighted, on=[&quot;股票代码&quot;, &quot;统计年份&quot;], how=&quot;left&quot;)</span><br><span class="line">result = result.merge(kh_weighted, on=[&quot;股票代码&quot;, &quot;统计年份&quot;], how=&quot;left&quot;)</span><br><span class="line">result = result.sort_values([&quot;股票代码&quot;, &quot;统计年份&quot;]).reset_index(drop=True)</span><br><span class="line">print(f&quot;最终样本: &#123;len(result)&#125; 个公司-年度观测值&quot;)</span><br><span class="line"></span><br><span class="line"># 去除 2000 年数据</span><br><span class="line">result = result[result[&quot;统计年份&quot;] &gt;= 2001].copy()</span><br><span class="line"></span><br><span class="line"># 保存（英文列名版本，pandas.to_stata 对中文列名有限制）</span><br><span class="line">result_en = result.rename(columns=&#123;</span><br><span class="line">    &quot;股票代码&quot;: &quot;stkcd&quot;, &quot;统计年份&quot;: &quot;year&quot;, &quot;股票简称&quot;: &quot;stkname&quot;,</span><br><span class="line">    &quot;行业代码C&quot;: &quot;indC&quot;, &quot;办公地址_经度&quot;: &quot;off_lon&quot;, &quot;办公地址_纬度&quot;: &quot;off_lat&quot;,</span><br><span class="line">    &quot;办公地址_省&quot;: &quot;off_prov&quot;, &quot;办公地址_市&quot;: &quot;off_city&quot;,</span><br><span class="line">    &quot;供应商有效数&quot;: &quot;n_supplier&quot;, &quot;客户有效数&quot;: &quot;n_customer&quot;,</span><br><span class="line">&#125;)</span><br><span class="line">result_en.to_stata(outfile, write_index=False, version=118)</span><br><span class="line"></span><br><span class="line"># 同时保存 CSV（保留中文列名）</span><br><span class="line">csv_file = outfile.replace(&quot;.dta&quot;, &quot;.csv&quot;)</span><br><span class="line">result.to_csv(csv_file, index=False, encoding=&quot;utf-8-sig&quot;)</span><br><span class="line">print(f&quot;结果已保存至: &#123;outfile&#125;&quot;)</span><br><span class="line">print(f&quot;CSV 版本: &#123;csv_file&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>pandas.to_stata()</code> 对中文列名有严格限制（仅支持 ASCII 字符），因此保存 <code>.dta</code> 文件时使用英文列名。如需保留中文列名，可同时保存 CSV 版本。</p>
+</blockquote>
+<h2 id="描述性统计" class="article-heading"><a href="#描述性统计" class="headerlink" title="描述性统计"></a>描述性统计<a class="article-anchor" href="#描述性统计" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 描述性统计</span><br><span class="line">print(&quot;--- Disw_s（供应商加权距离）---&quot;)</span><br><span class="line">ds = result[&quot;Disw_s&quot;].dropna()</span><br><span class="line">print(f&quot;  N = &#123;len(ds)&#125;&quot;)</span><br><span class="line">print(f&quot;  均值 = &#123;ds.mean():.3f&#125;, 中位数 = &#123;ds.median():.3f&#125;, 标准差 = &#123;ds.std():.3f&#125;&quot;)</span><br><span class="line">print(f&quot;  最小值 = &#123;ds.min():.3f&#125;, 最大值 = &#123;ds.max():.3f&#125;&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;--- Disw_c（客户加权距离）---&quot;)</span><br><span class="line">dc = result[&quot;Disw_c&quot;].dropna()</span><br><span class="line">print(f&quot;  N = &#123;len(dc)&#125;&quot;)</span><br><span class="line">print(f&quot;  均值 = &#123;dc.mean():.3f&#125;, 中位数 = &#123;dc.median():.3f&#125;, 标准差 = &#123;dc.std():.3f&#125;&quot;)</span><br><span class="line">print(f&quot;  最小值 = &#123;dc.min():.3f&#125;, 最大值 = &#123;dc.max():.3f&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到：</p>
+<ul>
+<li>供应商加权距离（Disws）和客户加权距离（Diswc）的中位数分别为 6.197 和 6.408，均值分别为 5.840 和 5.915；</li>
+<li>由于取了对数变换，中位数大于均值说明存在明显的左偏分布；</li>
+<li>客户加权距离的标准差（1.504）略大于供应商加权距离（1.361），说明不同企业与客户的地理距离差异更大。</li>
+</ul>
+<blockquote>
+<p><strong>说明</strong>：上述描述性统计基于全样本（2001～2024 年）计算，与论文中 2007～2022 年的子样本统计量存在差异属于正常现象。</p>
+</blockquote>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像（knit 时 R 处于非交互模式，不会自动选择镜像）</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line"># 仅在尚未安装时才安装，避免每次 knit 都重装</span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="虚拟环境初始化原理（已在 setup chunk 中完成）"></a>虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 验证当前绑定的 Python 路径（应指向 .venv 目录）</span><br><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, packages = &quot;pandas&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<h2 id="完整-Python-脚本" class="article-heading"><a href="#完整-Python-脚本" class="headerlink" title="完整 Python 脚本"></a>完整 Python 脚本<a class="article-anchor" href="#完整-Python-脚本" aria-label="本节链接" title="复制本节链接"></a></h2><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 计算上市公司与供应商/客户的加权地理距离（Python 版本）</span></span><br><span class="line"><span class="comment"># 参考论文：以数促联：公共数据开放与企业供应链地理布局（邹颖等, 2026）</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># 公式：</span></span><br><span class="line"><span class="comment">#   Disw_s_it = ln(1 + Σ Dis_s_ipt × Ratio_s_ipt)</span></span><br><span class="line"><span class="comment">#   Disw_c_it = ln(1 + Σ Dis_c_iqt × Ratio_c_iqt)</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># 距离计算：Haversine 大圆距离（与 R sf::st_distance 一致）</span></span><br><span class="line"><span class="comment"># 地址选择：上市公司使用办公地址</span></span><br><span class="line"><span class="comment"># 数据计算：微信公众号 RStata</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"></span><br><span class="line">import pandas as pd</span><br><span class="line">import numpy as np</span><br><span class="line">from math import radians<span class="punctuation">,</span> <span class="built_in">sin</span><span class="punctuation">,</span> <span class="built_in">cos</span><span class="punctuation">,</span> <span class="built_in">sqrt</span><span class="punctuation">,</span> atan2<span class="punctuation">,</span> <span class="built_in">log</span></span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 1. 参数设置 ----</span></span><br><span class="line">dir_path <span class="operator">=</span> <span class="string">&quot;/Users/ac/Desktop/使用 Python 计算上市公司供应链地理加权距离&quot;</span></span><br><span class="line"></span><br><span class="line">gys_file  <span class="operator">=</span> os.path.join<span class="punctuation">(</span>dir_path<span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;2001~2024年上市公司前5大供应商工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">kh_file   <span class="operator">=</span> os.path.join<span class="punctuation">(</span>dir_path<span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;2001~2024年上市公司前5大客户工商注册信息匹配结果（含经纬度及所处的省市区县）.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">addr_file <span class="operator">=</span> os.path.join<span class="punctuation">(</span>dir_path<span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;2000～2024年上市公司注册地址与办公地址（含经纬度、所处的省市区县及搬迁距离）.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line">outfile   <span class="operator">=</span> os.path.join<span class="punctuation">(</span>dir_path<span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;2001～2024年上市公司供应链地理加权距离_Python.dta&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 2. Haversine 大圆距离计算函数 ----</span></span><br><span class="line">def haversine_km<span class="punctuation">(</span>lat1<span class="punctuation">,</span> lon1<span class="punctuation">,</span> lat2<span class="punctuation">,</span> lon2<span class="punctuation">)</span><span class="operator">:</span></span><br><span class="line">    <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">    计算两点之间的 Haversine 大圆距离（千米）。</span></span><br><span class="line"><span class="string">    参数为 pandas Series，支持向量化运算。</span></span><br><span class="line"><span class="string">    &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">    R <span class="operator">=</span> <span class="number">6371.0</span>  <span class="comment"># 地球平均半径（千米）</span></span><br><span class="line">    lat1<span class="punctuation">,</span> lon1<span class="punctuation">,</span> lat2<span class="punctuation">,</span> lon2 <span class="operator">=</span> map<span class="punctuation">(</span>np.radians<span class="punctuation">,</span> <span class="punctuation">[</span>lat1<span class="punctuation">,</span> lon1<span class="punctuation">,</span> lat2<span class="punctuation">,</span> lon2<span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">    dlat <span class="operator">=</span> lat2 <span class="operator">-</span> lat1</span><br><span class="line">    dlon <span class="operator">=</span> lon2 <span class="operator">-</span> lon1</span><br><span class="line">    a <span class="operator">=</span> np.sin<span class="punctuation">(</span>dlat <span class="operator">/</span> <span class="number">2</span><span class="punctuation">)</span><span class="operator">**</span><span class="number">2</span> <span class="operator">+</span> np.cos<span class="punctuation">(</span>lat1<span class="punctuation">)</span> <span class="operator">*</span> np.cos<span class="punctuation">(</span>lat2<span class="punctuation">)</span> <span class="operator">*</span> np.sin<span class="punctuation">(</span>dlon <span class="operator">/</span> <span class="number">2</span><span class="punctuation">)</span><span class="operator">**</span><span class="number">2</span></span><br><span class="line">    <span class="built_in">c</span> <span class="operator">=</span> <span class="number">2</span> <span class="operator">*</span> np.arcsin<span class="punctuation">(</span>np.sqrt<span class="punctuation">(</span>a<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="built_in">return</span> R <span class="operator">*</span> <span class="built_in">c</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 3. 读取数据 ----</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;读取供应商数据...&quot;</span><span class="punctuation">)</span></span><br><span class="line">gys <span class="operator">=</span> pd.read_stata<span class="punctuation">(</span>gys_file<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  供应商记录数: &#123;len(gys)&#125;, 唯一公司数: &#123;gys[&#x27;股票代码&#x27;].nunique()&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;读取客户数据...&quot;</span><span class="punctuation">)</span></span><br><span class="line">kh <span class="operator">=</span> pd.read_stata<span class="punctuation">(</span>kh_file<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  客户记录数: &#123;len(kh)&#125;, 唯一公司数: &#123;kh[&#x27;股票代码&#x27;].nunique()&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;读取上市公司地址数据...&quot;</span><span class="punctuation">)</span></span><br><span class="line">addr <span class="operator">=</span> pd.read_stata<span class="punctuation">(</span>addr_file<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  地址记录数: &#123;len(addr)&#125;, 唯一公司数: &#123;addr[&#x27;股票代码&#x27;].nunique()&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 4. 准备上市公司办公地址 ----</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;准备上市公司办公地址...&quot;</span><span class="punctuation">)</span></span><br><span class="line">addr_sub <span class="operator">=</span> addr<span class="punctuation">[[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_纬度&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span>.copy<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">addr_sub <span class="operator">=</span> addr_sub.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;年份&quot;</span><span class="operator">:</span> <span class="string">&quot;统计年份&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">addr_sub <span class="operator">=</span> addr_sub.dropna<span class="punctuation">(</span>subset<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;统计年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_纬度&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  有效地址记录: &#123;len(addr_sub)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 5. 计算供应商加权距离 ----</span></span><br><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 6. 计算客户加权距离 ----</span></span><br><span class="line">此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 7. 合并结果 ----</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n========== 合并结果 ==========&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">info <span class="operator">=</span> addr<span class="punctuation">[[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;股票简称&quot;</span><span class="punctuation">,</span> <span class="string">&quot;行业代码C&quot;</span><span class="punctuation">,</span></span><br><span class="line">             <span class="string">&quot;办公地址_经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_纬度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_省&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_市&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span>.copy<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">info <span class="operator">=</span> info.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&quot;年份&quot;</span><span class="operator">:</span> <span class="string">&quot;统计年份&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">result <span class="operator">=</span> info.merge<span class="punctuation">(</span>gys_weighted<span class="punctuation">,</span> on<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;统计年份&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;left&quot;</span><span class="punctuation">)</span></span><br><span class="line">result <span class="operator">=</span> result.merge<span class="punctuation">(</span>kh_weighted<span class="punctuation">,</span> on<span class="operator">=</span><span class="punctuation">[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;统计年份&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;left&quot;</span><span class="punctuation">)</span></span><br><span class="line">result <span class="operator">=</span> result.sort_values<span class="punctuation">(</span><span class="punctuation">[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;统计年份&quot;</span><span class="punctuation">]</span><span class="punctuation">)</span>.reset_index<span class="punctuation">(</span>drop<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  最终样本: &#123;len(result)&#125; 个公司-年度观测值&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  唯一公司数: &#123;result[&#x27;股票代码&#x27;].nunique()&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  年份范围: &#123;int(result[&#x27;统计年份&#x27;].min())&#125; - &#123;int(result[&#x27;统计年份&#x27;].max())&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 8. 描述性统计 ----</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n========== 描述性统计 ==========&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;--- Disw_s（供应商加权距离）---&quot;</span><span class="punctuation">)</span></span><br><span class="line">ds <span class="operator">=</span> result<span class="punctuation">[</span><span class="string">&quot;Disw_s&quot;</span><span class="punctuation">]</span>.dropna<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  N = &#123;len(ds)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  均值 = &#123;ds.mean():.3f&#125;, 中位数 = &#123;ds.median():.3f&#125;, 标准差 = &#123;ds.std():.3f&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  最小值 = &#123;ds.min():.3f&#125;, 最大值 = &#123;ds.max():.3f&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;--- Disw_c（客户加权距离）---&quot;</span><span class="punctuation">)</span></span><br><span class="line">dc <span class="operator">=</span> result<span class="punctuation">[</span><span class="string">&quot;Disw_c&quot;</span><span class="punctuation">]</span>.dropna<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  N = &#123;len(dc)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  均值 = &#123;dc.mean():.3f&#125;, 中位数 = &#123;dc.median():.3f&#125;, 标准差 = &#123;dc.std():.3f&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  最小值 = &#123;dc.min():.3f&#125;, 最大值 = &#123;dc.max():.3f&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 9. 去除 2000 年数据 ----</span></span><br><span class="line">result <span class="operator">=</span> result<span class="punctuation">[</span>result<span class="punctuation">[</span><span class="string">&quot;统计年份&quot;</span><span class="punctuation">]</span> <span class="operator">&gt;=</span> <span class="number">2001</span><span class="punctuation">]</span>.copy<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 10. 保存结果 ----</span></span><br><span class="line">result_en <span class="operator">=</span> result.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="string">&quot;股票代码&quot;</span><span class="operator">:</span> <span class="string">&quot;stkcd&quot;</span><span class="punctuation">,</span> <span class="string">&quot;统计年份&quot;</span><span class="operator">:</span> <span class="string">&quot;year&quot;</span><span class="punctuation">,</span> <span class="string">&quot;股票简称&quot;</span><span class="operator">:</span> <span class="string">&quot;stkname&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;行业代码C&quot;</span><span class="operator">:</span> <span class="string">&quot;indC&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_经度&quot;</span><span class="operator">:</span> <span class="string">&quot;off_lon&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_纬度&quot;</span><span class="operator">:</span> <span class="string">&quot;off_lat&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;办公地址_省&quot;</span><span class="operator">:</span> <span class="string">&quot;off_prov&quot;</span><span class="punctuation">,</span> <span class="string">&quot;办公地址_市&quot;</span><span class="operator">:</span> <span class="string">&quot;off_city&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;供应商有效数&quot;</span><span class="operator">:</span> <span class="string">&quot;n_supplier&quot;</span><span class="punctuation">,</span> <span class="string">&quot;客户有效数&quot;</span><span class="operator">:</span> <span class="string">&quot;n_customer&quot;</span><span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">result_en.to_stata<span class="punctuation">(</span>outfile<span class="punctuation">,</span> write_index<span class="operator">=</span>False<span class="punctuation">,</span> version<span class="operator">=</span><span class="number">118</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">csv_file <span class="operator">=</span> outfile.replace<span class="punctuation">(</span><span class="string">&quot;.dta&quot;</span><span class="punctuation">,</span> <span class="string">&quot;.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">result.to_csv<span class="punctuation">(</span>csv_file<span class="punctuation">,</span> index<span class="operator">=</span>False<span class="punctuation">,</span> encoding<span class="operator">=</span><span class="string">&quot;utf-8-sig&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;\n结果已保存至: &#123;outfile&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;CSV 版本: &#123;csv_file&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;完成！&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考文献" class="article-heading"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献<a class="article-anchor" href="#参考文献" aria-label="本节链接" title="复制本节链接"></a></h2><p>邹颖、石福安、祁亚，2026：《以数促联：公共数据开放与企业供应链地理布局》，《世界经济》第 1 期。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8fa4dee95c5544cd89fc3d2e8c79b483">名师讲堂｜使用 Python 计算上市公司供应链地理加权距离</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.332Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/38418/" title="名师讲堂｜使用 Stata 根据上市公司及其子公司与税调匹配结果测算碳排放"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/97319/" title="名师讲堂｜使用 R 语言计算上市公司供应链地理加权距离"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/64056/">名师讲堂｜使用 Python 测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-15 · 约 17 分钟</span></li><li><a href="/posts/71404/">名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化</a><span class="tf-related-meta">2026-05-25 · 约 6 分钟</span></li><li><a href="/posts/61229/">名师讲堂｜使用 Stata 计算上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-08 · 约 7 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90"><span class="toc-text">指标来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">指标定义与计算公式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">计算公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%B0%E7%90%86%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="toc-text">地理距离计算方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%9D%83%E6%96%B9%E5%BC%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">加权方式说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B"><span class="toc-text">计算过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E6%AD%A5%EF%BC%9A%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">第 1 步：参数设置与数据读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E4%BE%9B%E5%BA%94%E5%95%86%E5%8A%A0%E6%9D%83%E8%B7%9D%E7%A6%BB"><span class="toc-text">第 2 步：计算供应商加权距离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-3-%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%AE%A2%E6%88%B7%E5%8A%A0%E6%9D%83%E8%B7%9D%E7%A6%BB"><span class="toc-text">第 3 步：计算客户加权距离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-4-%E6%AD%A5%EF%BC%9A%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C%E5%B9%B6%E8%BE%93%E5%87%BA"><span class="toc-text">第 4 步：合并结果并输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">描述性统计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4-Python-%E8%84%9A%E6%9C%AC"><span class="toc-text">完整 Python 脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-text">参考文献</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

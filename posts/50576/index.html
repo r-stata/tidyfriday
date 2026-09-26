@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>1998～2014年城市边界附近的工企污染数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/50576/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="之前给大家分享过三份省市区县边界附近的工企数据：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="1998～2014年城市边界附近的工企污染数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/50576/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="之前给大家分享过三份省市区县边界附近的工企数据：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/50576.png">
+<meta property="article:published_time" content="2022-08-09T11:08:06.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:30.038Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="距离与边界">
+<meta property="article:tag" content="上市公司">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/50576.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="1998～2014年城市边界附近的工企污染数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"1998～2014年城市边界附近的工企污染数据","description":"之前给大家分享过三份省市区县边界附近的工企数据：","url":"https://tidyfriday.cn/posts/50576/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/50576/"},"image":["https://tidyfriday.cn/og/50576.png"],"datePublished":"2022-08-09T11:08:06.000Z","dateModified":"2026-09-26T14:18:30.038Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"距离与边界, 上市公司","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"1998～2014年城市边界附近的工企污染数据","item":"https://tidyfriday.cn/posts/50576/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">1998～2014年城市边界附近的工企污染数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">1998～2014年城市边界附近的工企污染数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-08-09T11:08:06.000Z" itemprop="datePublished">2022-08-09</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1636 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E8%B7%9D%E7%A6%BB%E4%B8%8E%E8%BE%B9%E7%95%8C">距离与边界</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>之前给大家分享过三份省市区县边界附近的工企数据：</p>
+<span id="more"></span>
+
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014239025_424653.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014245937_698127.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014341421_249391.jpg" alt loading="lazy" decoding="async">×</p>
+<p>关于这些数据是如何处理的，可以学习这个课程：</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014356915_123527.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014371544_857672.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这些数据展示了相邻省市区县边界附近的工企业及其与边界的最短距离，很适合建立地理断点回归模型。</p>
+<blockquote>
+<p>位于两个相邻省份(城市、区县)的工企经营环境大致相同，但是由于处于不同的省份(城市、区县)境内，又可能受到不同的政策环境影响，因此以相邻省份(城市、区县)的共同边界为界，可以构造很好的地理断点回归模型。</p>
+</blockquote>
+<p>最近有小伙伴表示自己想根据工企污染匹配结果构造地理断点回归模型，所以我又根据工企污染匹配结果处理了一份城市边界附近的工企业污染数据。</p>
+<p>首先我们找到了中国所有的相邻城市对（基于 2019 年中国城市级行政区划），一共是 972 组：</p>
+<blockquote>
+<p>附件中的 <code>2019年中国相邻市对.xlsx</code> 文件。</p>
+</blockquote>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;2019年中国相邻市对.xlsx&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 973 × 2</span></span><br><span class="line"><span class="comment">#&gt;    市代码 相邻市</span></span><br><span class="line"><span class="comment">#&gt;     &lt;dbl&gt;  &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 120000 110000</span></span><br><span class="line"><span class="comment">#&gt;  2 130600 110000</span></span><br><span class="line"><span class="comment">#&gt;  3 130700 110000</span></span><br><span class="line"><span class="comment">#&gt;  4 130800 110000</span></span><br><span class="line"><span class="comment">#&gt;  5 131000 110000</span></span><br><span class="line"><span class="comment">#&gt;  6 130200 120000</span></span><br><span class="line"><span class="comment">#&gt;  7 130800 120000</span></span><br><span class="line"><span class="comment">#&gt;  8 130900 120000</span></span><br><span class="line"><span class="comment">#&gt;  9 131000 120000</span></span><br><span class="line"><span class="comment">#&gt; 10 130500 130100</span></span><br><span class="line"><span class="comment">#&gt; # … with 963 more rows</span></span><br></pre></td></tr></table></figure>
+
+<p>之前我们分享过 1998～2014 年中国工企污染匹配结果数据，可以从这里下载：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/bb9b96fa8a0e40c2b2bf7b2eb040f673">https://rstata.duanshu.com/#/brief/course/bb9b96fa8a0e40c2b2bf7b2eb040f673</a> 。通过提取每个相邻城市对的工企污染数据并计算每个工企距离共同边界的距离就可以得到这个数据包了，例如 330400 和 320500 的：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014371186_762259.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>图中的散点表示工企，散点越小表示距离共同边界越近。</p>
+<p>为了方便大家使用，我们将每个城市对的数据分别存放：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014369994_992592.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样大家可以方便的选择自己需要的城市对。</p>
+<p>一共 972 个文件夹（部分相邻城市对没有工企被删除了），每个文件夹包含如下内容：</p>
+<ul>
+<li>工企污染距离共同边界距离数据.dta</li>
+<li>工企污染距离共同边界距离数据.xlsx</li>
+<li>绘图代码.R</li>
+<li>图表（文件夹）</li>
+<li>line-shp（文件夹）</li>
+<li>shp（文件夹）</li>
+</ul>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014369792_153256.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>其中 <code>工企污染距离共同边界距离数据.dta</code> 是供 Stata 读取的，里面包含了这两个城市的工企污染数据及其距离共同边界的距离（里面有 gqid 变量，可以和从 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/183f77fb6a5d46b7ba06f30bd0ea0147">https://rstata.duanshu.com/#/brief/course/183f77fb6a5d46b7ba06f30bd0ea0147</a> 下载的 <code>高德地图结果合成面板</code> 数据进行匹配得到含全部变量的工企数据）。</p>
+<blockquote>
+<p>数据中的距离单位是 km。</p>
+</blockquote>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014369323_255225.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><code>工企污染距离共同边界距离数据.xlsx</code> 是供 Excel 打开的文件，内容和上面的一样。</p>
+<p><code>绘图代码.R</code> 文件是用来绘图的，不过绘图前需要把 <code>song.otf</code> 文件移到工作目录下：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 设置字体</span></span><br><span class="line"><span class="comment"># 首先把 song.otf 文件移到工作目录下，然后运行下面的代码：</span></span><br><span class="line">library<span class="punctuation">(</span>showtext<span class="punctuation">)</span></span><br><span class="line">showtext_auto<span class="punctuation">(</span>enable <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">font_add<span class="punctuation">(</span><span class="string">&quot;songti&quot;</span><span class="punctuation">,</span></span><br><span class="line">         regular <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">,</span></span><br><span class="line">         bold <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">,</span></span><br><span class="line">         italic <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">,</span></span><br><span class="line">         bolditalic <span class="operator">=</span> <span class="string">&quot;song.otf&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取工企距离数据</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;工企距离共同边界距离数据.xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> maingq</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取两个区市的数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;shp/130300-130200.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citypair</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取共同边界数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;line-shp/130300-130200commonline.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> commonline</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘图</span></span><br><span class="line">citypair <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> maincity</span><br><span class="line">citypair <span class="operator">%&gt;%</span></span><br><span class="line">  slice<span class="punctuation">(</span><span class="number">2</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> touchcity</span><br><span class="line"><span class="keyword">for</span> <span class="punctuation">(</span>y <span class="keyword">in</span> <span class="number">1998</span><span class="operator">:</span><span class="number">2014</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  ggplot<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> maincity<span class="punctuation">,</span> aes<span class="punctuation">(</span>fill <span class="operator">=</span> 市<span class="punctuation">)</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> touchcity<span class="punctuation">,</span> aes<span class="punctuation">(</span>fill <span class="operator">=</span> 市<span class="punctuation">)</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> commonline<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;#709ae1&quot;</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    geom_sf<span class="punctuation">(</span>data <span class="operator">=</span> subset<span class="punctuation">(</span>maingq<span class="punctuation">,</span> 年份 <span class="operator">==</span> y<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            aes<span class="punctuation">(</span>size <span class="operator">=</span> 距离相邻市对共同边界的最小距离<span class="punctuation">,</span></span><br><span class="line">                color <span class="operator">=</span> 市<span class="punctuation">)</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.9</span><span class="punctuation">,</span> stroke <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#ff847c&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#99b898&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> name <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    scale_size_continuous<span class="punctuation">(</span><span class="built_in">range</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0.01</span><span class="punctuation">,</span> <span class="number">7</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                          name <span class="operator">=</span> <span class="string">&quot;距离相邻市对共同边界</span></span><br><span class="line"><span class="string">的最小距离(km)&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#ff847c&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#99b898&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    guides<span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    theme_modern_rc<span class="punctuation">(</span>base_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">,</span></span><br><span class="line">                  subtitle_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">,</span></span><br><span class="line">                  caption_family <span class="operator">=</span> <span class="string">&quot;songti&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">    labs<span class="punctuation">(</span>title <span class="operator">=</span> paste0<span class="punctuation">(</span>maincity<span class="operator">$</span>市<span class="punctuation">,</span> <span class="string">&quot;——&quot;</span><span class="punctuation">,</span> touchcity<span class="operator">$</span>市<span class="punctuation">,</span></span><br><span class="line">                        <span class="string">&quot;相邻市对工企污染 RD 模型(&quot;</span><span class="punctuation">,</span> y<span class="punctuation">,</span> <span class="string">&quot;年)&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         subtitle <span class="operator">=</span> <span class="string">&quot;数据计算&amp;绘图：微信公众号 RStata&quot;</span><span class="punctuation">,</span></span><br><span class="line">         caption <span class="operator">=</span> <span class="string">&quot;注：散点大小表示工企距离两个共同市界的最小距离，图中的蓝色粗线表示两个市的共同市界&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p</span><br><span class="line">  ggsave<span class="punctuation">(</span>plot <span class="operator">=</span> p<span class="punctuation">,</span> filename <span class="operator">=</span> paste0<span class="punctuation">(</span><span class="string">&quot;图表/&quot;</span><span class="punctuation">,</span> y<span class="punctuation">,</span> <span class="string">&quot;.pdf&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>图表</code> 文件夹里面存放了绘图结果：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014370244_754714.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>另外考虑到很多小伙伴可能不会 R 语言，所以我还把绘图数据保存成了 shp 格式的，使用类似下面的绘图语句就可以绘制了：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/08/09/11/02b79j1bdbe1b168g4/common/content/1660014371352_472681.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 生成 Stata 图表</span></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">cd</span> <span class="string">&quot;/Users/ac/Desktop/城市边界附近的工企污染数据/Stata绘图代码/330500-330400/&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;工企污染距离共同边界距离数据.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">encode</span> 市, <span class="keyword">gen</span>(county)</span><br><span class="line"><span class="keyword">save</span> 工企污染距离共同边界距离数据.dta, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* shp 转换成 dta</span></span><br><span class="line"><span class="keyword">local</span> name = <span class="string">&quot;330500-330400&quot;</span></span><br><span class="line">shp2dta using <span class="string">&quot;shp/`name&#x27;.shp&quot;</span>, database(<span class="symbol">`name&#x27;</span>_db) coordinates(<span class="symbol">`name&#x27;</span>_coord) genid(ID) gencentroids(centroid) <span class="keyword">replace</span></span><br><span class="line">shp2dta using <span class="string">&quot;line-shp/`name&#x27;commonline.shp&quot;</span>, database(<span class="symbol">`name&#x27;</span>commonline_db) coordinates(<span class="symbol">`name&#x27;</span>commonline_coord) genid(ID) <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="symbol">`name&#x27;</span>_db, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">encode</span> 市, <span class="keyword">gen</span>(group)</span><br><span class="line"></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;Stata图表&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 1998/2014 &#123;</span><br><span class="line"> grmap group using <span class="symbol">`name&#x27;</span>_coord, id(ID) <span class="comment">///</span></span><br><span class="line">  clmethod(custom) clbreaks(0 1 2) <span class="comment">///</span></span><br><span class="line">  fcolor(<span class="string">&quot;255 132 124%30&quot;</span> <span class="string">&quot;153 184 152%30&quot;</span>) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">line</span>(data(<span class="symbol">`name&#x27;</span>commonline_coord) <span class="comment">///</span></span><br><span class="line">   color(<span class="string">&quot;112 154 225&quot;</span>) size(*3)) <span class="comment">///</span></span><br><span class="line">  point(data(工企污染距离共同边界距离数据.dta) x(经度) <span class="built_in">y</span>(纬度) <span class="comment">///</span></span><br><span class="line">   <span class="keyword">prop</span>(距离相邻市对共同边界的最小距离) <span class="keyword">by</span>(county) <span class="comment">///</span></span><br><span class="line">   select(<span class="keyword">keep</span> <span class="keyword">if</span> 年份 == <span class="symbol">`y&#x27;</span>) <span class="comment">///</span></span><br><span class="line">   fcolor(<span class="string">&quot;255 132 124%80&quot;</span> <span class="string">&quot;153 184 152%80&quot;</span>) size(*0.3)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(<span class="symbol">`name&#x27;</span>_db) x(x_centroid) <span class="built_in">y</span>(y_centroid) <span class="keyword">label</span>(市)) <span class="comment">///</span></span><br><span class="line">  leg(off) ti(<span class="string">&quot;`=市[1]&#x27;——`=市[2]&#x27;相邻市对工企污染 RD 模型(`y&#x27;年)&quot;</span>) <span class="comment">///</span></span><br><span class="line">  subti(<span class="string">&quot;数据计算&amp;绘图：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">  caption(<span class="string">&quot;注：散点大小表示工企距离两个共同市界的最小距离，图中的蓝色粗线表示两个市的共同市界&quot;</span>, size(*0.6)) <span class="comment">///</span></span><br><span class="line">  graphr(margin(medium))</span><br><span class="line"> <span class="keyword">gr</span> export <span class="string">&quot;Stata图表/`y&#x27;.pdf&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>希望这份数据包能够帮助大家发论文～</p>
+<h2 id="建议" class="article-heading"><a href="#建议" class="headerlink" title="建议"></a>建议<a class="article-anchor" href="#建议" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了建立更好的模型，给大家提供如下建议：</p>
+<ol>
+<li>剔除跨省的相邻城市对（不同省份的企业经营环境可能会有其他的不同因素）；</li>
+<li>仅仅把共同市界附近的工企纳入到模型中（例如剔除掉距离大于 50km 的，这样也可以减少同一家工企在模型中被多次使用）；</li>
+<li>剔除掉含工企过少的相邻城市对（例如小于 5 个的），过少的样本缺少代表性。</li>
+</ol>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/851860bd3e1f4b20b81f38b0206f27d0">1998～2014年城市边界附近的工企污染数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:30.038Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/53998/" title="2000～2014 年工企、海关、上市公司匹配结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/25509/" title="名师讲堂｜计量经济学模型的理论与实操"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/92997/">2001～2024 年上市公司供应链地理加权距离</a><span class="tf-related-meta">2026-05-09 · 约 3 分钟</span></li><li><a href="/posts/81760/">2000～2023 年上市公司注册地址、办公地址与所在省市区县政府的大圆距离</a><span class="tf-related-meta">2025-04-22 · 约 2 分钟</span></li><li><a href="/posts/32475/">2000～2023 年上市公司地址与所在区县税务局的距离</a><span class="tf-related-meta">2025-03-03 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%BA%E8%AE%AE"><span class="toc-text">建议</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

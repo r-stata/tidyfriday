@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/98355/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="附件中的文献《生产性服务业集聚何以赋能技术扩散》中提到了城市的生产性服务业专业化集聚指标和多样化集聚指标，今天的课程中我们将会讲解如何使用 Python 语言根据城市统计年鉴数据来测算这两个指标。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平">
+<meta property="og:url" content="https://tidyfriday.cn/posts/98355/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="附件中的文献《生产性服务业集聚何以赋能技术扩散》中提到了城市的生产性服务业专业化集聚指标和多样化集聚指标，今天的课程中我们将会讲解如何使用 Python 语言根据城市统计年鉴数据来测算这两个指标。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/98355.png">
+<meta property="article:published_time" content="2026-06-14T16:31:50.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.205Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="数据定制与服务">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/98355.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平","description":"附件中的文献《生产性服务业集聚何以赋能技术扩散》中提到了城市的生产性服务业专业化集聚指标和多样化集聚指标，今天的课程中我们将会讲解如何使用 Python 语言根据城市统计年鉴数据来测算这两个指标。","url":"https://tidyfriday.cn/posts/98355/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/98355/"},"image":["https://tidyfriday.cn/og/98355.png"],"datePublished":"2026-06-14T16:31:50.000Z","dateModified":"2026-09-26T14:18:49.205Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"数据定制与服务, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平","item":"https://tidyfriday.cn/posts/98355/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-06-14T16:31:50.000Z" itemprop="datePublished">2026-06-14</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3014 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 10 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E5%AE%9A%E5%88%B6%E4%B8%8E%E6%9C%8D%E5%8A%A1">数据定制与服务</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>附件中的文献《生产性服务业集聚何以赋能技术扩散》中提到了城市的生产性服务业专业化集聚指标和多样化集聚指标，今天的课程中我们将会讲解如何使用 <strong>Python</strong> 语言根据城市统计年鉴数据来测算这两个指标。</p>
+<span id="more"></span>
+
+<p>城市统计年鉴数据在这里：</p>
+<blockquote>
+<p>1999～2025 年中国城市统计年鉴面板数据整理结果: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/c6b0aaf3bcba494faadbacacb012dcef">https://rstata.duanshu.com/#/brief/course/c6b0aaf3bcba494faadbacacb012dcef</a></p>
+</blockquote>
+<p>这里选择的是 2017～2019 年的样本作为演示使用。也就是附件中的 <code>城市统计年鉴样本数据.dta</code>。</p>
+<hr>
+<h2 id="一、指标来源与计算公式" class="article-heading"><a href="#一、指标来源与计算公式" class="headerlink" title="一、指标来源与计算公式"></a>一、指标来源与计算公式<a class="article-anchor" href="#一、指标来源与计算公式" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="1-1-专业化集聚指数-SP（公式4）" class="article-heading"><a href="#1-1-专业化集聚指数-SP（公式4）" class="headerlink" title="1.1 专业化集聚指数 SP（公式4）"></a>1.1 专业化集聚指数 SP（公式4）<a class="article-anchor" href="#1-1-专业化集聚指数-SP（公式4）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/16/02b79j1bdbe1b168g4/common/content/1781425860435_777619.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-2-多样化集聚指数-DV（公式5）" class="article-heading"><a href="#1-2-多样化集聚指数-DV（公式5）" class="headerlink" title="1.2 多样化集聚指数 DV（公式5）"></a>1.2 多样化集聚指数 DV（公式5）<a class="article-anchor" href="#1-2-多样化集聚指数-DV（公式5）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/06/14/16/02b79j1bdbe1b168g4/common/content/1781425858959_653777.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="二、数据与变量说明" class="article-heading"><a href="#二、数据与变量说明" class="headerlink" title="二、数据与变量说明"></a>二、数据与变量说明<a class="article-anchor" href="#二、数据与变量说明" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="2-1-数据来源" class="article-heading"><a href="#2-1-数据来源" class="headerlink" title="2.1 数据来源"></a>2.1 数据来源<a class="article-anchor" href="#2-1-数据来源" aria-label="本节链接" title="复制本节链接"></a></h3><p>城市统计年鉴数据在这里：</p>
+<blockquote>
+<p>1999～2025 年中国城市统计年鉴面板数据整理结果: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/c6b0aaf3bcba494faadbacacb012dcef">https://rstata.duanshu.com/#/brief/course/c6b0aaf3bcba494faadbacacb012dcef</a></p>
+</blockquote>
+<p>这里选择的是 2017～2019 年的样本作为演示使用。也就是附件中的 <code>城市统计年鉴样本数据.dta</code>。</p>
+<p>由于计算所需的变量主要集中在 2003～2019 年，所以完整数据仅可计算得到 2003～2019 年的。</p>
+<h3 id="2-2-生产性服务业行业界定" class="article-heading"><a href="#2-2-生产性服务业行业界定" class="headerlink" title="2.2 生产性服务业行业界定"></a>2.2 生产性服务业行业界定<a class="article-anchor" href="#2-2-生产性服务业行业界定" aria-label="本节链接" title="复制本节链接"></a></h3><p>参考 Ke et al.（2014）和韩峰和阳立高（2020），生产性服务业包括 <strong>7个细分行业</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>行业名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>s1</td>
+<td>交通运输、仓储和邮政业</td>
+<td>全市口径</td>
+</tr>
+<tr>
+<td>s2</td>
+<td>金融业</td>
+<td>全市口径</td>
+</tr>
+<tr>
+<td>s3</td>
+<td>科学研究和技术服务业</td>
+<td>2003-2016含地质勘探，2017-2019不含</td>
+</tr>
+<tr>
+<td>s4</td>
+<td>租赁和商务服务业</td>
+<td>全市口径</td>
+</tr>
+<tr>
+<td>s5</td>
+<td>信息传输、计算机服务和软件业</td>
+<td>全市口径</td>
+</tr>
+<tr>
+<td>s6</td>
+<td>批发和零售业</td>
+<td>全市口径</td>
+</tr>
+<tr>
+<td>s7</td>
+<td>水利、环境和公共设施管理业</td>
+<td>全市口径</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：科学研究和技术服务业在2003-2016年统计口径含”地质勘探业”，2017-2019年不含。处理时用 <code>combine_first()</code> 合并两套口径（等价于 R 的 <code>coalesce()</code>）。</p>
+</blockquote>
+<h3 id="2-3-就业数据说明" class="article-heading"><a href="#2-3-就业数据说明" class="headerlink" title="2.3 就业数据说明"></a>2.3 就业数据说明<a class="article-anchor" href="#2-3-就业数据说明" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>数据来自《中国城市统计年鉴》城镇单位从业人员（全市口径）</li>
+<li>单位：人</li>
+<li>总就业 = 城镇单位从业人员期末人数（全市）</li>
+</ul>
+<hr>
+<h2 id="三、使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#三、使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="三、使用 reticulate 创建与管理 Python 虚拟环境"></a>三、使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#三、使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="3-1-安装-reticulate（仅首次）" class="article-heading"><a href="#3-1-安装-reticulate（仅首次）" class="headerlink" title="3.1 安装 reticulate（仅首次）"></a>3.1 安装 reticulate（仅首次）<a class="article-anchor" href="#3-1-安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="article-heading"><a href="#3-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" class="headerlink" title="3.2 虚拟环境初始化原理（已在 setup chunk 中完成）"></a>3.2 虚拟环境初始化原理（已在 setup chunk 中完成）<a class="article-anchor" href="#3-2-虚拟环境初始化原理（已在-setup-chunk-中完成）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本文档的 <code>setup</code> chunk（隐藏运行）包含如下逻辑：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>reticulate<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">.venv_name   <span class="operator">&lt;-</span> <span class="string">&quot;.venv&quot;</span></span><br><span class="line">.venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 虚拟环境不存在时自动创建</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span>file.exists<span class="punctuation">(</span>.venv_python<span class="punctuation">)</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_create<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line">  .venv_python <span class="operator">&lt;-</span> virtualenv_python<span class="punctuation">(</span>.venv_name<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过环境变量抢先锁定 Python（优先级最高，早于任何 &#123;python&#125; chunk）</span></span><br><span class="line">Sys.setenv<span class="punctuation">(</span>RETICULATE_PYTHON <span class="operator">=</span> .venv_python<span class="punctuation">)</span></span><br><span class="line">use_virtualenv<span class="punctuation">(</span>.venv_name<span class="punctuation">,</span> required <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的关键在于：knitr 在处理第一个 <code>&#123;python&#125;</code> chunk 时，reticulate 已经通过 <code>RETICULATE_PYTHON</code> 环境变量知道要使用 <code>.venv</code>，不会再去碰 Anaconda。</p>
+<h3 id="3-3-在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#3-3-在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="3.3 在虚拟环境中安装 Python 包（仅首次）"></a>3.3 在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#3-3-在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;numpy&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">installed    <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-验证激活状态" class="article-heading"><a href="#3-4-验证激活状态" class="headerlink" title="3.4 验证激活状态"></a>3.4 验证激活状态<a class="article-anchor" href="#3-4-验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-虚拟环境管理常用命令" class="article-heading"><a href="#3-5-虚拟环境管理常用命令" class="headerlink" title="3.5 虚拟环境管理常用命令"></a>3.5 虚拟环境管理常用命令<a class="article-anchor" href="#3-5-虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br><span class="line"></span><br><span class="line"># 删除虚拟环境（当不再需要时）</span><br><span class="line"># virtualenv_remove(&quot;.venv&quot;)</span><br><span class="line"></span><br><span class="line"># 升级某个包</span><br><span class="line"># virtualenv_install(&quot;.venv&quot;, packages = &quot;pandas&quot;, ignore_installed = TRUE)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、Python-代码实现" class="article-heading"><a href="#四、Python-代码实现" class="headerlink" title="四、Python 代码实现"></a>四、Python 代码实现<a class="article-anchor" href="#四、Python-代码实现" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="4-1-环境准备与数据读取" class="article-heading"><a href="#4-1-环境准备与数据读取" class="headerlink" title="4.1 环境准备与数据读取"></a>4.1 环境准备与数据读取<a class="article-anchor" href="#4-1-环境准备与数据读取" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 测算各城市生产性服务业集聚水平（专业化集聚 SP + 多样化集聚 DV）</span><br><span class="line"># 数据来源：中国城市统计年鉴地级市面板数据（1998～2024年）</span><br><span class="line"># 测算方法：参考 金培振等（2026）《生产性服务业集聚何以赋能技术扩散》</span><br><span class="line">#           《世界经济》2026年第3期，公式（4）（5）</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"># 读取数据（请替换为实际文件路径）</span><br><span class="line"># df_raw = pd.read_stata(<span class="string">&quot;1998～2024年中国城市统计年鉴地级市面板数据.dta&quot;</span>)</span><br><span class="line"># 为演示方便，这里使用样本数据</span><br><span class="line">df_raw = pd.read_stata(<span class="string">&quot;城市统计年鉴样本数据.dta&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span>(f<span class="string">&quot;原始数据: &#123;len(df_raw)&#125; 行，&#123;len(df_raw.columns)&#125; 个变量&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>R vs Python 关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>read_dta()</code></td>
+<td><code>pd.read_stata()</code></td>
+<td>读取 Stata .dta 文件</td>
+</tr>
+<tr>
+<td><code>library(tidyverse)</code></td>
+<td><code>import pandas as pd</code></td>
+<td>加载数据处理包</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-变量选取与数据清洗" class="article-heading"><a href="#4-2-变量选取与数据清洗" class="headerlink" title="4.2 变量选取与数据清洗"></a>4.2 变量选取与数据清洗<a class="article-anchor" href="#4-2-变量选取与数据清洗" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 二、选取变量并清洗</span><br><span class="line"># 生产性服务业包括 7 个细分行业（参考 Ke et al.2014；韩峰和阳立高2020）</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;样本量（城市×年份）: &#123;len(df)&#125;&quot;)</span><br><span class="line">print(f&quot;年份范围: &#123;df[&#x27;year&#x27;].min()&#125; ～ &#123;df[&#x27;year&#x27;].max()&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rename(new = old)</code></td>
+<td><code>.rename(columns=&#123;&#39;old&#39;: &#39;new&#39;&#125;)</code></td>
+<td>变量重命名</td>
+</tr>
+<tr>
+<td><code>coalesce(a, b)</code></td>
+<td><code>a.combine_first(b)</code></td>
+<td>优先取非缺失值</td>
+</tr>
+<tr>
+<td><code>filter(cond)</code></td>
+<td><code>df[cond]</code></td>
+<td>行筛选</td>
+</tr>
+<tr>
+<td><code>pmax(x, 0)</code></td>
+<td><code>x.clip(lower=0)</code></td>
+<td>向量化取最大值</td>
+</tr>
+<tr>
+<td><code>rowSums(select(...))</code></td>
+<td><code>df[cols].sum(axis=1)</code></td>
+<td>行求和</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-异常值处理" class="article-heading"><a href="#4-3-异常值处理" class="headerlink" title="4.3 异常值处理"></a>4.3 异常值处理<a class="article-anchor" href="#4-3-异常值处理" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 2.5、异常值处理</span><br><span class="line"># 2017-2019年样本中的异常值说明：</span><br><span class="line"># (1) 嘉峪关市2013年：不在本样本年份范围内，自动跳过</span><br><span class="line"># (2) 鹤壁市2013年：不在本样本年份范围内，自动跳过</span><br><span class="line"># (3) 攀枝花市2018年：批发零售 = 129,241 人（占总就业 45%）</span><br><span class="line">#     处理：不单独剔除，在最终步骤对 DV 做 1% Winsorize 统一处理</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line"># --- (1) 修复嘉峪关市 2013 年 emp_total ---</span><br><span class="line">jyg_2013 = df[(df[&#x27;city&#x27;] == &#x27;嘉峪关市&#x27;) &amp; (df[&#x27;year&#x27;] == 2013)]</span><br><span class="line">if len(jyg_2013) &gt; 0:</span><br><span class="line">    jyg_neighbors = df[(df[&#x27;city&#x27;] == &#x27;嘉峪关市&#x27;) &amp; (df[&#x27;year&#x27;].isin([2012, 2014]))]</span><br><span class="line">    if len(jyg_neighbors) &gt; 0:</span><br><span class="line">        jyg_fix = jyg_neighbors[&#x27;emp_total&#x27;].mean()</span><br><span class="line">        print(f&quot;嘉峪关市 2013 年 emp_total 修复：&#123;jyg_fix:.0f&#125;&quot;)</span><br><span class="line">        df.loc[(df[&#x27;city&#x27;] == &#x27;嘉峪关市&#x27;) &amp; (df[&#x27;year&#x27;] == 2013), &#x27;emp_total&#x27;] = jyg_fix</span><br><span class="line">else:</span><br><span class="line">    print(&quot;（嘉峪关市2013年不在2017-2019样本，跳过修复）&quot;)</span><br><span class="line"></span><br><span class="line"># --- (2) 剔除鹤壁市 2013 年 ---</span><br><span class="line">n_before = len(df)</span><br><span class="line">df = df[~((df[&#x27;city&#x27;] == &#x27;鹤壁市&#x27;) &amp; (df[&#x27;year&#x27;] == 2013))].reset_index(drop=True)</span><br><span class="line">if n_before != len(df):</span><br><span class="line">    print(f&quot;鹤壁市2013年：剔除前 &#123;n_before&#125; 条 → 剔除后 &#123;len(df)&#125; 条&quot;)</span><br><span class="line">else:</span><br><span class="line">    print(&quot;（鹤壁市2013年不在2017-2019样本，跳过剔除）&quot;)</span><br><span class="line"></span><br><span class="line">print(f&quot;\n异常值处理后样本量: &#123;len(df)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-计算全国层面基准（按年份）" class="article-heading"><a href="#4-4-计算全国层面基准（按年份）" class="headerlink" title="4.4 计算全国层面基准（按年份）"></a>4.4 计算全国层面基准（按年份）<a class="article-anchor" href="#4-4-计算全国层面基准（按年份）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 三、计算全国层面基准（按年份）</span></span><br><span class="line"><span class="comment">#   E_nat         = 全国城镇单位从业人员总数（各城市加总）</span></span><br><span class="line"><span class="comment">#   nat_emp_sX    = 全国生产性服务业行业X就业总数（各城市加总）</span></span><br><span class="line"><span class="comment">#   nat_pbs_share = 全国生产性服务业7行业就业合计 / 全国总就业</span></span><br><span class="line"><span class="comment"># 数据处理：微信公众号 RStata</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按年份汇总全国数据（等价于 R 的 group_by(year) %&gt;% summarise(...)）</span></span><br><span class="line">agg_dict <span class="operator">=</span> <span class="punctuation">&#123;</span><span class="string">&#x27;emp_total&#x27;</span><span class="operator">:</span> <span class="string">&#x27;sum&#x27;</span><span class="punctuation">&#125;</span></span><br><span class="line">agg_dict.update<span class="punctuation">(</span><span class="punctuation">&#123;</span>col<span class="operator">:</span> <span class="string">&#x27;sum&#x27;</span> <span class="keyword">for</span> col <span class="keyword">in</span> sector_cols<span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">nat_by_year <span class="operator">=</span> df.groupby<span class="punctuation">(</span><span class="string">&#x27;year&#x27;</span><span class="punctuation">)</span>.agg<span class="punctuation">(</span>agg_dict<span class="punctuation">)</span>.reset_index<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line">nat_by_year <span class="operator">=</span> nat_by_year.rename<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">&#123;</span><span class="string">&#x27;emp_total&#x27;</span><span class="operator">:</span> <span class="string">&#x27;E_nat&#x27;</span><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line">nat_by_year <span class="operator">=</span> nat_by_year.rename<span class="punctuation">(</span></span><br><span class="line">    columns<span class="operator">=</span><span class="punctuation">&#123;</span>f<span class="string">&#x27;emp_s&#123;i&#125;&#x27;</span><span class="operator">:</span> f<span class="string">&#x27;nat_emp_s&#123;i&#125;&#x27;</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">8</span><span class="punctuation">)</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">nat_sector_cols <span class="operator">=</span> <span class="punctuation">[</span>f<span class="string">&#x27;nat_emp_s&#123;i&#125;&#x27;</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">8</span><span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">nat_by_year<span class="punctuation">[</span><span class="string">&#x27;nat_pbs_total&#x27;</span><span class="punctuation">]</span> <span class="operator">=</span> nat_by_year<span class="punctuation">[</span>nat_sector_cols<span class="punctuation">]</span>.sum<span class="punctuation">(</span>axis<span class="operator">=</span><span class="number">1</span><span class="punctuation">)</span></span><br><span class="line">nat_by_year<span class="punctuation">[</span><span class="string">&#x27;nat_pbs_share&#x27;</span><span class="punctuation">]</span> <span class="operator">=</span> nat_by_year<span class="punctuation">[</span><span class="string">&#x27;nat_pbs_total&#x27;</span><span class="punctuation">]</span> <span class="operator">/</span> nat_by_year<span class="punctuation">[</span><span class="string">&#x27;E_nat&#x27;</span><span class="punctuation">]</span></span><br><span class="line">nat_by_year <span class="operator">=</span> nat_by_year.drop<span class="punctuation">(</span>columns<span class="operator">=</span><span class="punctuation">[</span><span class="string">&#x27;nat_pbs_total&#x27;</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;全国层面基准计算完成，年份数: &#123;len(nat_by_year)&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>nat_by_year<span class="punctuation">[[</span><span class="string">&#x27;year&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;E_nat&#x27;</span><span class="punctuation">,</span> <span class="string">&#x27;nat_pbs_share&#x27;</span><span class="punctuation">]</span><span class="punctuation">]</span>.to_string<span class="punctuation">(</span>index<span class="operator">=</span>False<span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>group_by(year) %&gt;% summarise(sum(...))</code></td>
+<td><code>.groupby(&#39;year&#39;).agg(&#123;&#39;col&#39;: &#39;sum&#39;&#125;)</code></td>
+<td>分组求和</td>
+</tr>
+<tr>
+<td><code>across(starts_with(&quot;nat_emp_s&quot;), sum)</code></td>
+<td><code>dict comprehension + agg</code></td>
+<td>批量列操作</td>
+</tr>
+<tr>
+<td><code>rowSums(select(starts_with(...)))</code></td>
+<td><code>df[cols].sum(axis=1)</code></td>
+<td>行求和</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-测算专业化集聚指数-SP（公式4）" class="article-heading"><a href="#4-5-测算专业化集聚指数-SP（公式4）" class="headerlink" title="4.5 测算专业化集聚指数 SP（公式4）"></a>4.5 测算专业化集聚指数 SP（公式4）<a class="article-anchor" href="#4-5-测算专业化集聚指数-SP（公式4）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 四、测算专业化集聚指数 SP（公式4）</span><br><span class="line">#</span><br><span class="line">#   SP_i = ∑_s(E_is/E_i) / ∑_s(E_s/E)</span><br><span class="line">#        = [城市生产性服务业7行业就业 / 城市总就业] /</span><br><span class="line">#          [全国生产性服务业7行业就业 / 全国总就业]</span><br><span class="line">#</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;SP 计算完成，样本量: &#123;len(df_sp)&#125;&quot;)</span><br><span class="line">print(&quot;\nSP 描述性统计:&quot;)</span><br><span class="line">print(df_sp[&#x27;SP&#x27;].describe().round(4))</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-6-测算多样化集聚指数-DV（公式5）" class="article-heading"><a href="#4-6-测算多样化集聚指数-DV（公式5）" class="headerlink" title="4.6 测算多样化集聚指数 DV（公式5）"></a>4.6 测算多样化集聚指数 DV（公式5）<a class="article-anchor" href="#4-6-测算多样化集聚指数-DV（公式5）" aria-label="本节链接" title="复制本节链接"></a></h3><p>DV 的计算需要对每个城市×年份进行双重循环。Python 使用自定义函数 <code>calc_dv()</code> 逐行调用（等价于 R 的 <code>rowwise() %&gt;% mutate(DV = calc_dv(...))</code>）。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 五、测算多样化集聚指数 DV（公式5）</span><br><span class="line">#</span><br><span class="line">#   DV_i = ∑_s (E_&#123;i,s&#125;/E_i) × [ ∑_&#123;s&#x27;≠s&#125; [E_&#123;s&#x27;&#125;/(E-E_s)]^2</span><br><span class="line">#                               / ∑_&#123;s&#x27;≠s&#125; [E_&#123;i,s&#x27;&#125;/(E_i-E_&#123;i,s&#125;)]^2 ]</span><br><span class="line">#</span><br><span class="line">#   关键：份额 = 其余行业就业 / 剩余就业（非总就业）</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;DV 计算完成，样本量: &#123;len(df_dv)&#125;&quot;)</span><br><span class="line">print(&quot;\nDV 描述性统计:&quot;)</span><br><span class="line">print(df_dv[&#x27;DV&#x27;].describe().round(4))</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>calc_dv()</code> 函数与 R 版本的对应关系</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 代码</th>
+<th>Python 代码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>seq_len(n_sectors)[-s]</code></td>
+<td><code>[i for i in range(n) if i != s]</code></td>
+<td>排除行业 s</td>
+</tr>
+<tr>
+<td><code>city_emp[others]</code></td>
+<td><code>city_emp[others]</code>（numpy 索引）</td>
+<td>其他行业就业向量</td>
+</tr>
+<tr>
+<td><code>sum(x^2)</code></td>
+<td><code>np.sum(x ** 2)</code></td>
+<td>平方和</td>
+</tr>
+<tr>
+<td><code>is.na(x) || x &lt;= 0</code></td>
+<td><code>np.isnan(x) or x &lt;= 0</code></td>
+<td>缺失/非正值检查</td>
+</tr>
+<tr>
+<td><code>rowwise() %&gt;% mutate(DV = calc_dv(...))</code></td>
+<td><code>for _, row in df.iterrows()</code></td>
+<td>逐行计算</td>
+</tr>
+</tbody></table>
+<h3 id="4-7-缩尾处理与结果保存" class="article-heading"><a href="#4-7-缩尾处理与结果保存" class="headerlink" title="4.7 缩尾处理与结果保存"></a>4.7 缩尾处理与结果保存<a class="article-anchor" href="#4-7-缩尾处理与结果保存" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 六、合并 SP 和 DV，并进行缩尾处理（Winsorize）</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;  处理后范围: &#123;df_result[&#x27;生产性服务业多样化集聚DV&#x27;].min():.4f&#125; ～ &quot;</span><br><span class="line">      f&quot;&#123;df_result[&#x27;生产性服务业多样化集聚DV&#x27;].max():.4f&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 七、结果汇报</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line">print(&quot;=== 最终结果数据概览（2017-2019年）===&quot;)</span><br><span class="line">print(f&quot;总行数: &#123;len(df_result)&#125;&quot;)</span><br><span class="line">print(f&quot;年份范围: &#123;df_result[&#x27;year&#x27;].min()&#125; ～ &#123;df_result[&#x27;year&#x27;].max()&#125;&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;\n各年城市样本量:&quot;)</span><br><span class="line">print(df_result.groupby(&#x27;year&#x27;).size().rename(&#x27;城市数&#x27;).reset_index().to_string(index=False))</span><br><span class="line"></span><br><span class="line">print(&quot;\nSP（专业化集聚）描述性统计:&quot;)</span><br><span class="line">print(df_result[&#x27;SP&#x27;].describe().round(4))</span><br><span class="line"></span><br><span class="line">print(&quot;\nDV（多样化集聚，经1% Winsorize）描述性统计:&quot;)</span><br><span class="line">print(df_result[&#x27;生产性服务业多样化集聚DV&#x27;].describe().round(4))</span><br><span class="line"></span><br><span class="line">print(&quot;\n样本展示（前10行）:&quot;)</span><br><span class="line">print(df_result[[&#x27;year&#x27;, &#x27;prov&#x27;, &#x27;city&#x27;, &#x27;SP&#x27;, &#x27;生产性服务业多样化集聚DV&#x27;]].head(10).to_string(index=False))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================</span><br><span class="line"># 八、保存为 CSV 文件</span><br><span class="line"># 数据处理：微信公众号 RStata</span><br><span class="line"># ============================================================</span><br><span class="line"></span><br><span class="line">year_min = df_result[&#x27;year&#x27;].min()</span><br><span class="line">year_max = df_result[&#x27;year&#x27;].max()</span><br><span class="line">output_filename = f&quot;&#123;year_min&#125;～&#123;year_max&#125;年各城市生产性服务业集聚水平.csv&quot;</span><br><span class="line"></span><br><span class="line">df_out = df_result.rename(columns=&#123;</span><br><span class="line">    &#x27;year&#x27;: &#x27;年份&#x27;,</span><br><span class="line">    &#x27;prov&#x27;: &#x27;省&#x27;,</span><br><span class="line">    &#x27;prov_code&#x27;: &#x27;省代码&#x27;,</span><br><span class="line">    &#x27;city&#x27;: &#x27;市&#x27;,</span><br><span class="line">    &#x27;cityid&#x27;: &#x27;市代码&#x27;,</span><br><span class="line">    &#x27;SP&#x27;: &#x27;生产性服务业专业化集聚SP&#x27;,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">df_out.to_csv(output_filename, index=False, encoding=&#x27;utf-8-sig&#x27;)</span><br><span class="line">print(f&quot;已保存: &#123;output_filename&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、结果验证：与论文对比" class="article-heading"><a href="#五、结果验证：与论文对比" class="headerlink" title="五、结果验证：与论文对比"></a>五、结果验证：与论文对比<a class="article-anchor" href="#五、结果验证：与论文对比" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="5-1-SP-指标验证" class="article-heading"><a href="#5-1-SP-指标验证" class="headerlink" title="5.1 SP 指标验证"></a>5.1 SP 指标验证<a class="article-anchor" href="#5-1-SP-指标验证" aria-label="本节链接" title="复制本节链接"></a></h3><p>论文报告 SP 均值约为 <strong>0.83</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sp_mean = df_result[&#x27;SP&#x27;].mean()</span><br><span class="line">print(f&quot;SP 均值: &#123;sp_mean:.4f&#125;&quot;)</span><br><span class="line">print(f&quot;论文报告 SP 均值: 0.83&quot;)</span><br><span class="line">print(f&quot;差距: &#123;sp_mean - 0.83:.4f&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>结论</strong>：SP 均值与论文报告的 0.83 高度吻合 ✅（本样本仅为 2017-2019 年子集，故略有差异）</p>
+<h3 id="5-2-DV-指标验证" class="article-heading"><a href="#5-2-DV-指标验证" class="headerlink" title="5.2 DV 指标验证"></a>5.2 DV 指标验证<a class="article-anchor" href="#5-2-DV-指标验证" aria-label="本节链接" title="复制本节链接"></a></h3><p>论文报告 DV 均值约为 <strong>0.28</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dv_mean = df_result[&#x27;生产性服务业多样化集聚DV&#x27;].mean()</span><br><span class="line">print(f&quot;DV 均值（1% Winsorize后）: &#123;dv_mean:.4f&#125;&quot;)</span><br><span class="line">print(f&quot;论文报告 DV 均值: 0.28&quot;)</span><br><span class="line">print(f&quot;差距: &#123;dv_mean - 0.28:.4f&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/3beb4a55ad9f48d7ae5da9cc7eb79d68">名师讲堂｜使用 Python 测算各城市生产性服务业集聚水平</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.205Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/52602/" title="名师讲堂｜使用 R 语言测算各城市生产性服务业集聚水平"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/44026/" title="名师讲堂｜使用 Stata 测算各城市生产性服务业集聚水平（无 Mata 代码版本）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/40955/">名师讲堂｜使用 Python 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 18 分钟</span></li><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 5 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">一、指标来源与计算公式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%93%E4%B8%9A%E5%8C%96%E9%9B%86%E8%81%9A%E6%8C%87%E6%95%B0-SP%EF%BC%88%E5%85%AC%E5%BC%8F4%EF%BC%89"><span class="toc-text">1.1 专业化集聚指数 SP（公式4）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%A4%9A%E6%A0%B7%E5%8C%96%E9%9B%86%E8%81%9A%E6%8C%87%E6%95%B0-DV%EF%BC%88%E5%85%AC%E5%BC%8F5%EF%BC%89"><span class="toc-text">1.2 多样化集聚指数 DV（公式5）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B0%E6%8D%AE%E4%B8%8E%E5%8F%98%E9%87%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">二、数据与变量说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">2.1 数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%94%9F%E4%BA%A7%E6%80%A7%E6%9C%8D%E5%8A%A1%E4%B8%9A%E8%A1%8C%E4%B8%9A%E7%95%8C%E5%AE%9A"><span class="toc-text">2.2 生产性服务业行业界定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B0%B1%E4%B8%9A%E6%95%B0%E6%8D%AE%E8%AF%B4%E6%98%8E"><span class="toc-text">2.3 就业数据说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">三、使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">3.1 安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8E%9F%E7%90%86%EF%BC%88%E5%B7%B2%E5%9C%A8-setup-chunk-%E4%B8%AD%E5%AE%8C%E6%88%90%EF%BC%89"><span class="toc-text">3.2 虚拟环境初始化原理（已在 setup chunk 中完成）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">3.3 在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">3.4 验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">3.5 虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Python-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-text">四、Python 代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">4.1 环境准备与数据读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%8F%98%E9%87%8F%E9%80%89%E5%8F%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97"><span class="toc-text">4.2 变量选取与数据清洗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%BC%82%E5%B8%B8%E5%80%BC%E5%A4%84%E7%90%86"><span class="toc-text">4.3 异常值处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E8%AE%A1%E7%AE%97%E5%85%A8%E5%9B%BD%E5%B1%82%E9%9D%A2%E5%9F%BA%E5%87%86%EF%BC%88%E6%8C%89%E5%B9%B4%E4%BB%BD%EF%BC%89"><span class="toc-text">4.4 计算全国层面基准（按年份）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%B5%8B%E7%AE%97%E4%B8%93%E4%B8%9A%E5%8C%96%E9%9B%86%E8%81%9A%E6%8C%87%E6%95%B0-SP%EF%BC%88%E5%85%AC%E5%BC%8F4%EF%BC%89"><span class="toc-text">4.5 测算专业化集聚指数 SP（公式4）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-%E6%B5%8B%E7%AE%97%E5%A4%9A%E6%A0%B7%E5%8C%96%E9%9B%86%E8%81%9A%E6%8C%87%E6%95%B0-DV%EF%BC%88%E5%85%AC%E5%BC%8F5%EF%BC%89"><span class="toc-text">4.6 测算多样化集聚指数 DV（公式5）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-%E7%BC%A9%E5%B0%BE%E5%A4%84%E7%90%86%E4%B8%8E%E7%BB%93%E6%9E%9C%E4%BF%9D%E5%AD%98"><span class="toc-text">4.7 缩尾处理与结果保存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BB%93%E6%9E%9C%E9%AA%8C%E8%AF%81%EF%BC%9A%E4%B8%8E%E8%AE%BA%E6%96%87%E5%AF%B9%E6%AF%94"><span class="toc-text">五、结果验证：与论文对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-SP-%E6%8C%87%E6%A0%87%E9%AA%8C%E8%AF%81"><span class="toc-text">5.1 SP 指标验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-DV-%E6%8C%87%E6%A0%87%E9%AA%8C%E8%AF%81"><span class="toc-text">5.2 DV 指标验证</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

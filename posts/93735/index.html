@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/93735/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="由于俄罗斯对乌克兰的军事行动，西方国家纷纷表示将对俄罗斯实施制裁措施。不过制裁措施是否能发挥效果还得看其与俄罗斯间的进出口关系。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额">
+<meta property="og:url" content="https://tidyfriday.cn/posts/93735/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="由于俄罗斯对乌克兰的军事行动，西方国家纷纷表示将对俄罗斯实施制裁措施。不过制裁措施是否能发挥效果还得看其与俄罗斯间的进出口关系。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/93735.png">
+<meta property="article:published_time" content="2022-03-06T16:54:31.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:46.881Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="企业数据">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/93735.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额","description":"由于俄罗斯对乌克兰的军事行动，西方国家纷纷表示将对俄罗斯实施制裁措施。不过制裁措施是否能发挥效果还得看其与俄罗斯间的进出口关系。","url":"https://tidyfriday.cn/posts/93735/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/93735/"},"image":["https://tidyfriday.cn/og/93735.png"],"datePublished":"2022-03-06T16:54:31.000Z","dateModified":"2026-09-26T14:18:46.881Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"企业数据, 可视化与绘图, Stata","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额","item":"https://tidyfriday.cn/posts/93735/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-03-06T16:54:31.000Z" itemprop="datePublished">2022-03-06</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3316 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 14 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE">企业数据</a><a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>由于俄罗斯对乌克兰的军事行动，西方国家纷纷表示将对俄罗斯实施制裁措施。不过制裁措施是否能发挥效果还得看其与俄罗斯间的进出口关系。</p>
+<span id="more"></span>
+
+<p>今天我们就用 Stata 来绘制一幅图来展示 2021 年俄罗斯与各个国家（地区）间的进出口额。</p>
+<table>
+<thead>
+<tr>
+<th>图表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220305210212.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>首先我们可以从 Observatory of Economic Complexity (OEC) 获取绘图所需的数据，不过还需要整理下（附件中有下面代码所需的数据）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insheet using &quot;data-iZtV0.csv&quot;, clear</span><br></pre></td></tr></table></figure>
+
+<p>由于数据里面的国家名称都是英文的，而我们想绘制一幅中文的地图，我们可以使用数据中的 iso3 变量和 <code>各国ISO对照表.dta</code> 数据匹配得到中文的国家名称：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> iso3 = <span class="built_in">strupper</span>(iso3)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 iso3 using <span class="string">&quot;各国ISO对照表.dta&quot;</span></span><br><span class="line"><span class="keyword">order</span> 国家</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> _m == 2</span><br><span class="line"><span class="keyword">gsort</span> _m</span><br><span class="line"><span class="keyword">drop</span> _m</span><br></pre></td></tr></table></figure>
+
+<p>还有一些没匹配上的手动填补下就可以了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 填补下缺失的</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;百慕大&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Bermuda&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;阿布哈兹&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Abkhazia&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;摩纳哥&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Monaco&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;库拉索&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;CuraÃ§ao&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国澳门&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Macau&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;南奥塞梯&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;South Ossetia&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国台湾&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Taiwan&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;罗马尼亚&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Romania&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;塞舍尔&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Seychelles&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;未知&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Unknown&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;马绍尔群岛&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Marshall Islands&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;马尔代夫&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Maldives&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;巴勒斯坦&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Palestine&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国香港&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Hong Kong&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;直布罗陀&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Gibraltar&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;英属维尔京群岛&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;British Virgin Islands&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;圣马力诺&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;San Marino&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>为了绘制图中的阴影区域，我们需要生成一些辅助变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> x = 1000</span><br><span class="line"><span class="keyword">replace</span> x = 1000000000000 <span class="keyword">in</span> `=_N&#x27;</span><br><span class="line"><span class="keyword">gen</span> y = 1000000000000</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> continent == <span class="string">&quot;NA&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 Stata 无法直接把变量值的大小映射给散点的大小，所以我们需要手动生成分组变量，然后对变量进行分组，然后等会儿绘图的时候分多个图层绘制。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 进出口总额对数</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">sum</span> = <span class="built_in">log10</span>(import + export)</span><br><span class="line"><span class="comment">* 根据进出口总额的对数切分成 10 段：</span></span><br><span class="line"><span class="keyword">egen</span> group = cut(<span class="keyword">sum</span>), <span class="built_in">group</span>(10)</span><br></pre></td></tr></table></figure>
+
+<p>首先绘制图表中的阴影区域：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw ///</span><br><span class="line">area x x, color(&quot;254 247 236%70&quot;) || ///</span><br><span class="line">rarea y x x, color(&quot;230 230 254%70&quot;)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220305211359.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>散点图的部分稍微麻烦些，因为我们想给各个大洲的国家使用不同的颜色，又想根据 group 变量给不同的国家使用不同的大小。可以使用循环构造绘图语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* 设定绘图主题：</span><br><span class="line">* 安装 ssc install blindschemes, replace</span><br><span class="line">set scheme plotplain, perm</span><br><span class="line">* 绘图</span><br><span class="line">levelsof continent, local(continent)</span><br><span class="line">local cmd = `&quot;tw (area x x, color(&quot;254 247 236%70&quot;)) (rarea y x x, color(&quot;230 230 254%70&quot;))&quot;&#x27;</span><br><span class="line">local colorlist = `&quot;&quot;75 159 201&quot; &quot;46 95 119&quot; &quot;159 242 209&quot; &quot;184 50 41&quot; &quot;235 145 53&quot; &quot;251 230 165&quot;&quot;&#x27;</span><br><span class="line">local grouplist = &quot;0.5 0.5 0.7 0.7 1 1 1 1.2 1.2 2&quot;</span><br><span class="line">levelsof group, local(group)</span><br><span class="line">local n = 1</span><br><span class="line">foreach g in `group&#x27; &#123;</span><br><span class="line"> local m = 1</span><br><span class="line"> foreach i in `continent&#x27; &#123;</span><br><span class="line">  local color: word `m&#x27; of `&quot;`colorlist&#x27;&quot;&#x27;</span><br><span class="line">  local s: word `n&#x27; of `grouplist&#x27;</span><br><span class="line">  local cmd = `&quot; `cmd&#x27; (sc import export if continent == &quot;`i&#x27;&quot; &amp; group == `g&#x27;, m(o) msize(*`s&#x27;)) &quot;&#x27;</span><br><span class="line">  local m = `m&#x27; + 1</span><br><span class="line"> &#125;</span><br><span class="line"> local n = `n&#x27; + 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">`cmd&#x27;, xsc(log) ///</span><br><span class="line"> ysc(log) ///</span><br><span class="line"> xla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> yla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> xti(&quot;&quot;) yti(&quot;&quot;)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220305211715.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>上面的部分绘图选项含义如下：</p>
+<ol>
+<li>xsc(log)：x 轴使用对数轴；</li>
+<li>ysc(log)：y 轴使用对数轴；</li>
+<li>xla()、yla()： 设定 x、y 轴的标签；</li>
+<li>noticks：删除轴线标签上的竖线；</li>
+<li>labgap()：轴标签与轴的距离（2 倍标准距离）；</li>
+<li>glp()：grid 的线型；</li>
+<li>glc()：grid 的颜色；</li>
+<li>glw()：grid 的粗细。</li>
+</ol>
+<p>使用 function 可以绘制一条 45 度的斜线：</p>
+<blockquote>
+<p>注意 local 变量的定义和调用要同时运行，所以下面的这段代码还需要和前面 loca cmd = …… 一起选择运行。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">`cmd&#x27;, xsc(log) ///</span><br><span class="line"> ysc(log) ///</span><br><span class="line"> xla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> yla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> xti(&quot;&quot;) yti(&quot;&quot;) || ///</span><br><span class="line">function y = x, range(1000 1000000000000) lp(shortdash) ///</span><br><span class="line"> lc(gs3)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220305212656.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>lp(shortdash) 表示斜线使用小短线；lc(gs3) 表示斜线使用 30 度灰。</p>
+<p>下面我们再把图例修修：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">`cmd&#x27;, xsc(log) ///</span><br><span class="line"> ysc(log) ///</span><br><span class="line"> xla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> yla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> xti(&quot;&quot;) yti(&quot;&quot;) || ///</span><br><span class="line">function y = x, range(1000 1000000000000) lp(shortdash) ///</span><br><span class="line"> lc(gs3) ///</span><br><span class="line"> plotr(margin(zero)) ///</span><br><span class="line"> text(680000000000 7000 &quot;进口（美元）&quot;, size(*0.6) color(gray)) ///</span><br><span class="line"> text(2000 190000000000 &quot;出口（美元）&quot;, size(*0.6) color(gray)) ///</span><br><span class="line"> ti(&quot;俄罗斯 2021 年与各国间的进出口额（美元）&quot;, size(*0.7)) ///</span><br><span class="line"> caption(&quot;数据更新至 2021 年 12 月，进出口额数据有缺失的国家已被删除。&quot; ///</span><br><span class="line">  &quot;数据来源：Observatory of Economic Complexity (OEC)&quot; ///</span><br><span class="line">  &quot;https://oec.world/en/profile/country/rus?subnationalTimeSelector=timeYear&quot; ///</span><br><span class="line">  &quot;绘制：微信公众号 RStata&quot;, ///</span><br><span class="line">  pos(5) size(*0.7) justification(left) bexpand) ///</span><br><span class="line"> graphr(margin(medlarge)) ///</span><br><span class="line"> leg(order(3 &quot;Africa&quot; 4 &quot;Asia&quot; 5 &quot;Europe&quot; ///</span><br><span class="line">  6 &quot;North America&quot; 7 &quot;Oceania&quot; ///</span><br><span class="line">  8 &quot;South America&quot;) pos(11) row(1) ///</span><br><span class="line">  size(*0.7)) ///</span><br><span class="line"> ysize(20) xsize(20)</span><br></pre></td></tr></table></figure>
+
+<p>这里的两个 text() 选项是为了添加横纵轴的标题；plotr(margin(zero)) 表示 plot 区域的边距为 0；leg(order()) 是设置图例的，这里选择 3-8 号图层进行标注（每个图层对应什么可以从绘图代码里面数）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">di `&quot;`cmd&#x27;&quot;&#x27;</span><br><span class="line"></span><br><span class="line">*&gt; tw (area x x, color</span><br><span class="line">*&gt; &gt; (&quot;254 247 236%70&quot;)) (rarea y x x, color(&quot;230 230 254%70&quot;)) (sc import export</span><br><span class="line">*&gt; &gt; if continent == &quot;Africa&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import export i</span><br><span class="line">*&gt; &gt; f continent == &quot;Asia&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import export if c</span><br><span class="line">*&gt; &gt; ontinent == &quot;Europe&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import export if co</span><br><span class="line">*&gt; &gt; ntinent == &quot;North America&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import export</span><br><span class="line">*&gt; &gt;  if continent == &quot;Oceania&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import export</span><br><span class="line">*&gt; &gt;  if continent == &quot;South America&quot; &amp; group == 0, m(o) msize(*0.5))  (sc import</span><br><span class="line">*&gt; &gt; export if continent == &quot;Africa&quot; &amp; group == 1, m(o) msize(*0.5))  (sc import e</span><br><span class="line">*&gt; &gt; xport if continent == &quot;Asia&quot; &amp; group == 1, m(o) msize(*0.5))  (sc import expo</span><br><span class="line">*&gt; &gt; rt if continent == &quot;Europe&quot; &amp; group == 1, m(o) msize(*0.5))  (sc import expor</span><br><span class="line">*&gt; &gt; t if continent == &quot;North America&quot; &amp; group == 1, m(o) msize(*0.5))  (sc import</span><br><span class="line">*&gt; &gt;  export if continent == &quot;Oceania&quot; &amp; group == 1, m(o) msize(*0.5))  (sc import</span><br><span class="line">*&gt; &gt;  export if continent == &quot;South America&quot; &amp; group == 1, m(o) msize(*0.5))  (sc</span><br><span class="line">*&gt; &gt; import export if continent == &quot;Africa&quot; &amp; group == 2, m(o) msize(*0.7))  (sc i</span><br><span class="line">*&gt; &gt; mport export if continent == &quot;Asia&quot; &amp; group == 2, m(o) msize(*0.7))  (sc impo</span><br><span class="line">*&gt; &gt; rt export if continent == &quot;Europe&quot; &amp; group == 2, m(o) msize(*0.7))  (sc impor</span><br><span class="line">*&gt; &gt; t export if continent == &quot;North America&quot; &amp; group == 2, m(o) msize(*0.7))  (sc</span><br><span class="line">*&gt; &gt;  import export if continent == &quot;Oceania&quot; &amp; group == 2, m(o) msize(*0.7))  (sc</span><br><span class="line">*&gt; &gt;  import export if continent == &quot;South America&quot; &amp; group == 2, m(o) msize(*0.7)</span><br><span class="line">*&gt; &gt; )  (sc import export if continent == &quot;Africa&quot; &amp; group == 3, m(o) msize(*0.7))</span><br><span class="line">*&gt; &gt;   (sc import export if continent == &quot;Asia&quot; &amp; group == 3, m(o) msize(*0.7))  (</span><br><span class="line">*&gt; &gt; sc import export if continent == &quot;Europe&quot; &amp; group == 3, m(o) msize(*0.7))  (s</span><br><span class="line">*&gt; &gt; c import export if continent == &quot;North America&quot; &amp; group == 3, m(o) msize(*0.7</span><br><span class="line">*&gt; &gt; ))  (sc import export if continent == &quot;Oceania&quot; &amp; group == 3, m(o) msize(*0.7</span><br><span class="line">*&gt; &gt; ))  (sc import export if continent == &quot;South America&quot; &amp; group == 3, m(o) msiz</span><br><span class="line">*&gt; &gt; e(*0.7))  (sc import export if continent == &quot;Africa&quot; &amp; group == 4, m(o) msize</span><br><span class="line">*&gt; &gt; (*1))  (sc import export if continent == &quot;Asia&quot; &amp; group == 4, m(o) msize(*1))</span><br><span class="line">*&gt; &gt;   (sc import export if continent == &quot;Europe&quot; &amp; group == 4, m(o) msize(*1))  (</span><br><span class="line">*&gt; &gt; sc import export if continent == &quot;North America&quot; &amp; group == 4, m(o) msize(*1)</span><br><span class="line">*&gt; &gt; )  (sc import export if continent == &quot;Oceania&quot; &amp; group == 4, m(o) msize(*1))</span><br><span class="line">*&gt; &gt;  (sc import export if continent == &quot;South America&quot; &amp; group == 4, m(o) msize(*</span><br><span class="line">*&gt; &gt; 1))  (sc import export if continent == &quot;Africa&quot; &amp; group == 5, m(o) msize(*1))</span><br><span class="line">*&gt; &gt;   (sc import export if continent == &quot;Asia&quot; &amp; group == 5, m(o) msize(*1))  (sc</span><br><span class="line">*&gt; &gt;  import export if continent == &quot;Europe&quot; &amp; group == 5, m(o) msize(*1))  (sc im</span><br><span class="line">*&gt; &gt; port export if continent == &quot;North America&quot; &amp; group == 5, m(o) msize(*1))  (s</span><br><span class="line">*&gt; &gt; c import export if continent == &quot;Oceania&quot; &amp; group == 5, m(o) msize(*1))  (sc</span><br><span class="line">*&gt; &gt; import export if continent == &quot;South America&quot; &amp; group == 5, m(o) msize(*1))</span><br><span class="line">*&gt; &gt; (sc import export if continent == &quot;Africa&quot; &amp; group == 6, m(o) msize(*1))  (sc</span><br><span class="line">*&gt; &gt;  import export if continent == &quot;Asia&quot; &amp; group == 6, m(o) msize(*1))  (sc impo</span><br><span class="line">*&gt; &gt; rt export if continent == &quot;Europe&quot; &amp; group == 6, m(o) msize(*1))  (sc import</span><br><span class="line">*&gt; &gt; export if continent == &quot;North America&quot; &amp; group == 6, m(o) msize(*1))  (sc imp</span><br><span class="line">*&gt; &gt; ort export if continent == &quot;Oceania&quot; &amp; group == 6, m(o) msize(*1))  (sc impor</span><br><span class="line">*&gt; &gt; t export if continent == &quot;South America&quot; &amp; group == 6, m(o) msize(*1))  (sc i</span><br><span class="line">*&gt; &gt; mport export if continent == &quot;Africa&quot; &amp; group == 7, m(o) msize(*1.2))  (sc im</span><br><span class="line">*&gt; &gt; port export if continent == &quot;Asia&quot; &amp; group == 7, m(o) msize(*1.2))  (sc impor</span><br><span class="line">*&gt; &gt; t export if continent == &quot;Europe&quot; &amp; group == 7, m(o) msize(*1.2))  (sc import</span><br><span class="line">*&gt; &gt;  export if continent == &quot;North America&quot; &amp; group == 7, m(o) msize(*1.2))  (sc</span><br><span class="line">*&gt; &gt; import export if continent == &quot;Oceania&quot; &amp; group == 7, m(o) msize(*1.2))  (sc</span><br><span class="line">*&gt; &gt; import export if continent == &quot;South America&quot; &amp; group == 7, m(o) msize(*1.2))</span><br><span class="line">*&gt; &gt;   (sc import export if continent == &quot;Africa&quot; &amp; group == 8, m(o) msize(*1.2))</span><br><span class="line">*&gt; &gt;  (sc import export if continent == &quot;Asia&quot; &amp; group == 8, m(o) msize(*1.2))  (s</span><br><span class="line">*&gt; &gt; c import export if continent == &quot;Europe&quot; &amp; group == 8, m(o) msize(*1.2))  (sc</span><br><span class="line">*&gt; &gt;  import export if continent == &quot;North America&quot; &amp; group == 8, m(o) msize(*1.2)</span><br><span class="line">*&gt; &gt; )  (sc import export if continent == &quot;Oceania&quot; &amp; group == 8, m(o) msize(*1.2)</span><br><span class="line">*&gt; &gt; )  (sc import export if continent == &quot;South America&quot; &amp; group == 8, m(o) msize</span><br><span class="line">*&gt; &gt; (*1.2))  (sc import export if continent == &quot;Africa&quot; &amp; group == 9, m(o) msize(</span><br><span class="line">*&gt; &gt; *2))  (sc import export if continent == &quot;Asia&quot; &amp; group == 9, m(o) msize(*2))</span><br><span class="line">*&gt; &gt;  (sc import export if continent == &quot;Europe&quot; &amp; group == 9, m(o) msize(*2))  (s</span><br><span class="line">*&gt; &gt; c import export if continent == &quot;North America&quot; &amp; group == 9, m(o) msize(*2))</span><br><span class="line">*&gt; &gt;   (sc import export if continent == &quot;Oceania&quot; &amp; group == 9, m(o) msize(*2))</span><br><span class="line">*&gt; &gt; (sc import export if continent == &quot;South America&quot; &amp; group == 9, m(o) msize(*2</span><br><span class="line">*&gt; &gt; )) *&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 area 和 rarea 图层是第一、二号图层，然后 3——8 正好是几个大洲的散点图层。后面的再数起来就比较困难了。</p>
+<p>我们再使用一个散点图层添加一些散点标签：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">`cmd&#x27;, xsc(log) ///</span><br><span class="line"> ysc(log) ///</span><br><span class="line"> xla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> yla(1000 &quot;1K&quot;  ///</span><br><span class="line">  1000000 &quot;1M&quot; ///</span><br><span class="line">  1000000000 &quot;1B&quot; ///</span><br><span class="line">  1000000000000 &quot;1T&quot;, noticks ///</span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) ///</span><br><span class="line">  glc(gs10) glw(*0.8)) ///</span><br><span class="line"> xti(&quot;&quot;) yti(&quot;&quot;) || ///</span><br><span class="line">function y = x, range(1000 1000000000000) lp(shortdash) ///</span><br><span class="line"> lc(gs3) ///</span><br><span class="line"> plotr(margin(zero)) ///</span><br><span class="line"> text(680000000000 7000 &quot;进口（美元）&quot;, size(*0.6) color(gray)) ///</span><br><span class="line"> text(2000 190000000000 &quot;出口（美元）&quot;, size(*0.6) color(gray)) ///</span><br><span class="line"> ti(&quot;俄罗斯 2021 年与各国间的进出口额（美元）&quot;, size(*0.7)) ///</span><br><span class="line"> caption(&quot;数据更新至 2021 年 12 月，进出口额数据有缺失的国家已被删除。&quot; ///</span><br><span class="line">  &quot;数据来源：Observatory of Economic Complexity (OEC)&quot; ///</span><br><span class="line">  &quot;https://oec.world/en/profile/country/rus?subnationalTimeSelector=timeYear&quot; ///</span><br><span class="line">  &quot;绘制：微信公众号 RStata&quot;, ///</span><br><span class="line">  pos(5) size(*0.7) justification(left) bexpand) ///</span><br><span class="line"> graphr(margin(medlarge)) ///</span><br><span class="line"> leg(order(3 &quot;Africa&quot; 4 &quot;Asia&quot; 5 &quot;Europe&quot; ///</span><br><span class="line">  6 &quot;North America&quot; 7 &quot;Oceania&quot; ///</span><br><span class="line">  8 &quot;South America&quot;) pos(11) row(1) ///</span><br><span class="line">  size(*0.7)) ///</span><br><span class="line"> ysize(20) xsize(20) || ///</span><br><span class="line"> sc import export if ///</span><br><span class="line">  inlist(country, &quot;China&quot;, &quot;Germany&quot;, ///</span><br><span class="line">   &quot;Netherlands&quot;, &quot;Italy&quot;, &quot;Hungary&quot;, ///</span><br><span class="line">   &quot;United Arab Emirates&quot;, &quot;Pakistan&quot;, ///</span><br><span class="line">   &quot;Malta&quot;, &quot;Senegal&quot;) | ///</span><br><span class="line">  inlist(country, &quot;Iraq&quot;, &quot;Kuwait&quot;, ///</span><br><span class="line">   &quot;Macau&quot;, &quot;Monaco&quot;, &quot;Jamaica&quot;), ///</span><br><span class="line">  m(i) mlab(国家) mlabsize(*0.6) mlabcolor(black) ///</span><br><span class="line">  text(2000000000 500000 &quot;俄罗斯进口多于出口&quot;, size(*0.6) color(gray)) ///</span><br><span class="line">  text(500000 100000000000 &quot;俄罗斯出口多于进口&quot;, size(*0.6) color(gray))</span><br></pre></td></tr></table></figure>
+
+<p>这里的 m(i) 就表示隐藏散点，仅仅显示标签。由于 inlist() 函数仅仅支持 &lt;= 9 个条件，所以我使用了 inlsit() | inlist()。</p>
+<p>最后，这幅图的完整代码是：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">insheet</span> using <span class="string">&quot;data-iZtV0.csv&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">replace</span> iso3 = <span class="built_in">strupper</span>(iso3)</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 iso3 using <span class="string">&quot;各国ISO对照表.dta&quot;</span></span><br><span class="line"><span class="keyword">order</span> 国家</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> _m == 2</span><br><span class="line"><span class="keyword">gsort</span> _m</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="comment">* 填补下缺失的</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;百慕大&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Bermuda&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;阿布哈兹&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Abkhazia&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;摩纳哥&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Monaco&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;库拉索&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;CuraÃ§ao&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国澳门&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Macau&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;南奥塞梯&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;South Ossetia&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国台湾&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Taiwan&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;罗马尼亚&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Romania&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;塞舍尔&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Seychelles&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;未知&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Unknown&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;马绍尔群岛&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Marshall Islands&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;马尔代夫&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Maldives&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;巴勒斯坦&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Palestine&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;中国香港&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Hong Kong&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;直布罗陀&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;Gibraltar&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;英属维尔京群岛&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;British Virgin Islands&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 国家 = <span class="string">&quot;圣马力诺&quot;</span> <span class="keyword">if</span> country == <span class="string">&quot;San Marino&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 生成辅助变量</span></span><br><span class="line"><span class="keyword">gen</span> x = 1000</span><br><span class="line"><span class="keyword">replace</span> x = 1000000000000 <span class="keyword">in</span> `=_N&#x27;</span><br><span class="line"><span class="keyword">gen</span> y = 1000000000000</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> continent == <span class="string">&quot;NA&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">* 进出口总额对数</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">sum</span> = <span class="built_in">log10</span>(import + export)</span><br><span class="line"><span class="comment">* 根据进出口总额的对数切分成 10 段：</span></span><br><span class="line"><span class="keyword">egen</span> group = cut(<span class="keyword">sum</span>), <span class="built_in">group</span>(10)</span><br><span class="line"></span><br><span class="line"><span class="comment">* 绘图</span></span><br><span class="line"><span class="keyword">levelsof</span> continent, <span class="keyword">local</span>(continent)</span><br><span class="line"><span class="keyword">local</span> cmd = <span class="string">`&quot;tw (area x x, color(&quot;254 247 236%70&quot;)) (rarea y x x, color(&quot;230 230 254%70&quot;))&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> colorlist = <span class="string">`&quot;&quot;75 159 201&quot; &quot;46 95 119&quot; &quot;159 242 209&quot; &quot;184 50 41&quot; &quot;235 145 53&quot; &quot;251 230 165&quot;&quot;&#x27;</span></span><br><span class="line"><span class="keyword">local</span> grouplist = <span class="string">&quot;0.5 0.5 0.7 0.7 1 1 1 1.2 1.2 2&quot;</span></span><br><span class="line"><span class="keyword">levelsof</span> group, <span class="keyword">local</span>(group)</span><br><span class="line"><span class="keyword">local</span> <span class="keyword">n</span> = 1</span><br><span class="line"><span class="keyword">foreach</span> <span class="keyword">g</span> <span class="keyword">in</span> <span class="symbol">`group&#x27;</span> &#123;</span><br><span class="line"> <span class="keyword">local</span> <span class="keyword">m</span> = 1</span><br><span class="line"> <span class="keyword">foreach</span> i <span class="keyword">in</span> <span class="symbol">`continent&#x27;</span> &#123;</span><br><span class="line">  <span class="keyword">local</span> color: word <span class="symbol">`m&#x27;</span> of <span class="string">`&quot;`colorlist&#x27;&quot;&#x27;</span></span><br><span class="line">  <span class="keyword">local</span> s: word <span class="symbol">`n&#x27;</span> of <span class="symbol">`grouplist&#x27;</span></span><br><span class="line">  <span class="keyword">local</span> cmd = <span class="string">`&quot; `cmd&#x27; (sc import export if continent == &quot;`i&#x27;&quot; &amp; group == `g&#x27;, m(o) msize(*`s&#x27;)) &quot;&#x27;</span></span><br><span class="line">  <span class="keyword">local</span> <span class="keyword">m</span> = <span class="symbol">`m&#x27;</span> + 1</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">local</span> <span class="keyword">n</span> = <span class="symbol">`n&#x27;</span> + 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="symbol">`cmd&#x27;</span>, xsc(<span class="keyword">log</span>) <span class="comment">///</span></span><br><span class="line"> ysc(<span class="keyword">log</span>) <span class="comment">///</span></span><br><span class="line"> xla(1000 <span class="string">&quot;1K&quot;</span>  <span class="comment">///</span></span><br><span class="line">  1000000 <span class="string">&quot;1M&quot;</span> <span class="comment">///</span></span><br><span class="line">  1000000000 <span class="string">&quot;1B&quot;</span> <span class="comment">///</span></span><br><span class="line">  1000000000000 <span class="string">&quot;1T&quot;</span>, noticks <span class="comment">///</span></span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) <span class="comment">///</span></span><br><span class="line">  glc(gs10) glw(*0.8)) <span class="comment">///</span></span><br><span class="line"> yla(1000 <span class="string">&quot;1K&quot;</span>  <span class="comment">///</span></span><br><span class="line">  1000000 <span class="string">&quot;1M&quot;</span> <span class="comment">///</span></span><br><span class="line">  1000000000 <span class="string">&quot;1B&quot;</span> <span class="comment">///</span></span><br><span class="line">  1000000000000 <span class="string">&quot;1T&quot;</span>, noticks <span class="comment">///</span></span><br><span class="line">  labsize(*0.8) labgap(*2) glp(solid) <span class="comment">///</span></span><br><span class="line">  glc(gs10) glw(*0.8)) <span class="comment">///</span></span><br><span class="line"> xti(<span class="string">&quot;&quot;</span>) yti(<span class="string">&quot;&quot;</span>) || <span class="comment">///</span></span><br><span class="line">function y = x, <span class="keyword">range</span>(1000 1000000000000) lp(shortdash) <span class="comment">///</span></span><br><span class="line"> lc(gs3) <span class="comment">///</span></span><br><span class="line"> plotr(margin(zero)) <span class="comment">///</span></span><br><span class="line"> text(680000000000 7000 <span class="string">&quot;进口（美元）&quot;</span>, size(*0.6) color(gray)) <span class="comment">///</span></span><br><span class="line"> text(2000 190000000000 <span class="string">&quot;出口（美元）&quot;</span>, size(*0.6) color(gray)) <span class="comment">///</span></span><br><span class="line"> ti(<span class="string">&quot;俄罗斯 2021 年与各国间的进出口额（美元）&quot;</span>, size(*0.7)) <span class="comment">///</span></span><br><span class="line"> caption(<span class="string">&quot;数据更新至 2021 年 12 月，进出口额数据有缺失的国家已被删除。&quot;</span> <span class="comment">///</span></span><br><span class="line">  <span class="string">&quot;数据来源：Observatory of Economic Complexity (OEC)&quot;</span> <span class="comment">///</span></span><br><span class="line">  <span class="string">&quot;https://oec.world/en/profile/country/rus?subnationalTimeSelector=timeYear&quot;</span> <span class="comment">///</span></span><br><span class="line">  <span class="string">&quot;绘制：微信公众号 RStata&quot;</span>, <span class="comment">///</span></span><br><span class="line">  pos(5) size(*0.7) justification(left) bexpand) <span class="comment">///</span></span><br><span class="line"> graphr(margin(medlarge)) <span class="comment">///</span></span><br><span class="line"> leg(<span class="keyword">order</span>(3 <span class="string">&quot;Africa&quot;</span> 4 <span class="string">&quot;Asia&quot;</span> 5 <span class="string">&quot;Europe&quot;</span> <span class="comment">///</span></span><br><span class="line">  6 <span class="string">&quot;North America&quot;</span> 7 <span class="string">&quot;Oceania&quot;</span> <span class="comment">///</span></span><br><span class="line">  8 <span class="string">&quot;South America&quot;</span>) pos(11) row(1) <span class="comment">///</span></span><br><span class="line">  size(*0.7)) <span class="comment">///</span></span><br><span class="line"> ysize(20) xsize(20) || <span class="comment">///</span></span><br><span class="line"> <span class="keyword">sc</span> import export <span class="keyword">if</span> <span class="comment">///</span></span><br><span class="line">  <span class="built_in">inlist</span>(country, <span class="string">&quot;China&quot;</span>, <span class="string">&quot;Germany&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;Netherlands&quot;</span>, <span class="string">&quot;Italy&quot;</span>, <span class="string">&quot;Hungary&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;United Arab Emirates&quot;</span>, <span class="string">&quot;Pakistan&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;Malta&quot;</span>, <span class="string">&quot;Senegal&quot;</span>) | <span class="comment">///</span></span><br><span class="line">  <span class="built_in">inlist</span>(country, <span class="string">&quot;Iraq&quot;</span>, <span class="string">&quot;Kuwait&quot;</span>, <span class="comment">///</span></span><br><span class="line">   <span class="string">&quot;Macau&quot;</span>, <span class="string">&quot;Monaco&quot;</span>, <span class="string">&quot;Jamaica&quot;</span>), <span class="comment">///</span></span><br><span class="line">  <span class="built_in">m</span>(i) mlab(国家) mlabsize(*0.6) mlabcolor(black) <span class="comment">///</span></span><br><span class="line">  text(2000000000 500000 <span class="string">&quot;俄罗斯进口多于出口&quot;</span>, size(*0.6) color(gray)) <span class="comment">///</span></span><br><span class="line">  text(500000 100000000000 <span class="string">&quot;俄罗斯出口多于进口&quot;</span>, size(*0.6) color(gray))</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;俄罗斯 2021 年与各国间的进出口额（美元）.png&quot;</span>, <span class="keyword">replace</span> width(2400)</span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;俄罗斯 2021 年与各国间的进出口额（美元）.pdf&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>图表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20220305210212.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/7310074e221340acb2dd1fb8ea4154cd">使用 Stata 绘图展示 2021 年俄罗斯与各国（地区）间的进出口额</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:46.881Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/59546/" title="使用 Stata 爬取冬奥会奖牌榜数据并绘图展示"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/28748/" title="Stata如何进行加权累加？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/57449/">使用 Stata 统一海关税号编码</a><span class="tf-related-meta">2026-07-16 · 约 9 分钟</span></li><li><a href="/posts/31379/">如何编写一个使用 Stata 绘制地图的 SKILLS？</a><span class="tf-related-meta">2026-03-22 · 约 4 分钟</span></li><li><a href="/posts/21781/">Stata 中如何借助工商注册信息匹配结果把税调数据设定成面板？</a><span class="tf-related-meta">2025-12-15 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

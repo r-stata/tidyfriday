@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/73859/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="「Incremental vs. Breakthrough Innovation: The Role of Technology Spillovers」一文中提出了几个关于衡量渐进性创新与突破性创新的指标：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/73859/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="「Incremental vs. Breakthrough Innovation: The Role of Technology Spillovers」一文中提出了几个关于衡量渐进性创新与突破性创新的指标：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/73859.png">
+<meta property="article:published_time" content="2025-03-24T15:05:22.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.772Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/73859.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度","description":"「Incremental vs. Breakthrough Innovation: The Role of Technology Spillovers」一文中提出了几个关于衡量渐进性创新与突破性创新的指标：","url":"https://tidyfriday.cn/posts/73859/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/73859/"},"image":["https://tidyfriday.cn/og/73859.png"],"datePublished":"2025-03-24T15:05:22.000Z","dateModified":"2026-09-26T14:18:51.772Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利, 上市公司, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度","item":"https://tidyfriday.cn/posts/73859/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-03-24T15:05:22.000Z" itemprop="datePublished">2025-03-24</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2948 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>「Incremental vs. Breakthrough Innovation: The Role of Technology Spillovers」一文中提出了几个关于衡量渐进性创新与突破性创新的指标：</p>
+<span id="more"></span>
+
+<ol>
+<li><p>重复引用次数(Repeatcitations)：企业重复引用过去 5 年内专利的引用次数占总引用次数的比例；</p>
+</li>
+<li><p>自引次数(Self-citations)：企业自引占总引用次数的比例；</p>
+</li>
+<li><p>已知领域(known areas)：企业熟悉的技术分类下的专利数量占企业专利申请总数的比例；</p>
+</li>
+<li><p>技术相似性(Tech Proximity)：企业在 t 年的专利技术领域与 t-1 年专利技术领域之间的相似性。该值越小意味着更多的突破性创新。具体的指标为:</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/24/15/02b79j1bdbe1b168g4/common/content/1742799827299_819459.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+</li>
+<li><p>被引次数(Citations)：采用 Citations90、Citations99 分别衡量被引次数在前 10% 和 1% 的专利数量除以企业当年专利申请总数。</p>
+</li>
+</ol>
+<p>其中前三个指标反映的是企业的渐进性创新，后两个指标反映的是企业的突破性创新。</p>
+<p>今天我们先讲解专利相似性的计算，这个涉及到了公式，稍微比其他几个复杂点。</p>
+<p>之前也给大家讲解过类似的课程：</p>
+<blockquote>
+<p>使用 Stata 计算专利技术空间相似度、企业层面的知识宽度、新技术空间专利申请及IPC号新增数：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/535f9284c31d47c2861b8cd1384394d0">https://rstata.duanshu.com/#/brief/course/535f9284c31d47c2861b8cd1384394d0</a></p>
+</blockquote>
+<blockquote>
+<p>使用 Stata 计算企业技术相似度：交叉数据集、矩阵运算和 Mata 方法：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/11ec07a861384c218f5f77582875b0a2">https://rstata.duanshu.com/#/brief/course/11ec07a861384c218f5f77582875b0a2</a></p>
+</blockquote>
+<p>第一个课程里面其实讲解过跨年的技术相似度，第二个计算的其实是企业间的技术相似度。虽然第一个课程中讲解过类似的内容，不过方法感觉还不是很好用，今天再给大家介绍一种更好用的方法。</p>
+<h2 id="读取专利数据并去除重复的" class="article-heading"><a href="#读取专利数据并去除重复的" class="headerlink" title="读取专利数据并去除重复的"></a>读取专利数据并去除重复的<a class="article-anchor" href="#读取专利数据并去除重复的" aria-label="本节链接" title="复制本节链接"></a></h2><p>本次课程我们将以上市公司专利数据为例进行讲解。上市公司专利数据来自这里：</p>
+<blockquote>
+<p>1985~2024 年上市公司与专利数据匹配结果（版本3， 含申请、授权信息）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff">https://rstata.duanshu.com/#/brief/course/04100321f88b411f90429be934934bff</a></p>
+</blockquote>
+<p>由于数据非常巨大，就没在附件中提供。使用专利数据的时候要特别注意专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/24/15/02b79j1bdbe1b168g4/common/content/1742799722781_536697.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>使用前可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> ~/Desktop/渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度</span><br><span class="line"><span class="keyword">use</span> 1985~2024年上市公司与专利数据匹配结果.dta, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 去除重复的专利</span></span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 股票代码 公开公告号, force</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 保留需要的变量</span></span><br><span class="line"><span class="keyword">keep</span> 股票代码 年份 newipzlid IPC主分类</span><br><span class="line"><span class="keyword">save</span> rawdata, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><code>rawdata.dta</code> 在附件中提供了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"><span class="comment">*&gt;      +----------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;      | 股票代码   newipz~d   年份   IPC主分类 |</span></span><br><span class="line"><span class="comment">*&gt;      |----------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   1. |   000960   19850031   1985    F16H1/34 |</span></span><br><span class="line"><span class="comment">*&gt;   2. |   000709   19850705   1985    B03C3/02 |</span></span><br><span class="line"><span class="comment">*&gt;   3. |   600416   19850975   1985    H01M2/10 |</span></span><br><span class="line"><span class="comment">*&gt;   4. |   600099   19852578   1985    F24C3/08 |</span></span><br><span class="line"><span class="comment">*&gt;   5. |   000538   19853310   1985   A61K31/35 |</span></span><br><span class="line"><span class="comment">*&gt;      |----------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;   6. |   200530   19853984   1985   F16F15/28 |</span></span><br><span class="line"><span class="comment">*&gt;   7. |   000530   19853984   1985   F16F15/28 |</span></span><br><span class="line"><span class="comment">*&gt;   8. |   200530   19853985   1985    B63B9/08 |</span></span><br><span class="line"><span class="comment">*&gt;   9. |   000530   19853985   1985    B63B9/08 |</span></span><br><span class="line"><span class="comment">*&gt;  10. |   600416   19854105   1985   H01M10/44 |</span></span><br><span class="line"><span class="comment">*&gt;      +----------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>参考文献中使用的技术分类信息来自美国国家经济研究局（NBER）的专利数据库。该数据库提供了从1980年到2006年由美国专利商标局（USPTO）授予的超过300万项专利的详细信息。不过根据前述两个课程的介绍，进来年份的参考文献通常使用 IPC 主分类号的第一位（部）、前三位（大类）、前四位（小类）三种方法作为类别的划分标准。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/24/15/02b79j1bdbe1b168g4/common/content/1742799723640_855251.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>下面我们依次使用这三种方式进行计算。</p>
+<h2 id="方法一：使用部作为技术分类" class="article-heading"><a href="#方法一：使用部作为技术分类" class="headerlink" title="方法一：使用部作为技术分类"></a>方法一：使用部作为技术分类<a class="article-anchor" href="#方法一：使用部作为技术分类" aria-label="本节链接" title="复制本节链接"></a></h2><p>提取部：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC主分类)</span><br><span class="line"><span class="comment">*&gt; (337,069 observations deleted)</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(IPC主分类, 1, 1)</span><br><span class="line"><span class="keyword">drop</span> IPC主分类</span><br></pre></td></tr></table></figure>
+
+<p>每年每家企业的总专利申请量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; newipzlid: all characters numeric; replaced as double</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> totalcount = <span class="keyword">count</span>(newipzlid)</span><br></pre></td></tr></table></figure>
+
+<p>分类别的数量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">bysort</span> 股票代码 年份 <span class="keyword">class</span>: <span class="keyword">egen</span> subcount = <span class="keyword">count</span>(newipzlid)</span><br></pre></td></tr></table></figure>
+
+<p>计算比率：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> <span class="keyword">ratio</span> = subcount / totalcount</span><br><span class="line"><span class="keyword">drop</span> *<span class="keyword">count</span> newipzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line"><span class="comment">*&gt; Duplicates in terms of 股票代码 年份 class ratio</span></span><br><span class="line"><span class="comment">*&gt; (1,729,414 observations deleted)</span></span><br><span class="line">spread <span class="keyword">class</span> <span class="keyword">ratio</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> A-<span class="keyword">H</span> &#123;</span><br><span class="line"><span class="comment">*&gt;   2.     replace `i&#x27; = 0 if mi(`i&#x27;)</span></span><br><span class="line"><span class="comment">*&gt;   3. &#125;</span></span><br><span class="line"><span class="comment">*&gt; (47,783 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (28,405 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (40,095 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (56,505 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (51,634 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (40,850 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (32,031 real changes made)</span></span><br><span class="line"><span class="comment">*&gt; (37,492 real changes made)</span></span><br></pre></td></tr></table></figure>
+
+<p>排个序：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gsort 股票代码 年份</span><br></pre></td></tr></table></figure>
+
+<p>如果企业只有一年的数据，无法跨年计算，因此删除：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">bysort</span> 股票代码: <span class="keyword">egen</span> <span class="keyword">count</span> = <span class="keyword">count</span>(年份)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">count</span> == 1</span><br><span class="line"><span class="comment">*&gt; (214 observations deleted)</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">count</span></span><br></pre></td></tr></table></figure>
+
+<p>现在的数据是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">list in 1/10</span><br><span class="line">*&gt;      +-----------------------------------------------------------------------------+</span><br><span class="line">*&gt;      | 股票代码   年份          A          B   C   D   E   F          G          H |</span><br><span class="line">*&gt;      |-----------------------------------------------------------------------------|</span><br><span class="line">*&gt;   1. |   000001   2003          0          0   0   0   0   0          1          0 |</span><br><span class="line">*&gt;   2. |   000001   2010          0          0   0   0   0   0          1          0 |</span><br><span class="line">*&gt;   3. |   000001   2013          0          0   0   0   0   0         .5         .5 |</span><br><span class="line">*&gt;   4. |   000001   2016          0          0   0   0   0   0          1          0 |</span><br><span class="line">*&gt;   5. |   000001   2017          0          0   0   0   0   0   .8333333   .1666667 |</span><br><span class="line">*&gt;      |-----------------------------------------------------------------------------|</span><br><span class="line">*&gt;   6. |   000001   2018          0          0   0   0   0   0          1          0 |</span><br><span class="line">*&gt;   7. |   000001   2019          0          0   0   0   0   0   .9300699   .0699301 |</span><br><span class="line">*&gt;   8. |   000001   2020          0          0   0   0   0   0   .9007353   .0992647 |</span><br><span class="line">*&gt;   9. |   000001   2021          0   .0084746   0   0   0   0   .9350283   .0564972 |</span><br><span class="line">*&gt;  10. |   000001   2022   .0012715   .0006357   0   0   0   0   .8900191   .1080737 |</span><br><span class="line">*&gt;      +-----------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>下面我们需要循环企业进行计算，最高效的方式就是使用 Mata 代码了。不过在正式写循环之前，我们先选择平安银行的为例：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="operator">*</span><span class="operator">-</span> 以平安银行为例进行计算</span><br><span class="line">mata<span class="operator">:</span></span><br><span class="line">mat <span class="operator">=</span> st_data<span class="punctuation">(</span><span class="number">1</span><span class="operator">::</span><span class="number">11</span><span class="punctuation">,</span> <span class="number">3.</span>.10<span class="punctuation">)</span></span><br><span class="line">resmat <span class="operator">=</span> J<span class="punctuation">(</span>rows<span class="punctuation">(</span>mat<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">,</span> .<span class="punctuation">)</span></span><br><span class="line"><span class="keyword">for</span> <span class="punctuation">(</span>i <span class="operator">=</span> <span class="number">2</span>; i <span class="operator">&lt;=</span> rows<span class="punctuation">(</span>mat<span class="punctuation">)</span>; i<span class="operator">+</span><span class="operator">+</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    resmat<span class="punctuation">[</span>i<span class="punctuation">]</span> <span class="operator">=</span> mat<span class="punctuation">[</span>i<span class="punctuation">,</span>.<span class="punctuation">]</span> <span class="operator">*</span> mat<span class="punctuation">[</span>i<span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span>.<span class="punctuation">]</span><span class="string">&#x27; / (sqrt((mat[i,.] * mat[i,.]&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="punctuation">(</span>mat<span class="punctuation">[</span>i<span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span>.<span class="punctuation">]</span> <span class="operator">*</span> mat<span class="punctuation">[</span>i<span class="operator">-</span><span class="number">1</span><span class="punctuation">,</span>.<span class="punctuation">]</span><span class="string">&#x27;)))</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">resmat</span></span><br><span class="line"><span class="string">end</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以循环所有公司的了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">    code = st_sdata(., &quot;股票代码&quot;)</span><br><span class="line">    mat = st_data(., 3..10)</span><br><span class="line">    // 所有互不相同的股票代码</span><br><span class="line">    codelist = uniqrows(code)</span><br><span class="line"></span><br><span class="line">    // 年份</span><br><span class="line">    year = st_data(., &quot;年份&quot;)</span><br><span class="line"></span><br><span class="line">    // 保存到 res1 文件里面</span><br><span class="line">    stata(&quot;cap erase res1.csv&quot;)</span><br><span class="line">    filename = &quot;res1.csv&quot;</span><br><span class="line">    fh = fopen(filename, &quot;rw&quot;)</span><br><span class="line"></span><br><span class="line">    // 循环公司</span><br><span class="line">    for (c = 1; c &lt;= rows(codelist); c++) &#123;</span><br><span class="line">        codelist[c, 1]</span><br><span class="line"></span><br><span class="line">        // 该公司对应的数据</span><br><span class="line">        index = selectindex(code[., 1] :== codelist[c, 1])</span><br><span class="line">        tempmat = mat[index, .]</span><br><span class="line">        tempyear = year[index, .]</span><br><span class="line"></span><br><span class="line">        resmat = J(rows(tempmat), 1, .)</span><br><span class="line">        for (i = 2; i &lt;= rows(tempmat); i++) &#123;</span><br><span class="line">            resmat[i] = tempmat[i,.] * tempmat[i-1,.]&#x27; / (sqrt((tempmat[i,.] * tempmat[i,.]&#x27;)) * sqrt((tempmat[i-1,.] * tempmat[i-1,.]&#x27;)))</span><br><span class="line">        &#125;</span><br><span class="line">        for (i = 1; i &lt;= rows(resmat); i++) &#123;</span><br><span class="line">            fput(fh, codelist[c, 1] + &quot;,&quot; + strofreal(tempyear[i]) + &quot;,&quot; + strofreal(resmat[i, .]))</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fclose(fh)</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>读取处理结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using res1.csv, <span class="keyword">clear</span> stringcols(_all)</span><br><span class="line"><span class="comment">*&gt; (encoding automatically selected: UTF-8)</span></span><br><span class="line"><span class="comment">*&gt; (3 vars, 59,783 obs)</span></span><br><span class="line"><span class="keyword">ren</span> (v1 v2 v3) (股票代码 年份 跨年专利技术相似度_IPC1)</span><br><span class="line"><span class="keyword">destring</span> 年份 跨年专利技术相似度_IPC1, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; 年份: all characters numeric; replaced as int</span></span><br><span class="line"><span class="comment">*&gt; 跨年专利技术相似度_IPC1: all characters numeric; replaced as double</span></span><br><span class="line"><span class="comment">*&gt; (4838 missing values generated)</span></span><br><span class="line"><span class="keyword">save</span> data1, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file data1.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="方法二：使用大类作为技术分类" class="article-heading"><a href="#方法二：使用大类作为技术分类" class="headerlink" title="方法二：使用大类作为技术分类"></a>方法二：使用大类作为技术分类<a class="article-anchor" href="#方法二：使用大类作为技术分类" aria-label="本节链接" title="复制本节链接"></a></h2><p>大类是 IPC 主分类号的前三个字符。然后代码和上面的类似：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC主分类)</span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(IPC主分类, 1, 3)</span><br><span class="line"><span class="keyword">drop</span> IPC主分类</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 每年每家企业的总专利申请量</span></span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> totalcount = <span class="keyword">count</span>(newipzlid)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 分类别的数量</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份 <span class="keyword">class</span>: <span class="keyword">egen</span> subcount = <span class="keyword">count</span>(newipzlid)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算比率</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">ratio</span> = subcount / totalcount</span><br><span class="line"><span class="keyword">drop</span> *<span class="keyword">count</span> newipzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line">spread <span class="keyword">class</span> <span class="keyword">ratio</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> A01 - H10 &#123;</span><br><span class="line">    <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = 0 <span class="keyword">if</span> <span class="built_in">mi</span>(<span class="symbol">`i&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">gsort</span> 股票代码 年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除只有一年数据的</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码: <span class="keyword">egen</span> <span class="keyword">count</span> = <span class="keyword">count</span>(年份)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">count</span> == 1</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">count</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环所有公司的</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">    code = st_sdata(., <span class="string">&quot;股票代码&quot;</span>)</span><br><span class="line">    <span class="keyword">mat</span> = st_data(., 3..127)</span><br><span class="line">    <span class="comment">// 所有互不相同的股票代码</span></span><br><span class="line">    codelist = uniqrows(code)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 年份</span></span><br><span class="line">    year = st_data(., <span class="string">&quot;年份&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 保存到 res1 文件里面</span></span><br><span class="line">    stata(<span class="string">&quot;cap erase res2.csv&quot;</span>)</span><br><span class="line">    filename = <span class="string">&quot;res2.csv&quot;</span></span><br><span class="line">    fh = fopen(filename, <span class="string">&quot;rw&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 循环公司</span></span><br><span class="line">    <span class="keyword">for</span> (c = 1; c &lt;= rows(codelist); c++) &#123;</span><br><span class="line">        codelist[c, 1]</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 该公司对应的数据</span></span><br><span class="line">        index = selectindex(code[., 1] :== codelist[c, 1])</span><br><span class="line">        tempmat = <span class="keyword">mat</span>[index, .]</span><br><span class="line">        tempyear = year[index, .]</span><br><span class="line"></span><br><span class="line">        resmat = <span class="built_in">J</span>(rows(tempmat), 1, .)</span><br><span class="line">        <span class="keyword">for</span> (i = 2; i &lt;= rows(tempmat); i++) &#123;</span><br><span class="line">            resmat[i] = tempmat[i,.] * tempmat[i-1,.]&#x27; / (<span class="built_in">sqrt</span>((tempmat[i,.] * tempmat[i,.]&#x27;)) * <span class="built_in">sqrt</span>((tempmat[i-1,.] * tempmat[i-1,.]&#x27;)))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (i = 1; i &lt;= rows(resmat); i++) &#123;</span><br><span class="line">            fput(fh, codelist[c, 1] + <span class="string">&quot;,&quot;</span> + <span class="built_in">strofreal</span>(tempyear[i]) + <span class="string">&quot;,&quot;</span> + <span class="built_in">strofreal</span>(resmat[i, .]))</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fclose(fh)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">import delimited using res2.csv, <span class="keyword">clear</span> stringcols(_all)</span><br><span class="line"><span class="keyword">ren</span> (v1 v2 v3) (股票代码 年份 跨年专利技术相似度_IPC3)</span><br><span class="line"><span class="keyword">destring</span> 年份 跨年专利技术相似度_IPC3, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="方法三：使用小类作为技术分类" class="article-heading"><a href="#方法三：使用小类作为技术分类" class="headerlink" title="方法三：使用小类作为技术分类"></a>方法三：使用小类作为技术分类<a class="article-anchor" href="#方法三：使用小类作为技术分类" aria-label="本节链接" title="复制本节链接"></a></h2><p>小类是主分类号的前四位，代码也类似：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> rawdata, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(IPC主分类)</span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="built_in">substr</span>(IPC主分类, 1, 4)</span><br><span class="line"><span class="keyword">drop</span> IPC主分类</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 每年每家企业的总专利申请量</span></span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份: <span class="keyword">egen</span> totalcount = <span class="keyword">count</span>(newipzlid)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 分类别的数量</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码 年份 <span class="keyword">class</span>: <span class="keyword">egen</span> subcount = <span class="keyword">count</span>(newipzlid)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算比率</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">ratio</span> = subcount / totalcount</span><br><span class="line"><span class="keyword">drop</span> *<span class="keyword">count</span> newipzlid</span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br><span class="line">spread <span class="keyword">class</span> <span class="keyword">ratio</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> A01B - H10N &#123;</span><br><span class="line">    <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = 0 <span class="keyword">if</span> <span class="built_in">mi</span>(<span class="symbol">`i&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">gsort</span> 股票代码 年份</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除只有一年数据的</span></span><br><span class="line"><span class="keyword">bysort</span> 股票代码: <span class="keyword">egen</span> <span class="keyword">count</span> = <span class="keyword">count</span>(年份)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">count</span> == 1</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">count</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环所有公司的</span></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">    code = st_sdata(., <span class="string">&quot;股票代码&quot;</span>)</span><br><span class="line">    <span class="keyword">mat</span> = st_data(., 3..660)</span><br><span class="line">    <span class="comment">// 所有互不相同的股票代码</span></span><br><span class="line">    codelist = uniqrows(code)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 年份</span></span><br><span class="line">    year = st_data(., <span class="string">&quot;年份&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 保存到 res1 文件里面</span></span><br><span class="line">    stata(<span class="string">&quot;cap erase res3.csv&quot;</span>)</span><br><span class="line">    filename = <span class="string">&quot;res3.csv&quot;</span></span><br><span class="line">    fh = fopen(filename, <span class="string">&quot;rw&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 循环公司</span></span><br><span class="line">    <span class="keyword">for</span> (c = 1; c &lt;= rows(codelist); c++) &#123;</span><br><span class="line">        codelist[c, 1]</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 该公司对应的数据</span></span><br><span class="line">        index = selectindex(code[., 1] :== codelist[c, 1])</span><br><span class="line">        tempmat = <span class="keyword">mat</span>[index, .]</span><br><span class="line">        tempyear = year[index, .]</span><br><span class="line"></span><br><span class="line">        resmat = <span class="built_in">J</span>(rows(tempmat), 1, .)</span><br><span class="line">        <span class="keyword">for</span> (i = 2; i &lt;= rows(tempmat); i++) &#123;</span><br><span class="line">            resmat[i] = tempmat[i,.] * tempmat[i-1,.]&#x27; / (<span class="built_in">sqrt</span>((tempmat[i,.] * tempmat[i,.]&#x27;)) * <span class="built_in">sqrt</span>((tempmat[i-1,.] * tempmat[i-1,.]&#x27;)))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (i = 1; i &lt;= rows(resmat); i++) &#123;</span><br><span class="line">            fput(fh, codelist[c, 1] + <span class="string">&quot;,&quot;</span> + <span class="built_in">strofreal</span>(tempyear[i]) + <span class="string">&quot;,&quot;</span> + <span class="built_in">strofreal</span>(resmat[i, .]))</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fclose(fh)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">import delimited using res3.csv, <span class="keyword">clear</span> stringcols(_all)</span><br><span class="line"><span class="keyword">ren</span> (v1 v2 v3) (股票代码 年份 跨年专利技术相似度_IPC4)</span><br><span class="line"><span class="keyword">destring</span> 年份 跨年专利技术相似度_IPC4, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> data3, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="合并三个结果" class="article-heading"><a href="#合并三个结果" class="headerlink" title="合并三个结果"></a>合并三个结果<a class="article-anchor" href="#合并三个结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>最后，合并三种结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 年份 using data2</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                             0</span></span><br><span class="line"><span class="comment">*&gt;     Matched                            59,783  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">merge</span> 1:1 股票代码 年份 using data3</span><br><span class="line"><span class="comment">*&gt;     Result                      Number of obs</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="comment">*&gt;     Not matched                             0</span></span><br><span class="line"><span class="comment">*&gt;     Matched                            59,783  (_merge==3)</span></span><br><span class="line"><span class="comment">*&gt;     -----------------------------------------</span></span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">label</span> data <span class="string">&quot;数据计算：微信公众号 RStata&quot;</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;1985～2024年各上市公司跨年专利技术相似度计算结果&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; file 1985～2024年各上市公司跨年专利技术相似度计算结果.dta saved</span></span><br></pre></td></tr></table></figure>
+
+<p>最后可以绘制一幅图展示下计算结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">collapse</span> (<span class="keyword">mean</span>) 跨年专利技术相似度_IPC1 (<span class="keyword">mean</span>) 跨年专利技术相似度_IPC3 (<span class="keyword">mean</span>) 跨年专利技术相似度_IPC4, <span class="keyword">by</span>(年份)</span><br><span class="line"></span><br><span class="line"><span class="keyword">tw</span> conn 跨年专利技术相似度_IPC1 跨年专利技术相似度_IPC3 跨年专利技术相似度_IPC4 年份, <span class="comment">///</span></span><br><span class="line">    <span class="built_in">m</span>(o ...) lp(solid ...) color(<span class="string">&quot;254 212 57&quot;</span> <span class="string">&quot;112 154 225&quot;</span> <span class="string">&quot;138 145 151&quot;</span>) <span class="comment">///</span></span><br><span class="line">    leg(<span class="keyword">order</span>(1 <span class="string">&quot;跨年专利技术相似度(部)&quot;</span> 2 <span class="string">&quot;跨年专利技术相似度(大类)&quot;</span> 3 <span class="string">&quot;跨年专利技术相似度(小类)&quot;</span>) pos(6) row(1)) <span class="comment">///</span></span><br><span class="line">    xti(<span class="string">&quot;&quot;</span>) xla(1985(5)2020 2024) <span class="comment">///</span></span><br><span class="line">    yla(0(0.2)1, <span class="keyword">format</span>(%6.1f)) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;1986～2024年各年上市公司与上年的平均技术相似度&quot;</span>) <span class="comment">///</span></span><br><span class="line">    subti(<span class="string">&quot;数据处理：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">    caption(<span class="string">&quot;数据来源：RStata 数据中心：1986～2024年各年上市公司与上年的平均技术相似度. 2025.&quot;</span> <span class="string">&quot;https://tidyfriday.cn/rsdb2/&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;1986～2024年各年上市公司与上年的平均技术相似度.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/03/24/15/02b79j1bdbe1b168g4/common/content/1742799722212_956965.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/01387f1aabb742cca0d465e630cbcf38">名师讲堂｜渐进性创新与突破性创新：使用 Stata 计算上市公司跨年专利技术相似度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.772Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/21855/" title="2007～2016 年位于高新区、开发区、产业园、工业园内的税调企业"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/39042/" title="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（一）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/79211/">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</a><span class="tf-related-meta">2026-03-30 · 约 12 分钟</span></li><li><a href="/posts/41837/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（二）</a><span class="tf-related-meta">2025-03-04 · 约 12 分钟</span></li><li><a href="/posts/62962/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（一）</a><span class="tf-related-meta">2025-03-02 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E4%B8%93%E5%88%A9%E6%95%B0%E6%8D%AE%E5%B9%B6%E5%8E%BB%E9%99%A4%E9%87%8D%E5%A4%8D%E7%9A%84"><span class="toc-text">读取专利数据并去除重复的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8%E9%83%A8%E4%BD%9C%E4%B8%BA%E6%8A%80%E6%9C%AF%E5%88%86%E7%B1%BB"><span class="toc-text">方法一：使用部作为技术分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%A4%A7%E7%B1%BB%E4%BD%9C%E4%B8%BA%E6%8A%80%E6%9C%AF%E5%88%86%E7%B1%BB"><span class="toc-text">方法二：使用大类作为技术分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%B1%BB%E4%BD%9C%E4%B8%BA%E6%8A%80%E6%9C%AF%E5%88%86%E7%B1%BB"><span class="toc-text">方法三：使用小类作为技术分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E4%B8%89%E4%B8%AA%E7%BB%93%E6%9E%9C"><span class="toc-text">合并三个结果</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

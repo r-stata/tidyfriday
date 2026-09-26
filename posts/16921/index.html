@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/16921/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="「财政研究」2019 年第 4 期中有篇论文&lt;经济分权、地方政府竞争与城市全要素生产率&gt; 提到了衡量政府竞争程度的指标。以往的文献通常采用经济增长率、外商直接投资和宏观税负， 背后的逻辑是指标数值越大，代表地方政府竞争越激烈。但是三种方式都无法揭示本地政府受相邻地区地方政府决策的影响，因此该论文提出可以用地区经济增长率与空间权重矩阵的乘积 Wgdpg 衡量地方政府竞争。今天我们就一起来">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用">
+<meta property="og:url" content="https://tidyfriday.cn/posts/16921/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="「财政研究」2019 年第 4 期中有篇论文&lt;经济分权、地方政府竞争与城市全要素生产率&gt; 提到了衡量政府竞争程度的指标。以往的文献通常采用经济增长率、外商直接投资和宏观税负， 背后的逻辑是指标数值越大，代表地方政府竞争越激烈。但是三种方式都无法揭示本地政府受相邻地区地方政府决策的影响，因此该论文提出可以用地区经济增长率与空间权重矩阵的乘积 Wgdpg 衡量地方政府竞争。今天我们就一起来">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/16921.png">
+<meta property="article:published_time" content="2023-10-20T12:48:22.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.422Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/16921.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用","description":"「财政研究」2019 年第 4 期中有篇论文\u0026lt;经济分权、地方政府竞争与城市全要素生产率\u0026gt; 提到了衡量政府竞争程度的指标。以往的文献通常采用经济增长率、外商直接投资和宏观税负， 背后的逻辑是指标数值越大，代表地方政府竞争越激烈。但是三种方式都无法揭示本地政府受相邻地区地方政府决策的影响，因此该论文提出可以用地区经济增长率与空间权重矩阵的乘积 Wgdpg 衡量地方政府竞争。今天我们就一起…","url":"https://tidyfriday.cn/posts/16921/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/16921/"},"image":["https://tidyfriday.cn/og/16921.png"],"datePublished":"2023-10-20T12:48:22.000Z","dateModified":"2026-09-26T14:18:51.422Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 编程技巧","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用","item":"https://tidyfriday.cn/posts/16921/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-10-20T12:48:22.000Z" itemprop="datePublished">2023-10-20</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2589 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 8 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>「财政研究」2019 年第 4 期中有篇论文&lt;经济分权、地方政府竞争与城市全要素生产率&gt; 提到了衡量政府竞争程度的指标。以往的文献通常采用经济增长率、外商直接投资和宏观税负， 背后的逻辑是指标数值越大，代表地方政府竞争越激烈。但是三种方式都无法揭示本地政府受相邻地区地方政府决策的影响，因此该论文提出可以用地区经济增长率与空间权重矩阵的乘积 Wgdpg 衡量地方政府竞争。今天我们就一起来看下如何在 Stata 中通过矩阵运算的方法来计算这一指标。</p>
+<span id="more"></span>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/20/12/02b79j1bdbe1b168g4/common/content/1697777258128_589227.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>地区经济增长率通常使用地区生产总值的增长率衡量，这一指标在之前分享的城市统计年鉴面板数据里面有，这里提取了出来：</p>
+<blockquote>
+<p>1999～2022 年中国城市统计年鉴面板数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/1dcad8873f394c31a4f082bd74e916b2">https://rstata.duanshu.com/#/brief/course/1dcad8873f394c31a4f082bd74e916b2</a></p>
+</blockquote>
+<ul>
+<li>1998～2021年各地级市地区生产总值面板数据.dta</li>
+</ul>
+<p>另外因为 2018 年的城市统计年鉴（上面的数据是 2017 年的）没有提供全市的地区生产总值，所以我又从 EPS 获取了 2017 年的数据进行补充。</p>
+<p>首先读取“2019年各市是否接壤矩阵（对角线为0）.xlsx”文件并处理，该文件来源于平台上之前分享的「历年各省市区县邻接矩阵、质心距离矩阵、质心距离倒数矩阵数据」。</p>
+<blockquote>
+<p>历年各省市区县邻接矩阵、质心距离矩阵、质心距离倒数矩阵数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/eb331d940dbf4907b75d75b4914da67d">https://rstata.duanshu.com/#/brief/course/eb331d940dbf4907b75d75b4914da67d</a></p>
+</blockquote>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import excel using <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line"> <span class="keyword">cap</span> <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = <span class="built_in">subinstr</span>(<span class="symbol">`i&#x27;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;_&quot;</span>, .) <span class="keyword">if</span> _n == 1</span><br><span class="line">&#125;</span><br><span class="line">nrow 1</span><br><span class="line"></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">replace</span> 城市 = <span class="built_in">subinstr</span>(城市, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;_&quot;</span>, .)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>因为 Stata 中的变量名不支持带“-”号的，所以这里都替换成了“_”。</p>
+<p>因为城市统计年鉴里面没有提供 2017 年的全市地区生产总值，所以再从 EPS 获取一份 2017 年的处理下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 2017 年的数据</span></span><br><span class="line"><span class="keyword">use</span> 2017, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 城市名称 市</span><br><span class="line"><span class="keyword">ren</span> 城市代码 市代码</span><br><span class="line"><span class="keyword">ren</span> 国内生产总值万元 地区生产总值_当年价格_亿元_全市</span><br><span class="line"><span class="keyword">replace</span> 地区生产总值_当年价格_亿元_全市 = 地区生产总值_当年价格_亿元_全市 / 10000</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值_当年价格_亿元_全市)</span><br><span class="line"><span class="keyword">drop</span> 市代码</span><br><span class="line"><span class="keyword">replace</span> 市 = <span class="string">&quot;北京市&quot;</span> <span class="keyword">if</span> 市 == <span class="string">&quot;北京&quot;</span></span><br><span class="line"><span class="keyword">save</span> 2017b, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这份数据里面有市代码变量，但是担心可能不是和我们这份城市统计年鉴数据一个版本的，所以匹配下试试：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">shp2dta using <span class="string">&quot;2019行政区划/市.shp&quot;</span>, database(citycode2019) coord(coord) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">erase</span> coord.dta</span><br><span class="line"><span class="keyword">use</span> citycode2019, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> *类型 _ID</span><br><span class="line"><span class="keyword">merge</span> 1:1 市 using 2017b</span><br><span class="line"><span class="comment">*- 有三个市没有匹配成功就不要了</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2017c&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以把 2017 年的数据合并到总数据里面，再补充下缺失值：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 补充缺失的增长率</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 年份 == 2017</span><br><span class="line"><span class="keyword">append</span> using 2017c</span><br><span class="line"><span class="keyword">gen</span> 城市 = 省 + <span class="string">&quot;_&quot;</span> + 市</span><br><span class="line"><span class="keyword">encode</span> 城市, <span class="keyword">gen</span>(city)</span><br><span class="line"><span class="keyword">xtset</span> city 年份</span><br><span class="line"><span class="keyword">replace</span> 地区生产总值增长率_百分比_全市 = ((地区生产总值_当年价格_亿元_全市 - <span class="keyword">L</span>.地区生产总值_当年价格_亿元_全市) / 地区生产总值_当年价格_亿元_全市) * 100 <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值增长率_百分比_全市)</span><br><span class="line"><span class="keyword">drop</span> city</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据(填补后)&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>我们再以 2021 年的数据为例看一下如何计算这一指标。</p>
+<p>保留 2021 年的数据和矩阵匹配：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据(填补后)&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 == 2021</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值增长率_百分比_全市)</span><br><span class="line"><span class="keyword">merge</span> 1:1 城市 using <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）.dta&quot;</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br></pre></td></tr></table></figure>
+
+<p>为了避免矩阵的顺序错乱，我们首先锁定数据的行顺序：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 首先锁定行的顺序</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br></pre></td></tr></table></figure>
+
+<p>这样如果后面有操作导致行序变了，只需要 gsort id 就可以修正了（不过这个在下面没用到）。</p>
+<p>然后根据城市顺序重新排列下列序：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 循环获取城市列表</span><br><span class="line">local vlist = &quot;&quot;</span><br><span class="line">forval i = 1/`=_N&#x27; &#123;</span><br><span class="line"> local vlist `vlist&#x27; `=城市[`i&#x27;]&#x27;</span><br><span class="line">&#125;</span><br><span class="line">keep 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 `vlist&#x27;</span><br><span class="line">order 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 `vlist&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>下面就可以使用 mkmat 命令把变量值转换成矩阵了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkmat 地区生产总值增长率_百分比_全市, mat(m1)</span><br><span class="line">mkmat `vlist&#x27;, mat(m2)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意这里也用到了 vlist，试过 local 变量。local 变量的定义和使用要一并运行，所以这里的代码要和上面的一段代码同时运行才可以。</p>
+</blockquote>
+<p>这样的话，m1 就是个 nxn 的矩阵，m2 是 nx1 的矩阵，两者相乘就得到了 nx1 的矩阵：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mat Wgdpg = m2 * m1</span><br><span class="line"></span><br><span class="line">keep 省代码 省 市代码 市</span><br><span class="line">svmat Wgdpg</span><br><span class="line"></span><br><span class="line">list in 1/10</span><br><span class="line"></span><br><span class="line">*&gt;     +------------------------------------------------------+</span><br><span class="line">*&gt;     | 省代码   省             市代码   市           Wgdpg1 |</span><br><span class="line">*&gt;     |------------------------------------------------------|</span><br><span class="line">*&gt;  1. | 310000   上海市         310000   上海市         26.2 |</span><br><span class="line">*&gt;  2. | 530000   云南省         530900   临沧市         12.8 |</span><br><span class="line">*&gt;  3. | 530000   云南省         530700   丽江市          8.3 |</span><br><span class="line">*&gt;  4. | 530000   云南省         530500   保山市          7.4 |</span><br><span class="line">*&gt;  5. | 530000   云南省         530100   昆明市        31.16 |</span><br><span class="line">*&gt;     |------------------------------------------------------|</span><br><span class="line">*&gt;  6. | 530000   云南省         530600   昭通市        39.87 |</span><br><span class="line">*&gt;  7. | 530000   云南省         530800   普洱市        16.46 |</span><br><span class="line">*&gt;  8. | 530000   云南省         530300   曲靖市         38.6 |</span><br><span class="line">*&gt;  9. | 530000   云南省         530400   玉溪市         10.4 |</span><br><span class="line">*&gt; 10. | 150000   内蒙古自治区   150900   乌兰察布市    38.55 |</span><br><span class="line">*&gt;     +------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>svmat 可以把矩阵再转换成变量。</p>
+<p>然后就可以循环所有年份的了：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 循环所有年份</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;结果数据&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据(填补后)&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 1998/2021 &#123;</span><br><span class="line"> <span class="keyword">preserve</span></span><br><span class="line"> <span class="keyword">qui</span> &#123;</span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> 年份 == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值增长率_百分比_全市)</span><br><span class="line">  <span class="keyword">merge</span> 1:1 城市 using <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）.dta&quot;</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line">  <span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line">  <span class="keyword">local</span> vlist = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">forval</span> j = 1/`=_N&#x27; &#123;</span><br><span class="line">   <span class="keyword">local</span> vlist <span class="symbol">`vlist&#x27;</span> `=城市[<span class="symbol">`j&#x27;</span>]&#x27;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">keep</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line">  <span class="keyword">order</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">  *- 构建矩阵</span></span><br><span class="line">  <span class="keyword">mkmat</span> 地区生产总值增长率_百分比_全市, <span class="keyword">mat</span>(m1)</span><br><span class="line">  <span class="keyword">mkmat</span> <span class="symbol">`vlist&#x27;</span>, <span class="keyword">mat</span>(m2)</span><br><span class="line">  <span class="keyword">mat</span> Wgdpg = m2 * m1</span><br><span class="line"></span><br><span class="line">  <span class="keyword">keep</span> 省代码 省 市代码 市</span><br><span class="line">  <span class="keyword">svmat</span> Wgdpg</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">save</span> <span class="string">&quot;结果数据/`i&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"> <span class="keyword">restore</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后合并所有年份的就得到了总的计算结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> 结果数据/1998.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> 年份 = 1998</span><br><span class="line"><span class="keyword">forval</span> i = 1999/2021 &#123;</span><br><span class="line"> <span class="keyword">append</span> using 结果数据/<span class="symbol">`i&#x27;</span>.dta</span><br><span class="line"> <span class="keyword">replace</span> 年份 = <span class="symbol">`i&#x27;</span> <span class="keyword">if</span> <span class="built_in">missing</span>(年份)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">order</span> 年份</span><br><span class="line"><span class="keyword">ren</span> Wgdpg1 Wgdpg</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span> <span class="keyword">in</span> 1/10</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------+</span></span><br><span class="line"><span class="comment">*&gt;     | 年份   省代码   省             市代码   市           Wgdpg |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  1. | 1998   310000   上海市         310000   上海市          34 |</span></span><br><span class="line"><span class="comment">*&gt;  2. | 1998   530000   云南省         530100   昆明市         7.2 |</span></span><br><span class="line"><span class="comment">*&gt;  3. | 1998   530000   云南省         530300   曲靖市        19.1 |</span></span><br><span class="line"><span class="comment">*&gt;  4. | 1998   150000   内蒙古自治区   150300   乌海市         8.9 |</span></span><br><span class="line"><span class="comment">*&gt;  5. | 1998   150000   内蒙古自治区   150200   包头市        13.1 |</span></span><br><span class="line"><span class="comment">*&gt;     |------------------------------------------------------------|</span></span><br><span class="line"><span class="comment">*&gt;  6. | 1998   150000   内蒙古自治区   150100   呼和浩特市      21 |</span></span><br><span class="line"><span class="comment">*&gt;  7. | 1998   150000   内蒙古自治区   150400   赤峰市        13.1 |</span></span><br><span class="line"><span class="comment">*&gt;  8. | 1998   110000   北京市         110000   北京市        56.5 |</span></span><br><span class="line"><span class="comment">*&gt;  9. | 1998   220000   吉林省         220200   吉林市        68.2 |</span></span><br><span class="line"><span class="comment">*&gt; 10. | 1998   220000   吉林省         220300   四平市        67.4 |</span></span><br><span class="line"><span class="comment">*&gt;     +------------------------------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;Wgdpg计算结果&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>另外如果是区县的可能使用 Mata 的矩阵运算会更快速点，首先以 2021 年的为例：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据(填补后)&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 == 2021</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值增长率_百分比_全市)</span><br><span class="line"><span class="keyword">merge</span> 1:1 城市 using <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）.dta&quot;</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环获取城市列表</span></span><br><span class="line"><span class="keyword">local</span> vlist = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/`=_N&#x27; &#123;</span><br><span class="line"> <span class="keyword">local</span> vlist <span class="symbol">`vlist&#x27;</span> `=城市[<span class="symbol">`i&#x27;</span>]&#x27;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">keep</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line"><span class="keyword">order</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">m1 = st_data(., <span class="string">&quot;`vlist&#x27;&quot;</span>)</span><br><span class="line">m2 = st_data(., <span class="string">&quot;地区生产总值增长率_百分比_全市&quot;</span>)</span><br><span class="line">Wgdpg = m1 * m2</span><br><span class="line">st_matrix(<span class="string">&quot;Wgdpg&quot;</span>, Wgdpg)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">keep</span> 省代码 省 市代码 市</span><br><span class="line"><span class="keyword">svmat</span> Wgdpg</span><br></pre></td></tr></table></figure>
+
+<p>循环所有年份可以采用下面的代码：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 由于 mata 程序里面有 end，所以不能直接用在 循环里面，首先定义一个 mata 函数：</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">void matfun() &#123;</span><br><span class="line"> vlist = st_local(<span class="string">&quot;vlist&quot;</span>)</span><br><span class="line"> m1 = st_data(., vlist)</span><br><span class="line"> m2 = st_data(., <span class="string">&quot;地区生产总值增长率_百分比_全市&quot;</span>)</span><br><span class="line"> Wgdpg = m1 * m2</span><br><span class="line"> st_matrix(<span class="string">&quot;Wgdpg&quot;</span>, Wgdpg)</span><br><span class="line">&#125;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;结果数据2&quot;</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1998～2021年各地级市地区生产总值面板数据(填补后)&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 1998/2021 &#123;</span><br><span class="line"> <span class="keyword">preserve</span></span><br><span class="line"> <span class="keyword">qui</span> &#123;</span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> 年份 == <span class="symbol">`i&#x27;</span></span><br><span class="line">  <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(地区生产总值增长率_百分比_全市)</span><br><span class="line">  <span class="keyword">merge</span> 1:1 城市 using <span class="string">&quot;2019年各市是否接壤矩阵（对角线为0）.dta&quot;</span></span><br><span class="line">  <span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line">  <span class="keyword">drop</span> _m</span><br><span class="line"></span><br><span class="line">  <span class="keyword">local</span> vlist = <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="keyword">forval</span> j = 1/`=_N&#x27; &#123;</span><br><span class="line">   <span class="keyword">local</span> vlist <span class="symbol">`vlist&#x27;</span> `=城市[<span class="symbol">`j&#x27;</span>]&#x27;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">keep</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line">  <span class="keyword">order</span> 年份 省代码 省 市代码 市 地区生产总值_当年价格_亿元_全市 地区生产总值增长率_百分比_全市 城市 <span class="symbol">`vlist&#x27;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">mata</span>: matfun()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">keep</span> 省代码 省 市代码 市</span><br><span class="line">  <span class="keyword">svmat</span> Wgdpg</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">save</span> <span class="string">&quot;结果数据2/`i&#x27;&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"> <span class="keyword">restore</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合并代码就和上面的一样了。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/2cfc2c6307bc401b861d0b435e286fff">名师讲堂｜使用 Stata 计算地方政府竞争衡量指标：矩阵运算的应用</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.422Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/79165/" title="使用 R 语言绘制分段回归线+拟合方程文本标签以及如何导出可以插入 word 文档中的矢量图"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/43081/" title="使用 Stata 绘制分段回归线+拟合方程文本标签以及如何导出可以插入 word 文档中的矢量图"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/91453/">名师讲堂｜Stata：如何根据专利申请数据构造城市间合作申请数量矩阵？</a><span class="tf-related-meta">2025-03-09 · 约 12 分钟</span></li><li><a href="/posts/41837/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（二）</a><span class="tf-related-meta">2025-03-03 · 约 12 分钟</span></li><li><a href="/posts/62962/">名师讲堂｜使用 Stata 处理上市公司专利互引矩阵及测算上市公司供应链协同创新程度（一）</a><span class="tf-related-meta">2025-03-02 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

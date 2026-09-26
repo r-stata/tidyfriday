@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/23392/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享使用 R 语言测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异">
+<meta property="og:url" content="https://tidyfriday.cn/posts/23392/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享使用 R 语言测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/23392.png">
+<meta property="article:published_time" content="2026-05-03T22:42:16.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.094Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta property="article:tag" content="夜间灯光">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/23392.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异","description":"今天给大家分享使用 R 语言测算中国各地区城乡夜间灯光亮度差异的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。","url":"https://tidyfriday.cn/posts/23392/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/23392/"},"image":["https://tidyfriday.cn/og/23392.png"],"datePublished":"2026-05-03T22:42:16.000Z","dateModified":"2026-09-26T14:18:50.094Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言, 夜间灯光","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异","item":"https://tidyfriday.cn/posts/23392/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-03T22:42:16.000Z" itemprop="datePublished">2026-05-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2168 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a><a href="/tags/#tag=%E5%A4%9C%E9%97%B4%E7%81%AF%E5%85%89">夜间灯光</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享使用 R 语言测算中国各地区<strong>城乡夜间灯光亮度差异</strong>的方法。该方法基于城市建成区与镇建成区的矢量边界数据，对夜间灯光遥感栅格数据进行分区统计，计算城市与农村的平均灯光亮度及其比值。</p>
+<span id="more"></span>
+
+<h2 id="原理与方法" class="article-heading"><a href="#原理与方法" class="headerlink" title="原理与方法"></a>原理与方法<a class="article-anchor" href="#原理与方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>城乡夜间灯光亮度差异是衡量<strong>城镇化水平</strong>和<strong>城乡差距</strong>的重要指标。本方法的核心思想是：</p>
+<ol>
+<li>将城市建成区（Cities）和镇建成区（Towns）的矢量边界合并作为”城市”区域</li>
+<li>其余区域定义为”农村”区域</li>
+<li>对夜间灯光栅格数据进行分区统计，计算城市和农村的平均亮度</li>
+<li>用城乡亮度比值（城市/农村）衡量城乡差距</li>
+</ol>
+<p>其中城市建成区和镇建成区的数据来源于这个论文：</p>
+<blockquote>
+<p>Bai, M., Zhang, X., Ai, W., Jing, X., &amp; Liu, L. (2026). A high-resolution global annual city and town boundaries dataset (2000–2022) derived from GLC_FCS30D product. Scientific Data, 13:50. <a target="_blank" rel="noopener external nofollow noreferrer" href="https://doi.org/10.1038/s41597-025-02568-9">https://doi.org/10.1038/s41597-025-02568-9</a></p>
+</blockquote>
+<p>夜间灯光数据平台上有好几个版本，这里选择的是施开放版本：</p>
+<blockquote>
+<p>1992～2024 年中国各省市区县乡镇类 DMSP-OLS 夜间灯光面板数据（施开放版本）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74">https://rstata.duanshu.com/#/brief/course/2c3880893f5947a5bf764befd3994c74</a></p>
+</blockquote>
+<p>另外也可以选择其余的三个版本：</p>
+<blockquote>
+<p>2000～2024 年各省市区县乡镇类 NPP-VIIRS 夜间灯光面板数据 &amp; 栅格数据（余柏蒗版本1）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/f8e6c2d0d4e549a58749d7d86a60e238">https://rstata.duanshu.com/#/brief/course/f8e6c2d0d4e549a58749d7d86a60e238</a></p>
+</blockquote>
+<blockquote>
+<p>1992～2024 年各省市区县乡镇类 NPP-VIIRS 夜间灯光面板数据 &amp; 栅格数据（余柏蒗版本2）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/5ee752e4c1d84ab48b2235366dfb83ec">https://rstata.duanshu.com/#/brief/course/5ee752e4c1d84ab48b2235366dfb83ec</a></p>
+</blockquote>
+<blockquote>
+<p>1986～2024 年中国各省市区县、乡镇夜间灯光面板数据（田一禾版本）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/b7392dc0a7f649c9bf129666445c866e">https://rstata.duanshu.com/#/brief/course/b7392dc0a7f649c9bf129666445c866e</a></p>
+</blockquote>
+<h3 id="指标定义" class="article-heading"><a href="#指标定义" class="headerlink" title="指标定义"></a>指标定义<a class="article-anchor" href="#指标定义" aria-label="本节链接" title="复制本节链接"></a></h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>城市平均亮度</td>
+<td>建成区栅格的灯光均值</td>
+<td>值越大表示城镇化水平越高</td>
+</tr>
+<tr>
+<td>农村平均亮度</td>
+<td>非建成区栅格的灯光均值</td>
+<td>值越大表示农村发展水平越高</td>
+</tr>
+<tr>
+<td>城乡比</td>
+<td>城市/农村亮度比值</td>
+<td>值越大表示城乡差距越大</td>
+</tr>
+</tbody></table>
+<h3 id="技术流程" class="article-heading"><a href="#技术流程" class="headerlink" title="技术流程"></a>技术流程<a class="article-anchor" href="#技术流程" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">栅格数据 (TIF)</span><br><span class="line">       ↓</span><br><span class="line">  投影转换 (EPSG:4326)</span><br><span class="line">       ↓</span><br><span class="line">  建成区掩膜 (Cities + Towns)</span><br><span class="line">       ↓</span><br><span class="line">  城市灯光 × 掩膜</span><br><span class="line">  农村灯光 × (1 - 掩膜)</span><br><span class="line">       ↓</span><br><span class="line">  分区统计 (zonal mean)</span><br><span class="line">       ↓</span><br><span class="line">  省 / 市 / 区县 面板数据</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据准备" class="article-heading"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备<a class="article-anchor" href="#数据准备" aria-label="本节链接" title="复制本节链接"></a></h2><p>本方法需要以下数据：</p>
+<ol>
+<li>夜间灯光栅格数据：年度 TIF 格式的夜间灯光亮度数据（以施开放版本为例）</li>
+<li>城市建成区边界：Cities_2022.shp（城市建成区矢量数据）</li>
+<li>镇建成区边界：Towns_2022.shp（镇建成区矢量数据）</li>
+<li>行政区划边界：省/市/区县 shp 文件（用于分区统计）</li>
+</ol>
+<blockquote>
+<p>数据来源说明：</p>
+<ul>
+<li>夜间灯光栅格数据：可使用施开放版本、田一禾版本、余柏蒗版本等</li>
+<li>建成区边界数据：来自 Cities_2000_2022 和 Towns_2000_2022 文件夹</li>
+<li>行政区划数据：2021 年行政区划</li>
+</ul>
+</blockquote>
+<p>首先加载必要的 R 包并设置参数：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>haven<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">setwd<span class="punctuation">(</span><span class="string">&quot;/Users/ac/Desktop/城乡夜间灯光强度对比&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 以施开放版本 2022年为例</span></span><br><span class="line">version_name <span class="operator">&lt;-</span> <span class="string">&quot;施开放版本&quot;</span></span><br><span class="line">version_folder <span class="operator">&lt;-</span> <span class="string">&quot;夜间灯光亮度栅格数据（施开放版本）&quot;</span></span><br><span class="line">year <span class="operator">&lt;-</span> 2022</span><br></pre></td></tr></table></figure>
+
+<h2 id="读取行政区划数据" class="article-heading"><a href="#读取行政区划数据" class="headerlink" title="读取行政区划数据"></a>读取行政区划数据<a class="article-anchor" href="#读取行政区划数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先读取行政区划矢量边界，用于后续分区统计：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">province_shp <span class="operator">&lt;-</span> st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/省.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">city_shp <span class="operator">&lt;-</span> st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/市.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">county_shp <span class="operator">&lt;-</span> st_read<span class="punctuation">(</span><span class="string">&quot;2021行政区划/县.shp&quot;</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;行政区划数据读取完成\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;- 省:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>province_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;- 市:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>city_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;- 县:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>county_shp<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取行政区划参照表（用于后续补充变量）</span></span><br><span class="line"><span class="comment"># 市-省对应关系</span></span><br><span class="line">city_province_df <span class="operator">&lt;-</span> city_shp <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>市代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 省<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>市代码<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 县-市-省对应关系</span></span><br><span class="line">county_city_province_df <span class="operator">&lt;-</span> county_shp <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>县代码<span class="punctuation">,</span> 县<span class="punctuation">,</span> 市代码<span class="punctuation">,</span> 市<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 省<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>县代码<span class="punctuation">,</span> .keep_all <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;市级参照表:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>city_province_df<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;条\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;区县级参照表:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>county_city_province_df<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;条\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="读取灯光栅格数据" class="article-heading"><a href="#读取灯光栅格数据" class="headerlink" title="读取灯光栅格数据"></a>读取灯光栅格数据<a class="article-anchor" href="#读取灯光栅格数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>加载夜间灯光栅格数据并投影到 WGS84：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载灯光栅格数据</span></span><br><span class="line">light_raster <span class="operator">&lt;-</span> rast<span class="punctuation">(</span>file.path<span class="punctuation">(</span>version_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s.tif&quot;</span><span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;原始灯光栅格维度:&quot;</span><span class="punctuation">,</span> <span class="built_in">dim</span><span class="punctuation">(</span>light_raster<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;原始灯光范围:&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span><span class="built_in">as.character</span><span class="punctuation">(</span>minmax<span class="punctuation">(</span>light_raster<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot; - &quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 投影到 WGS84（用于与 shp 数据匹配）</span></span><br><span class="line">light_proj <span class="operator">&lt;-</span> project<span class="punctuation">(</span>light_raster<span class="punctuation">,</span> <span class="string">&quot;EPSG:4326&quot;</span><span class="punctuation">,</span> method <span class="operator">=</span> <span class="string">&quot;bilinear&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;投影后栅格维度:&quot;</span><span class="punctuation">,</span> <span class="built_in">dim</span><span class="punctuation">(</span>light_proj<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;投影后范围:&quot;</span><span class="punctuation">)</span></span><br><span class="line">ext<span class="punctuation">(</span>light_proj<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="构建城乡掩膜" class="article-heading"><a href="#构建城乡掩膜" class="headerlink" title="构建城乡掩膜"></a>构建城乡掩膜<a class="article-anchor" href="#构建城乡掩膜" aria-label="本节链接" title="复制本节链接"></a></h2><p>城乡掩膜的构建是整个方法的核心步骤：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载建成区边界数据</span></span><br><span class="line">cities <span class="operator">&lt;-</span> st_read<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;Cities_2000_2022/Cities_%s.shp&quot;</span><span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line">towns <span class="operator">&lt;-</span> st_read<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;Towns_2000_2022/Towns_%s.shp&quot;</span><span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">,</span> quiet <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并所有城市和镇作为城市区域（不进行面积过滤）</span></span><br><span class="line">urban <span class="operator">&lt;-</span> rbind<span class="punctuation">(</span></span><br><span class="line">  cities <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>geometry<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  towns <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>geometry<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;城市建成区:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>cities<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;镇建成区:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>towns<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;合并后城市区域总数:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>urban<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;个\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>将矢量边界转换为 terra 格式并栅格化为掩膜：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 转为 terra 格式（修复无效几何）</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>关键说明</strong>：不再按面积过滤建成区，而是直接合并所有城市和镇矢量区域。这是因为 Towns 数据中存在面积字段为 0 的记录（可能是原始数据采集问题），去掉面积过滤可以保留更多有效区域。</p>
+</blockquote>
+<h2 id="计算城乡灯光" class="article-heading"><a href="#计算城乡灯光" class="headerlink" title="计算城乡灯光"></a>计算城乡灯光<a class="article-anchor" href="#计算城乡灯光" aria-label="本节链接" title="复制本节链接"></a></h2><p>将灯光栅格与掩膜相乘，分别得到城市和农村的灯光强度：</p>
+<h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><h2 id="分区统计" class="article-heading"><a href="#分区统计" class="headerlink" title="分区统计"></a>分区统计<a class="article-anchor" href="#分区统计" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用 <code>zonal()</code> 函数对省、市、县分别进行分区统计，计算各区划内的灯光均值。</p>
+<h3 id="辅助函数" class="article-heading"><a href="#辅助函数" class="headerlink" title="辅助函数"></a>辅助函数<a class="article-anchor" href="#辅助函数" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先定义一个辅助函数，用于提取 zonal 统计结果：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">zonal_to_df <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>z_result<span class="punctuation">,</span> code_col<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  df <span class="operator">&lt;-</span> as.data.frame<span class="punctuation">(</span>z_result<span class="punctuation">)</span></span><br><span class="line">  <span class="built_in">names</span><span class="punctuation">(</span>df<span class="punctuation">)</span><span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> code_col</span><br><span class="line">  <span class="built_in">names</span><span class="punctuation">(</span>df<span class="punctuation">)</span><span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="string">&quot;value&quot;</span></span><br><span class="line">  df</span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="省级统计" class="article-heading"><a href="#省级统计" class="headerlink" title="省级统计"></a>省级统计<a class="article-anchor" href="#省级统计" aria-label="本节链接" title="复制本节链接"></a></h3><p>以省为单位进行灯光均值统计：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 省级分区栅格</span></span><br><span class="line">province_proj <span class="operator">&lt;-</span> st_transform<span class="punctuation">(</span>province_shp<span class="punctuation">,</span> crs <span class="operator">=</span> <span class="string">&quot;EPSG:4326&quot;</span><span class="punctuation">)</span></span><br><span class="line">province_raster <span class="operator">&lt;-</span> rasterize<span class="punctuation">(</span>vect<span class="punctuation">(</span>province_proj<span class="punctuation">)</span><span class="punctuation">,</span> light_proj<span class="punctuation">,</span> field <span class="operator">=</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算各省的城市/农村灯光均值</span></span><br><span class="line">prov_urban <span class="operator">&lt;-</span> zonal_to_df<span class="punctuation">(</span>zonal<span class="punctuation">(</span>urban_lights<span class="punctuation">,</span> province_raster<span class="punctuation">,</span> fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">)</span></span><br><span class="line">prov_rural <span class="operator">&lt;-</span> zonal_to_df<span class="punctuation">(</span>zonal<span class="punctuation">(</span>rural_lights<span class="punctuation">,</span> province_raster<span class="punctuation">,</span> fun <span class="operator">=</span> <span class="string">&quot;mean&quot;</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并结果</span></span><br><span class="line">prov_merge <span class="operator">&lt;-</span> province_proj <span class="operator">%&gt;%</span> st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>省代码<span class="punctuation">,</span> 省<span class="punctuation">)</span></span><br><span class="line">prov_data <span class="operator">&lt;-</span> prov_merge <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>rename<span class="punctuation">(</span>prov_urban<span class="punctuation">,</span> urban_mean <span class="operator">=</span> value<span class="punctuation">)</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>rename<span class="punctuation">(</span>prov_rural<span class="punctuation">,</span> rural_mean <span class="operator">=</span> value<span class="punctuation">)</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;省代码&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加年份和计算城乡比</span></span><br><span class="line">prov_data<span class="operator">$</span>year <span class="operator">&lt;-</span> <span class="built_in">as.integer</span><span class="punctuation">(</span>year<span class="punctuation">)</span></span><br><span class="line">prov_data<span class="operator">$</span>ratio <span class="operator">&lt;-</span> prov_data<span class="operator">$</span>urban_mean <span class="operator">/</span> prov_data<span class="operator">$</span>rural_mean</span><br><span class="line"><span class="comment"># 处理异常值（农村亮度为0或负数时城乡比为NA）</span></span><br><span class="line">prov_data<span class="operator">$</span>ratio<span class="punctuation">[</span><span class="built_in">is.infinite</span><span class="punctuation">(</span>prov_data<span class="operator">$</span>ratio<span class="punctuation">)</span> <span class="operator">|</span> <span class="built_in">is.nan</span><span class="punctuation">(</span>prov_data<span class="operator">$</span>ratio<span class="punctuation">)</span> <span class="operator">|</span> prov_data<span class="operator">$</span>rural_mean <span class="operator">&lt;=</span> <span class="number">0</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="literal">NA</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整理列名</span></span><br><span class="line">colnames<span class="punctuation">(</span>prov_data<span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;省代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省&quot;</span><span class="punctuation">,</span> <span class="string">&quot;城市平均亮度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;农村平均亮度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;城乡比&quot;</span><span class="punctuation">)</span></span><br><span class="line">prov_data <span class="operator">&lt;-</span> prov_data <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>年份<span class="punctuation">,</span> 省代码<span class="punctuation">,</span> 省<span class="punctuation">,</span> 城市平均亮度<span class="punctuation">,</span> 农村平均亮度<span class="punctuation">,</span> 城乡比<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n省级结果示例（&quot;</span><span class="punctuation">,</span> year<span class="punctuation">,</span> <span class="string">&quot;年）：\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">prov_data <span class="operator">%&gt;%</span> head<span class="punctuation">(</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="市级统计" class="article-heading"><a href="#市级统计" class="headerlink" title="市级统计"></a>市级统计<a class="article-anchor" href="#市级统计" aria-label="本节链接" title="复制本节链接"></a></h3><p>市级统计方法与省级相同：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 市级分区栅格</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<h3 id="区县级统计" class="article-heading"><a href="#区县级统计" class="headerlink" title="区县级统计"></a>区县级统计<a class="article-anchor" href="#区县级统计" aria-label="本节链接" title="复制本节链接"></a></h3><p>区县级统计同样适用：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;区县结果条数:&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>county_data<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">county_data <span class="operator">%&gt;%</span> head<span class="punctuation">(</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="保存结果" class="article-heading"><a href="#保存结果" class="headerlink" title="保存结果"></a>保存结果<a class="article-anchor" href="#保存结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>将计算结果保存为 Stata 格式：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建结果文件夹</span></span><br><span class="line">result_folder <span class="operator">&lt;-</span> version_name</span><br><span class="line">dir.create<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> showWarnings <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 省级结果</span></span><br><span class="line">write_dta<span class="punctuation">(</span>prov_data<span class="punctuation">,</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s省级结果_%d.dta&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          version <span class="operator">=</span> <span class="number">14</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 市级结果</span></span><br><span class="line">write_dta<span class="punctuation">(</span>city_data<span class="punctuation">,</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s市级结果_%d.dta&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          version <span class="operator">=</span> <span class="number">14</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 区县级结果</span></span><br><span class="line">write_dta<span class="punctuation">(</span>county_data<span class="punctuation">,</span> file.path<span class="punctuation">(</span>result_folder<span class="punctuation">,</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%s区县级结果_%d.dta&quot;</span><span class="punctuation">,</span> version_name<span class="punctuation">,</span> year<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">          version <span class="operator">=</span> <span class="number">14</span><span class="punctuation">,</span> label <span class="operator">=</span> <span class="string">&quot;数据处理：微信公众号 RStata&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;结果已保存到&quot;</span><span class="punctuation">,</span> result_folder<span class="punctuation">,</span> <span class="string">&quot;文件夹\n&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="结果描述性统计" class="article-heading"><a href="#结果描述性统计" class="headerlink" title="结果描述性统计"></a>结果描述性统计<a class="article-anchor" href="#结果描述性统计" aria-label="本节链接" title="复制本节链接"></a></h2><p>查看各指标的描述性统计：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;=== 省级结果描述性统计 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">prov_data <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>城市平均亮度<span class="punctuation">,</span> 农村平均亮度<span class="punctuation">,</span> 城乡比<span class="punctuation">)</span> <span class="operator">%&gt;%</span> summary<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n=== 市级结果描述性统计 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">city_data <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>城市平均亮度<span class="punctuation">,</span> 农村平均亮度<span class="punctuation">,</span> 城乡比<span class="punctuation">)</span> <span class="operator">%&gt;%</span> summary<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">cat<span class="punctuation">(</span><span class="string">&quot;\n=== 区县级结果描述性统计 ===\n&quot;</span><span class="punctuation">)</span></span><br><span class="line">county_data <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>城市平均亮度<span class="punctuation">,</span> 农村平均亮度<span class="punctuation">,</span> 城乡比<span class="punctuation">)</span> <span class="operator">%&gt;%</span> summary<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="结果变量说明" class="article-heading"><a href="#结果变量说明" class="headerlink" title="结果变量说明"></a>结果变量说明<a class="article-anchor" href="#结果变量说明" aria-label="本节链接" title="复制本节链接"></a></h2><p>最终输出的面板数据包含以下变量：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+<th>省级</th>
+<th>市级</th>
+<th>区县</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>年份</td>
+<td>观测年份</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>省代码</td>
+<td>省级区划代码</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>省</td>
+<td>省级区划名称</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>市代码</td>
+<td>市级区划代码</td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>市</td>
+<td>市级区划名称</td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>县代码</td>
+<td>县级区划代码</td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>县</td>
+<td>县级区划名称</td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>城市平均亮度</td>
+<td>建成区平均灯光强度</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>农村平均亮度</td>
+<td>非建成区平均灯光强度</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>城乡比</td>
+<td>城市/农村亮度比值</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/7836c12baef54eda82b5797cac3b284c">名师讲堂｜使用 R 语言测算城乡夜间灯光亮度及城乡差异</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.094Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/61460/" title="名师讲堂｜使用 Python 测算城乡夜间灯光亮度及城乡差异"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/30592/" title="名师讲堂｜使用 Python 测算上市公司关键核心技术突破指标面板数据（熵权法）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/54627/">名师讲堂｜使用 R 语言提取上市公司所在位置及周边 8 个格点的夜间灯光亮度、判断是否加班及统计年加班天数</a><span class="tf-related-meta">2025-02-26 · 约 18 分钟</span></li><li><a href="/posts/43368/">名师讲堂｜使用 R 语言下载和处理日度夜间灯光栅格数据</a><span class="tf-related-meta">2024-07-18 · 约 16 分钟</span></li><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-30 · 约 13 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86%E4%B8%8E%E6%96%B9%E6%B3%95"><span class="toc-text">原理与方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89"><span class="toc-text">指标定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%B5%81%E7%A8%8B"><span class="toc-text">技术流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="toc-text">数据准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%88%92%E6%95%B0%E6%8D%AE"><span class="toc-text">读取行政区划数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E7%81%AF%E5%85%89%E6%A0%85%E6%A0%BC%E6%95%B0%E6%8D%AE"><span class="toc-text">读取灯光栅格数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E5%9F%8E%E4%B9%A1%E6%8E%A9%E8%86%9C"><span class="toc-text">构建城乡掩膜</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E5%9F%8E%E4%B9%A1%E7%81%AF%E5%85%89"><span class="toc-text">计算城乡灯光</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E7%BB%9F%E8%AE%A1"><span class="toc-text">分区统计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%85%E5%8A%A9%E5%87%BD%E6%95%B0"><span class="toc-text">辅助函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9C%81%E7%BA%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">省级统计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%82%E7%BA%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">市级统计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%BA%E5%8E%BF%E7%BA%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">区县级统计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">保存结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E6%8F%8F%E8%BF%B0%E6%80%A7%E7%BB%9F%E8%AE%A1"><span class="toc-text">结果描述性统计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E5%8F%98%E9%87%8F%E8%AF%B4%E6%98%8E"><span class="toc-text">结果变量说明</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

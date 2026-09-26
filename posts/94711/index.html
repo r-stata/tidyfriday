@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/94711/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="上次课程主页：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;fb64d7abf9c74710a7e6fffde4d2e136">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/94711/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="上次课程主页：https:&#x2F;&#x2F;rstata.duanshu.com&#x2F;#&#x2F;course&#x2F;fb64d7abf9c74710a7e6fffde4d2e136">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/94711.png">
+<meta property="article:published_time" content="2025-04-01T23:56:41.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.798Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="创新与知识">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/94711.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）","description":"上次课程主页：https://rstata.duanshu.com/#/course/fb64d7abf9c74710a7e6fffde4d2e136","url":"https://tidyfriday.cn/posts/94711/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/94711/"},"image":["https://tidyfriday.cn/og/94711.png"],"datePublished":"2025-04-01T23:56:41.000Z","dateModified":"2026-09-26T14:18:48.798Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata, 专利, 创新与知识","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）","item":"https://tidyfriday.cn/posts/94711/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-04-01T23:56:41.000Z" itemprop="datePublished">2025-04-01</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1142 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 4 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E5%88%9B%E6%96%B0%E4%B8%8E%E7%9F%A5%E8%AF%86">创新与知识</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>上次课程主页：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fb64d7abf9c74710a7e6fffde4d2e136">https://rstata.duanshu.com/#/course/fb64d7abf9c74710a7e6fffde4d2e136</a></p>
+<span id="more"></span>
+
+<p>继续上次课的内容，今天我们继续讲解第三部分：</p>
+<blockquote>
+<p>专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）：使用并行技术提升计算速度。</p>
+</blockquote>
+<p>在之前的课程「使用 Stata 进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县」中，我给大家介绍过使用 parallel 进行并行的方法。今天我们再来介绍下 Mata 程序中如何使用并行技术提升速度。</p>
+<blockquote>
+<p>使用 Stata 进行地理编码：地址解析经纬度、坐标转换 &amp; 根据经纬度判断所处的省市区县：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/537300af1a9947edb758789785c600f3">https://rstata.duanshu.com/#/brief/course/537300af1a9947edb758789785c600f3</a></p>
+</blockquote>
+<p>上次课的结尾我们给出了计算所有专利相似度的 Mata 代码：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">&quot;~/Desktop/专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）&quot;</span></span><br><span class="line"><span class="comment">*&gt; /Users/ac/Desktop/专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）</span></span><br><span class="line"><span class="keyword">use</span> tempdata7, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*&gt; (数据处理：微信公众号 RStata)</span></span><br><span class="line"><span class="comment">*- 抽样 0.5%</span></span><br><span class="line"><span class="keyword">sample</span> 0.5</span><br><span class="line"><span class="comment">*&gt; (583,361 observations deleted)</span></span><br><span class="line"><span class="comment">*- 如果 group 相等，那么就是同样的属性</span></span><br><span class="line"><span class="keyword">egen</span> group = <span class="built_in">group</span>(人工智能技术 元宇宙技术 区块链技术 工业互联网技术 物联网技术 量子信息技术 高端芯片技术)</span><br><span class="line"><span class="keyword">destring</span> newipzlid, <span class="keyword">replace</span></span><br><span class="line"><span class="comment">*&gt; newipzlid: all characters numeric; replaced as double</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">mata</span>:</span><br><span class="line">data = st_data(., .)</span><br><span class="line"><span class="comment">// 提取专利编号、申请日和属性</span></span><br><span class="line">patent_id = data[., 1]</span><br><span class="line">application_date = data[., 2]</span><br><span class="line">attributes = data[., 3..cols(data)]</span><br><span class="line"></span><br><span class="line">stata(<span class="string">&quot;cap erase res2.csv&quot;</span>)</span><br><span class="line">filename = <span class="string">&quot;res2.csv&quot;</span></span><br><span class="line">fh = fopen(filename, <span class="string">&quot;rw&quot;</span>)</span><br><span class="line"><span class="keyword">for</span>(i = 1; i &lt;= rows(data); i++) &#123;</span><br><span class="line">    i</span><br><span class="line">    index_p = selectindex(application_date :&lt; application_date[i])</span><br><span class="line">    index_l = selectindex(application_date :&gt; application_date[i])</span><br><span class="line"></span><br><span class="line">    M_p = attributes[index_p, .]</span><br><span class="line">    M_l = attributes[index_l, .]</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 互不相同的行</span></span><br><span class="line">    M_p2 = uniqrows(M_p)</span><br><span class="line">    M_l2 = uniqrows(M_l)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 各行的数量（需要循环统计）</span></span><br><span class="line">    freq_p = <span class="built_in">J</span>(rows(M_p2), 1, .)</span><br><span class="line">    <span class="keyword">for</span> (j=1; j&lt;=rows(M_p2); j++) &#123;</span><br><span class="line">        freq_p[j] = colsum(M_p[., 8] :== M_p2[j, 8])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    freq_l = <span class="built_in">J</span>(rows(M_l2), 1, .)</span><br><span class="line">    <span class="keyword">for</span> (j=1; j&lt;=rows(M_l2); j++) &#123;</span><br><span class="line">        freq_l[j] = colsum(M_l[., 8] :== M_l2[j, 8])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 去除最后一列</span></span><br><span class="line">    M_p3 = M_p2[., 1..7]</span><br><span class="line">    M_l3 = M_l2[., 1..7]</span><br><span class="line">    attributes3 = attributes[., 1..7]</span><br><span class="line"></span><br><span class="line">    cos_p = (attributes3[i, .] * M_p3&#x27;) :/ (<span class="built_in">sqrt</span>(attributes3[i, .] * attributes3[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_p3 * M_p3&#x27;)&#x27;))</span><br><span class="line">    cos_l = (attributes3[i, .] * M_l3&#x27;) :/ (<span class="built_in">sqrt</span>(attributes3[i, .] * attributes3[i, .]&#x27;) :* <span class="built_in">sqrt</span>(diagonal(M_l3 * M_l3&#x27;)&#x27;))</span><br><span class="line">    fput(fh, invtokens(<span class="built_in">strofreal</span>((patent_id[i], application_date[i], rowsum(cos_p :* freq_p&#x27;), rowsum(cos_l :* freq_l&#x27;)), <span class="string">&quot;%16.12g&quot;</span>), <span class="string">&quot;,&quot;</span>))</span><br><span class="line">&#125;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">import delimited using res2.csv, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
+
+<p>在 Stata 中可以使用 parallel 命令进行并行运算，安装方法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net install st0572.pkg, from(&quot;http://www.stata-journal.com/software/sj19-3&quot;) replace</span><br></pre></td></tr></table></figure>
+
+<p>注意不要用 <code>ssc install</code> 安装，ssc 上的 parallel 和我介绍的这个用法不同。</p>
+<p>如果我们是直接下载文件，直接保存相应的循环代码，然后 parallel do … 就好了，但是这里我们是需要把所有的结果保存到单个 csv 文件里面，如果直接这样做，结果会乱掉。因此我们需要修改下代码，也就是每个进程的结果保存到各自的文件里面。<code>para_matacode.do</code> 里面的代码就是修改好的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 此处代码需下载讲义材料查看～</span><br></pre></td></tr></table></figure>
+
+<p><code>worker_id = st_global(&quot;pll_instance&quot;)</code> 代码可以从 Stata 的环境中提取每个进程的编号，然后就可以每个进程保存不同的 csv 文件了。在代码的结尾我还设置了直接把 csv 文件直接转换成 dta 的程序。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cap mkdir &quot;csv&quot;</span><br><span class="line">cap mkdir &quot;dta&quot;</span><br><span class="line"></span><br><span class="line">parallel initialize 16, force</span><br><span class="line">parallel do para_matacode.do</span><br><span class="line">parallel clean</span><br></pre></td></tr></table></figure>
+
+<p><code>parallel initialize 16, force</code> 表示创建了 16 个线程，这个数量需要根据自己电脑的配置设定，并非越多越好。可以运行下面的代码查看可用进程数量：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">c(processors_mach)</span><br></pre></td></tr></table></figure>
+
+<p><code>para_matacode.do</code> 就是前面展示的 Mata 代码。</p>
+<p><code>parallel clean</code> 用于清除多线程运算过程中产生的相关文件。</p>
+<blockquote>
+<p>另外有个非常重要的注意事项。在 Windows 电脑上，parallel 的使用要求工作目录中不能出现中文，最好相关的文件名称也不要有中文。否则可能会报错。</p>
+</blockquote>
+<p>合并结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">appendall dta</span><br></pre></td></tr></table></figure>
+
+<p>appendall 的源代码在附件中也有提供。</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ren</span> (v1 v2 v3 v4) (newipzlid date <span class="keyword">BS</span> FS)</span><br><span class="line"><span class="keyword">format</span> date %tdCY-<span class="keyword">N</span>-<span class="keyword">D</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> tp = FS / <span class="keyword">BS</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就计算得到了每个专利的突破性创新指标。不过这里我没有限定时间范围，想要限定时间范围可以参考上次课程修改。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/a72c0a3ca53b4239a849c98c8491f3a8">名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（三）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.798Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/57004/" title="名师讲堂｜专利的前向相似度与后向相似度：使用 Stata 计算专利关键数字技术突破创新指标（二）"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/33131/" title="Stata 如何读取超大的 dta 和 csv 文件"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/99815/">名师讲堂｜使用 Stata 测算专利的创新突破度：ACD指数和mACD指数</a><span class="tf-related-meta">2026-05-04 · 约 11 分钟</span></li><li><a href="/posts/79211/">名师讲堂｜使用 Stata 测算专利的创新突破度 CD 指数：以上市公司专利数据为例（更新）</a><span class="tf-related-meta">2026-03-30 · 约 12 分钟</span></li><li><a href="/posts/39533/">名师讲堂｜使用 Stata 测算专利的创新突破度：CD指数（废弃）</a><span class="tf-related-meta">2026-01-21 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

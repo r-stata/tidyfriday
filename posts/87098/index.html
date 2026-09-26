@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算各城市虚拟集聚程度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/87098/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="一、虚拟集聚度指标介绍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算各城市虚拟集聚程度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/87098/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="一、虚拟集聚度指标介绍">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/87098.png">
+<meta property="article:published_time" content="2026-04-26T19:00:55.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.046Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/87098.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算各城市虚拟集聚程度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算各城市虚拟集聚程度","description":"一、虚拟集聚度指标介绍","url":"https://tidyfriday.cn/posts/87098/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/87098/"},"image":["https://tidyfriday.cn/og/87098.png"],"datePublished":"2026-04-26T19:00:55.000Z","dateModified":"2026-09-26T14:18:50.046Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算各城市虚拟集聚程度","item":"https://tidyfriday.cn/posts/87098/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算各城市虚拟集聚程度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算各城市虚拟集聚程度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-04-26T19:00:55.000Z" itemprop="datePublished">2026-04-26</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2045 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 7 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="一、虚拟集聚度指标介绍" class="article-heading"><a href="#一、虚拟集聚度指标介绍" class="headerlink" title="一、虚拟集聚度指标介绍"></a>一、虚拟集聚度指标介绍<a class="article-anchor" href="#一、虚拟集聚度指标介绍" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<h3 id="1-1-指标背景" class="article-heading"><a href="#1-1-指标背景" class="headerlink" title="1.1 指标背景"></a>1.1 指标背景<a class="article-anchor" href="#1-1-指标背景" aria-label="本节链接" title="复制本节链接"></a></h3><p>虚拟集聚度（Virtual Agglomeration）是衡量城市在数字经济领域集聚程度的重要指标。与传统的地理集聚不同，虚拟集聚强调通过信息技术实现的空间联系和资源共享，反映了城市在信息传输、软件和信息技术服务业领域的相对优势。</p>
+<p>该指标的计算方法参考了《虚拟集聚与城市经济韧性》（宋林等）一文，通过结合<strong>区位熵</strong>和<strong>空间距离权重</strong>来综合测度城市的虚拟集聚水平。</p>
+<h3 id="1-2-计算公式" class="article-heading"><a href="#1-2-计算公式" class="headerlink" title="1.2 计算公式"></a>1.2 计算公式<a class="article-anchor" href="#1-2-计算公式" aria-label="本节链接" title="复制本节链接"></a></h3><p>虚拟集聚度的计算公式为：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/18/02b79j1bdbe1b168g4/common/content/1777200908773_429895.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="1-3-计算步骤概述" class="article-heading"><a href="#1-3-计算步骤概述" class="headerlink" title="1.3 计算步骤概述"></a>1.3 计算步骤概述<a class="article-anchor" href="#1-3-计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算过程分为以下几个步骤：</p>
+<ol>
+<li>数据准备：读取新增企业和注销企业数据</li>
+<li>存续企业计算：通过累计新增减去累计注销得到各城市各行业的存续企业数</li>
+<li>IT 行业筛选：提取”信息传输、软件和信息技术服务业”企业数据</li>
+<li>区位熵计算：计算各城市 IT 行业的区位熵</li>
+<li>距离矩阵计算：使用 sf 包计算城市间的地理距离</li>
+<li>虚拟集聚度计算：结合区位熵和距离权重计算最终指标</li>
+<li>可视化：绘制空间分布地图和趋势折线图</li>
+</ol>
+<hr>
+<h2 id="二、详细计算代码" class="article-heading"><a href="#二、详细计算代码" class="headerlink" title="二、详细计算代码"></a>二、详细计算代码<a class="article-anchor" href="#二、详细计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="2-1-环境准备与数据读取" class="article-heading"><a href="#2-1-环境准备与数据读取" class="headerlink" title="2.1 环境准备与数据读取"></a>2.1 环境准备与数据读取<a class="article-anchor" href="#2-1-环境准备与数据读取" aria-label="本节链接" title="复制本节链接"></a></h3><p>首先加载必要的 R 包并读取原始数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 加载必要的包</span></span><br><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span>  <span class="comment"># 数据处理</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span>         <span class="comment"># 空间数据处理</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置工作目录</span></span><br><span class="line">setwd<span class="punctuation">(</span><span class="string">&quot;/Users/ac/Desktop/使用 R 语言测算各城市虚拟集聚程度&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取新增企业数据</span></span><br><span class="line">new_firms <span class="operator">&lt;-</span> read_csv<span class="punctuation">(</span><span class="string">&quot;新增企业数量.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">message<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;新增数据: %d 行&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>new_firms<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取注销企业数据</span></span><br><span class="line">closed_firms <span class="operator">&lt;-</span> read_csv<span class="punctuation">(</span><span class="string">&quot;注销公司数量.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">message<span class="punctuation">(</span>sprintf<span class="punctuation">(</span><span class="string">&quot;注销数据: %d 行&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>closed_firms<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>数据说明</strong>：</p>
+<ul>
+<li>新增企业数量.csv：包含各城市各行业每年的新增注册企业数量</li>
+<li>注销公司数量.csv：包含各城市各行业每年的注销企业数量</li>
+<li>数据时间范围：2010-2023年</li>
+<li>行业分类：按照国民经济行业分类标准</li>
+</ul>
+<p>上面代码中读取的两个 csv 文件分别来源于平台上的工商注册信息和注销信息：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;1949～2023年各省市区县、行业新增企业数量统计.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">export delimited using <span class="string">&quot;新增企业数量.csv&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1970～2023年各年各省市区县、各行业注销公司数量面板数据.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">export delimited using <span class="string">&quot;注销公司数量.csv&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-数据预处理——计算累计存续企业" class="article-heading"><a href="#2-2-数据预处理——计算累计存续企业" class="headerlink" title="2.2 数据预处理——计算累计存续企业"></a>2.2 数据预处理——计算累计存续企业<a class="article-anchor" href="#2-2-数据预处理——计算累计存续企业" aria-label="本节链接" title="复制本节链接"></a></h3><p>计算每个城市各行业的累计存续企业数，需要考虑企业的进入（新增）和退出（注销）：</p>
+<p>此处代码需下载讲义材料查看～</p>
+<p><strong>关键函数说明</strong>：</p>
+<ul>
+<li>cumsum()：计算累计和</li>
+<li>arrange()：按指定变量排序</li>
+<li>group_by() + ungroup()：分组计算后解除分组</li>
+</ul>
+<h3 id="2-3-合并计算存续企业数" class="article-heading"><a href="#2-3-合并计算存续企业数" class="headerlink" title="2.3 合并计算存续企业数"></a>2.3 合并计算存续企业数<a class="article-anchor" href="#2-3-合并计算存续企业数" aria-label="本节链接" title="复制本节链接"></a></h3><p>将新增和注销数据合并，计算最终的存续企业数量：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并计算存续企业</span></span><br><span class="line">firms <span class="operator">&lt;-</span> new_summary <span class="operator">%&gt;%</span></span><br><span class="line">  full_join<span class="punctuation">(</span></span><br><span class="line">    closed_summary <span class="operator">%&gt;%</span> select<span class="punctuation">(</span>年份<span class="punctuation">,</span> 省份<span class="punctuation">,</span> 城市<span class="punctuation">,</span> 行业门类<span class="punctuation">,</span> 累计注销<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;省份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;城市&quot;</span><span class="punctuation">,</span> <span class="string">&quot;行业门类&quot;</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    累计新增 <span class="operator">=</span> coalesce<span class="punctuation">(</span>累计新增<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    累计注销 <span class="operator">=</span> coalesce<span class="punctuation">(</span>累计注销<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    存续数量 <span class="operator">=</span> pmax<span class="punctuation">(</span>累计新增 <span class="operator">-</span> 累计注销<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>关键函数说明</strong>：</p>
+<ul>
+<li>coalesce()：返回第一个非缺失值</li>
+<li>pmax()：并行取最大值，确保存续数量不为负数</li>
+</ul>
+<h3 id="2-4-筛选-IT-行业并汇总" class="article-heading"><a href="#2-4-筛选-IT-行业并汇总" class="headerlink" title="2.4 筛选 IT 行业并汇总"></a>2.4 筛选 IT 行业并汇总<a class="article-anchor" href="#2-4-筛选-IT-行业并汇总" aria-label="本节链接" title="复制本节链接"></a></h3><p>提取”信息传输、软件和信息技术服务业”数据，并按城市-年份汇总：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 定义 IT 行业名称</span></span><br><span class="line">it_sector <span class="operator">&lt;-</span> <span class="string">&quot;信息传输、软件和信息技术服务业&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按城市-年份汇总</span></span><br><span class="line">city_data <span class="operator">&lt;-</span> firms <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">,</span> 城市<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarise<span class="punctuation">(</span></span><br><span class="line">    总企业数 <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>存续数量<span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    IT企业数 <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>ifelse<span class="punctuation">(</span>行业门类 <span class="operator">==</span> it_sector<span class="punctuation">,</span> 存续数量<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>总企业数 <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-计算区位熵" class="article-heading"><a href="#2-5-计算区位熵" class="headerlink" title="2.5 计算区位熵"></a>2.5 计算区位熵<a class="article-anchor" href="#2-5-计算区位熵" aria-label="本节链接" title="复制本节链接"></a></h3><p>区位熵（Location Quotient）衡量某城市 IT 行业的专业化程度相对于全国的水平：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算区位熵</span></span><br><span class="line">city_data <span class="operator">&lt;-</span> city_data <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>年份<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    全国IT <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>IT企业数<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    全国总 <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>总企业数<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    全国IT集聚度 <span class="operator">=</span> 全国IT <span class="operator">/</span> 全国总<span class="punctuation">,</span></span><br><span class="line">    城市IT集聚度 <span class="operator">=</span> IT企业数 <span class="operator">/</span> 总企业数<span class="punctuation">,</span></span><br><span class="line">    区位熵 <span class="operator">=</span> 城市IT集聚度 <span class="operator">/</span> 全国IT集聚度<span class="punctuation">,</span></span><br><span class="line">    区位熵 <span class="operator">=</span> ifelse<span class="punctuation">(</span><span class="built_in">is.finite</span><span class="punctuation">(</span>区位熵<span class="punctuation">)</span><span class="punctuation">,</span> 区位熵<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>区位熵解读</strong>：</p>
+<ul>
+<li>区位熵 &gt; 1：该城市 IT 行业集聚度高于全国平均水平</li>
+<li>区位熵 = 1：与全国平均水平相当</li>
+<li>区位熵 &lt; 1：低于全国平均水平</li>
+</ul>
+<h3 id="2-6-计算城市间距离矩阵" class="article-heading"><a href="#2-6-计算城市间距离矩阵" class="headerlink" title="2.6 计算城市间距离矩阵"></a>2.6 计算城市间距离矩阵<a class="article-anchor" href="#2-6-计算城市间距离矩阵" aria-label="本节链接" title="复制本节链接"></a></h3><p>使用 <code>sf</code> 包读取行政区划数据并计算城市质心间的距离：</p>
+<p>此处代码需下载讲义材料查看～</p>
+<h3 id="2-7-计算虚拟集聚度" class="article-heading"><a href="#2-7-计算虚拟集聚度" class="headerlink" title="2.7 计算虚拟集聚度"></a>2.7 计算虚拟集聚度<a class="article-anchor" href="#2-7-计算虚拟集聚度" aria-label="本节链接" title="复制本节链接"></a></h3><p>结合区位熵和距离权重，计算每个城市的虚拟集聚度：</p>
+<p>此处代码需下载讲义材料查看～</p>
+<h3 id="2-8-保存结果" class="article-heading"><a href="#2-8-保存结果" class="headerlink" title="2.8 保存结果"></a>2.8 保存结果<a class="article-anchor" href="#2-8-保存结果" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并结果并保存</span></span><br><span class="line">final_result <span class="operator">&lt;-</span> city_data <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>vag_results<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;年份&quot;</span><span class="punctuation">,</span> <span class="string">&quot;城市&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">final_result <span class="operator">%&gt;%</span></span><br><span class="line">  write_csv<span class="punctuation">(</span><span class="string">&quot;城市虚拟集聚度结果.csv&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、数据可视化" class="article-heading"><a href="#三、数据可视化" class="headerlink" title="三、数据可视化"></a>三、数据可视化<a class="article-anchor" href="#三、数据可视化" aria-label="本节链接" title="复制本节链接"></a></h2><p>这部分可以学习平台上的地图绘制相关课程：</p>
+<blockquote>
+<p>使用 R 语言绘制地图课程汇总索引: <a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/lYyVFUzKWkzyBFRAInoZFg">https://mp.weixin.qq.com/s/lYyVFUzKWkzyBFRAInoZFg</a></p>
+</blockquote>
+<h3 id="3-1-空间分布地图绘制" class="article-heading"><a href="#3-1-空间分布地图绘制" class="headerlink" title="3.1 空间分布地图绘制"></a>3.1 空间分布地图绘制<a class="article-anchor" href="#3-1-空间分布地图绘制" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggspatial<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>scico<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义Albers投影坐标系</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取数据</span></span><br><span class="line">vag_data <span class="operator">&lt;-</span> read_csv<span class="punctuation">(</span><span class="string">&quot;城市虚拟集聚度结果.csv&quot;</span><span class="punctuation">,</span> show_col_types <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line">vag_2023 <span class="operator">&lt;-</span> vag_data <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>年份 <span class="operator">==</span> <span class="number">2023</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>城市<span class="punctuation">,</span> 虚拟集聚度<span class="punctuation">,</span> 区位熵<span class="punctuation">,</span> IT企业数<span class="punctuation">,</span> 总企业数<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置绘图区域</span></span><br><span class="line">st_bbox<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>xmin <span class="operator">=</span> <span class="operator">-</span><span class="number">2725586</span><span class="punctuation">,</span> xmax <span class="operator">=</span> <span class="number">2982768</span><span class="punctuation">,</span> ymax <span class="operator">=</span> <span class="number">6000000</span><span class="punctuation">,</span> ymin <span class="operator">=</span> <span class="number">1800655</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        crs <span class="operator">=</span> st_crs<span class="punctuation">(</span>mycrs<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span> st_as_sfc<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> plotbbox</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取地图数据</span></span><br><span class="line">citymap <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;mapdata/chinacity2021mini/chinacity2021mini.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>省代码<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">citylinemap <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;mapdata/chinacity2021mini/chinacity2021mini_line.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span><span class="built_in">class</span> <span class="operator">%in%</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;九段线&quot;</span><span class="punctuation">,</span> <span class="string">&quot;海岸线&quot;</span><span class="punctuation">,</span> <span class="string">&quot;小地图框格&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">china_neighboring <span class="operator">&lt;-</span> read_sf<span class="punctuation">(</span><span class="string">&quot;mapdata/china_neighboring/china_neighboring.shp&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数据分组处理" class="article-heading"><a href="#数据分组处理" class="headerlink" title="数据分组处理"></a>数据分组处理<a class="article-anchor" href="#数据分组处理" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并数据</span></span><br><span class="line">citymap <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>vag_2023<span class="punctuation">,</span> by <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;市&quot;</span> <span class="operator">=</span> <span class="string">&quot;城市&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>虚拟集聚度 <span class="operator">=</span> if_else<span class="punctuation">(</span><span class="built_in">is.na</span><span class="punctuation">(</span>虚拟集聚度<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> 虚拟集聚度<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> citymap_data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将连续变量分组为离散变量</span></span><br><span class="line">vag_values <span class="operator">&lt;-</span> citymap_data<span class="operator">$</span>虚拟集聚度<span class="punctuation">[</span>citymap_data<span class="operator">$</span>虚拟集聚度 <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">]</span></span><br><span class="line">breaks <span class="operator">&lt;-</span> quantile<span class="punctuation">(</span>vag_values<span class="punctuation">,</span> probs <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">0.2</span><span class="punctuation">,</span> <span class="number">0.4</span><span class="punctuation">,</span> <span class="number">0.6</span><span class="punctuation">,</span> <span class="number">0.8</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span> na.rm <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">citymap_data <span class="operator">&lt;-</span> citymap_data <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>vag_group <span class="operator">=</span> case_when<span class="punctuation">(</span></span><br><span class="line">    虚拟集聚度 <span class="operator">==</span> <span class="number">0</span> <span class="operator">~</span> <span class="string">&quot;无数据&quot;</span><span class="punctuation">,</span></span><br><span class="line">    虚拟集聚度 <span class="operator">&lt;=</span> breaks<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span> <span class="operator">~</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    虚拟集聚度 <span class="operator">&lt;=</span> breaks<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span> <span class="operator">~</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    虚拟集聚度 <span class="operator">&lt;=</span> breaks<span class="punctuation">[</span><span class="number">4</span><span class="punctuation">]</span> <span class="operator">~</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">4</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    虚拟集聚度 <span class="operator">&lt;=</span> breaks<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span> <span class="operator">~</span> sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">4</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="literal">TRUE</span> <span class="operator">~</span> sprintf<span class="punctuation">(</span><span class="string">&quot;&gt;%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">citymap_data<span class="operator">$</span>vag_group <span class="operator">&lt;-</span> factor<span class="punctuation">(</span>citymap_data<span class="operator">$</span>vag_group<span class="punctuation">,</span></span><br><span class="line">                                  levels <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;无数据&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                            sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                            sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                            sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">4</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                            sprintf<span class="punctuation">(</span><span class="string">&quot;%.2f-%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">4</span><span class="punctuation">]</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">                                            sprintf<span class="punctuation">(</span><span class="string">&quot;&gt;%.2f&quot;</span><span class="punctuation">,</span> breaks<span class="punctuation">[</span><span class="number">5</span><span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">citymap_proj <span class="operator">&lt;-</span> citymap_data <span class="operator">%&gt;%</span> st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span></span><br><span class="line">china_neighboring_proj <span class="operator">&lt;-</span> china_neighboring <span class="operator">%&gt;%</span> st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="绘制地图" class="article-heading"><a href="#绘制地图" class="headerlink" title="绘制地图"></a>绘制地图<a class="article-anchor" href="#绘制地图" aria-label="本节链接" title="复制本节链接"></a></h4><p>此处代码需下载讲义材料查看～</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/18/02b79j1bdbe1b168g4/common/content/1777200891531_495736.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="3-2-历年趋势折线图" class="article-heading"><a href="#3-2-历年趋势折线图" class="headerlink" title="3.2 历年趋势折线图"></a>3.2 历年趋势折线图<a class="article-anchor" href="#3-2-历年趋势折线图" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>gghighlight<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 筛选数据</span></span><br><span class="line">此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制折线图</span></span><br><span class="line">p_line <span class="operator">&lt;-</span> ggplot<span class="punctuation">(</span>vag_trend<span class="punctuation">,</span> aes<span class="punctuation">(</span>x <span class="operator">=</span> 年份<span class="punctuation">,</span> y <span class="operator">=</span> 虚拟集聚度<span class="punctuation">,</span> group <span class="operator">=</span> 城市<span class="punctuation">,</span> color <span class="operator">=</span> 城市<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  geom_line<span class="punctuation">(</span>linewidth <span class="operator">=</span> <span class="number">0.8</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  gghighlight<span class="punctuation">(</span>城市 <span class="operator">%in%</span> municipalities<span class="punctuation">,</span> label_key <span class="operator">=</span> 城市<span class="punctuation">,</span></span><br><span class="line">              label_params <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>family <span class="operator">=</span> cnfont<span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">4</span><span class="punctuation">,</span> nudge_x <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span> nudge_y <span class="operator">=</span> <span class="number">0.1</span><span class="punctuation">,</span></span><br><span class="line">                                  segment.size <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span> segment.color <span class="operator">=</span> <span class="string">&quot;gray50&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              unhighlighted_params <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">&quot;gray80&quot;</span><span class="punctuation">,</span> alpha <span class="operator">=</span> <span class="number">0.3</span><span class="punctuation">,</span> linewidth <span class="operator">=</span> <span class="number">0.4</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">              use_direct_label <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_color_manual<span class="punctuation">(</span>values <span class="operator">=</span> municipality_colors<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_x_continuous<span class="punctuation">(</span>breaks <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span>seq<span class="punctuation">(</span><span class="number">1990</span><span class="punctuation">,</span> <span class="number">2020</span><span class="punctuation">,</span> <span class="number">5</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">2023</span><span class="punctuation">)</span><span class="punctuation">,</span> limits <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">1990</span><span class="punctuation">,</span> <span class="number">2023</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  scale_y_continuous<span class="punctuation">(</span>breaks <span class="operator">=</span> seq<span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">,</span> by <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">)</span><span class="punctuation">,</span> limits <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">4</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  labs<span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;1990-2023年中国城市虚拟集聚度变化趋势&quot;</span><span class="punctuation">,</span></span><br><span class="line">       subtitle <span class="operator">=</span> <span class="string">&quot;突出显示四个直辖市 | 其他城市以灰色显示&quot;</span><span class="punctuation">,</span></span><br><span class="line">       x <span class="operator">=</span> <span class="literal">NULL</span><span class="punctuation">,</span> y <span class="operator">=</span> <span class="string">&quot;虚拟集聚度&quot;</span><span class="punctuation">,</span></span><br><span class="line">       caption <span class="operator">=</span> <span class="string">&quot;数据来源：全国工商企业注册数据 | 绘制：RStata&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  hrbrthemes<span class="operator">::</span>theme_ipsum<span class="punctuation">(</span>base_family <span class="operator">=</span> cnfont<span class="punctuation">,</span> grid <span class="operator">=</span> <span class="string">&quot;Y&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  theme<span class="punctuation">(</span>axis.title.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.title.y <span class="operator">=</span> element_text<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">12</span><span class="punctuation">,</span> face <span class="operator">=</span> <span class="string">&quot;bold&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        axis.text <span class="operator">=</span> element_text<span class="punctuation">(</span>size <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.title <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">16</span><span class="punctuation">,</span> face <span class="operator">=</span> <span class="string">&quot;bold&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.subtitle <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">0.5</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">11</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray40&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        plot.caption <span class="operator">=</span> element_text<span class="punctuation">(</span>hjust <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> size <span class="operator">=</span> <span class="number">9</span><span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">&quot;gray50&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        legend.position <span class="operator">=</span> <span class="string">&quot;none&quot;</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.major.x <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        panel.grid.minor <span class="operator">=</span> element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> p2</span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">&quot;charts/09_城市虚拟集聚度历年趋势_直辖市高亮.png&quot;</span><span class="punctuation">,</span> plot <span class="operator">=</span> p_line<span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">12</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">7</span><span class="punctuation">,</span> dpi <span class="operator">=</span> <span class="number">300</span><span class="punctuation">,</span> device <span class="operator">=</span> png<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/18/02b79j1bdbe1b168g4/common/content/1777200889843_893961.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/c7ca4e8e24264669ad7b77b8e35b01e3">名师讲堂｜使用 R 语言测算各城市虚拟集聚程度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.046Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/40007/" title="名师讲堂｜使用 Python 测算各城市虚拟集聚程度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/90291/" title="名师讲堂｜使用 Stata 测算各城市虚拟集聚程度"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-30 · 约 13 分钟</span></li><li><a href="/posts/75631/">名师讲堂｜使用 R 语言测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 7 分钟</span></li><li><a href="/posts/46876/">名师讲堂｜使用 R 语言测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%99%9A%E6%8B%9F%E9%9B%86%E8%81%9A%E5%BA%A6%E6%8C%87%E6%A0%87%E4%BB%8B%E7%BB%8D"><span class="toc-text">一、虚拟集聚度指标介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%8C%87%E6%A0%87%E8%83%8C%E6%99%AF"><span class="toc-text">1.1 指标背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-text">1.2 计算公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">1.3 计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%AF%A6%E7%BB%86%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">二、详细计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">2.1 环境准备与数据读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E7%B4%AF%E8%AE%A1%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A"><span class="toc-text">2.2 数据预处理——计算累计存续企业</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%90%88%E5%B9%B6%E8%AE%A1%E7%AE%97%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E6%95%B0"><span class="toc-text">2.3 合并计算存续企业数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%AD%9B%E9%80%89-IT-%E8%A1%8C%E4%B8%9A%E5%B9%B6%E6%B1%87%E6%80%BB"><span class="toc-text">2.4 筛选 IT 行业并汇总</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E8%AE%A1%E7%AE%97%E5%8C%BA%E4%BD%8D%E7%86%B5"><span class="toc-text">2.5 计算区位熵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E8%AE%A1%E7%AE%97%E5%9F%8E%E5%B8%82%E9%97%B4%E8%B7%9D%E7%A6%BB%E7%9F%A9%E9%98%B5"><span class="toc-text">2.6 计算城市间距离矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-%E8%AE%A1%E7%AE%97%E8%99%9A%E6%8B%9F%E9%9B%86%E8%81%9A%E5%BA%A6"><span class="toc-text">2.7 计算虚拟集聚度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C"><span class="toc-text">2.8 保存结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="toc-text">三、数据可视化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%A9%BA%E9%97%B4%E5%88%86%E5%B8%83%E5%9C%B0%E5%9B%BE%E7%BB%98%E5%88%B6"><span class="toc-text">3.1 空间分布地图绘制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E7%BB%84%E5%A4%84%E7%90%86"><span class="toc-text">数据分组处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%98%E5%88%B6%E5%9C%B0%E5%9B%BE"><span class="toc-text">绘制地图</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8E%86%E5%B9%B4%E8%B6%8B%E5%8A%BF%E6%8A%98%E7%BA%BF%E5%9B%BE"><span class="toc-text">3.2 历年趋势折线图</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/88886/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="⚠️注意：如果不是走投无路了，非常不建议使用这种方法，运算量过大。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标">
+<meta property="og:url" content="https://tidyfriday.cn/posts/88886/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="⚠️注意：如果不是走投无路了，非常不建议使用这种方法，运算量过大。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/88886.png">
+<meta property="article:published_time" content="2026-05-27T01:18:34.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:49.357Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="专利">
+<meta property="article:tag" content="文本数据">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/88886.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标","description":"⚠️注意：如果不是走投无路了，非常不建议使用这种方法，运算量过大。","url":"https://tidyfriday.cn/posts/88886/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/88886/"},"image":["https://tidyfriday.cn/og/88886.png"],"datePublished":"2026-05-27T01:18:34.000Z","dateModified":"2026-09-26T14:18:49.357Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"专利, 文本数据, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标","item":"https://tidyfriday.cn/posts/88886/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-27T01:18:34.000Z" itemprop="datePublished">2026-05-27</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>4687 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 14 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%B8%93%E5%88%A9">专利</a><a href="/tags/#tag=%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE">文本数据</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>⚠️注意：如果不是走投无路了，非常不建议使用这种方法，运算量过大。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="引言" class="article-heading"><a href="#引言" class="headerlink" title="引言"></a>引言<a class="article-anchor" href="#引言" aria-label="本节链接" title="复制本节链接"></a></h2><p>知识溢出（Knowledge Spillover）是区域创新研究的核心概念，指一个地区的知识活动对其他地区创新产出产生的外部性影响。准确测度城市间的知识溢出，对于理解区域创新网络、制定创新政策具有重要意义。</p>
+<p>传统的知识溢出测度方法主要依赖地理距离、专利申请引用等间接指标，但这些方法存在明显局限：</p>
+<ul>
+<li>地理距离无法捕捉非空间的知识传播。</li>
+<li>专利引用存在严重的漏报和时滞问题</li>
+<li>无法反映知识内容的相似性</li>
+</ul>
+<p>随着文本挖掘技术的发展，<strong>专利摘要文本相似度</strong>为直接测度知识溢出提供了新的可能。本文档介绍如何使用 <strong>TF-IDF（Term Frequency-Inverse Document Frequency）</strong> 方法计算专利文本相似度，并构建城市间知识溢出指标。</p>
+<h2 id="1-TF-IDF-的原理" class="article-heading"><a href="#1-TF-IDF-的原理" class="headerlink" title="1. TF-IDF 的原理"></a>1. TF-IDF 的原理<a class="article-anchor" href="#1-TF-IDF-的原理" aria-label="本节链接" title="复制本节链接"></a></h2><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/27/01/02b79j1bdbe1b168g4/common/content/1779815832777_774684.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="为什么-TF-IDF-适合专利文本相似度计算？" class="article-heading"><a href="#为什么-TF-IDF-适合专利文本相似度计算？" class="headerlink" title="为什么 TF-IDF 适合专利文本相似度计算？"></a>为什么 TF-IDF 适合专利文本相似度计算？<a class="article-anchor" href="#为什么-TF-IDF-适合专利文本相似度计算？" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="2-1-自动降噪：过滤无意义高频词" class="article-heading"><a href="#2-1-自动降噪：过滤无意义高频词" class="headerlink" title="2.1 自动降噪：过滤无意义高频词"></a>2.1 自动降噪：过滤无意义高频词<a class="article-anchor" href="#2-1-自动降噪：过滤无意义高频词" aria-label="本节链接" title="复制本节链接"></a></h3><p>专利摘要中包含大量通用表述（如”本发明涉及…”、”其特征在于…”），这些词在几乎所有专利中都会出现。TF-IDF 通过 IDF 权重自动降低这些”停用词”的贡献，突出真正有区分度的技术术语。</p>
+<p><strong>对比</strong>：单纯的词频（TF）或二进制向量（词是否出现）会将”的”和”深度学习”同等对待，显然不合理。</p>
+<h3 id="2-2-区分通用技术与专有技术" class="article-heading"><a href="#2-2-区分通用技术与专有技术" class="headerlink" title="2.2 区分通用技术与专有技术"></a>2.2 区分通用技术与专有技术<a class="article-anchor" href="#2-2-区分通用技术与专有技术" aria-label="本节链接" title="复制本节链接"></a></h3><ul>
+<li>通用技术词（如”控制器”、”系统”）：IDF 值低，对相似度贡献小</li>
+<li>专有技术词（如”卷积神经网络”、”石墨烯”）：IDF 值高，对相似度贡献大</li>
+</ul>
+<p>这种加权方式恰好符合专利相似度判断的需求：<strong>关注技术内容的相似性，而非表述格式的相似性</strong>。</p>
+<h3 id="2-3-稀疏性友好：适合大规模计算" class="article-heading"><a href="#2-3-稀疏性友好：适合大规模计算" class="headerlink" title="2.3 稀疏性友好：适合大规模计算"></a>2.3 稀疏性友好：适合大规模计算<a class="article-anchor" href="#2-3-稀疏性友好：适合大规模计算" aria-label="本节链接" title="复制本节链接"></a></h3><p>TF-IDF 向量通常是<strong>高维稀疏向量</strong>（数万维特征，但每个专利只有数百个非零值）。这种稀疏性使得：</p>
+<ul>
+<li>存储效率高（可用 scipy.sparse 存储）</li>
+<li>计算速度快（稀疏矩阵乘法优化）</li>
+<li>内存占用小（适合百万级专利数据）</li>
+</ul>
+<h3 id="2-4-余弦相似度的自然适配" class="article-heading"><a href="#2-4-余弦相似度的自然适配" class="headerlink" title="2.4 余弦相似度的自然适配"></a>2.4 余弦相似度的自然适配<a class="article-anchor" href="#2-4-余弦相似度的自然适配" aria-label="本节链接" title="复制本节链接"></a></h3><p>TF-IDF 向量经过 <strong>L2 归一化</strong>（每个向量的欧氏长度变为1）后，两个向量的<strong>点积</strong>就等于它们的<strong>余弦相似度</strong>：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/27/01/02b79j1bdbe1b168g4/common/content/1779815832306_231761.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这一性质使得相似度计算可以转化为高效的<strong>矩阵乘法</strong>操作，避免了逐一计算余弦相似度的高昂成本。</p>
+<h2 id="3-与其他方法的对比" class="article-heading"><a href="#3-与其他方法的对比" class="headerlink" title="3. 与其他方法的对比"></a>3. 与其他方法的对比<a class="article-anchor" href="#3-与其他方法的对比" aria-label="本节链接" title="复制本节链接"></a></h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TF-IDF + 余弦相似度</strong></td>
+<td>计算效率高，可解释性强，适合大规模数据</td>
+<td>无法捕捉语义相似（同义词、上下位关系）</td>
+<td>初步筛选、大规模专利相似度计算</td>
+</tr>
+<tr>
+<td><strong>Word2Vec/Doc2Vec</strong></td>
+<td>捕捉语义相似，考虑词序信息</td>
+<td>需要大量训练数据，计算成本高</td>
+<td>小规模精细分析、语义相似度研究</td>
+</tr>
+<tr>
+<td><strong>BERT/Transformer</strong></td>
+<td>最先进的语义理解能力</td>
+<td>计算成本极高，需要GPU</td>
+<td>高精度需求、小规模案例研究</td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：对于<strong>数百万级专利对</strong>的知识溢出计算，TF-IDF 是在<strong>计算效率</strong>和<strong>准确度</strong>之间的最佳平衡点。</p>
+<h2 id="4-论文中的谷歌专利向量方法" class="article-heading"><a href="#4-论文中的谷歌专利向量方法" class="headerlink" title="4. 论文中的谷歌专利向量方法"></a>4. 论文中的谷歌专利向量方法<a class="article-anchor" href="#4-论文中的谷歌专利向量方法" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="4-1-什么是谷歌专利文本向量？" class="article-heading"><a href="#4-1-什么是谷歌专利文本向量？" class="headerlink" title="4.1 什么是谷歌专利文本向量？"></a>4.1 什么是谷歌专利文本向量？<a class="article-anchor" href="#4-1-什么是谷歌专利文本向量？" aria-label="本节链接" title="复制本节链接"></a></h3><p><strong>谷歌专利文本向量（Google Patent Vectors）</strong> 是由 Google Patents 团队基于海量专利全文文本，利用机器学习模型生成的高维语义向量。</p>
+<p><strong>技术特点</strong>：</p>
+<ul>
+<li>基于专利全文（而非仅摘要）训练，技术信息更全面</li>
+<li>使用深度学习模型捕捉语义相似度（如同义词、上下位关系）</li>
+<li>向量维度高（通常 512 或 1024 维），语义表示能力强</li>
+<li>已公开供科学研究使用</li>
+</ul>
+<h3 id="4-2-为什么原论文使用谷歌专利向量？" class="article-heading"><a href="#4-2-为什么原论文使用谷歌专利向量？" class="headerlink" title="4.2 为什么原论文使用谷歌专利向量？"></a>4.2 为什么原论文使用谷歌专利向量？<a class="article-anchor" href="#4-2-为什么原论文使用谷歌专利向量？" aria-label="本节链接" title="复制本节链接"></a></h3><p>王慧扬等（2026）的论文选择谷歌专利向量，主要基于以下考虑：</p>
+<ol>
+<li>专利摘要信息有限：与专利代理人访谈发现，专利摘要传达的技术信息十分有限，无法全面反映技术方案</li>
+<li>全文文本获取困难：逐一获取数百万件专利的全文文本不具有可行性</li>
+<li>模型训练成本高：生成高质量专利文本向量需要基于数以百万计专利语料训练的机器学习模型，对资金和技术要求高</li>
+<li>谷歌已提供公开数据：Google Patents 团队已经完成了上述工作，并将专利文本向量公开供科学研究使用</li>
+<li>已有研究验证有效性：Higham 等（2021）、De Rassenfosse 和 Palangkaraya（2023）等研究已使用谷歌专利向量并验证了其有效性</li>
+</ol>
+<h3 id="4-3-为什么本实现没有使用谷歌专利向量？" class="article-heading"><a href="#4-3-为什么本实现没有使用谷歌专利向量？" class="headerlink" title="4.3 为什么本实现没有使用谷歌专利向量？"></a>4.3 为什么本实现没有使用谷歌专利向量？<a class="article-anchor" href="#4-3-为什么本实现没有使用谷歌专利向量？" aria-label="本节链接" title="复制本节链接"></a></h3><p>尽管谷歌专利向量在语义理解上具有优势，但本实现选择 TF-IDF 方法，主要基于以下原因：</p>
+<table>
+<thead>
+<tr>
+<th>考量维度</th>
+<th>谷歌专利向量</th>
+<th>TF-IDF</th>
+<th>本实现的选择理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据可得性</strong></td>
+<td>需要匹配中国专利与谷歌数据库</td>
+<td>直接使用专利摘要文本</td>
+<td>中国专利与谷歌数据库的匹配存在困难</td>
+</tr>
+<tr>
+<td><strong>数据覆盖范围</strong></td>
+<td>主要覆盖美国等发达国家专利</td>
+<td>适用于任何文本的专利</td>
+<td>中国专利的覆盖率可能不足</td>
+</tr>
+<tr>
+<td><strong>方法透明度</strong></td>
+<td>黑盒模型（深度学习）</td>
+<td>白盒模型（统计方法）</td>
+<td>学术研究需要可解释性</td>
+</tr>
+<tr>
+<td><strong>计算资源需求</strong></td>
+<td>需要下载海量向量数据（GB 级）</td>
+<td>可实时计算</td>
+<td>降低计算门槛</td>
+</tr>
+<tr>
+<td><strong>中文处理适应性</strong></td>
+<td>主要针对英文专利训练</td>
+<td>直接适用于中文分词</td>
+<td>避免跨语言语义表示的偏差</td>
+</tr>
+<tr>
+<td><strong>方法简洁性</strong></td>
+<td>依赖外部数据和 API</td>
+<td>完全自包含</td>
+<td>便于方法复现和推广</td>
+</tr>
+</tbody></table>
+<p><strong>核心原因总结</strong>：</p>
+<ol>
+<li>数据匹配挑战：将中国专利号（如 CN107519921B）与 Google Patents 的专利 ID 进行匹配需要额外的工作，且覆盖率不确定</li>
+<li>数据获取成本：谷歌专利向量数据量庞大（数 GB），下载和存储成本高</li>
+<li>中国专利适应性：谷歌专利向量主要基于英文专利训练，对中文专利的语义表示效果有待验证</li>
+<li>方法可复现性：TF-IDF 是完全自包含的统计方法，不依赖任何外部数据或专有模型，更利于学术研究的开放性和复现性</li>
+<li>计算效率满足需求：对于城市间知识溢出这种大规模计算任务，TF-IDF 的效率优势更为明显</li>
+</ol>
+<h3 id="4-4-两种方法的结果对比" class="article-heading"><a href="#4-4-两种方法的结果对比" class="headerlink" title="4.4 两种方法的结果对比"></a>4.4 两种方法的结果对比<a class="article-anchor" href="#4-4-两种方法的结果对比" aria-label="本节链接" title="复制本节链接"></a></h3><p>如果使用谷歌专利向量，相似度计算代码将类似：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 谷歌专利向量的使用方法（示例）</span></span><br><span class="line"><span class="comment"># 假设已从 Google Patents API 获取向量</span></span><br><span class="line">import pandas as pd</span><br><span class="line">patent_vectors <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span><span class="string">&quot;google_patent_vectors.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算余弦相似度</span></span><br><span class="line">from sklearn.metrics.pairwise import cosine_similarity</span><br><span class="line">similarity <span class="operator">=</span> cosine_similarity<span class="punctuation">(</span><span class="punctuation">[</span>patent_vectors.iloc<span class="punctuation">[</span>i<span class="punctuation">]</span>.values<span class="punctuation">]</span><span class="punctuation">,</span> <span class="punctuation">[</span>patent_vectors.iloc<span class="punctuation">[</span>j<span class="punctuation">]</span>.values<span class="punctuation">]</span><span class="punctuation">)</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span><span class="punctuation">[</span><span class="number">0</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对比：TF-IDF 方法</span></span><br><span class="line">similarity <span class="operator">=</span> float<span class="punctuation">(</span>dtm_norm<span class="punctuation">[</span>i<span class="punctuation">,</span> <span class="operator">:</span><span class="punctuation">]</span> <span class="operator">@</span> dtm_norm<span class="punctuation">[</span>j<span class="punctuation">,</span> <span class="operator">:</span><span class="punctuation">]</span>.T<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>实证研究建议</strong>：</p>
+<ul>
+<li>初步筛查/大规模计算：使用 TF-IDF（本实现方法）</li>
+<li>精细分析/小样本研究：可尝试获取谷歌专利向量进行对比验证</li>
+<li>方法创新方向：训练基于中文专利全文的专用词向量模型</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：原论文使用谷歌专利向量是为了验证方法的有效性。如果研究者有条件获取中国专利的谷歌专利向量，可以进行对比分析，进一步增强研究的可信度。</p>
+</blockquote>
+<h2 id="指标来源与定义" class="article-heading"><a href="#指标来源与定义" class="headerlink" title="指标来源与定义"></a>指标来源与定义<a class="article-anchor" href="#指标来源与定义" aria-label="本节链接" title="复制本节链接"></a></h2><p>本讲义的指标构建方法参考论文：</p>
+<blockquote>
+<p><strong>《创新知识溢出的测度与检验——基于机器学习生成专利文本相似度的证据》</strong></p>
+</blockquote>
+<h3 id="城市间知识溢出指标定义" class="article-heading"><a href="#城市间知识溢出指标定义" class="headerlink" title="城市间知识溢出指标定义"></a>城市间知识溢出指标定义<a class="article-anchor" href="#城市间知识溢出指标定义" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/27/01/02b79j1bdbe1b168g4/common/content/1779815830932_879276.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="时间条件的经济学含义" class="article-heading"><a href="#时间条件的经济学含义" class="headerlink" title="时间条件的经济学含义"></a>时间条件的经济学含义<a class="article-anchor" href="#时间条件的经济学含义" aria-label="本节链接" title="复制本节链接"></a></h3><p>论文特别强调：<strong>来源专利的公开时间必须早于接收专利的申请时间</strong>。</p>
+<p>这一条件保证了知识溢出的<strong>时间逻辑</strong>：</p>
+<ul>
+<li>创新知识先在特定城市产生并公开（publish_year）</li>
+<li>其他城市的创新主体学习这些知识后，申请自己的专利（apply_year）</li>
+<li>如果公开时间晚于申请时间，则不可能存在知识溢出</li>
+</ul>
+<p><strong>代码实现</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sp = df_text[(df_text[&quot;publish_year&quot;] &gt;= t - 3) &amp; (df_text[&quot;publish_year&quot;] &lt;= t - 1)]</span><br><span class="line">tp = df_text[df_text[&quot;apply_year&quot;] == t]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错。因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><p>本合同所需 Python 包：<code>pandas</code>、<code>numpy</code>、<code>scipy</code>、<code>jieba</code>、<code>pickle</code>（内置）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;pandas&quot;</span><span class="punctuation">,</span> <span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;scipy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;jieba&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="数据准备" class="article-heading"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备<a class="article-anchor" href="#数据准备" aria-label="本节链接" title="复制本节链接"></a></h2><p>本项目的输入数据为 <code>df_text_sim.csv</code>，使用附件中的 <code>数据准备.R</code> 生成。</p>
+<hr>
+<h2 id="Python-完整代码实现" class="article-heading"><a href="#Python-完整代码实现" class="headerlink" title="Python 完整代码实现"></a>Python 完整代码实现<a class="article-anchor" href="#Python-完整代码实现" aria-label="本节链接" title="复制本节链接"></a></h2><p>以下各节将完整展示使用 Python 计算城市间知识溢出指标的代码，并按照功能模块逐步讲解。所有 Python 代码在 reticulate 管理的虚拟环境中运行。</p>
+<h3 id="第0步：加载-Python-包与创建输出文件夹" class="article-heading"><a href="#第0步：加载-Python-包与创建输出文件夹" class="headerlink" title="第0步：加载 Python 包与创建输出文件夹"></a>第0步：加载 Python 包与创建输出文件夹<a class="article-anchor" href="#第0步：加载-Python-包与创建输出文件夹" aria-label="本节链接" title="复制本节链接"></a></h3><p>在开始计算之前，我们需要导入必要的 Python 包，并创建用于保存中间结果的文件夹。</p>
+<p>对应 R 代码中的 <code>library(tidyverse)</code> 等加载包的语句，Python 使用 <code>import</code> 语句。</p>
+<h4 id="完整代码" class="article-heading"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import os</span><br><span class="line">import pickle</span><br><span class="line">import <span class="keyword">glob</span></span><br><span class="line">import re</span><br><span class="line">import numpy <span class="keyword">as</span> np</span><br><span class="line">import pandas <span class="keyword">as</span> pd</span><br><span class="line">from scipy import sparse</span><br><span class="line"></span><br><span class="line"># 创建 res 文件夹（中间结果缓存）</span><br><span class="line">os.makedirs(<span class="string">&quot;res&quot;</span>, exist_ok=True)</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;===== 已创建 res 文件夹 =====\n&quot;</span>)</span><br><span class="line"></span><br><span class="line"># 清理工作目录中的旧缓存文件（如果存在）</span><br><span class="line">old_cache_files = [<span class="string">&quot;dtm_norm.pkl&quot;</span>, <span class="string">&quot;df_text_idx.pkl&quot;</span>]</span><br><span class="line"><span class="keyword">for</span> f <span class="keyword">in</span> old_cache_files:</span><br><span class="line">    <span class="keyword">if</span> os.path.exists(f):</span><br><span class="line">        os.remove(f)</span><br><span class="line">        <span class="keyword">print</span>(f<span class="string">&quot;  已删除旧缓存文件：&#123;f&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>首先导入需要的 Python 包：<code>pandas</code> 用于数据清洗，<code>numpy</code> 用于数值计算，<code>scipy.sparse</code> 用于稀疏矩阵计算，<code>pickle</code> 用于序列化中间结果。</p>
+<p>接着创建 <code>res/</code> 文件夹，所有中间结果都会保存在这里（pickle 格式），这样既便于断点续算，也能避免中间文件混乱。</p>
+<p>最后，清理工作目录中可能存在的旧缓存文件（<code>dtm_norm.pkl</code> 和 <code>df_text_idx.pkl</code>），这些文件如果是之前计算遗留的，可能会导致错误。</p>
+<hr>
+<h3 id="第一步：读取数据" class="article-heading"><a href="#第一步：读取数据" class="headerlink" title="第一步：读取数据"></a>第一步：读取数据<a class="article-anchor" href="#第一步：读取数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>这一步读取预处理好的专利数据文件 <code>df_text_sim.csv</code>（由前面的 R chunk 从 RDS 转换而来）。这个文件应该包含以下字段：专利唯一标识（<code>newipzlid</code>）、申请年份（<code>apply_year</code>）、公开年份（<code>publish_year</code>）、申请人所在城市（<code>city</code>），以及专利摘要（<code>摘要</code>）。</p>
+<p>读取后我们简单查看一下数据的维度、列名和前几行，确认数据格式符合预期。</p>
+<h4 id="完整代码-1" class="article-heading"><a href="#完整代码-1" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-1" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ============================================================================</span></span><br><span class="line"><span class="comment"># 第一步：读取数据</span></span><br><span class="line"><span class="comment"># ============================================================================</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n===== 第一步：读取 df_text_sim.csv =====&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">df_text <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span><span class="string">&quot;df_text_sim.csv&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  数据：&#123;len(df_text)&#125; 行 × &#123;len(df_text.columns)&#125; 列&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;  列名：&#123;&#x27;, &#x27;.join(df_text.columns.tolist())&#125;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看数据前几行</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n  数据预览：&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>df_text.head<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>pd.read_csv()</code> 读取 CSV 格式的数据文件。读取后打印数据维度和列名，确认数据加载成功，然后显示数据前几行，检查数据内容是否正确。</p>
+<hr>
+<h3 id="第二步：TF-IDF-计算与稀疏矩阵构建（含缓存机制）" class="article-heading"><a href="#第二步：TF-IDF-计算与稀疏矩阵构建（含缓存机制）" class="headerlink" title="第二步：TF-IDF 计算与稀疏矩阵构建（含缓存机制）"></a>第二步：TF-IDF 计算与稀疏矩阵构建（含缓存机制）<a class="article-anchor" href="#第二步：TF-IDF-计算与稀疏矩阵构建（含缓存机制）" aria-label="本节链接" title="复制本节链接"></a></h3><p>这一步是整个流程的核心，我们需要完成以下任务：对专利摘要进行分词，计算每个词的 TF-IDF 值，然后构建稀疏矩阵并归一化（这样后续计算余弦相似度就可以通过简单的矩阵乘法实现）。</p>
+<p>考虑到 TF-IDF 计算非常耗时，我们设计了缓存机制：计算结果会保存到 <code>res/</code> 文件夹中（<code>dtm_norm.pkl</code> 和 <code>df_text_idx.pkl</code>）。下次运行时，如果缓存文件存在且有效，就直接加载，跳过重复计算。</p>
+<h4 id="完整代码-2" class="article-heading"><a href="#完整代码-2" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-2" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处代码需下载讲义材料查看～" class="article-heading"><a href="#此处代码需下载讲义材料查看～" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h3 id="第三步：断点续算检查" class="article-heading"><a href="#第三步：断点续算检查" class="headerlink" title="第三步：断点续算检查"></a>第三步：断点续算检查<a class="article-anchor" href="#第三步：断点续算检查" aria-label="本节链接" title="复制本节链接"></a></h3><p>在开始大规模计算之前，我们先检查一下 <code>res/</code> 文件夹中是否已经存在部分结果。这样可以跳过已完成的部分，从断点继续计算。</p>
+<p>这里使用了双维度保存策略：按年份保存（<code>spillover_year_YYYY.pkl</code>）和按来源城市+年份保存（<code>spillover_source_城市_year_YYYY.pkl</code>）。</p>
+<h4 id="完整代码-3" class="article-heading"><a href="#完整代码-3" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-3" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================================</span><br><span class="line"># 第三步：断点续算 - 检测已完成的任务（双维度）</span><br><span class="line"># ============================================================================</span><br><span class="line">print(&quot;\n===== 第三步：断点续算检查 =====&quot;)</span><br><span class="line"></span><br><span class="line"># 维度1：按年份</span><br><span class="line">year_pattern = os.path.join(&quot;res&quot;, &quot;spillover_year_*.pkl&quot;)</span><br><span class="line">year_files = sorted(glob.glob(year_pattern))</span><br><span class="line">years_done = []</span><br><span class="line">for f in year_files:</span><br><span class="line">    basename = os.path.basename(f)</span><br><span class="line">    m = re.search(r&quot;spillover_year_(\d+)\.pkl&quot;, basename)</span><br><span class="line">    if m:</span><br><span class="line">        years_done.append(int(m.group(1)))</span><br><span class="line"></span><br><span class="line">if years_done:</span><br><span class="line">    print(f&quot;  已完成的年份：&#123;&#x27;, &#x27;.join(map(str, sorted(years_done)))&#125;&quot;)</span><br><span class="line">else:</span><br><span class="line">    print(&quot;  无已完成年份&quot;)</span><br><span class="line"></span><br><span class="line"># 维度2：按 source_city</span><br><span class="line">source_pattern = os.path.join(&quot;res&quot;, &quot;spillover_source_*.pkl&quot;)</span><br><span class="line">source_files = sorted(glob.glob(source_pattern))</span><br><span class="line">print(f&quot;  已完成的来源城市文件：&#123;len(source_files)&#125; 个&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>glob.glob()</code> 列出 <code>res/</code> 文件夹中匹配特定模式的文件，通过正则表达式匹配按年份保存的文件和按来源城市保存的文件，然后从文件名中提取年份或城市名称，最后打印已完成的任务，让用户了解计算进度。</p>
+<hr>
+<h3 id="第四步：主循环-计算城市间知识溢出指标" class="article-heading"><a href="#第四步：主循环-计算城市间知识溢出指标" class="headerlink" title="第四步：主循环 - 计算城市间知识溢出指标"></a>第四步：主循环 - 计算城市间知识溢出指标<a class="article-anchor" href="#第四步：主循环-计算城市间知识溢出指标" aria-label="本节链接" title="复制本节链接"></a></h3><p>这是整个流程最核心的部分，我们需要计算每一年、每一个城市对的知识溢出指标。</p>
+<p>具体逻辑是：遍历每一年，对每一年确定来源专利（t-3 到 t-1 年公开的专利）和目标专利（t 年申请的专利），然后遍历每个来源城市和目标城市组合，计算所有专利对的文本相似度，最后汇总得到城市间的知识溢出指标。</p>
+<p>考虑到计算量巨大，我们设计了断点续算机制：如果某一年已经计算过（存在 <code>res/spillover_year_YYYY.pkl</code>），就跳过；每计算完一年，立即保存结果。这样即使中断运行，下次也可以从断点继续。</p>
+<h4 id="完整代码-4" class="article-heading"><a href="#完整代码-4" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-4" aria-label="本节链接" title="复制本节链接"></a></h4><h1 id="此处代码需下载讲义材料查看～-1" class="article-heading"><a href="#此处代码需下载讲义材料查看～-1" class="headerlink" title="此处代码需下载讲义材料查看～"></a>此处代码需下载讲义材料查看～<a class="article-anchor" href="#此处代码需下载讲义材料查看～-1" aria-label="本节链接" title="复制本节链接"></a></h1><hr>
+<h3 id="第五步：合并所有结果" class="article-heading"><a href="#第五步：合并所有结果" class="headerlink" title="第五步：合并所有结果"></a>第五步：合并所有结果<a class="article-anchor" href="#第五步：合并所有结果" aria-label="本节链接" title="复制本节链接"></a></h3><p>所有年份计算完成后，我们需要将分散在 <code>res/</code> 文件夹中的中间文件合并为一个完整的结果文件。这里使用 <code>glob.glob()</code> 索引所有年份文件，然后逐个读取并合并。</p>
+<h4 id="完整代码-5" class="article-heading"><a href="#完整代码-5" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-5" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================================</span><br><span class="line"># 第五步：合并所有结果</span><br><span class="line"># ============================================================================</span><br><span class="line">print(&quot;\n===== 第五步：合并所有结果 =====&quot;)</span><br><span class="line"></span><br><span class="line">year_pattern = os.path.join(&quot;res&quot;, &quot;spillover_year_*.pkl&quot;)</span><br><span class="line">year_files = sorted(glob.glob(year_pattern))</span><br><span class="line">print(f&quot;  找到 &#123;len(year_files)&#125; 个年份文件&quot;)</span><br><span class="line"></span><br><span class="line">all_results = []</span><br><span class="line">for f in year_files:</span><br><span class="line">    with open(f, &quot;rb&quot;) as fp:</span><br><span class="line">        df = pickle.load(fp)</span><br><span class="line">    if len(df) &gt; 0:</span><br><span class="line">        all_results.append(df)</span><br><span class="line"></span><br><span class="line">if all_results:</span><br><span class="line">    spillover_df = pd.concat(all_results, ignore_index=True)</span><br><span class="line">    # 最终合并结果保存到工作目录（CSV 格式便于查看）</span><br><span class="line">    spillover_df.to_csv(&quot;城市间知识溢出指标_tidytext_python.csv&quot;, index=False)</span><br><span class="line">    print(f&quot;  合并完成：&#123;len(spillover_df)&#125; 条记录已保存到 &quot;</span><br><span class="line">          &quot;城市间知识溢出指标_tidytext_python.csv&quot;)</span><br><span class="line">else:</span><br><span class="line">    spillover_df = pd.DataFrame()</span><br><span class="line">    print(&quot;  无有效结果可合并&quot;)</span><br><span class="line"></span><br><span class="line">print(f&quot;  合并后数据维度：&#123;spillover_df.shape&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>glob.glob()</code> 列出所有匹配的年份文件，逐个读取文件并检查是否有有效数据，然后使用 <code>pd.concat()</code> 合并所有数据框，最后保存为 CSV 格式（<code>城市间知识溢出指标_tidytext_python.csv</code>），便于查看和后续分析。</p>
+<hr>
+<h3 id="第六步：汇总与统计" class="article-heading"><a href="#第六步：汇总与统计" class="headerlink" title="第六步：汇总与统计"></a>第六步：汇总与统计<a class="article-anchor" href="#第六步：汇总与统计" aria-label="本节链接" title="复制本节链接"></a></h3><p>所有年份计算完成后，我们需要对合并后的结果进行汇总，计算每年、每个城市对的知识溢出指标，并生成统计报告。</p>
+<p>具体来说，我们按 <code>year</code>、<code>source_city</code>、<code>target_city</code> 分组，每个城市对只保留一行（因为第四步已经计算了平均相似度），然后生成年度统计：每年的城市对数量、平均知识溢出、标准差。</p>
+<h4 id="完整代码-6" class="article-heading"><a href="#完整代码-6" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-6" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================================</span><br><span class="line"># 第六步：汇总</span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"># 统计文件保存到工作目录</span><br><span class="line">    summary_stats.to_csv(&quot;知识溢出年度统计_tidytext_python.csv&quot;, index=False)</span><br><span class="line"></span><br><span class="line">    print(&quot;  汇总文件已保存：&quot;)</span><br><span class="line">    print(&quot;    - 城市间知识溢出指标_tidytext_python.csv&quot;)</span><br><span class="line">    print(&quot;    - 城市间知识溢出指标_tidytext_python_汇总.csv&quot;)</span><br><span class="line">    print(&quot;    - 知识溢出年度统计_tidytext_python.csv&quot;)</span><br><span class="line"></span><br><span class="line">    # 打印结果</span><br><span class="line">    print(&quot;\n===== 年度统计 =====&quot;)</span><br><span class="line">    print(summary_stats.to_string(index=False))</span><br><span class="line"></span><br><span class="line">    print(&quot;\n===== Top 10 知识溢出城市对 =====&quot;)</span><br><span class="line">    top10 = spillover_summary.nlargest(10, &quot;knowledgespillover_ab&quot;)</span><br><span class="line">    print(top10.to_string(index=False))</span><br><span class="line">else:</span><br><span class="line">    print(&quot;  无数据可汇总&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>这段代码主要做三件事：首先按年份、来源城市、目标城市分组汇总数据；然后生成年度统计（城市对数量、平均知识溢出、标准差）；最后打印结果，包括年度统计表格和知识溢出最高的前10个城市对。</p>
+<hr>
+<h3 id="断点续算说明" class="article-heading"><a href="#断点续算说明" class="headerlink" title="断点续算说明"></a>断点续算说明<a class="article-anchor" href="#断点续算说明" aria-label="本节链接" title="复制本节链接"></a></h3><p>代码末尾打印了断点续算的使用说明和指标定义，方便用户理解。</p>
+<h4 id="完整代码-7" class="article-heading"><a href="#完整代码-7" class="headerlink" title="完整代码"></a>完整代码<a class="article-anchor" href="#完整代码-7" aria-label="本节链接" title="复制本节链接"></a></h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ============================================================================</span><br><span class="line"># 说明</span><br><span class="line"># ============================================================================</span><br><span class="line">print(&quot;\n===== 断点续算说明 =====&quot;)</span><br><span class="line">print(&quot;1. 双维度保存（中间文件使用 .pkl 格式）：&quot;)</span><br><span class="line">print(&quot;   - 按年份：res/spillover_year_YYYY.pkl&quot;)</span><br><span class="line">print(&quot;   - 按来源城市+年份：res/spillover_source_城市_year_YYYY.pkl&quot;)</span><br><span class="line">print(&quot;2. 重新运行代码时自动跳过已有文件&quot;)</span><br><span class="line">print(&quot;3. 可随时中断（Ctrl+C），重新运行将从断点继续&quot;)</span><br><span class="line">print(&quot;4. 全部完成后自动合并为最终 CSV 文件&quot;)</span><br><span class="line">print(&quot;5. 最终结果显示在工作目录（CSV 格式），中间文件保存在 res/ 文件夹（PKL 格式）&quot;)</span><br><span class="line"></span><br><span class="line">print(&quot;\n===== 指标说明 =====&quot;)</span><br><span class="line">print(&quot;knowledgespillover_ab = Σᵢ Σⱼ similarity(pᵢ, qⱼ) / (n_a × n_b)&quot;)</span><br><span class="line">print(&quot;  pᵢ：城市a在 t-3 到 t-1 年公开的专利&quot;)</span><br><span class="line">print(&quot;  qⱼ：城市b在 t 年申请的专利&quot;)</span><br><span class="line">print(&quot;  条件：来源专利公开时间 早于 接收专利申请时间&quot;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/89d622f54a4d4229b77b157b52f1f72c">名师讲堂｜使用 Python 计算专利文本相似度及城市间知识溢出指标</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:49.357Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/45600/" title="名师讲堂｜使用 R 语言计算专利文本相似度及城市间知识溢出指标"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/50538/" title="2013～2024 年专精特新企业技术专业化和技术多样化指标计算结果"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/75606/">名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利（同小类内计算）</a><span class="tf-related-meta">2026-07-18 · 约 10 分钟</span></li><li><a href="/posts/55794/">名师讲堂｜使用 Python 计算专利颠覆性创新指数及筛选颠覆性专利</a><span class="tf-related-meta">2026-07-17 · 约 11 分钟</span></li><li><a href="/posts/45600/">名师讲堂｜使用 R 语言计算专利文本相似度及城市间知识溢出指标</a><span class="tf-related-meta">2026-05-27 · 约 13 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-TF-IDF-%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-text">1. TF-IDF 的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-TF-IDF-%E9%80%82%E5%90%88%E4%B8%93%E5%88%A9%E6%96%87%E6%9C%AC%E7%9B%B8%E4%BC%BC%E5%BA%A6%E8%AE%A1%E7%AE%97%EF%BC%9F"><span class="toc-text">为什么 TF-IDF 适合专利文本相似度计算？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%87%AA%E5%8A%A8%E9%99%8D%E5%99%AA%EF%BC%9A%E8%BF%87%E6%BB%A4%E6%97%A0%E6%84%8F%E4%B9%89%E9%AB%98%E9%A2%91%E8%AF%8D"><span class="toc-text">2.1 自动降噪：过滤无意义高频词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8C%BA%E5%88%86%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%B8%93%E6%9C%89%E6%8A%80%E6%9C%AF"><span class="toc-text">2.2 区分通用技术与专有技术</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%A8%80%E7%96%8F%E6%80%A7%E5%8F%8B%E5%A5%BD%EF%BC%9A%E9%80%82%E5%90%88%E5%A4%A7%E8%A7%84%E6%A8%A1%E8%AE%A1%E7%AE%97"><span class="toc-text">2.3 稀疏性友好：适合大规模计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E5%BA%A6%E7%9A%84%E8%87%AA%E7%84%B6%E9%80%82%E9%85%8D"><span class="toc-text">2.4 余弦相似度的自然适配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%96%B9%E6%B3%95%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-text">3. 与其他方法的对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%AE%BA%E6%96%87%E4%B8%AD%E7%9A%84%E8%B0%B7%E6%AD%8C%E4%B8%93%E5%88%A9%E5%90%91%E9%87%8F%E6%96%B9%E6%B3%95"><span class="toc-text">4. 论文中的谷歌专利向量方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%B0%B7%E6%AD%8C%E4%B8%93%E5%88%A9%E6%96%87%E6%9C%AC%E5%90%91%E9%87%8F%EF%BC%9F"><span class="toc-text">4.1 什么是谷歌专利文本向量？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8E%9F%E8%AE%BA%E6%96%87%E4%BD%BF%E7%94%A8%E8%B0%B7%E6%AD%8C%E4%B8%93%E5%88%A9%E5%90%91%E9%87%8F%EF%BC%9F"><span class="toc-text">4.2 为什么原论文使用谷歌专利向量？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%AC%E5%AE%9E%E7%8E%B0%E6%B2%A1%E6%9C%89%E4%BD%BF%E7%94%A8%E8%B0%B7%E6%AD%8C%E4%B8%93%E5%88%A9%E5%90%91%E9%87%8F%EF%BC%9F"><span class="toc-text">4.3 为什么本实现没有使用谷歌专利向量？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%B3%95%E7%9A%84%E7%BB%93%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-text">4.4 两种方法的结果对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%AE%9A%E4%B9%89"><span class="toc-text">指标来源与定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%8E%E5%B8%82%E9%97%B4%E7%9F%A5%E8%AF%86%E6%BA%A2%E5%87%BA%E6%8C%87%E6%A0%87%E5%AE%9A%E4%B9%89"><span class="toc-text">城市间知识溢出指标定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E6%9D%A1%E4%BB%B6%E7%9A%84%E7%BB%8F%E6%B5%8E%E5%AD%A6%E5%90%AB%E4%B9%89"><span class="toc-text">时间条件的经济学含义</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="toc-text">数据准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Python-%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-text">Python 完整代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC0%E6%AD%A5%EF%BC%9A%E5%8A%A0%E8%BD%BD-Python-%E5%8C%85%E4%B8%8E%E5%88%9B%E5%BB%BA%E8%BE%93%E5%87%BA%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-text">第0步：加载 Python 包与创建输出文件夹</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%AF%BB%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="toc-text">第一步：读取数据</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-1"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9ATF-IDF-%E8%AE%A1%E7%AE%97%E4%B8%8E%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5%E6%9E%84%E5%BB%BA%EF%BC%88%E5%90%AB%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="toc-text">第二步：TF-IDF 计算与稀疏矩阵构建（含缓存机制）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-2"><span class="toc-text">完整代码</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%96%AD%E7%82%B9%E7%BB%AD%E7%AE%97%E6%A3%80%E6%9F%A5"><span class="toc-text">第三步：断点续算检查</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-3"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E4%B8%BB%E5%BE%AA%E7%8E%AF-%E8%AE%A1%E7%AE%97%E5%9F%8E%E5%B8%82%E9%97%B4%E7%9F%A5%E8%AF%86%E6%BA%A2%E5%87%BA%E6%8C%87%E6%A0%87"><span class="toc-text">第四步：主循环 - 计算城市间知识溢出指标</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-4"><span class="toc-text">完整代码</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A4%E5%A4%84%E4%BB%A3%E7%A0%81%E9%9C%80%E4%B8%8B%E8%BD%BD%E8%AE%B2%E4%B9%89%E6%9D%90%E6%96%99%E6%9F%A5%E7%9C%8B%EF%BD%9E-1"><span class="toc-text">此处代码需下载讲义材料查看～</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E5%90%88%E5%B9%B6%E6%89%80%E6%9C%89%E7%BB%93%E6%9E%9C"><span class="toc-text">第五步：合并所有结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-5"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E6%AD%A5%EF%BC%9A%E6%B1%87%E6%80%BB%E4%B8%8E%E7%BB%9F%E8%AE%A1"><span class="toc-text">第六步：汇总与统计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-6"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%AD%E7%82%B9%E7%BB%AD%E7%AE%97%E8%AF%B4%E6%98%8E"><span class="toc-text">断点续算说明</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-7"><span class="toc-text">完整代码</span></a></li></ol></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

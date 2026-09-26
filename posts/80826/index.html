@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/80826/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="最近有个小伙伴想要获取全国宗庙祠堂数据，还附带给我转发了一篇推文：绘制全国祠堂密度地图。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示">
+<meta property="og:url" content="https://tidyfriday.cn/posts/80826/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="最近有个小伙伴想要获取全国宗庙祠堂数据，还附带给我转发了一篇推文：绘制全国祠堂密度地图。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/80826.png">
+<meta property="article:published_time" content="2023-07-03T19:17:58.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:45.585Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="地图">
+<meta property="article:tag" content="Stata">
+<meta property="article:tag" content="数据爬取">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/80826.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示","description":"最近有个小伙伴想要获取全国宗庙祠堂数据，还附带给我转发了一篇推文：绘制全国祠堂密度地图。","url":"https://tidyfriday.cn/posts/80826/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/80826/"},"image":["https://tidyfriday.cn/og/80826.png"],"datePublished":"2023-07-03T19:17:58.000Z","dateModified":"2026-09-26T14:18:45.585Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, 地图, Stata, 数据爬取","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示","item":"https://tidyfriday.cn/posts/80826/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2023-07-03T19:17:58.000Z" itemprop="datePublished">2023-07-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>3681 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 14 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=%E5%9C%B0%E5%9B%BE">地图</a><a href="/tags/#tag=Stata">Stata</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E7%88%AC%E5%8F%96">数据爬取</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>最近有个小伙伴想要获取全国宗庙祠堂数据，还附带给我转发了一篇推文：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/unHcoLW8z4cDJV6_lnukzw">绘制全国祠堂密度地图</a>。</p>
+<span id="more"></span>
+
+<p>这篇推文是使用 Stata 爬取的，具体思路是先计算各区县的经纬度，然后使用百度地图的“地点检索”接口搜索附近 50km 范围内的宗庙祠堂。不过显然这种方法会遗漏很多，主要是：</p>
+<ol>
+<li>这个范围会遗漏中国的很多地区；</li>
+<li>50km 的范围太大，百度地图只会给出该范围的一些热门的搜索结果。</li>
+</ol>
+<p>因此我们需要生成更细密的检索中心，然后使用更小的搜索半径。</p>
+<p>百度地图的地点检索接口文档在这里：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle">https://lbsyun.baidu.com/faq/api?title=webapi/guide/webservice-placeapi/circle</a> ，虽然多边形检索看起来更高效，不过这个接口需要单独申请，所以我们还是只能使用圆形区域检索。</p>
+<p>在使用地点检索之前，我们需要先构建一个经纬度中心点数据。</p>
+<p>为了便于演示，在这里我们依然使用 50km 的半径进行检索，由于检索是圆形检索，所以为了不遗漏，我们需要建立分辨率与 50√2km x 50√2km 的经纬度网格，这样以每个网格的中心为检索中心、范围是 50km 的圆形区域恰好可以覆盖这一区域，如下图所示：</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/03/19/02b79j1bdbe1b168g4/common/content/1688382894118_362241.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>由于 Stata 中地理计算的工具不完善，所以我们需要借助 R 语言来生成这样的一个网格。</p>
+<blockquote>
+<p>不会使用 R 语言的小伙伴也不必担心，附件中提供了最终的结果数据。</p>
+</blockquote>
+<p>首先加载所需的 R 包：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>合并各省份的数据得到中国范围的矢量数据：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成中国范围的矢量数据</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2020行政区划/省.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_union<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cn</span><br><span class="line">nngeo<span class="operator">::</span>st_remove_holes<span class="punctuation">(</span>cn<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cn</span><br></pre></td></tr></table></figure>
+
+<p>这个中国的范围是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">url <span class="operator">&lt;-</span> <span class="string">&quot;http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/&#123;z&#125;/&#123;y&#125;/&#123;x&#125;&quot;</span></span><br><span class="line">library<span class="punctuation">(</span>leaflet<span class="punctuation">)</span></span><br><span class="line">leaflet<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  addTiles<span class="punctuation">(</span>url<span class="punctuation">,</span> attribution <span class="operator">=</span> <span class="string">&quot;微信公众号 RStata&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> map</span><br><span class="line">mapview<span class="operator">::</span>mapview<span class="punctuation">(</span>cn<span class="punctuation">,</span> map <span class="operator">=</span> map<span class="punctuation">,</span> layer.name <span class="operator">=</span> <span class="string">&quot;中国范围&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/03/19/02b79j1bdbe1b168g4/common/content/1688382902451_746266.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>创建一些边长为 50√2 km的格网，这样每个方格正好可以使用一个半径 50km 的圆覆盖。转换成以 m 为单位的坐标系更容易创建：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 这里以讲义材料的这个代码为准</span></span><br><span class="line">mycrs <span class="operator">&lt;-</span> <span class="string">&quot;+proj=aea +lat_0=0 +lon_0=105 +lat_1=25 +lat_2=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;</span></span><br><span class="line">cn <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> cnaea</span><br><span class="line">cnaea <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_grid<span class="punctuation">(</span>cellsize <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">50</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">50</span> <span class="operator">*</span> <span class="built_in">sqrt</span><span class="punctuation">(</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;km&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cngrid</span><br></pre></td></tr></table></figure>
+
+<p>这个网格的效果是这样的：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 效果是这样的</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;九段线.geojson&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">-&gt;</span> jdxaea</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>cngrid<span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>cnaea<span class="punctuation">,</span> add <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> col <span class="operator">=</span> <span class="string">&quot;red&quot;</span><span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>jdxaea<span class="punctuation">,</span> add <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> col <span class="operator">=</span> <span class="string">&quot;black&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637713530_398336.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>提取与中国相交的格点：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cngrid <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span>cnaea<span class="punctuation">)</span> <span class="operator">-&gt;</span> cngrid</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>cngrid<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/18/02b79j1bdbe1b168g4/common/content/1688637735931_258543.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>计算这些格点的质心：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cngrid <span class="operator">%&gt;%</span></span><br><span class="line">  st_sf<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_centroid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_coordinates<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>id <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> coorddf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">coorddf <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;50km 网格中心.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了检索中心坐标。另外附件中还提供了 10km 分辨率的网格中心数据。</p>
+<p>再回到 Stata 中。</p>
+<p>首先我们看一下百度地图地理检索接口如何使用，例如搜索 (39.915,116.404) 附近 2km 的 <code>宗祠</code>、<code>家庙</code> 和 <code>祠堂</code> 可以使用下面的链接进行请求：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear all</span><br><span class="line">*- &quot;a8niO5h8icau3IRNG2Wv2k5CduVyrktL&quot; 是我的百度地图密钥，需要替换成自己的</span><br><span class="line">copy &quot;https://api.map.baidu.com/place/v2/search?query=宗祠$家庙$祠堂&amp;location=39.915,116.404&amp;radius=2000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=0&quot; &quot;temp.json&quot;, replace</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了这些参数：</p>
+<ul>
+<li>query=…（检索关键词）</li>
+<li>location=39.915,116.404（检索中心）</li>
+<li>radius=2000（检索半径 2km）</li>
+<li>output=json（返回结果为 json 格式）</li>
+<li>ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL（用户密钥，注意要替换成自己的）</li>
+<li>coord_tyle=wgs84ll（检索中心经纬度的坐标系）</li>
+<li>ret_coordtype=gcj02ll（返回结果中经纬度的坐标系）</li>
+<li>page_size=20（每次请求的最大数量，最大只能为 20）</li>
+<li>page_num=0（0 表示第一页，如果检索结果超过 20 ，需要循环多页爬取）。</li>
+</ul>
+<p>有时候也会需要对中文进行 URL 转码，附件中提供了一个 perccentencode.ado 命令，可以进行 URL 转码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 也可能需要对 query 部分进行 URL 转码</span><br><span class="line">percentencode 宗祠</span><br><span class="line">local a = r(percentencode)</span><br><span class="line">percentencode 家庙</span><br><span class="line">local b = r(percentencode)</span><br><span class="line">percentencode 祠堂</span><br><span class="line">local c = r(percentencode)</span><br><span class="line"></span><br><span class="line">copy &quot;https://api.map.baidu.com/place/v2/search?query=`a&#x27;$`b&#x27;$`c&#x27;&amp;location=39.915,116.404&amp;radius=2000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=0&quot; &quot;temp.json&quot;, replace</span><br></pre></td></tr></table></figure>
+
+<p>这是个 json 文件，在课程「Stata 网络数据爬取：JSON篇」(<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/c6de9fae65df4eeb814d2275545e224d">https://rstata.duanshu.com/#/brief/course/c6de9fae65df4eeb814d2275545e224d</a>) 中我系统的介绍过如何在 Stata 中处理 json 格式的数据，这里我们可以这样解析：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 查看响应</span></span><br><span class="line">insheetjson using <span class="string">&quot;temp.json&quot;</span>, showr flatten</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 解析数据</span></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str100 name = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 lat = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 lng = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 address = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 province = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 city = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 area = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 street_id = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 detail = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 uid = <span class="string">&quot;&quot;</span></span><br><span class="line">insheetjson name lat lng address province city <span class="comment">///</span></span><br><span class="line">  area street_id detail uid using <span class="string">&quot;temp.json&quot;</span>, <span class="comment">///</span></span><br><span class="line">  <span class="keyword">table</span>(<span class="string">&quot;results&quot;</span>) col(<span class="string">&quot;name&quot;</span> <span class="string">&quot;location:lat&quot;</span> <span class="comment">///</span></span><br><span class="line">    <span class="string">&quot;location:lng&quot;</span> <span class="string">&quot;address&quot;</span> <span class="string">&quot;province&quot;</span> <span class="string">&quot;city&quot;</span> <span class="comment">///</span></span><br><span class="line">    <span class="string">&quot;area&quot;</span> <span class="string">&quot;street_id&quot;</span> <span class="string">&quot;detail&quot;</span> <span class="string">&quot;uid&quot;</span>)</span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>这里仅仅处理了 page_num=0 页，如果结果超过 20（total）的话，就需要爬取多页了：</p>
+<blockquote>
+<p>注意看接口文档中的 total 介绍：POI 检索总数，开发者请求中设置了 page_num 字段才会出现 total 字段。出于数据保护目的，单次请求 total 最多为150。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 第 2 页（如果有的话）</span><br><span class="line">copy &quot;https://api.map.baidu.com/place/v2/search?query=宗祠$家庙$祠堂&amp;location=39.915,116.404&amp;radius=2000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=1&quot; &quot;temp2.json&quot;, replace</span><br><span class="line"></span><br><span class="line">insheetjson name lat lng address ///</span><br><span class="line">  province city area detail uid ///</span><br><span class="line">  using temp2.json, table(results) ///</span><br><span class="line">  col(&quot;name&quot; &quot;location:lat&quot; &quot;location:lng&quot; &quot;address&quot; &quot;province&quot; ///</span><br><span class="line">    &quot;city&quot; &quot;area&quot; &quot;detail&quot; &quot;uid&quot;) offset(20)</span><br><span class="line"></span><br><span class="line">*- 第 3 页（如果有的话）</span><br><span class="line">copy &quot;https://api.map.baidu.com/place/v2/search?query=宗祠$家庙$祠堂&amp;location=39.915,116.404&amp;radius=2000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=2&quot; &quot;temp3.json&quot;, replace</span><br><span class="line"></span><br><span class="line">insheetjson name lat lng address ///</span><br><span class="line">  province city area detail uid ///</span><br><span class="line">  using temp3.json, table(results) ///</span><br><span class="line">  col(&quot;name&quot; &quot;location:lat&quot; &quot;location:lng&quot; &quot;address&quot; &quot;province&quot; ///</span><br><span class="line">    &quot;city&quot; &quot;area&quot; &quot;detail&quot; &quot;uid&quot;) offset(20)</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以循环爬取处理了。</p>
+<p>对于复杂的网络数据爬取任务，建议先下载、下载完成后再集中解析。</p>
+<p>首先循环下载首页 json 文件到工作目录下的 res 文件夹：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;50km 网格中心.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环每个观测值</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;res&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 爬取首页</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/`=_N&#x27; &#123;</span><br><span class="line">  <span class="keyword">di</span> <span class="string">&quot;`i&#x27;&quot;</span></span><br><span class="line">  <span class="keyword">if</span> !fileexists(<span class="string">&quot;res/`=id[`i&#x27;]&#x27;_0.json&quot;</span>) &#123;</span><br><span class="line">    <span class="keyword">copy</span> <span class="string">&quot;https://api.map.baidu.com/place/v2/search?query=宗祠$家庙$祠堂&amp;location=`=Y[`i&#x27;]&#x27;,`=X[`i&#x27;]&#x27;&amp;radius=50000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=0&quot;</span> <span class="string">&quot;res/`=id[`i&#x27;]&#x27;_0.json&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这些首页 json 文件里面提取 total 值：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 提取 total 结果</span></span><br><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">gen</span> str10 <span class="keyword">total</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">insheetjson <span class="keyword">total</span> using <span class="string">&quot;temp.json&quot;</span>, <span class="keyword">table</span>(<span class="string">&quot;total&quot;</span>) offset(0)</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;50km 网格中心.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">tostring</span> id, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">file</span> = <span class="string">&quot;res/&quot;</span> + id + <span class="string">&quot;_0.json&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str10 <span class="keyword">total</span> = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/`=_N&#x27; &#123;</span><br><span class="line">  insheetjson <span class="keyword">total</span> using <span class="string">&quot;`=file[`i&#x27;]&#x27;&quot;</span>, <span class="keyword">table</span>(<span class="string">&quot;total&quot;</span>) offset(`=<span class="symbol">`i&#x27;</span> - 1&#x27;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- total &lt;= 20 的都是只有一页的</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="keyword">total</span> &lt;= 20</span><br><span class="line"></span><br><span class="line"><span class="keyword">gen</span> pagenum = int(<span class="keyword">total</span>/20)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 循环下载其余页面</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/`=_N&#x27; &#123;</span><br><span class="line">  <span class="keyword">forval</span> j = 1/`=pagenum[<span class="symbol">`i&#x27;</span>]&#x27; &#123;</span><br><span class="line">    <span class="keyword">if</span> !fileexists(<span class="string">&quot;res/`=id[`i&#x27;]&#x27;_`j&#x27;.json&quot;</span>) &#123;</span><br><span class="line">      <span class="keyword">copy</span> <span class="string">&quot;https://api.map.baidu.com/place/v2/search?query=宗祠$家庙$祠堂&amp;location=`=Y[`i&#x27;]&#x27;,`=X[`i&#x27;]&#x27;&amp;radius=50000&amp;output=json&amp;ak=a8niO5h8icau3IRNG2Wv2k5CduVyrktL&amp;coord_tyle=wgs84ll&amp;ret_coordtype=gcj02ll&amp;page_size=20&amp;page_num=`j&#x27;&quot;</span> <span class="string">&quot;res/`=id[`i&#x27;]&#x27;_`j&#x27;.json&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>循环处理下载得到的文件：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">local</span> files: <span class="keyword">dir</span> <span class="string">&quot;res&quot;</span> files <span class="string">&quot;*.json&quot;</span></span><br><span class="line"><span class="keyword">di</span> <span class="string">`&quot;`files&#x27;&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> str100 name = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 lat = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 lng = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 address = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 province = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 city = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 area = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 detail = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">gen</span> str100 uid = <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> i <span class="keyword">in</span> <span class="symbol">`files&#x27;</span> &#123;</span><br><span class="line">  <span class="keyword">local</span> <span class="keyword">N</span> = `=_N&#x27;</span><br><span class="line">  <span class="keyword">di</span> <span class="string">&quot;`i&#x27;&quot;</span></span><br><span class="line">  insheetjson name lat lng address province city <span class="comment">///</span></span><br><span class="line">    area detail uid using <span class="string">&quot;res/`i&#x27;&quot;</span>, <span class="comment">///</span></span><br><span class="line">      <span class="keyword">table</span>(<span class="string">&quot;results&quot;</span>) col(<span class="string">&quot;name&quot;</span> <span class="string">&quot;location:lat&quot;</span> <span class="comment">///</span></span><br><span class="line">    <span class="string">&quot;location:lng&quot;</span> <span class="string">&quot;address&quot;</span> <span class="string">&quot;province&quot;</span> <span class="string">&quot;city&quot;</span> <span class="comment">///</span></span><br><span class="line">    <span class="string">&quot;area&quot;</span> <span class="string">&quot;detail&quot;</span> <span class="string">&quot;uid&quot;</span>) offset(<span class="symbol">`N&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">compress</span></span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">  <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 删除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> _all, force</span><br></pre></td></tr></table></figure>
+
+<p>另外因为得到结果里面的经纬度是 GCJ02 坐标系的，为了后续的地理计算，我们需要把它转换成 WGS84 坐标系的，附件中提供了一个转换命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gcj02towgs84, lon(lng) lat(lat)</span><br><span class="line">save &quot;全国宗庙祠堂分布(50km范围的检索)&quot;, replace</span><br></pre></td></tr></table></figure>
+
+<p>50km 的检索大概只得到了一万多个宗庙祠堂（实际上每次解析也可能得到不同的结果），在附件中我还提供了一份更全的结果，是使用 10km 范围进行检索的（使用的网格也是 10√2km 的）。下面我们绘图比较下两个结果：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 绘制地图（使用更全的一个版本）</span></span><br><span class="line"><span class="comment">*- 这个里面的 lat lng 是我转换成 WGS84 过的，不需要再转换了。</span></span><br><span class="line">import excel using <span class="string">&quot;全国宗庙祠堂分布（10km 范围的检索）.xlsx&quot;</span>, <span class="keyword">clear</span> first</span><br><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">  <span class="keyword">cap</span> <span class="keyword">format</span> <span class="symbol">`i&#x27;</span> %10s</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">encode</span> province, <span class="keyword">gen</span>(prov)</span><br><span class="line"><span class="comment">*- ssc install geo2xy</span></span><br><span class="line"><span class="keyword">ren</span> lat 纬度</span><br><span class="line"><span class="keyword">ren</span> lng 经度</span><br><span class="line">geo2xy 纬度 经度, <span class="keyword">gen</span>(lat lon) projection(albers, 6378137 298.257223563 25 47 0 105) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="string">&quot;main&quot;</span></span><br><span class="line"><span class="keyword">save</span> mainpoint, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取小地图框格的</span></span><br><span class="line"><span class="keyword">use</span> mainpoint, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inrange</span>(lon, 120000, 1766004.1) &amp; <span class="built_in">inrange</span>(lat, 320000, 2557786.0)</span><br><span class="line"><span class="keyword">replace</span> lon = lon * 0.5 + 2100000</span><br><span class="line"><span class="keyword">replace</span> lat = lat * 0.5 + 1665139</span><br><span class="line"><span class="keyword">replace</span> <span class="keyword">class</span> = <span class="string">&quot;smallbox&quot;</span></span><br><span class="line"><span class="keyword">append</span> using mainpoint</span><br><span class="line"><span class="keyword">save</span> pointdata, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> chinacity2020mini_db.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 省代码 == 0</span><br><span class="line">spmap using chinacity2020mini_coord.dta, id(ID) <span class="comment">///</span></span><br><span class="line">  ocolor(<span class="string">&quot;black&quot;</span> ...) osize(vvthin ...) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">line</span>(data(chinacity2020mini_line_coord2.dta) <span class="comment">///</span></span><br><span class="line">    <span class="comment">/// 胡焕庸线（7）秦岭淮河下（4）</span></span><br><span class="line">    select(<span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 1, 2, 3, 5, 6)) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">by</span>(group) size(vvthin *1 *0.5 *0.5 *0.5) <span class="comment">///</span></span><br><span class="line">    pattern(solid ...) <span class="comment">///</span></span><br><span class="line">    color(white <span class="comment">/// 市界颜色</span></span><br><span class="line">        black <span class="comment">/// 国界线颜色</span></span><br><span class="line">        <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">        black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">        black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">        )) <span class="comment">///</span></span><br><span class="line">  polygon(data(polygon2) fcolor(black) <span class="comment">///</span></span><br><span class="line">    osize(vvthin)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(chinacity2020mini_label2) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">    point(data(pointdata) <span class="keyword">by</span>(prov) <span class="comment">///</span></span><br><span class="line">      fcolor(<span class="string">&quot;80 80 255&quot;</span> <span class="string">&quot;206 61 50&quot;</span> <span class="string">&quot;116 155 88&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;240 230 133&quot;</span> <span class="string">&quot;70 105 131&quot;</span> <span class="string">&quot;186 99 56&quot;</span> <span class="string">&quot;93 177 221&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;128 34 104&quot;</span> <span class="string">&quot;107 215 107&quot;</span> <span class="string">&quot;213 149 167&quot;</span> <span class="string">&quot;146 72 34&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;131 123 141&quot;</span> <span class="string">&quot;199 81 39&quot;</span> <span class="string">&quot;213 143 92&quot;</span> <span class="string">&quot;122 101 165&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;228 175 105&quot;</span> <span class="string">&quot;59 27 83&quot;</span> <span class="string">&quot;205 222 183&quot;</span> <span class="string">&quot;97 42 121&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;174 31 99&quot;</span> <span class="string">&quot;231 199 111&quot;</span> <span class="string">&quot;90 101 94&quot;</span> <span class="string">&quot;204 153 0&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;153 204 0&quot;</span> <span class="string">&quot;169 169 169&quot;</span> <span class="string">&quot;204 153 0&quot;</span> <span class="string">&quot;153 204 0&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;51 204 0&quot;</span> <span class="string">&quot;0 204 51&quot;</span> <span class="string">&quot;0 204 153&quot;</span> <span class="string">&quot;0 153 204&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;10 71 255&quot;</span> <span class="string">&quot;71 117 255&quot;</span> <span class="string">&quot;255 194 10&quot;</span>) <span class="comment">///</span></span><br><span class="line">        x(lon) <span class="built_in">y</span>(lat) <span class="comment">///</span></span><br><span class="line">        size(*0.1 ...) legenda(off)) <span class="comment">///</span></span><br><span class="line">    leg(off) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;全国宗庙祠堂分布（10km 范围的检索）&quot;</span>, color(black)) <span class="comment">///</span></span><br><span class="line">    subti(<span class="string">&quot;数据处理 &amp; 绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">    graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">    caption(<span class="string">&quot;数据来源：百度地图地点检索接口&quot;</span>, size(*0.8))</span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;全国宗庙祠堂分布（10km 范围的检索）.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 50km 的</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;全国宗庙祠堂分布(50km范围的检索).dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">encode</span> province, <span class="keyword">gen</span>(prov)</span><br><span class="line"><span class="comment">*- ssc install geo2xy</span></span><br><span class="line"><span class="keyword">drop</span> 纬度 经度</span><br><span class="line"><span class="keyword">ren</span> 纬度_WGS84 纬度</span><br><span class="line"><span class="keyword">ren</span> 经度_WGS84 经度</span><br><span class="line">geo2xy 纬度 经度, <span class="keyword">gen</span>(lat lon) projection(albers, 6378137 298.257223563 25 47 0 105) <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">class</span> = <span class="string">&quot;main&quot;</span></span><br><span class="line"><span class="keyword">save</span> mainpoint, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取小地图框格的</span></span><br><span class="line"><span class="keyword">use</span> mainpoint, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inrange</span>(lon, 120000, 1766004.1) &amp; <span class="built_in">inrange</span>(lat, 320000, 2557786.0)</span><br><span class="line"><span class="keyword">replace</span> lon = lon * 0.5 + 2100000</span><br><span class="line"><span class="keyword">replace</span> lat = lat * 0.5 + 1665139</span><br><span class="line"><span class="keyword">replace</span> <span class="keyword">class</span> = <span class="string">&quot;smallbox&quot;</span></span><br><span class="line"><span class="keyword">append</span> using mainpoint</span><br><span class="line"><span class="keyword">save</span> pointdata, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> chinacity2020mini_db.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> 省代码 == 0</span><br><span class="line">spmap using chinacity2020mini_coord.dta, id(ID) <span class="comment">///</span></span><br><span class="line">  ocolor(<span class="string">&quot;black&quot;</span> ...) osize(vvthin ...) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">line</span>(data(chinacity2020mini_line_coord2.dta) <span class="comment">///</span></span><br><span class="line">    <span class="comment">/// 胡焕庸线（7）秦岭淮河下（4）</span></span><br><span class="line">    select(<span class="keyword">keep</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 1, 2, 3, 5, 6)) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">by</span>(group) size(vvthin *1 *0.5 *0.5 *0.5) <span class="comment">///</span></span><br><span class="line">    pattern(solid ...) <span class="comment">///</span></span><br><span class="line">    color(white <span class="comment">/// 市界颜色</span></span><br><span class="line">        black <span class="comment">/// 国界线颜色</span></span><br><span class="line">        <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">        black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">        black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">        )) <span class="comment">///</span></span><br><span class="line">  polygon(data(polygon2) fcolor(black) <span class="comment">///</span></span><br><span class="line">    osize(vvthin)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(chinacity2020mini_label2) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">    point(data(pointdata) <span class="keyword">by</span>(prov) <span class="comment">///</span></span><br><span class="line">      fcolor(<span class="string">&quot;80 80 255&quot;</span> <span class="string">&quot;206 61 50&quot;</span> <span class="string">&quot;116 155 88&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;240 230 133&quot;</span> <span class="string">&quot;70 105 131&quot;</span> <span class="string">&quot;186 99 56&quot;</span> <span class="string">&quot;93 177 221&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;128 34 104&quot;</span> <span class="string">&quot;107 215 107&quot;</span> <span class="string">&quot;213 149 167&quot;</span> <span class="string">&quot;146 72 34&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;131 123 141&quot;</span> <span class="string">&quot;199 81 39&quot;</span> <span class="string">&quot;213 143 92&quot;</span> <span class="string">&quot;122 101 165&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;228 175 105&quot;</span> <span class="string">&quot;59 27 83&quot;</span> <span class="string">&quot;205 222 183&quot;</span> <span class="string">&quot;97 42 121&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;174 31 99&quot;</span> <span class="string">&quot;231 199 111&quot;</span> <span class="string">&quot;90 101 94&quot;</span> <span class="string">&quot;204 153 0&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;153 204 0&quot;</span> <span class="string">&quot;169 169 169&quot;</span> <span class="string">&quot;204 153 0&quot;</span> <span class="string">&quot;153 204 0&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;51 204 0&quot;</span> <span class="string">&quot;0 204 51&quot;</span> <span class="string">&quot;0 204 153&quot;</span> <span class="string">&quot;0 153 204&quot;</span> <span class="comment">///</span></span><br><span class="line">        <span class="string">&quot;10 71 255&quot;</span> <span class="string">&quot;71 117 255&quot;</span> <span class="string">&quot;255 194 10&quot;</span>) <span class="comment">///</span></span><br><span class="line">        x(lon) <span class="built_in">y</span>(lat) <span class="comment">///</span></span><br><span class="line">        size(*0.1 ...) legenda(off)) <span class="comment">///</span></span><br><span class="line">    leg(off) <span class="comment">///</span></span><br><span class="line">    ti(<span class="string">&quot;全国宗庙祠堂分布（50km 范围的检索）&quot;</span>, color(black)) <span class="comment">///</span></span><br><span class="line">    subti(<span class="string">&quot;数据处理 &amp; 绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">    graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">    caption(<span class="string">&quot;数据来源：百度地图地点检索接口&quot;</span>, size(*0.8))</span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;全国宗庙祠堂分布（50km 范围的检索）.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/21/02b79j1bdbe1b168g4/common/content/1688649161094_595937.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>可以看到两个结果虽然数量上有差异，但是地理分布趋势相近。因此我猜测使用不全的数据结果很可能也可能得到靠谱的结果。所以如果只是准备采用这个数据作为某个变量的代理变量，不用太担心全不全的事情。</p>
+<p>最后我们再计算下各个城市的宗庙祠堂密度，首先使用 R 语言计算各个城市的行政区划面积：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 计算各市的面积</span></span><br><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2020行政区划/市.shp&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br><span class="line"></span><br><span class="line">city <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>面积 <span class="operator">=</span> st_area<span class="punctuation">(</span>.<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>面积 <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span>面积<span class="punctuation">,</span> km2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">         面积 <span class="operator">=</span> <span class="built_in">as.numeric</span><span class="punctuation">(</span>面积<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  haven<span class="operator">::</span>write_dta<span class="punctuation">(</span><span class="string">&quot;2020年各城市行政区划面积.dta&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后再统计、计算、绘图即可：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 各地级市的宗庙祠堂密度</span></span><br><span class="line"><span class="comment">*- 首先根据经纬度判断所处的省市区县</span></span><br><span class="line">shp2dta using 2020行政区划/县.shp, database(county_db) coordinates(county_coord) genid(ID) <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line">import excel using <span class="string">&quot;全国宗庙祠堂分布（10km 范围的检索）.xlsx&quot;</span>, <span class="keyword">clear</span> first</span><br><span class="line">geoinpoly lat lng using county_coord.dta</span><br><span class="line"><span class="keyword">ren</span> _ID ID</span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 ID using county_db</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(lng)</span><br><span class="line"><span class="keyword">drop</span> 省 省代码 市 县 县代码 县类型 市类型 省类型 _merge</span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="comment">*- 计算每个城市的宗庙祠堂密度</span></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">count</span>) <span class="keyword">count</span> = id, <span class="keyword">by</span>(市代码)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 匹配面积数据</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 市代码 using 2020年各城市行政区划面积.dta</span><br><span class="line"><span class="keyword">replace</span> <span class="keyword">count</span> = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(<span class="keyword">count</span>)</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">count</span> 市 市代码 面积</span><br><span class="line"><span class="comment">*- 面积的单位是平方公里</span></span><br><span class="line"><span class="keyword">gen</span> density = <span class="keyword">count</span> / (面积 / 10000)</span><br><span class="line"><span class="keyword">label</span> <span class="keyword">var</span> density <span class="string">&quot;宗庙祠堂密度（个/万平方公里）&quot;</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;各城市宗庙祠堂密度&quot;</span>, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 绘图</span></span><br><span class="line"><span class="keyword">use</span> chinacity2020mini_db.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 市 市代码 using <span class="string">&quot;各城市宗庙祠堂密度&quot;</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> _m == 3</span><br><span class="line"><span class="keyword">replace</span> density = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(density)</span><br><span class="line"></span><br><span class="line">grmap density using chinacity2020mini_coord.dta, <span class="comment">///</span></span><br><span class="line">  id(ID) osize(vvthin ...) ocolor(white ...) <span class="comment">///</span></span><br><span class="line">  clmethod(custom) clbreaks(0 3 9 26 48 80 686) <span class="comment">///</span></span><br><span class="line">    fcolor(<span class="string">&quot;255 255 229&quot;</span> <span class="string">&quot;247 252 185&quot;</span> <span class="string">&quot;217 240 163&quot;</span> <span class="string">&quot;173 221 142&quot;</span> <span class="string">&quot;120 198 121&quot;</span> <span class="string">&quot;65 171 93&quot;</span> <span class="string">&quot;35 132 67&quot;</span> <span class="string">&quot;0 90 50&quot;</span>) <span class="comment">///</span></span><br><span class="line">    graphr(margin(medium)) <span class="comment">///</span></span><br><span class="line">    leg(<span class="keyword">order</span>(2 <span class="string">&quot;&lt;= 3个/万平方公里&quot;</span> 3 <span class="string">&quot;3 ~ 9个/万平方公里&quot;</span>  <span class="comment">///</span></span><br><span class="line">        4 <span class="string">&quot;9 ~ 26个/万平方公里&quot;</span>  5 <span class="string">&quot;26 ~ 48个/万平方公里&quot;</span> <span class="comment">///</span></span><br><span class="line">        6 <span class="string">&quot;48 ~ 80个/万平方公里&quot;</span> 7 <span class="string">&quot;&gt; 80个/万平方公里&quot;</span>)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">line</span>(data(chinaprov2010mini_line_coord2.dta) <span class="keyword">by</span>(group) <span class="comment">///</span></span><br><span class="line">    size(vvthin *1 *0.5 *0.5 *0.5) pattern(solid ...) <span class="comment">///</span></span><br><span class="line">    select(<span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">inlist</span>(group, 4, 7)) <span class="comment">///</span></span><br><span class="line">    color(gs20 <span class="comment">/// 省界颜色</span></span><br><span class="line">        black <span class="comment">/// 国界线颜色</span></span><br><span class="line">        <span class="string">&quot;0 85 170&quot;</span> <span class="comment">/// 海岸线颜色</span></span><br><span class="line">        black <span class="comment">/// 小地图框格颜色</span></span><br><span class="line">        black <span class="comment">/// 比例尺和指北针颜色</span></span><br><span class="line">        )) <span class="comment">///</span></span><br><span class="line">  polygon(data(polygon2) fcolor(black) <span class="comment">///</span></span><br><span class="line">    osize(vvthin)) <span class="comment">///</span></span><br><span class="line">  <span class="keyword">label</span>(data(chinacity2020mini_label2) x(X) <span class="built_in">y</span>(Y) <span class="keyword">label</span>(cname) <span class="built_in">length</span>(20) size(*0.8)) <span class="comment">///</span></span><br><span class="line">  ti(<span class="string">&quot;各城市宗庙祠堂密度&quot;</span>) <span class="comment">///</span></span><br><span class="line">  subti(<span class="string">&quot;数据整理 &amp; 绘制：微信公众号 RStata&quot;</span>) <span class="comment">///</span></span><br><span class="line">  caption(<span class="string">&quot;数据来源：百度地图地点检索接口&quot;</span>, size(*0.8))</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;各城市宗庙祠堂密度（10km 范围的检索）.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/06/21/02b79j1bdbe1b168g4/common/content/1688649238014_545442.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这样我们就解决了这个问题。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/1a86473ee3c14a1c8f4a1ac55d35d05d">使用 Stata 爬取全国宗庙祠堂数据并绘制地图展示</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:45.585Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/62157/" title="上市公司周边用电量面板数据"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/18935/" title="1998～2014 年工企周边 1～5km 范围内碳排放总量面板数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/31379/">如何编写一个使用 Stata 绘制地图的 SKILLS？</a><span class="tf-related-meta">2026-03-22 · 约 4 分钟</span></li><li><a href="/posts/38277/">使用 Stata 绘制中国地图+台风路径（线条+箭头）</a><span class="tf-related-meta">2025-07-18 · 约 4 分钟</span></li><li><a href="/posts/17654/">使用 Stata 绘制长三角 41 省市的区县地图</a><span class="tf-related-meta">2025-03-19 · 约 2 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

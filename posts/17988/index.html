@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/17988/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="之前给大家讲解了如何使用 Stata 测算数实融合水平，尽管使用了大量的 Mata 代码，不过这个指标使用 Stata 计算的效率还是很低，使用 R 语言效率会高很多。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据">
+<meta property="og:url" content="https://tidyfriday.cn/posts/17988/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="之前给大家讲解了如何使用 Stata 测算数实融合水平，尽管使用了大量的 Mata 代码，不过这个指标使用 Stata 计算的效率还是很低，使用 R 语言效率会高很多。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/17988.png">
+<meta property="article:published_time" content="2025-11-03T10:37:57.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:50.145Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="R 语言">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/17988.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据","description":"之前给大家讲解了如何使用 Stata 测算数实融合水平，尽管使用了大量的 Mata 代码，不过这个指标使用 Stata 计算的效率还是很低，使用 R 语言效率会高很多。","url":"https://tidyfriday.cn/posts/17988/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/17988/"},"image":["https://tidyfriday.cn/og/17988.png"],"datePublished":"2025-11-03T10:37:57.000Z","dateModified":"2026-09-26T14:18:50.145Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"R 语言","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据","item":"https://tidyfriday.cn/posts/17988/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2025-11-03T10:37:57.000Z" itemprop="datePublished">2025-11-03</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1352 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 5 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=R%20%E8%AF%AD%E8%A8%80">R 语言</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>之前给大家讲解了如何使用 Stata 测算数实融合水平，尽管使用了大量的 Mata 代码，不过这个指标使用 Stata 计算的效率还是很低，使用 R 语言效率会高很多。</p>
+<span id="more"></span>
+
+<p>今天给大家分享一下「新质生产力背景下数实融合的测算与时空比较——基于专利共分类方法的研究」一文中的数实融合水平指标的 Stata 计算方法，不过由于论文中关于指标计算的一些细节描述的较为含糊，所以计算过程中的一些处理方法还有待探讨，感兴趣的小伙伴也可以说说自己的想法。</p>
+<p>按照论文的介绍，数实融合水平的测算过程如下所示：</p>
+<p>由于内容较多，本课程会分三次进行讲解：</p>
+<ol>
+<li>使用 R 语言测算数实融合水平（一）：基于示例数据</li>
+<li>使用 R 语言测算数实融合水平（二）：基于真实专利数据</li>
+<li>使用 R 语言测算数实融合水平（三）：分城市、产业计算数实融合</li>
+</ol>
+<p>今天我们先从最简单的示例开始。</p>
+<h2 id="准备示例数据" class="article-heading"><a href="#准备示例数据" class="headerlink" title="准备示例数据"></a>准备示例数据<a class="article-anchor" href="#准备示例数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>按照上面的示意图。计算数实融合需要下面三个数据：</p>
+<p>一是各个专利的分类号：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 专利数据</span></span><br><span class="line">patent_data <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  id <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;P1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;P3&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  ipc <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;IPC1;IPC3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC1;IPC2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC1;IPC2;IPC3&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">patent_data</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 3 × 2</span></span><br><span class="line"><span class="comment">#&gt;   id    ipc</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 P1    IPC1;IPC3</span></span><br><span class="line"><span class="comment">#&gt; 2 P2    IPC1;IPC2</span></span><br><span class="line"><span class="comment">#&gt; 3 P3    IPC1;IPC2;IPC3</span></span><br></pre></td></tr></table></figure>
+
+<p>二是 IPC 分类号与产业对照表：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># IPC与产业对照表（第一种格式）</span></span><br><span class="line">ipc_industry1 <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  uniq_ipc <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;IPC1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC3&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  industry <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;I1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I2;I3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I3;I4&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">ipc_industry1</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 3 × 2</span></span><br><span class="line"><span class="comment">#&gt;   uniq_ipc industry</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;    &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 IPC1     I1</span></span><br><span class="line"><span class="comment">#&gt; 2 IPC2     I2;I3</span></span><br><span class="line"><span class="comment">#&gt; 3 IPC3     I3;I4</span></span><br></pre></td></tr></table></figure>
+
+<p>不过使用下面的表达方式处理起来会更简单：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># IPC与产业对照表（第二种格式，更易处理）</span></span><br><span class="line">ipc_industry2 <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  uniq_ipc <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;IPC1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;IPC3&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  industry <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;I1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I4&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">ipc_industry2</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 5 × 2</span></span><br><span class="line"><span class="comment">#&gt;   uniq_ipc industry</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;    &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 IPC1     I1</span></span><br><span class="line"><span class="comment">#&gt; 2 IPC2     I2</span></span><br><span class="line"><span class="comment">#&gt; 3 IPC2     I3</span></span><br><span class="line"><span class="comment">#&gt; 4 IPC3     I3</span></span><br><span class="line"><span class="comment">#&gt; 5 IPC3     I4</span></span><br></pre></td></tr></table></figure>
+
+<p>这样样式也更接近我们后面使用的真实专利数据。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 产业分类表</span></span><br><span class="line">industry_class <span class="operator">&lt;-</span> tibble<span class="punctuation">(</span></span><br><span class="line">  uniq_industry <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;I1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I3&quot;</span><span class="punctuation">,</span> <span class="string">&quot;I4&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  <span class="built_in">class</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;数字产业&quot;</span><span class="punctuation">,</span> <span class="string">&quot;数字产业&quot;</span><span class="punctuation">,</span> <span class="string">&quot;实体产业&quot;</span><span class="punctuation">,</span> <span class="string">&quot;实体产业&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line">industry_class</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 4 × 2</span></span><br><span class="line"><span class="comment">#&gt;   uniq_industry class</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;         &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 I1            数字产业</span></span><br><span class="line"><span class="comment">#&gt; 2 I2            数字产业</span></span><br><span class="line"><span class="comment">#&gt; 3 I3            实体产业</span></span><br><span class="line"><span class="comment">#&gt; 4 I4            实体产业</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="计算-IPC-融合矩阵" class="article-heading"><a href="#计算-IPC-融合矩阵" class="headerlink" title="计算 IPC 融合矩阵"></a>计算 IPC 融合矩阵<a class="article-anchor" href="#计算-IPC-融合矩阵" aria-label="本节链接" title="复制本节链接"></a></h2><p>根据文献的介绍，IPC 融合矩阵的结果就是如果两个 IPC 号出现在一个专利的分类号上，返回 1，否则返回 0。</p>
+<p>首先展开专利的 IPC 分类号：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_expanded <span class="operator">&lt;-</span> patent_data <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>ipc_list <span class="operator">=</span> str_split<span class="punctuation">(</span>ipc<span class="punctuation">,</span> <span class="string">&quot;;&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>ipc_list<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>freq <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">patent_expanded</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 7 × 4</span></span><br><span class="line"><span class="comment">#&gt;   id    ipc            ipc_list  freq</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt; &lt;chr&gt;          &lt;chr&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 P1    IPC1;IPC3      IPC1         1</span></span><br><span class="line"><span class="comment">#&gt; 2 P1    IPC1;IPC3      IPC3         1</span></span><br><span class="line"><span class="comment">#&gt; 3 P2    IPC1;IPC2      IPC1         1</span></span><br><span class="line"><span class="comment">#&gt; 4 P2    IPC1;IPC2      IPC2         1</span></span><br><span class="line"><span class="comment">#&gt; 5 P3    IPC1;IPC2;IPC3 IPC1         1</span></span><br><span class="line"><span class="comment">#&gt; 6 P3    IPC1;IPC2;IPC3 IPC2         1</span></span><br><span class="line"><span class="comment">#&gt; 7 P3    IPC1;IPC2;IPC3 IPC3         1</span></span><br></pre></td></tr></table></figure>
+
+<p>生成所有 IPC 组合：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">patent_expanded <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>id<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarize<span class="punctuation">(</span></span><br><span class="line">    ipc1 <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>ipc_list<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    ipc2 <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>ipc_list<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    freq <span class="operator">=</span> first<span class="punctuation">(</span>freq<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    combinations <span class="operator">=</span> map2<span class="punctuation">(</span>ipc1<span class="punctuation">,</span> ipc2<span class="punctuation">,</span> <span class="operator">~</span> crossing<span class="punctuation">(</span>ipc1 <span class="operator">=</span> .x<span class="punctuation">,</span> ipc2 <span class="operator">=</span> .y<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>ipc1<span class="punctuation">,</span> <span class="operator">-</span>ipc2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  unnest<span class="punctuation">(</span>combinations<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> ipc_combinations</span><br><span class="line"></span><br><span class="line">ipc_combinations</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 17 × 4</span></span><br><span class="line"><span class="comment">#&gt;    id     freq ipc1  ipc2</span></span><br><span class="line"><span class="comment">#&gt;    &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1 P1        1 IPC1  IPC1</span></span><br><span class="line"><span class="comment">#&gt;  2 P1        1 IPC1  IPC3</span></span><br><span class="line"><span class="comment">#&gt;  3 P1        1 IPC3  IPC1</span></span><br><span class="line"><span class="comment">#&gt;  4 P1        1 IPC3  IPC3</span></span><br><span class="line"><span class="comment">#&gt;  5 P2        1 IPC1  IPC1</span></span><br><span class="line"><span class="comment">#&gt;  6 P2        1 IPC1  IPC2</span></span><br><span class="line"><span class="comment">#&gt;  7 P2        1 IPC2  IPC1</span></span><br><span class="line"><span class="comment">#&gt;  8 P2        1 IPC2  IPC2</span></span><br><span class="line"><span class="comment">#&gt;  9 P3        1 IPC1  IPC1</span></span><br><span class="line"><span class="comment">#&gt; 10 P3        1 IPC1  IPC2</span></span><br><span class="line"><span class="comment">#&gt; 11 P3        1 IPC1  IPC3</span></span><br><span class="line"><span class="comment">#&gt; 12 P3        1 IPC2  IPC1</span></span><br><span class="line"><span class="comment">#&gt; 13 P3        1 IPC2  IPC2</span></span><br><span class="line"><span class="comment">#&gt; 14 P3        1 IPC2  IPC3</span></span><br><span class="line"><span class="comment">#&gt; 15 P3        1 IPC3  IPC1</span></span><br><span class="line"><span class="comment">#&gt; 16 P3        1 IPC3  IPC2</span></span><br><span class="line"><span class="comment">#&gt; 17 P3        1 IPC3  IPC3</span></span><br></pre></td></tr></table></figure>
+
+<p>计算 IPC 共现频次：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ipc_matrix <span class="operator">&lt;-</span> ipc_combinations <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>ipc1 <span class="operator">!=</span> ipc2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>ipc1<span class="punctuation">,</span> ipc2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarize<span class="punctuation">(</span>value <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>freq<span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span></span><br><span class="line">ipc_matrix</span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 6 × 3</span></span><br><span class="line"><span class="comment">#&gt;   ipc1  ipc2  value</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 IPC1  IPC2      2</span></span><br><span class="line"><span class="comment">#&gt; 2 IPC1  IPC3      2</span></span><br><span class="line"><span class="comment">#&gt; 3 IPC2  IPC1      2</span></span><br><span class="line"><span class="comment">#&gt; 4 IPC2  IPC3      1</span></span><br><span class="line"><span class="comment">#&gt; 5 IPC3  IPC1      2</span></span><br><span class="line"><span class="comment">#&gt; 6 IPC3  IPC2      1</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="计算行业共现矩阵" class="article-heading"><a href="#计算行业共现矩阵" class="headerlink" title="计算行业共现矩阵"></a>计算行业共现矩阵<a class="article-anchor" href="#计算行业共现矩阵" aria-label="本节链接" title="复制本节链接"></a></h2><p>分别把两个 ipc 变量和 <code>ipc_industry2</code> 匹配即可：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一次匹配</span></span><br><span class="line">ipc_matrix <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>uniq_ipc <span class="operator">=</span> ipc1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>ipc_industry2<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;uniq_ipc&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>industry1 <span class="operator">=</span> industry<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>uniq_ipc<span class="punctuation">)</span> <span class="operator">-&gt;</span> industry_matrix1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二次匹配</span></span><br><span class="line">industry_matrix1 <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>uniq_ipc <span class="operator">=</span> ipc2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>ipc_industry2<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;uniq_ipc&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>industry2 <span class="operator">=</span> industry<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>uniq_ipc<span class="punctuation">)</span> <span class="operator">-&gt;</span> industry_matrix2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算行业共现频次</span></span><br><span class="line">industry_matrix2 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>industry1 <span class="operator">!=</span> industry2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>industry1<span class="punctuation">,</span> industry2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarize<span class="punctuation">(</span>value <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>value<span class="punctuation">)</span><span class="punctuation">,</span> .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> industry_matrix</span><br></pre></td></tr></table></figure>
+
+<h2 id="计算数实融合" class="article-heading"><a href="#计算数实融合" class="headerlink" title="计算数实融合"></a>计算数实融合<a class="article-anchor" href="#计算数实融合" aria-label="本节链接" title="复制本节链接"></a></h2><p>然后我们就可以根据公式计算数实融合水平了：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一次匹配产业分类</span></span><br><span class="line">industry_matrix <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>uniq_industry <span class="operator">=</span> industry1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industry_class<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;uniq_industry&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>industry1 <span class="operator">=</span> uniq_industry<span class="punctuation">,</span> class1 <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_step1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二次匹配产业分类</span></span><br><span class="line">fusion_step1 <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>uniq_industry <span class="operator">=</span> industry2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industry_class<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;uniq_industry&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  rename<span class="punctuation">(</span>industry2 <span class="operator">=</span> uniq_industry<span class="punctuation">,</span> class2 <span class="operator">=</span> <span class="built_in">class</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_step2</span><br><span class="line"></span><br><span class="line">fusion_step2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 过滤掉 value 为 0 的行</span></span><br><span class="line">fusion_step2 <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>value <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_filtered</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算每个产业类别中的行业数量</span></span><br><span class="line">fusion_filtered <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span>industry1<span class="punctuation">,</span> class1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>class1<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarize<span class="punctuation">(</span>freq1 <span class="operator">=</span> n_distinct<span class="punctuation">(</span>industry1<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  ungroup<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> industry_counts</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并频次信息</span></span><br><span class="line">fusion_filtered <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industry_counts<span class="punctuation">,</span> by <span class="operator">=</span> <span class="string">&quot;class1&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  left_join<span class="punctuation">(</span>industry_counts <span class="operator">%&gt;%</span></span><br><span class="line">              rename<span class="punctuation">(</span>class2 <span class="operator">=</span> class1<span class="punctuation">,</span> freq2 <span class="operator">=</span> freq1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">            by <span class="operator">=</span> <span class="string">&quot;class2&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_withfreq</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按产业类别汇总</span></span><br><span class="line">fusion_withfreq <span class="operator">%&gt;%</span></span><br><span class="line">  group_by<span class="punctuation">(</span>class1<span class="punctuation">,</span> class2<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  summarize<span class="punctuation">(</span></span><br><span class="line">    value <span class="operator">=</span> <span class="built_in">sum</span><span class="punctuation">(</span>value<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    freq1 <span class="operator">=</span> first<span class="punctuation">(</span>freq1<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    freq2 <span class="operator">=</span> first<span class="punctuation">(</span>freq2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    .groups <span class="operator">=</span> <span class="string">&quot;drop&quot;</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_summary</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算融合水平</span></span><br><span class="line">fusion_summary <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span></span><br><span class="line">    RH <span class="operator">=</span> value <span class="operator">/</span> <span class="punctuation">(</span>freq1 <span class="operator">*</span> freq2<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    <span class="built_in">class</span> <span class="operator">=</span> case_when<span class="punctuation">(</span></span><br><span class="line">      class1 <span class="operator">!=</span> class2 <span class="operator">~</span> <span class="string">&quot;数实融合&quot;</span><span class="punctuation">,</span></span><br><span class="line">      class1 <span class="operator">==</span> <span class="string">&quot;数字产业&quot;</span> <span class="operator">&amp;</span> class2 <span class="operator">==</span> <span class="string">&quot;数字产业&quot;</span> <span class="operator">~</span> <span class="string">&quot;数数融合&quot;</span><span class="punctuation">,</span></span><br><span class="line">      class1 <span class="operator">==</span> <span class="string">&quot;实体产业&quot;</span> <span class="operator">&amp;</span> class2 <span class="operator">==</span> <span class="string">&quot;实体产业&quot;</span> <span class="operator">~</span> <span class="string">&quot;实实融合&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="literal">TRUE</span> <span class="operator">~</span> <span class="literal">NA_character_</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="built_in">class</span><span class="punctuation">,</span> RH<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> fusion_result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示最终结果</span></span><br><span class="line">print<span class="punctuation">(</span>fusion_result<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 3 × 2</span></span><br><span class="line"><span class="comment">#&gt;   class       RH</span></span><br><span class="line"><span class="comment">#&gt;   &lt;chr&gt;    &lt;dbl&gt;</span></span><br><span class="line"><span class="comment">#&gt; 1 实实融合   0.5</span></span><br><span class="line"><span class="comment">#&gt; 2 数实融合   2</span></span><br><span class="line"><span class="comment">#&gt; 3 数数融合   1</span></span><br></pre></td></tr></table></figure>
+
+<p>这样我们就计算出来该示例数据的数实融合水平为 2，数数融合水平为 1，实实融合水平为 0.5。</p>
+<p>下次课我们再继续讲解基于真实专利数据的计算。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/850617e98ac8481f98849c4681039b4e">名师讲堂｜使用 R 语言测算数实融合水平（一）：基于示例数据</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:50.145Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/99637/" title="1970～2023 年美国各州县CO2排放量面板数据(v2024_GHG)"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/64855/" title="名师讲堂｜使用 R 语言测算数实融合水平（二）：基于真实专利数据"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/76674/">名师讲堂｜使用 R 语言测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-30 · 约 13 分钟</span></li><li><a href="/posts/75631/">名师讲堂｜使用 R 语言测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 7 分钟</span></li><li><a href="/posts/46876/">名师讲堂｜使用 R 语言测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 9 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E7%A4%BA%E4%BE%8B%E6%95%B0%E6%8D%AE"><span class="toc-text">准备示例数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97-IPC-%E8%9E%8D%E5%90%88%E7%9F%A9%E9%98%B5"><span class="toc-text">计算 IPC 融合矩阵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E8%A1%8C%E4%B8%9A%E5%85%B1%E7%8E%B0%E7%9F%A9%E9%98%B5"><span class="toc-text">计算行业共现矩阵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%95%B0%E5%AE%9E%E8%9E%8D%E5%90%88"><span class="toc-text">计算数实融合</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

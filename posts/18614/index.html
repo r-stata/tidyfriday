@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>R 4.1.0 的新特性 & 使用 hotkeys 配置输入快捷键 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/18614/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="原文链接：https:&#x2F;&#x2F;www.jumpingrivers.com&#x2F;blog&#x2F;new-features-r410-pipe-anonymous-functions&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R 4.1.0 的新特性 &amp; 使用 hotkeys 配置输入快捷键">
+<meta property="og:url" content="https://tidyfriday.cn/posts/18614/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="原文链接：https:&#x2F;&#x2F;www.jumpingrivers.com&#x2F;blog&#x2F;new-features-r410-pipe-anonymous-functions&#x2F;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/18614.png">
+<meta property="article:published_time" content="2021-06-02T17:26:17.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:39.386Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="编程技巧">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/18614.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="R 4.1.0 的新特性 & 使用 hotkeys 配置输入快捷键">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"R 4.1.0 的新特性 \u0026 使用 hotkeys 配置输入快捷键","description":"原文链接：https://www.jumpingrivers.com/blog/new-features-r410-pipe-anonymous-functions/","url":"https://tidyfriday.cn/posts/18614/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/18614/"},"image":["https://tidyfriday.cn/og/18614.png"],"datePublished":"2021-06-02T17:26:17.000Z","dateModified":"2026-09-26T14:18:39.386Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"编程技巧","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"R 4.1.0 的新特性 \u0026 使用 hotkeys 配置输入快捷键","item":"https://tidyfriday.cn/posts/18614/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">R 4.1.0 的新特性 & 使用 hotkeys 配置输入快捷键</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">R 4.1.0 的新特性 & 使用 hotkeys 配置输入快捷键</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-06-02T17:26:17.000Z" itemprop="datePublished">2021-06-02</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2872 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 11 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7">编程技巧</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.jumpingrivers.com/blog/new-features-r410-pipe-anonymous-functions/">https://www.jumpingrivers.com/blog/new-features-r410-pipe-anonymous-functions/</a></p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="R-4-1-0-已发布！" class="article-heading"><a href="#R-4-1-0-已发布！" class="headerlink" title="R 4.1.0 已发布！"></a>R 4.1.0 已发布！<a class="article-anchor" href="#R-4-1-0-已发布！" aria-label="本节链接" title="复制本节链接"></a></h2><p>R的新版本（v 4.1.0）已于 2021 年 5 月 18 日发布。通常来讲，大部分 R 更新不会包含太多的新特性，但这次更新确实有一些有趣且重要的变化。</p>
+<p>本推文总结了一些值得注意的变化，其他具体更新内容请移步 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://cran.r-project.org/doc/manuals/r-devel/NEWS.html">R 更新日志</a>。</p>
+<h3 id="1-对-32-位-Windows-系统支持减少" class="article-heading"><a href="#1-对-32-位-Windows-系统支持减少" class="headerlink" title="1. 对 32 位 Windows 系统支持减少"></a>1. 对 32 位 Windows 系统支持减少<a class="article-anchor" href="#1-对-32-位-Windows-系统支持减少" aria-label="本节链接" title="复制本节链接"></a></h3><p>R 4.1.x 系列是最后一批支持 32 位 Windows 的 R 版本。虽然这对大多数人没有影响，但如果你有一台旧笔记本，偶尔用来玩玩R，就可能会带来问题。</p>
+<h3 id="2-新的语法" class="article-heading"><a href="#2-新的语法" class="headerlink" title="2. 新的语法"></a>2. 新的语法<a class="article-anchor" href="#2-新的语法" aria-label="本节链接" title="复制本节链接"></a></h3><p>基础 R 包的稳定性是 R 生态的一个重要优势：基础包既支持了扩展包（CRAN, BioConductor），也与之形成了鲜明对比。</p>
+<p>可以想象一下在R中引入一些新特性的情形，即使这些特性的可用性出现问题，也会至少需要维护到下一个重大版本更新，届时可能会有成千上万的开发人员和分析师会开始使用这些特性。因此，R 维护人员在引入新语法时会非常谨慎。</p>
+<p>同样，在你自己的代码中使用新语法时也应该谨慎。如果你使用了 R 4.1.x 中引入的新语法，你要注意自己的代码可能无法在之前的R版本中运行。例如你写的数据分析代码可能在你同事的电脑上就无法正常工作，或者其他用户无法安装你开发的新R包。</p>
+<h3 id="2-1-原生管道符" class="article-heading"><a href="#2-1-原生管道符" class="headerlink" title="2.1 原生管道符"></a>2.1 原生管道符<a class="article-anchor" href="#2-1-原生管道符" aria-label="本节链接" title="复制本节链接"></a></h3><p><code>magrittr</code> 包在2014年将管道符引入R。它建立在 Unix/Linux 脚本语言（bash）和函数式编程语言（如 F#）中类似的语法上，旨在：</p>
+<blockquote>
+<p>减少开发时间，提高代码的可读性和可维护性。<a target="_blank" rel="noopener external nofollow noreferrer" href="https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html">Bache, 2014.</a></p>
+</blockquote>
+<p>为了体现管道语法的价值，我们先给大家看一段调用嵌套函数的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## 绘制抽样分布的密度图：</span><br><span class="line">plot(</span><br><span class="line">  density(</span><br><span class="line">    rnorm(100, mean = 4, sd = 1)</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>示例图</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210602170034.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>你可能想分步骤来写，以便容易地确定每个函数的调用顺序（先是调用<code>rnorm()</code>，然后是<code>density()</code>，最后是<code>plot()</code>）:</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## 绘制抽样分布的密度图：</span></span><br><span class="line">raw_data <span class="operator">&lt;-</span> rnorm<span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> mean <span class="operator">=</span> <span class="number">4</span><span class="punctuation">,</span> sd <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span></span><br><span class="line">density_summary <span class="operator">&lt;-</span> density<span class="punctuation">(</span>raw_data<span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>density_summary<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>示例图</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210602170034.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>但除非你会再次使用抽样结果 <code>raw_data</code> 或者抽样结果的分布 <code>density_summary</code>，否则这样写代码就会向你的R环境中引入许多冗余变量。<code>magrittr</code> 包提供了一个非常好的折中方案，既减少了冗余变量，也体现了代码中函数调用的自然顺序：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## R 4.0.5</span></span><br><span class="line">library<span class="punctuation">(</span>magrittr<span class="punctuation">)</span></span><br><span class="line">rnorm<span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> mean <span class="operator">=</span> <span class="number">4</span><span class="punctuation">,</span> sd <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  density<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  plot<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>示例图</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210602170034.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>R4.1.0基础语法中加入了原生管道符<code>|&gt;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0</span><br><span class="line">rnorm(100, mean = 4, sd = 1) |&gt;</span><br><span class="line">  density() |&gt;</span><br><span class="line">  plot()</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>示例图</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210602170034.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>新管道符比 <code>magrittr</code> 管道符更容易输入（在两者都没有设置快捷键的情况下），更高效，也更容易 debug。</p>
+<h3 id="2-2-原生管道符-VS-magrittr" class="article-heading"><a href="#2-2-原生管道符-VS-magrittr" class="headerlink" title="2.2 原生管道符 VS. magrittr"></a>2.2 原生管道符 VS. <code>magrittr</code><a class="article-anchor" href="#2-2-原生管道符-VS-magrittr" aria-label="本节链接" title="复制本节链接"></a></h3><p>注意，<code>|&gt;</code> 并非对<code>%&gt;%</code>的完全替代。使用 <code>magrittr</code> 管道符时，函数可以带括号，也可以不带:</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## 带括号：</span></span><br><span class="line"><span class="built_in">letters</span> <span class="operator">%&gt;%</span> head<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;f&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 不带括号：</span></span><br><span class="line"><span class="built_in">letters</span> <span class="operator">%&gt;%</span> head</span><br><span class="line"><span class="comment">#&gt; [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;f&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>而原生管道符则***必须***带括号：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0:</span><br><span class="line">letters |&gt; head()</span><br><span class="line">#&gt; [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;f&quot;</span><br></pre></td></tr></table></figure>
+
+<p><code>magrittr</code> 管道符允许在调用函数的任意位置使用“管道输入值”。管道输入值用占位符<code>.</code>来代替。例如，你可以在函数的第二个参数位置使用这些值：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## R 4.0.5: 字符串&#x27;at&#x27;是否能在动物名称中找到？</span></span><br><span class="line"><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;dogs&quot;</span><span class="punctuation">,</span> <span class="string">&quot;cats&quot;</span><span class="punctuation">,</span> <span class="string">&quot;rats&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  grepl<span class="punctuation">(</span><span class="string">&quot;at&quot;</span><span class="punctuation">,</span> .<span class="punctuation">)</span></span><br><span class="line"><span class="comment">#&gt; [1] FALSE  TRUE  TRUE</span></span><br></pre></td></tr></table></figure>
+
+<p>原生管道符则没有提供占位符的用法。要想用原生占位符实现相同的效果，首先需要定义一个函数。你可以显式地预先定义一个函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0</span><br><span class="line">find_at = function(x) grepl(&quot;at&quot;, x)</span><br><span class="line">c(&quot;dogs&quot;, &quot;cats&quot;, &quot;rats&quot;) |&gt; find_at()</span><br><span class="line">## [1] FALSE  TRUE  TRUE</span><br></pre></td></tr></table></figure>
+
+<p>…也可以隐式地使用原位函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0: 记得右侧的括号！</span><br><span class="line">c(&quot;dogs&quot;, &quot;cats&quot;, &quot;rats&quot;) |&gt;</span><br><span class="line">  &#123;function(x) grepl(&quot;at&quot;, x)&#125;()</span><br><span class="line">#&gt; [1] FALSE  TRUE  TRUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-匿名函数的简写语法" class="article-heading"><a href="#2-3-匿名函数的简写语法" class="headerlink" title="2.3 匿名函数的简写语法"></a>2.3 匿名函数的简写语法<a class="article-anchor" href="#2-3-匿名函数的简写语法" aria-label="本节链接" title="复制本节链接"></a></h3><p>一般情况下，R中的函数定义通常使用以下语法：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">do_something = function(parameters) &#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义后的函数可以像下面这样调用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">do_something(args)</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用匿名函数，这是使用高阶函数时的常见做法，例如 <code>purrr</code> 包中的函数（<code>map()</code>、<code>reduce()</code>、<code>keep()</code>；以及它们的 base R 对应函数：<code>Map()</code> , <code>lapply()</code> 等）。</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## 对于每一个字母：</span></span><br><span class="line"><span class="comment">##   - 找到 &#x27;datasets&#x27; 包中以该字母开头的数据集</span></span><br><span class="line"><span class="comment">## 使用 &#x27;tidyverse&#x27; 语法</span></span><br><span class="line"></span><br><span class="line">purrr<span class="operator">::</span>map<span class="punctuation">(</span></span><br><span class="line">  <span class="built_in">letters</span><span class="punctuation">[</span><span class="number">1</span><span class="operator">:</span><span class="number">3</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    ds <span class="operator">=</span> ls<span class="punctuation">(</span><span class="string">&quot;package:datasets&quot;</span><span class="punctuation">)</span></span><br><span class="line">    ds<span class="punctuation">[</span>stringr<span class="operator">::</span>str_starts<span class="punctuation">(</span>tolower<span class="punctuation">(</span>ds<span class="punctuation">)</span><span class="punctuation">,</span> x<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [[1]]</span></span><br><span class="line"><span class="comment">#&gt; [1] &quot;ability.cov&quot;   &quot;airmiles&quot;      &quot;AirPassengers&quot; &quot;airquality&quot;</span></span><br><span class="line"><span class="comment">#&gt; [5] &quot;anscombe&quot;      &quot;attenu&quot;        &quot;attitude&quot;      &quot;austres&quot;</span></span><br><span class="line"><span class="comment">#&gt;</span></span><br><span class="line"><span class="comment">#&gt; [[2]]</span></span><br><span class="line"><span class="comment">#&gt; [1] &quot;beaver1&quot;      &quot;beaver2&quot;      &quot;BJsales&quot;      &quot;BJsales.lead&quot; &quot;BOD&quot;</span></span><br><span class="line"><span class="comment">#&gt;</span></span><br><span class="line"><span class="comment">#&gt; [[3]]</span></span><br><span class="line"><span class="comment">#&gt; [1] &quot;cars&quot;        &quot;ChickWeight&quot; &quot;chickwts&quot;    &quot;co2&quot;         &quot;CO2&quot;</span></span><br><span class="line"><span class="comment">#&gt; [6] &quot;crimtab&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## base R</span><br><span class="line">Map(</span><br><span class="line">  function(x) &#123;</span><br><span class="line">    pattern = paste0(&quot;^&quot;, x) ## eg &quot;^a&quot; to match a leading &#x27;a&#x27;</span><br><span class="line">    grep(pattern, ls(&quot;package:datasets&quot;), value = TRUE, ignore.case = TRUE)</span><br><span class="line">  &#125;,</span><br><span class="line">  letters[1:3]</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">#&gt; [[1]]</span><br><span class="line">#&gt; [1] &quot;ability.cov&quot;   &quot;airmiles&quot;      &quot;AirPassengers&quot; &quot;airquality&quot;</span><br><span class="line">#&gt; [5] &quot;anscombe&quot;      &quot;attenu&quot;        &quot;attitude&quot;      &quot;austres&quot;</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; [[2]]</span><br><span class="line">#&gt; [1] &quot;beaver1&quot;      &quot;beaver2&quot;      &quot;BJsales&quot;      &quot;BJsales.lead&quot; &quot;BOD&quot;</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; [[3]]</span><br><span class="line">#&gt; [1] &quot;cars&quot;        &quot;ChickWeight&quot; &quot;chickwts&quot;    &quot;co2&quot;         &quot;CO2&quot;</span><br><span class="line">#&gt; [6] &quot;crimtab&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这个情况下，<code>function(x) &#123;...&#125;</code> 的语法看上去相当啰嗦，尤其是将多个函数组合到一个管道中的时候。</p>
+<p>R 中引入了一种新语法，可以使得声明这些匿名函数时更加简洁：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0</span><br><span class="line">Map(</span><br><span class="line">  \(x) &#123;</span><br><span class="line">    pattern = paste0(&quot;^&quot;, x)</span><br><span class="line">    grep(pattern, ls(&quot;package:datasets&quot;), value = TRUE, ignore.case = TRUE)</span><br><span class="line">  &#125;,</span><br><span class="line">  letters[1:3]</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">#&gt; $a</span><br><span class="line">#&gt; [1] &quot;ability.cov&quot;   &quot;airmiles&quot;      &quot;AirPassengers&quot; &quot;airquality&quot;</span><br><span class="line">#&gt; [5] &quot;anscombe&quot;      &quot;attenu&quot;        &quot;attitude&quot;      &quot;austres&quot;</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $b</span><br><span class="line">#&gt; [1] &quot;beaver1&quot;      &quot;beaver2&quot;      &quot;BJsales&quot;      &quot;BJsales.lead&quot; &quot;BOD&quot;</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $c</span><br><span class="line">#&gt; [1] &quot;cars&quot;        &quot;ChickWeight&quot; &quot;chickwts&quot;    &quot;co2&quot;         &quot;CO2&quot;</span><br><span class="line">#&gt; [6] &quot;crimtab&quot;</span><br></pre></td></tr></table></figure>
+
+<p>用这个语法，我们可以对原生管道符部分中的最后一个例子进行重写：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0</span><br><span class="line">c(&quot;dogs&quot;, &quot;cats&quot;, &quot;rats&quot;) |&gt;</span><br><span class="line">  &#123;\(x) grepl(&quot;at&quot;, x)&#125;()</span><br><span class="line">#&gt; [1] FALSE  TRUE  TRUE</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-小改动" class="article-heading"><a href="#3-小改动" class="headerlink" title="3 小改动"></a>3 小改动<a class="article-anchor" href="#3-小改动" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="3-1-组合因子变量" class="article-heading"><a href="#3-1-组合因子变量" class="headerlink" title="3.1 组合因子变量"></a>3.1 组合因子变量<a class="article-anchor" href="#3-1-组合因子变量" aria-label="本节链接" title="复制本节链接"></a></h3><p>在R的过去版本中，如果使用 <code>c(factor1, factor2)</code> 来组合两个因子向量，结果会返回一个整数向量：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.0.5: 组合不同水平的因子向量</span><br><span class="line">c(factor(&quot;a&quot;), factor(&quot;b&quot;))</span><br><span class="line">#&gt; [1] a b</span><br><span class="line">#&gt; Levels: a b</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.0.5: 组合相同水平的因子向量</span><br><span class="line">c(factor(&quot;a&quot;), factor(&quot;a&quot;))</span><br><span class="line">#&gt; [1] a a</span><br><span class="line">#&gt; Levels: a</span><br></pre></td></tr></table></figure>
+
+<p>这是因为在R的内部，因子被储存为整数。在R &gt;= 4.1的版本中，这种组合的结果会有一些变化：</p>
+<ul>
+<li>返回一个新的因子向量</li>
+<li>该因子向量的水平为原来两个因子向量水平的集合</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line">fac1 <span class="operator">&lt;-</span> factor<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;a&quot;</span><span class="punctuation">,</span> <span class="string">&quot;b&quot;</span><span class="punctuation">,</span> <span class="string">&quot;d&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">fac2 <span class="operator">&lt;-</span> factor<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;b&quot;</span><span class="punctuation">,</span> <span class="string">&quot;c&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="built_in">c</span><span class="punctuation">(</span>fac1<span class="punctuation">,</span> fac2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; [1] a b d b c</span></span><br><span class="line"><span class="comment">#&gt; Levels: a b d c</span></span><br></pre></td></tr></table></figure>
+
+<p>这与 <code>forcats::fct_c()</code> 组合因子向量的方式一致。</p>
+<h3 id="3-2-使用公式语法拆分数据框" class="article-heading"><a href="#3-2-使用公式语法拆分数据框" class="headerlink" title="3.2 使用公式语法拆分数据框"></a>3.2 使用公式语法拆分数据框<a class="article-anchor" href="#3-2-使用公式语法拆分数据框" aria-label="本节链接" title="复制本节链接"></a></h3><p>R4.1.0中加入了一种新的语法，可以方便地使用公式语法来拆分数据框。在之前的版本中，想要这么做，需要把数据框的名字输入 <code>split()</code> 函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.0.5: 将 “mtcars”数据框中的汽车按照齿轮数拆分</span><br><span class="line">split(mtcars, mtcars$gear)</span><br><span class="line"></span><br><span class="line">#&gt; $`3`</span><br><span class="line">#&gt;                      mpg cyl  disp  hp drat    wt  qsec vs am gear carb</span><br><span class="line">#&gt; Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1</span><br><span class="line">#&gt; Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2</span><br><span class="line">#&gt; Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1</span><br><span class="line">#&gt; Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4</span><br><span class="line">#&gt; Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3</span><br><span class="line">#&gt; Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3</span><br><span class="line">#&gt; Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3</span><br><span class="line">#&gt; Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4</span><br><span class="line">#&gt; Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4</span><br><span class="line">#&gt; Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4</span><br><span class="line">#&gt; Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1</span><br><span class="line">#&gt; Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2</span><br><span class="line">#&gt; AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2</span><br><span class="line">#&gt; Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4</span><br><span class="line">#&gt; Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $`4`</span><br><span class="line">#&gt;                 mpg cyl  disp  hp drat    wt  qsec vs am gear carb</span><br><span class="line">#&gt; Mazda RX4      21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4</span><br><span class="line">#&gt; Mazda RX4 Wag  21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4</span><br><span class="line">#&gt; Datsun 710     22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1</span><br><span class="line">#&gt; Merc 240D      24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2</span><br><span class="line">#&gt; Merc 230       22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2</span><br><span class="line">#&gt; Merc 280       19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4</span><br><span class="line">#&gt; Merc 280C      17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4</span><br><span class="line">#&gt; Fiat 128       32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1</span><br><span class="line">#&gt; Honda Civic    30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2</span><br><span class="line">#&gt; Toyota Corolla 33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1</span><br><span class="line">#&gt; Fiat X1-9      27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1</span><br><span class="line">#&gt; Volvo 142E     21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $`5`</span><br><span class="line">#&gt;                 mpg cyl  disp  hp drat    wt qsec vs am gear carb</span><br><span class="line">#&gt; Porsche 914-2  26.0   4 120.3  91 4.43 2.140 16.7  0  1    5    2</span><br><span class="line">#&gt; Lotus Europa   30.4   4  95.1 113 3.77 1.513 16.9  1  1    5    2</span><br><span class="line">#&gt; Ford Pantera L 15.8   8 351.0 264 4.22 3.170 14.5  0  1    5    4</span><br><span class="line">#&gt; Ferrari Dino   19.7   6 145.0 175 3.62 2.770 15.5  0  1    5    6</span><br><span class="line">#&gt; Maserati Bora  15.0   8 301.0 335 3.54 3.570 14.6  0  1    5    8</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>magrittr</code>管道时，语法就显得有些“笨重”：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## R 4.0.5</span></span><br><span class="line"><span class="comment">## 分别获取齿轮数为3，4，5的汽车中，每加仑汽油行驶距离最长的汽车（mpg）</span></span><br><span class="line"></span><br><span class="line">mtcars <span class="operator">%&gt;%</span></span><br><span class="line">  split<span class="punctuation">(</span>.<span class="punctuation">,</span> .<span class="operator">$</span>gear<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  lapply<span class="punctuation">(</span><span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> x<span class="punctuation">[</span>which.max<span class="punctuation">(</span>x<span class="operator">$</span>mpg<span class="punctuation">)</span><span class="punctuation">,</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; $`3`</span></span><br><span class="line"><span class="comment">#&gt;                mpg cyl  disp hp drat    wt  qsec vs am gear carb</span></span><br><span class="line"><span class="comment">#&gt; Toyota Corona 21.5   4 120.1 97  3.7 2.465 20.01  1  0    3    1</span></span><br><span class="line"><span class="comment">#&gt;</span></span><br><span class="line"><span class="comment">#&gt; $`4`</span></span><br><span class="line"><span class="comment">#&gt;                 mpg cyl disp hp drat    wt qsec vs am gear carb</span></span><br><span class="line"><span class="comment">#&gt; Toyota Corolla 33.9   4 71.1 65 4.22 1.835 19.9  1  1    4    1</span></span><br><span class="line"><span class="comment">#&gt;</span></span><br><span class="line"><span class="comment">#&gt; $`5`</span></span><br><span class="line"><span class="comment">#&gt;               mpg cyl disp  hp drat    wt qsec vs am gear carb</span></span><br><span class="line"><span class="comment">#&gt; Lotus Europa 30.4   4 95.1 113 3.77 1.513 16.9  1  1    5    2</span></span><br></pre></td></tr></table></figure>
+
+<p>将新的管道语法和函数简写与新的split语法结合起来，可以改写如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## R 4.1.0</span><br><span class="line">mtcars |&gt;</span><br><span class="line">  split(~ gear) |&gt;</span><br><span class="line">  lapply(\(x) x[which.max(x$mpg), ])</span><br><span class="line"></span><br><span class="line">#&gt; $`3`</span><br><span class="line">#&gt;                mpg cyl  disp hp drat    wt  qsec vs am gear carb</span><br><span class="line">#&gt; Toyota Corona 21.5   4 120.1 97  3.7 2.465 20.01  1  0    3    1</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $`4`</span><br><span class="line">#&gt;                 mpg cyl disp hp drat    wt qsec vs am gear carb</span><br><span class="line">#&gt; Toyota Corolla 33.9   4 71.1 65 4.22 1.835 19.9  1  1    4    1</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; $`5`</span><br><span class="line">#&gt;               mpg cyl disp  hp drat    wt qsec vs am gear carb</span><br><span class="line">#&gt; Lotus Europa 30.4   4 95.1 113 3.77 1.513 16.9  1  1    5    2</span><br></pre></td></tr></table></figure>
+
+<p>感觉简洁了许多~</p>
+<h2 id="4-使用-hotkeys-设置原生管道符快捷键" class="article-heading"><a href="#4-使用-hotkeys-设置原生管道符快捷键" class="headerlink" title="4. 使用 hotkeys 设置原生管道符快捷键"></a>4. 使用 hotkeys 设置原生管道符快捷键<a class="article-anchor" href="#4-使用-hotkeys-设置原生管道符快捷键" aria-label="本节链接" title="复制本节链接"></a></h2><p>R 4.1.0 中并没有为原生管道符<code>|&gt;</code>快捷键，但我们可以使用 <code>hotkeys</code> 包来自定义我们的快捷键。</p>
+<p>可以使用以下的方法安装：</p>
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">## 从 GitHub 上安装：</span></span><br><span class="line">devtools<span class="operator">::</span>install_github<span class="punctuation">(</span><span class="string">&#x27;r-stata/hotkeys&#x27;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment">## 从附件中的源码安装：</span></span><br><span class="line">devtools<span class="operator">::</span>install_local<span class="punctuation">(</span><span class="string">&#x27;hotkeys_0.2.0.tar.gz&#x27;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以从 RStudio 界面上点击 Tools -&gt; Modify Keyboard Shortcuts 进入快捷键设置界面，输入 insert 找到输入类快捷键的设置：</p>
+<table>
+<thead>
+<tr>
+<th>使用 hotkeys 设置原生管道符快捷键</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210602170439.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>然后就可以设置 <code>|&gt;</code> 的快捷键了，当然，其他各种操作符的快捷键可以用 <code>hotkeys</code> 包一起设置～</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/b84c8f0aa06248738fee95ccdd37fb5f">R 4.1.0 的新特性 &amp; 使用 hotkeys 配置输入快捷键</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:39.386Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/59542/" title="R 语言和 RStudio 的安装、R Profile 的配置及初识 R 语言数据爬取与可视化"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/86571/" title="使用 igraph 包生成网络对象的方法"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/96797/">Mac OS 使用技巧及常用软件下载安装教程</a><span class="tf-related-meta">2026-03-24 · 约 9 分钟</span></li><li><a href="/posts/81638/">高效合并多个 dta 文件：appendall 命令详解</a><span class="tf-related-meta">2025-08-07 · 约 4 分钟</span></li><li><a href="/posts/99294/">金融许可证持有机构列表、经纬度及省市区县分布数据（截止2025年6月21日）</a><span class="tf-related-meta">2025-06-22 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#R-4-1-0-%E5%B7%B2%E5%8F%91%E5%B8%83%EF%BC%81"><span class="toc-text">R 4.1.0 已发布！</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AF%B9-32-%E4%BD%8D-Windows-%E7%B3%BB%E7%BB%9F%E6%94%AF%E6%8C%81%E5%87%8F%E5%B0%91"><span class="toc-text">1. 对 32 位 Windows 系统支持减少</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%96%B0%E7%9A%84%E8%AF%AD%E6%B3%95"><span class="toc-text">2. 新的语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8E%9F%E7%94%9F%E7%AE%A1%E9%81%93%E7%AC%A6"><span class="toc-text">2.1 原生管道符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8E%9F%E7%94%9F%E7%AE%A1%E9%81%93%E7%AC%A6-VS-magrittr"><span class="toc-text">2.2 原生管道符 VS. magrittr</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0%E7%9A%84%E7%AE%80%E5%86%99%E8%AF%AD%E6%B3%95"><span class="toc-text">2.3 匿名函数的简写语法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%B0%8F%E6%94%B9%E5%8A%A8"><span class="toc-text">3 小改动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BB%84%E5%90%88%E5%9B%A0%E5%AD%90%E5%8F%98%E9%87%8F"><span class="toc-text">3.1 组合因子变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BD%BF%E7%94%A8%E5%85%AC%E5%BC%8F%E8%AF%AD%E6%B3%95%E6%8B%86%E5%88%86%E6%95%B0%E6%8D%AE%E6%A1%86"><span class="toc-text">3.2 使用公式语法拆分数据框</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8-hotkeys-%E8%AE%BE%E7%BD%AE%E5%8E%9F%E7%94%9F%E7%AE%A1%E9%81%93%E7%AC%A6%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="toc-text">4. 使用 hotkeys 设置原生管道符快捷键</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

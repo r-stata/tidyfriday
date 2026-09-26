@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用 Stata 测算各城市虚拟集聚程度 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/90291/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="指标来源与背景">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用 Stata 测算各城市虚拟集聚程度">
+<meta property="og:url" content="https://tidyfriday.cn/posts/90291/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="指标来源与背景">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/90291.png">
+<meta property="article:published_time" content="2026-04-26T19:59:21.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:51.025Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/90291.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用 Stata 测算各城市虚拟集聚程度">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Stata 测算各城市虚拟集聚程度","description":"指标来源与背景","url":"https://tidyfriday.cn/posts/90291/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/90291/"},"image":["https://tidyfriday.cn/og/90291.png"],"datePublished":"2026-04-26T19:59:21.000Z","dateModified":"2026-09-26T14:18:51.025Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"Stata","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Stata 测算各城市虚拟集聚程度","item":"https://tidyfriday.cn/posts/90291/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用 Stata 测算各城市虚拟集聚程度</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用 Stata 测算各城市虚拟集聚程度</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-04-26T19:59:21.000Z" itemprop="datePublished">2026-04-26</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1681 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <h2 id="指标来源与背景" class="article-heading"><a href="#指标来源与背景" class="headerlink" title="指标来源与背景"></a>指标来源与背景<a class="article-anchor" href="#指标来源与背景" aria-label="本节链接" title="复制本节链接"></a></h2><span id="more"></span>
+
+<p>虚拟集聚度（Virtual Agglomeration Index，简称 Vag）是一种用于衡量城市间经济关联程度的指标。该指标由宋林等学者提出（参见《虚拟集聚与城市经济韧性》），其核心思想是：一个城市的经济发展不仅取决于自身条件，还受到周边城市的辐射影响。</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/19/02b79j1bdbe1b168g4/common/content/1777204383811_451163.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h2 id="数据来源" class="article-heading"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源<a class="article-anchor" href="#数据来源" aria-label="本节链接" title="复制本节链接"></a></h2><p>本教程使用的数据包括：</p>
+<ol>
+<li>新增企业数据：1949～2023年各省市区县、行业新增企业数量统计.dta</li>
+<li>注销企业数据：1970～2023年各年各省市区县、各行业注销公司数量面板数据.dta</li>
+<li>行政区划数据：2021行政区划/市.shp（用于计算城市质心坐标）</li>
+</ol>
+<p>数据处理基于工商注册信息，由 RStata 数据中心整理。</p>
+<h2 id="Stata-计算代码" class="article-heading"><a href="#Stata-计算代码" class="headerlink" title="Stata 计算代码"></a>Stata 计算代码<a class="article-anchor" href="#Stata-计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="环境设置与数据读取" class="article-heading"><a href="#环境设置与数据读取" class="headerlink" title="环境设置与数据读取"></a>环境设置与数据读取<a class="article-anchor" href="#环境设置与数据读取" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 设置工作目录</span><br><span class="line">cd &quot;/Users/ac/Desktop/使用 Stata 测算各城市虚拟集聚程度&quot;</span><br><span class="line"></span><br><span class="line">clear</span><br><span class="line">set more off</span><br><span class="line">set maxvar 5000</span><br></pre></td></tr></table></figure>
+
+<h3 id="第一步：计算城市质心坐标" class="article-heading"><a href="#第一步：计算城市质心坐标" class="headerlink" title="第一步：计算城市质心坐标"></a>第一步：计算城市质心坐标<a class="article-anchor" href="#第一步：计算城市质心坐标" aria-label="本节链接" title="复制本节链接"></a></h3><p>使用 <code>shp2dta</code> 命令的 <code>gencentroids()</code> 选项直接提取城市的几何质心坐标：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 读取市级行政区划 shp 文件并转换为 Stata 格式</span></span><br><span class="line">shp2dta using <span class="string">&quot;2021行政区划/市.shp&quot;</span>, <span class="comment">///</span></span><br><span class="line">    data(<span class="string">&quot;市_data.dta&quot;</span>) <span class="comment">///</span></span><br><span class="line">    coor(<span class="string">&quot;市_coord.dta&quot;</span>) <span class="comment">///</span></span><br><span class="line">    genid(cityid) <span class="comment">///</span></span><br><span class="line">    gencentroids(city) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 提取城市质心坐标</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;市_data.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> 市 cityname</span><br><span class="line"><span class="keyword">keep</span> cityid cityname x_city y_city</span><br><span class="line"><span class="keyword">destring</span> cityid, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;city_centroids.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>说明：</strong></p>
+<ul>
+<li>gencentroids(city) 会生成 x_city 和 y_city 变量，表示城市质心的经纬度坐标</li>
+<li>genid(cityid) 为每个城市生成唯一 ID</li>
+</ul>
+<h3 id="第二步：处理新增企业数据" class="article-heading"><a href="#第二步：处理新增企业数据" class="headerlink" title="第二步：处理新增企业数据"></a>第二步：处理新增企业数据<a class="article-anchor" href="#第二步：处理新增企业数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 读取新增企业数据</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;1949～2023年各省市区县、行业新增企业数量统计.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(成立年份)</span><br><span class="line"><span class="keyword">rename</span> 新增注册企业数量 newcount</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按年份-省份-城市-行业汇总</span></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">sum</span>) newcount, <span class="keyword">by</span>(成立年份 省份 城市 行业门类)</span><br><span class="line"></span><br><span class="line"><span class="keyword">rename</span> 成立年份 year</span><br><span class="line"><span class="keyword">rename</span> 城市 city</span><br><span class="line"><span class="keyword">rename</span> 省份 province</span><br><span class="line"><span class="keyword">rename</span> 行业门类 industry</span><br><span class="line"><span class="keyword">rename</span> newcount cum_new</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算累计新增企业数</span></span><br><span class="line"><span class="keyword">sort</span> province city industry year</span><br><span class="line"><span class="keyword">by</span> province city industry: <span class="keyword">gen</span> cumsum_new = <span class="built_in">sum</span>(cum_new)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;new_summary.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第三步：处理注销企业数据" class="article-heading"><a href="#第三步：处理注销企业数据" class="headerlink" title="第三步：处理注销企业数据"></a>第三步：处理注销企业数据<a class="article-anchor" href="#第三步：处理注销企业数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<h3 id="第四步：合并计算存续企业数" class="article-heading"><a href="#第四步：合并计算存续企业数" class="headerlink" title="第四步：合并计算存续企业数"></a>第四步：合并计算存续企业数<a class="article-anchor" href="#第四步：合并计算存续企业数" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 合并新增和注销数据</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;new_summary.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">merge</span> 1:1 province city industry year using <span class="string">&quot;quit_summary.dta&quot;</span>, nogenerate</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> cumsum_new = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(cumsum_new)</span><br><span class="line"><span class="keyword">replace</span> cumsum_quit = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(cumsum_quit)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算存续企业数（累计新增 - 累计注销，下限为0）</span></span><br><span class="line"><span class="keyword">gen</span> surviving = cumsum_new - cumsum_quit</span><br><span class="line"><span class="keyword">replace</span> surviving = 0 <span class="keyword">if</span> surviving &lt; 0</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;firms_merged.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第五步：汇总-IT-行业数据" class="article-heading"><a href="#第五步：汇总-IT-行业数据" class="headerlink" title="第五步：汇总 IT 行业数据"></a>第五步：汇总 IT 行业数据<a class="article-anchor" href="#第五步：汇总-IT-行业数据" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">local</span> it_sector <span class="string">&quot;信息传输、软件和信息技术服务业&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;firms_merged.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">*- IT企业数 = IT行业存续企业数（非二元指示变量）</span></span><br><span class="line"><span class="keyword">gen</span> IT_firms = (industry == <span class="string">&quot;`it_sector&#x27;&quot;</span>) * surviving</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 按年份-城市汇总</span></span><br><span class="line"><span class="keyword">collapse</span> (<span class="keyword">sum</span>) total_surv = surviving (<span class="keyword">sum</span>) IT_count = IT_firms, <span class="comment">///</span></span><br><span class="line">    <span class="keyword">by</span>(year city province)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;city_year_data.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第六步：计算区位熵" class="article-heading"><a href="#第六步：计算区位熵" class="headerlink" title="第六步：计算区位熵"></a>第六步：计算区位熵<a class="article-anchor" href="#第六步：计算区位熵" aria-label="本节链接" title="复制本节链接"></a></h3><p>此处代码需下载讲义材料查看～</p>
+<h3 id="第七步：匹配城市坐标" class="article-heading"><a href="#第七步：匹配城市坐标" class="headerlink" title="第七步：匹配城市坐标"></a>第七步：匹配城市坐标<a class="article-anchor" href="#第七步：匹配城市坐标" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;city_year_lq.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> city cityname</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 与城市质心坐标匹配</span></span><br><span class="line"><span class="keyword">merge</span> <span class="keyword">m</span>:1 cityname using <span class="string">&quot;city_centroids.dta&quot;</span>, <span class="comment">///</span></span><br><span class="line">    keepusing(x_city y_city) <span class="keyword">update</span> nogenerate</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(x_city)</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> year &gt;= 9999</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;city_year_lq_coord.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第八步：构建距离矩阵" class="article-heading"><a href="#第八步：构建距离矩阵" class="headerlink" title="第八步：构建距离矩阵"></a>第八步：构建距离矩阵<a class="article-anchor" href="#第八步：构建距离矩阵" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 加载城市质心坐标</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;city_centroids.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">rename</span> cityid cityid_i</span><br><span class="line"><span class="keyword">rename</span> cityname cityname_i</span><br><span class="line"><span class="keyword">rename</span> x_city lon_i</span><br><span class="line"><span class="keyword">rename</span> y_city lat_i</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用 cross 命令生成所有城市对的笛卡尔积</span></span><br><span class="line"><span class="keyword">cross</span> using <span class="string">&quot;city_centroids.dta&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 重命名 using 变量</span></span><br><span class="line"><span class="keyword">rename</span> cityid cityid_j</span><br><span class="line"><span class="keyword">rename</span> cityname cityname_j</span><br><span class="line"><span class="keyword">rename</span> x_city lon_j</span><br><span class="line"><span class="keyword">rename</span> y_city lat_j</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用 geodist 命令计算球面距离</span></span><br><span class="line">geodist lat_i lon_i lat_j lon_j, sphere <span class="keyword">gen</span>(dist_km)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 距离倒数作为权重（自距离设为1）</span></span><br><span class="line"><span class="keyword">gen</span> weight = 1 / dist_km</span><br><span class="line"><span class="keyword">replace</span> weight = 1 <span class="keyword">if</span> dist_km == 0 | <span class="built_in">missing</span>(dist_km)</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;distance_matrix.dta&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="第九步：计算虚拟集聚度" class="article-heading"><a href="#第九步：计算虚拟集聚度" class="headerlink" title="第九步：计算虚拟集聚度"></a>第九步：计算虚拟集聚度<a class="article-anchor" href="#第九步：计算虚拟集聚度" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;city_year_lq_coord.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">levelsof</span> year, <span class="keyword">local</span>(years)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 此处代码需下载讲义材料查看～</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 整理输出格式</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;vag_final.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(city) | <span class="built_in">missing</span>(year)</span><br><span class="line"><span class="keyword">destring</span> year national_IT national_total, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">format</span> year national_IT national_total total_surv IT_count %12.0g</span><br><span class="line"></span><br><span class="line"><span class="keyword">rename</span> year 年份</span><br><span class="line"><span class="keyword">rename</span> city 城市</span><br><span class="line"><span class="keyword">rename</span> total_surv 总企业数</span><br><span class="line"><span class="keyword">rename</span> IT_count IT企业数</span><br><span class="line"><span class="keyword">rename</span> national_IT 全国IT</span><br><span class="line"><span class="keyword">rename</span> national_total 全国总</span><br><span class="line"><span class="keyword">rename</span> nat_IT_ratio 全国IT集聚度</span><br><span class="line"><span class="keyword">rename</span> city_IT_ratio 城市IT集聚度</span><br><span class="line"><span class="keyword">rename</span> LQ 区位熵</span><br><span class="line"><span class="keyword">rename</span> Vag 虚拟集聚度</span><br><span class="line"></span><br><span class="line"><span class="keyword">gsort</span> 年份 城市</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;vag_results.dta&quot;</span>, <span class="keyword">replace</span></span><br><span class="line">export delimited using <span class="string">&quot;vag_results.csv&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Stata-绘图代码" class="article-heading"><a href="#Stata-绘图代码" class="headerlink" title="Stata 绘图代码"></a>Stata 绘图代码<a class="article-anchor" href="#Stata-绘图代码" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="环境设置与配色" class="article-heading"><a href="#环境设置与配色" class="headerlink" title="环境设置与配色"></a>环境设置与配色<a class="article-anchor" href="#环境设置与配色" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear all</span><br><span class="line">set more off</span><br><span class="line"></span><br><span class="line">cd &quot;/Users/ac/Desktop/使用 Stata 测算各城市虚拟集聚程度&quot;</span><br><span class="line">set scheme lightrstata</span><br><span class="line"></span><br><span class="line">cap mkdir &quot;picdir&quot;</span><br><span class="line"></span><br><span class="line">local caption_src = `&quot;数据来源：RStata 数据中心，根据工商注册信息计算得到&quot;&#x27;</span><br><span class="line">local subti_txt &quot;数据处理 &amp; 绘制：微信公众号 RStata&quot;</span><br><span class="line">local mapdata_nhb &quot;`c(pwd)&#x27;/map-data&quot;</span><br><span class="line">local mapdata &quot;`c(pwd)&#x27;/map-data&quot;</span><br><span class="line"></span><br><span class="line">*- 配色方案</span><br><span class="line">local c1 = &quot;254 212 57&quot;</span><br><span class="line">local c2 = &quot;112 154 225&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="图1：各城市虚拟集聚度历年趋势" class="article-heading"><a href="#图1：各城市虚拟集聚度历年趋势" class="headerlink" title="图1：各城市虚拟集聚度历年趋势"></a>图1：各城市虚拟集聚度历年趋势<a class="article-anchor" href="#图1：各城市虚拟集聚度历年趋势" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;vag_results.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 &gt;= 1990</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 标记直辖市</span></span><br><span class="line"><span class="keyword">gen</span> is_muni = 0</span><br><span class="line"><span class="keyword">replace</span> is_muni = 1 <span class="keyword">if</span> <span class="built_in">inlist</span>(城市, <span class="string">&quot;北京市&quot;</span>, <span class="string">&quot;上海市&quot;</span>, <span class="string">&quot;天津市&quot;</span>, <span class="string">&quot;重庆市&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 获取所有城市列表</span></span><br><span class="line"><span class="keyword">levelsof</span> 城市, <span class="keyword">local</span>(all_cities) sep(<span class="string">&quot; &quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 构建绘图命令（其他城市用细灰线）</span></span><br><span class="line"><span class="keyword">local</span> cmd <span class="string">&quot;tw&quot;</span></span><br><span class="line"><span class="keyword">foreach</span> city <span class="keyword">in</span> <span class="symbol">`all_cities&#x27;</span> &#123;</span><br><span class="line">    <span class="keyword">local</span> cmd <span class="string">`&quot;`cmd&#x27; (line 虚拟集聚度 年份 if 城市 == `&quot;`city&#x27;&quot;&#x27;</span>, <span class="keyword">sort</span> lc(gs12) lw(*0.2))&quot;&#x27;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 高亮四个直辖市</span></span><br><span class="line">此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;picdir/01_各城市虚拟集聚度历年趋势.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">#| fig-cap: &quot;各城市虚拟集聚度历年趋势（四个直辖市高亮显示）&quot;</span></span><br><span class="line">knitr<span class="operator">::</span>include_graphics<span class="punctuation">(</span><span class="string">&quot;picdir/01_各城市虚拟集聚度历年趋势.png&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/19/02b79j1bdbe1b168g4/common/content/1777204394278_371382.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="图2：2023年城市分布地图" class="article-heading"><a href="#图2：2023年城市分布地图" class="headerlink" title="图2：2023年城市分布地图"></a>图2：2023年城市分布地图<a class="article-anchor" href="#图2：2023年城市分布地图" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;vag_results.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 年份 == 2023</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 创建城市匹配标签（去掉&quot;市&quot;后缀）</span></span><br><span class="line"><span class="keyword">gen</span> city_match = 城市</span><br><span class="line"><span class="keyword">replace</span> city_match = <span class="string">&quot;北京&quot;</span> <span class="keyword">if</span> 城市 == <span class="string">&quot;北京市&quot;</span></span><br><span class="line"><span class="keyword">replace</span> city_match = <span class="string">&quot;上海&quot;</span> <span class="keyword">if</span> 城市 == <span class="string">&quot;上海市&quot;</span></span><br><span class="line"><span class="keyword">replace</span> city_match = <span class="string">&quot;天津&quot;</span> <span class="keyword">if</span> 城市 == <span class="string">&quot;天津市&quot;</span></span><br><span class="line"><span class="keyword">replace</span> city_match = <span class="string">&quot;重庆&quot;</span> <span class="keyword">if</span> 城市 == <span class="string">&quot;重庆市&quot;</span></span><br><span class="line"><span class="keyword">replace</span> city_match = <span class="built_in">subinstr</span>(city_match, <span class="string">&quot;市&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">save</span> /tmp/city_data_2023.dta, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 加载地图数据并匹配</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;`mapdata&#x27;/chinacity2021mini_db.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> city_match = <span class="built_in">subinstr</span>(市, <span class="string">&quot;市&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">merge</span> 1:<span class="keyword">m</span> city_match using /tmp/city_data_2023.dta, <span class="comment">///</span></span><br><span class="line">    keepusing(虚拟集聚度) <span class="keyword">keep</span>(master match) nogenerate</span><br><span class="line"></span><br><span class="line"><span class="keyword">replace</span> 虚拟集聚度 = -1000 <span class="keyword">if</span> <span class="built_in">missing</span>(虚拟集聚度)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 计算分位数断点</span></span><br><span class="line">_pctile 虚拟集聚度 <span class="keyword">if</span> 虚拟集聚度 != -1000, <span class="keyword">n</span>(8)</span><br><span class="line"><span class="keyword">local</span> r1 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r1)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r2 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r2)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r3 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r3)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r4 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r4)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r5 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r5)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r6 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r6)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">local</span> r7 = <span class="built_in">string</span>(`<span class="built_in">r</span>(r7)&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"><span class="keyword">sum</span> 虚拟集聚度 <span class="keyword">if</span> 虚拟集聚度 != -1000</span><br><span class="line"><span class="keyword">local</span> maxv = <span class="built_in">string</span>(`=<span class="built_in">r</span>(max)+0.1&#x27;, <span class="string">&quot;%9.3f&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 绘制带邻国的城市地图</span></span><br><span class="line">此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;picdir/02_2023年各城市虚拟集聚度分布地图_带邻国.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment">#| fig-cap: &quot;2023年各城市虚拟集聚度分布地图&quot;</span></span><br><span class="line">knitr<span class="operator">::</span>include_graphics<span class="punctuation">(</span><span class="string">&quot;picdir/02_2023年各城市虚拟集聚度分布地图_带邻国.png&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/26/19/02b79j1bdbe1b168g4/common/content/1777204395626_992763.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/0c2680fa03ee42f481310be0a0ed7462">名师讲堂｜使用 Stata 测算各城市虚拟集聚程度</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:51.025Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/87098/" title="名师讲堂｜使用 R 语言测算各城市虚拟集聚程度"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/94511/" title="名师讲堂｜使用 Python 测算上市公司专利技术集中度、搜索广度、搜索深度及知识整合能力"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/21098/">名师讲堂｜使用 Stata 测算各区县鸟类丰度指数</a><span class="tf-related-meta">2026-08-31 · 约 13 分钟</span></li><li><a href="/posts/68408/">名师讲堂｜使用 Stata 筛选绿色进出口、统计各企业及各城市进出口及绿色进出口额与占比数据</a><span class="tf-related-meta">2026-08-07 · 约 8 分钟</span></li><li><a href="/posts/27665/">名师讲堂｜使用 Stata 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-04 · 约 8 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-text">指标来源与背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">数据来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stata-%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">Stata 计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E8%AE%BE%E7%BD%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">环境设置与数据读取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%9F%8E%E5%B8%82%E8%B4%A8%E5%BF%83%E5%9D%90%E6%A0%87"><span class="toc-text">第一步：计算城市质心坐标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E5%A4%84%E7%90%86%E6%96%B0%E5%A2%9E%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE"><span class="toc-text">第二步：处理新增企业数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E5%A4%84%E7%90%86%E6%B3%A8%E9%94%80%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE"><span class="toc-text">第三步：处理注销企业数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E5%90%88%E5%B9%B6%E8%AE%A1%E7%AE%97%E5%AD%98%E7%BB%AD%E4%BC%81%E4%B8%9A%E6%95%B0"><span class="toc-text">第四步：合并计算存续企业数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E6%B1%87%E6%80%BB-IT-%E8%A1%8C%E4%B8%9A%E6%95%B0%E6%8D%AE"><span class="toc-text">第五步：汇总 IT 行业数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%8C%BA%E4%BD%8D%E7%86%B5"><span class="toc-text">第六步：计算区位熵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E6%AD%A5%EF%BC%9A%E5%8C%B9%E9%85%8D%E5%9F%8E%E5%B8%82%E5%9D%90%E6%A0%87"><span class="toc-text">第七步：匹配城市坐标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%85%AB%E6%AD%A5%EF%BC%9A%E6%9E%84%E5%BB%BA%E8%B7%9D%E7%A6%BB%E7%9F%A9%E9%98%B5"><span class="toc-text">第八步：构建距离矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B9%9D%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E8%99%9A%E6%8B%9F%E9%9B%86%E8%81%9A%E5%BA%A6"><span class="toc-text">第九步：计算虚拟集聚度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stata-%E7%BB%98%E5%9B%BE%E4%BB%A3%E7%A0%81"><span class="toc-text">Stata 绘图代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E8%AE%BE%E7%BD%AE%E4%B8%8E%E9%85%8D%E8%89%B2"><span class="toc-text">环境设置与配色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE1%EF%BC%9A%E5%90%84%E5%9F%8E%E5%B8%82%E8%99%9A%E6%8B%9F%E9%9B%86%E8%81%9A%E5%BA%A6%E5%8E%86%E5%B9%B4%E8%B6%8B%E5%8A%BF"><span class="toc-text">图1：各城市虚拟集聚度历年趋势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BE2%EF%BC%9A2023%E5%B9%B4%E5%9F%8E%E5%B8%82%E5%88%86%E5%B8%83%E5%9C%B0%E5%9B%BE"><span class="toc-text">图2：2023年城市分布地图</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

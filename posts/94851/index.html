@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量） | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/94851/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="对这份数据感兴趣的小伙伴建议认真阅读下面的介绍～ 这样才能更好的使用这份数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）">
+<meta property="og:url" content="https://tidyfriday.cn/posts/94851/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="对这份数据感兴趣的小伙伴建议认真阅读下面的介绍～ 这样才能更好的使用这份数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/94851.png">
+<meta property="article:published_time" content="2021-07-18T12:39:22.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:31.392Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="企业数据">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="数据匹配">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/94851.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）","description":"对这份数据感兴趣的小伙伴建议认真阅读下面的介绍～ 这样才能更好的使用这份数据。","url":"https://tidyfriday.cn/posts/94851/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/94851/"},"image":["https://tidyfriday.cn/og/94851.png"],"datePublished":"2021-07-18T12:39:22.000Z","dateModified":"2026-09-26T14:18:31.392Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"企业数据, 上市公司, 数据匹配","articleSection":"数据资料"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"数据资料","item":"https://tidyfriday.cn/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99"},{"@type":"ListItem","position":3,"name":"2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）","item":"https://tidyfriday.cn/posts/94851/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner article-inner-no-toc">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2021-07-18T12:39:22.000Z" itemprop="datePublished">2021-07-18</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>2107 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E6%95%B0%E6%8D%AE%E8%B5%84%E6%96%99">数据资料</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE">企业数据</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=%E6%95%B0%E6%8D%AE%E5%8C%B9%E9%85%8D">数据匹配</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <blockquote>
+<p>对这份数据感兴趣的小伙伴建议认真阅读下面的介绍～ 这样才能更好的使用这份数据。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>之前给大家分享过一份工企数据库和海关数据库的匹配结果数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/JtGcT0jfZSv5AXBZRxqnHg">2000～2014 年工企和海关匹配数据</a> 这份数据的匹配包含下面 5 个步骤：</p>
+<ol>
+<li>清洗工企数据库里面的企业名称、邮政编码和固定电话变量（等下要用这三个变量进行匹配）；</li>
+<li>清洗海关数据库里面的企业名称、邮编和电话变量；</li>
+<li>在工企数据库里面生成一个 ID 变量用以在匹配过程中识别每个观测值，然后只保留企业名称、邮政编码和固定电话、年份、ID 几个变量（这样可以避免因为数据过大导致匹配过程过慢）；</li>
+<li>对海关数据库进行汇总（例如只需要每个公司每年的进出口额的话）；</li>
+<li>匹配海关和工企数据然后再根据 ID 变量把工企数据库的其它变量也合并进来。</li>
+</ol>
+<p>关于这五个步骤的代码实现，可以学习我们之前推出的 Stata 课程：「如何匹配海关和工企数据？」：</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2021/07/18/12/02b79j1bdbe1b168g4/common/content/1626583109035_222517.jpg" alt loading="lazy" decoding="async">×</p>
+<p>上次分享的数据包含下面两个版本：</p>
+<ol>
+<li>先把海关数据汇总成每个公司的进出口额数据，然后和工企数据匹配的结果数据（下面称为汇总版本，其观测值是一个个的公司）；</li>
+<li>直接把海关数据和工企数据进行匹配（下面称为完整版本，其观测值是一条条的商品）。</li>
+</ol>
+<p>后来又有小伙伴提出能不能把工企、海关、专利、污染这些数据库都匹配到一起？而我们之前已经推出了 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/aKBaCjLh4IFzqzcBjmmx3A">工企+专利</a>、<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/JtGcT0jfZSv5AXBZRxqnHg">工企+海关</a>、<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/dxOiAzsg2dbjWwhrxRzGaw">工企+污染</a>，以及<a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/jDtnOeV0LjRooImsgIpEtQ">工企+地理位置</a>的，那么如何建立一套标准，让这些匹配结果数据再进行匹配呢？于是我们想到可以给每个数据生成一个 ID 变量用以标志观测值：</p>
+<ol>
+<li>工企数据里面我们生成了一个 gqid 变量；</li>
+<li>海关数据里面我们生成了一个 hgid 变量；</li>
+<li>污染数据里面我们生成了一个 wrid 变量；</li>
+<li>专利数据里面也可以生成一个 zlid 变量（暂不提供）。</li>
+</ol>
+<p>那么工企和海关匹配的结果里面就会有 gqid 和 hgid 变量；工企和污染匹配的结果里面就会有 gqid 和 wrid 变量。于是我们直接使用 gqid 变量就可以把这两份匹配结果合并起来。是不是特方便！</p>
+<p>基于这种想法，我们已经给工企、污染、海关三份数据都生成好了 ID 变量（从 RStata 平台上可以找到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/）">https://rstata.duanshu.com/）</a></p>
+<p>上次分享的 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/dxOiAzsg2dbjWwhrxRzGaw">工企+污染</a> 的匹配结果数据，大家可以发现里面就有 gqid 变量和 wrid 变量。毫无疑问此次更新的工企和海关的匹配数据里面会有 gqid 变量和 hgid 变量（当然是完整版本的才有，汇总版本的只有 gqid 变量）。</p>
+<blockquote>
+<p>感兴趣的小伙伴可以自行尝试把 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://mp.weixin.qq.com/s/dxOiAzsg2dbjWwhrxRzGaw">工企+污染</a> 和 本文所介绍的 工企+海关 数据直接使用 gqid 变量进行匹配得到 工企 + 海关 + 污染的匹配数据。</p>
+</blockquote>
+<p>另外此次分享的数据还多了一份：ID 对照表。提供这份数据的原因在于很多小伙伴的电脑内存不大，没法读取完整版本的结果（很多年份的完整版本有 20多 GB），另外也提供了一份分拆的海关数据（很多年份的完整版本有 20多 GB，这样把每个年份的也都拆分成小文件更方便大家操作）。</p>
+<p>ID 对照表的内容大致如下：</p>
+<table>
+<thead>
+<tr>
+<th>ID 对照表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%889.45.47_20210718094550.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>这份数据仅仅包含了 gqid 和 hgid 变量，这就意味着你可以先分别从工企、海关数据库里面提取你需要的变量（这个结果数据是不大的），然后再把工企、海关数据的子样本分别和这份 ID 对照表进行匹配就可以得到工企海关的匹配结果了，由于都是使用 id 变量匹配，所以几乎不存在“该匹配上却没匹配上”的问题。</p>
+<p>另外汇总版本的数据形式如下（包含出口总额和进口总额变量，单位均为美元）：</p>
+<table>
+<thead>
+<tr>
+<th>汇总版本的数据形式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%889.48.38_20210718094840.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>完整版本的数据形式如下（包含工企和海关的所有变量以及 gqid 和 hgid 变量）：</p>
+<table>
+<thead>
+<tr>
+<th>完整版本的数据形式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%889.50.22_20210718095024.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>大家从平台上还可以找到工企数据和海关数据，分别是下面这样的：</p>
+<table>
+<thead>
+<tr>
+<th>2006 年海关数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%889.53.39_20210718095342.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>2006 年工企数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%889.55.11_20210718095515.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>最后我们再来看一下这个数据的匹配结果：</p>
+<p>三个版本（汇总版，完整版，ID对照表）的结果数据使用的匹配方法是一样的，但是由于细微的差异，结果也有细微的差异，下表展示的是汇总版的匹配效果：<code>工企数据库中的工企数量</code> 列展示的是匹配使用的工企数据库的每年样本数；<code>汇总版本涉及的工企数量</code> 列展示的是汇总版本匹配结果中涉及的工企数量，最后一列是<code>匹配率</code>（汇总版本涉及的工企数量 / 工企数据库中的工企数量）：</p>
+<blockquote>
+<p>ID 对照表实际上是完整版仅仅保留 gqid 变量、hgid 变量和年份。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>年份</th>
+<th>工企数据库中的工企数量</th>
+<th>汇总版本涉及的工企数量</th>
+<th>匹配率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2000</td>
+<td>162872</td>
+<td>22747</td>
+<td>13.97%</td>
+</tr>
+<tr>
+<td>2001</td>
+<td>171254</td>
+<td>26446</td>
+<td>15.44%</td>
+</tr>
+<tr>
+<td>2002</td>
+<td>181542</td>
+<td>29939</td>
+<td>16.49%</td>
+</tr>
+<tr>
+<td>2003</td>
+<td>196206</td>
+<td>34093</td>
+<td>17.38%</td>
+</tr>
+<tr>
+<td>2004</td>
+<td>279011</td>
+<td>52969</td>
+<td>18.98%</td>
+</tr>
+<tr>
+<td>2005</td>
+<td>270023</td>
+<td>53167</td>
+<td>19.69%</td>
+</tr>
+<tr>
+<td>2006</td>
+<td>301930</td>
+<td>61461</td>
+<td>20.36%</td>
+</tr>
+<tr>
+<td>2007</td>
+<td>336732</td>
+<td>89007</td>
+<td>26.43%</td>
+</tr>
+<tr>
+<td>2008</td>
+<td>412212</td>
+<td>73368</td>
+<td>17.8%</td>
+</tr>
+<tr>
+<td>2009</td>
+<td>366130</td>
+<td>64445</td>
+<td>17.6%</td>
+</tr>
+<tr>
+<td>2010</td>
+<td>442539</td>
+<td>77424</td>
+<td>17.5%</td>
+</tr>
+<tr>
+<td>2011</td>
+<td>302593</td>
+<td>59657</td>
+<td>19.72%</td>
+</tr>
+<tr>
+<td>2012</td>
+<td>324604</td>
+<td>79688</td>
+<td>24.55%</td>
+</tr>
+<tr>
+<td>2013</td>
+<td>344875</td>
+<td>83723</td>
+<td>24.28%</td>
+</tr>
+<tr>
+<td>2014</td>
+<td>309138</td>
+<td>60055</td>
+<td>19.43%</td>
+</tr>
+</tbody></table>
+<p>下图更直观些：</p>
+<table>
+<thead>
+<tr>
+<th>匹配效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210718100112.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>另外由于汇总版本的数据量较小，所以我们已经帮大家整理成了面板数据（除了匹配操作，没有对工企数据库的其它变量进行处理，大家需要根据自己的需要处理）。由于 2014 年的工企数据和 1998～2013 年的来源不同（变量命名也不是很相同），所以就没有合并到一起，大家可以根据需要自行选择是否使用以及如何使用 2014 年的。</p>
+<p>其中 2000～2013 年的面板数据直接使用 xtset group 年份 即可设置面板数据。</p>
+<p>这份数据的合并代码如下：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="string">&quot;2000年工企海关匹配结果数据（汇总版）.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> i = 2001/2013 &#123;</span><br><span class="line">	<span class="keyword">append</span> using <span class="string">&quot;`i&#x27;年工企海关匹配结果数据（汇总版）.dta&quot;</span>, force</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">replace</span> 组织机构代码 = <span class="built_in">strlower</span>(组织机构代码)</span><br><span class="line"><span class="keyword">egen</span> group = <span class="built_in">group</span>(企业匹配唯一标识码)</span><br><span class="line"><span class="keyword">order</span> group</span><br><span class="line"><span class="keyword">xtset</span> group 年份</span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;2000~2013年工企海关匹配结果面板数据（汇总版）&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
+
+<p>为了更好的确认匹配数据的可靠性，我们计算了每年平均各个公司的进口额和出口额，如下图所示：</p>
+<table>
+<thead>
+<tr>
+<th>每年平均各个公司的进口额和出口额</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/image_20210718102647.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>感觉连续性很不错！</p>
+<p>最后为了方便大家自行匹配，我们也提供了一份 Stata 匹配代码：</p>
+<table>
+<thead>
+<tr>
+<th>匹配代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://mdniceczx.oss-cn-beijing.aliyuncs.com/%E6%88%AA%E5%B1%8F2021-07-18%20%E4%B8%8A%E5%8D%8810.28.31_20210718102833.png" alt loading="lazy" decoding="async"></td>
+</tr>
+</tbody></table>
+<p>代码较乱，仅供感兴趣的小伙伴参考（使用的工企和海关数据都可以从平台上找到）。</p>
+<p>最后本次提供的数据和代码包含下面这些：</p>
+<ol>
+<li>2000～2014 年工企海关匹配结果（完整版）；</li>
+<li>2000～2014 年工企海关匹配结果（汇总版）；</li>
+<li>2000～2014 年工企海关匹配 ID 对照表；</li>
+<li>2000~2013年工企海关匹配结果面板数据（汇总版）.dta；</li>
+<li>各年匹配 do 文档；</li>
+<li>海关编码国别（地区）代码表.xlsx</li>
+<li>工企、海关数据（含 id 变量）；</li>
+<li>海关数据分拆版（把每个数据文件拆分成 不到 2GB 的小文件）。</li>
+</ol>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4a1e6a322d40463c99564fe2a4c0ba3f">2000～2014 年工企海关匹配结果数据（更新版，含 gqid 和 hgid 变量）</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:31.392Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/49995/" title="1998～2014 年工企与企业污染数据库匹配结果"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/17184/" title="如何使用 R 语言绘制相关系数热力图？交互式的更好？"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/47304/">2007～2020年上市公司碳排放数据（根据与税调数据匹配结果估算，分省份电网排放因子）</a><span class="tf-related-meta">2026-08-26 · 约 8 分钟</span></li><li><a href="/posts/32520/">2007～2014年工企碳排放面板数据（根据与税调数据匹配结果估算，分省份电网排放因子）</a><span class="tf-related-meta">2026-08-26 · 约 7 分钟</span></li><li><a href="/posts/35051/">2007～2020 年上市公司碳排放数据（根据税调匹配结果估算）</a><span class="tf-related-meta">2026-05-09 · 约 6 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

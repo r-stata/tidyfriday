@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化 | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/71404/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="今天给大家分享如何使用 Python 测算上市公司技术专业化与技术多样化程度。该方法参考自王慧扬等《知识搜索与科技领军企业关键核心技术突破》，通过变异系数和Shannon 熵指数来分别衡量企业的技术专业化与多样化水平。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化">
+<meta property="og:url" content="https://tidyfriday.cn/posts/71404/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="今天给大家分享如何使用 Python 测算上市公司技术专业化与技术多样化程度。该方法参考自王慧扬等《知识搜索与科技领军企业关键核心技术突破》，通过变异系数和Shannon 熵指数来分别衡量企业的技术专业化与多样化水平。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/71404.png">
+<meta property="article:published_time" content="2026-05-25T19:54:31.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:48.872Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="区域经济">
+<meta property="article:tag" content="上市公司">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/71404.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"名师讲堂｜使用 Python 测算上市公司技术专业化与技术多样化","description":"今天给大家分享如何使用 Python 测算上市公司技术专业化与技术多样化程度。该方法参考自王慧扬等《知识搜索与科技领军企业关键核心技术突破》，通过变异系数和Shannon 熵指数来分别衡量企业的技术专业化与多样化水平。","url":"https://tidyfriday.cn/posts/71404/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/71404/"},"image":["https://tidyfriday.cn/og/71404.png"],"datePublished":"2026-05-25T19:54:31.000Z","dateModified":"2026-09-26T14:18:48.872Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"区域经济, 上市公司, Python","articleSection":"名师讲堂"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"名师讲堂","item":"https://tidyfriday.cn/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82"},{"@type":"ListItem","position":3,"name":"名师讲堂｜使用 Python 测算上市公司技术专业化与技术多样化","item":"https://tidyfriday.cn/posts/71404/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2026-05-25T19:54:31.000Z" itemprop="datePublished">2026-05-25</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1787 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 6 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E5%90%8D%E5%B8%88%E8%AE%B2%E5%A0%82">名师讲堂</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8C%BA%E5%9F%9F%E7%BB%8F%E6%B5%8E">区域经济</a><a href="/tags/#tag=%E4%B8%8A%E5%B8%82%E5%85%AC%E5%8F%B8">上市公司</a><a href="/tags/#tag=Python">Python</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>今天给大家分享如何使用 Python 测算上市公司技术专业化与技术多样化程度。该方法参考自王慧扬等《知识搜索与科技领军企业关键核心技术突破》，通过<strong>变异系数</strong>和<strong>Shannon 熵指数</strong>来分别衡量企业的技术专业化与多样化水平。</p>
+<span id="more"></span>
+
+<p>附件中提供了该参考文献的 PDF 文件，感兴趣的小伙伴可以阅读原文。</p>
+<h2 id="指标来源与计算原理" class="article-heading"><a href="#指标来源与计算原理" class="headerlink" title="指标来源与计算原理"></a>指标来源与计算原理<a class="article-anchor" href="#指标来源与计算原理" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="技术专业化（TSP）" class="article-heading"><a href="#技术专业化（TSP）" class="headerlink" title="技术专业化（TSP）"></a>技术专业化（TSP）<a class="article-anchor" href="#技术专业化（TSP）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/25/19/02b79j1bdbe1b168g4/common/content/1779709929207_282476.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="技术多样化（TDI）" class="article-heading"><a href="#技术多样化（TDI）" class="headerlink" title="技术多样化（TDI）"></a>技术多样化（TDI）<a class="article-anchor" href="#技术多样化（TDI）" aria-label="本节链接" title="复制本节链接"></a></h3><p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/05/25/19/02b79j1bdbe1b168g4/common/content/1779709927679_557212.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<h3 id="计算步骤概述" class="article-heading"><a href="#计算步骤概述" class="headerlink" title="计算步骤概述"></a>计算步骤概述<a class="article-anchor" href="#计算步骤概述" aria-label="本节链接" title="复制本节链接"></a></h3><p>整个计算过程分为以下几个步骤：</p>
+<ol>
+<li>数据读取：读取 2020 年上市公司与专利数据匹配结果</li>
+<li>专利去重：清洗公开公告号并按股票代码+年份+公告号/申请号去重</li>
+<li>IPC 分类提取：提取 IPC 大类（前 3 位）和小类（前 4 位），移除 IPC 为空的记录</li>
+<li>计算 TSP：基于 IPC 小类专利占比的变异系数</li>
+<li>计算 TDI：基于 IPC 大类专利占比的 Shannon 熵指数</li>
+<li>结果保存：输出 CSV 文件</li>
+</ol>
+<hr>
+<h2 id="使用-reticulate-创建与管理-Python-虚拟环境" class="article-heading"><a href="#使用-reticulate-创建与管理-Python-虚拟环境" class="headerlink" title="使用 reticulate 创建与管理 Python 虚拟环境"></a>使用 reticulate 创建与管理 Python 虚拟环境<a class="article-anchor" href="#使用-reticulate-创建与管理-Python-虚拟环境" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 R 中通过 <strong>reticulate</strong> 包来调用 Python，最好的实践是为项目创建一个专属的 Python 虚拟环境，将所需依赖隔离到独立空间，避免与系统 Python（如 Anaconda）发生版本冲突。</p>
+<blockquote>
+<p><strong>重要说明（避免”已初始化”报错）</strong>：reticulate 在 R 会话中<strong>只能绑定一次 Python</strong>——一旦某个 <code>&#123;python&#125;</code> 代码块运行，Python 解释器就被锁定，之后再调用 <code>use_virtualenv()</code> 会报错：</p>
+<p>ERROR: The requested version of Python cannot be used, as another version has already been initialized.</p>
+<p>因此，<strong>虚拟环境的激活必须在所有 <code>&#123;python&#125;</code> 代码块之前完成</strong>。本文档的解决方案是在 <code>setup</code> chunk 中通过 <code>Sys.setenv(RETICULATE_PYTHON = ...)</code> 提前锁定 Python 路径，这是 reticulate 选取 Python 的最高优先级入口。</p>
+</blockquote>
+<h3 id="安装-reticulate（仅首次）" class="article-heading"><a href="#安装-reticulate（仅首次）" class="headerlink" title="安装 reticulate（仅首次）"></a>安装 reticulate（仅首次）<a class="article-anchor" href="#安装-reticulate（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 设置 CRAN 镜像</span><br><span class="line">options(repos = c(CRAN = &quot;https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot;))</span><br><span class="line"></span><br><span class="line">if (!requireNamespace(&quot;reticulate&quot;, quietly = TRUE)) &#123;</span><br><span class="line">  install.packages(&quot;reticulate&quot;)</span><br><span class="line">  message(&quot;reticulate 安装完成！&quot;)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  message(&quot;reticulate 已安装，版本：&quot;, packageVersion(&quot;reticulate&quot;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="在虚拟环境中安装-Python-包（仅首次）" class="article-heading"><a href="#在虚拟环境中安装-Python-包（仅首次）" class="headerlink" title="在虚拟环境中安装 Python 包（仅首次）"></a>在虚拟环境中安装 Python 包（仅首次）<a class="article-anchor" href="#在虚拟环境中安装-Python-包（仅首次）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查关键包是否已安装，缺失的才安装</span></span><br><span class="line">py_pkgs <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;numpy&quot;</span><span class="punctuation">,</span> <span class="string">&quot;pandas&quot;</span><span class="punctuation">)</span></span><br><span class="line">installed <span class="operator">&lt;-</span> py_list_packages<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">)</span><span class="operator">$</span>package</span><br><span class="line">need_install <span class="operator">&lt;-</span> setdiff<span class="punctuation">(</span>py_pkgs<span class="punctuation">,</span> installed<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="built_in">length</span><span class="punctuation">(</span>need_install<span class="punctuation">)</span> <span class="operator">&gt;</span> <span class="number">0</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">  virtualenv_install<span class="punctuation">(</span><span class="string">&quot;.venv&quot;</span><span class="punctuation">,</span> packages <span class="operator">=</span> need_install<span class="punctuation">)</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;已安装缺失的包：&quot;</span><span class="punctuation">,</span> paste<span class="punctuation">(</span>need_install<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;, &quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="keyword">else</span> <span class="punctuation">&#123;</span></span><br><span class="line">  message<span class="punctuation">(</span><span class="string">&quot;所有 Python 包已就绪，无需安装&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="验证激活状态" class="article-heading"><a href="#验证激活状态" class="headerlink" title="验证激活状态"></a>验证激活状态<a class="article-anchor" href="#验证激活状态" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">py_config()</span><br></pre></td></tr></table></figure>
+
+<h3 id="虚拟环境管理常用命令" class="article-heading"><a href="#虚拟环境管理常用命令" class="headerlink" title="虚拟环境管理常用命令"></a>虚拟环境管理常用命令<a class="article-anchor" href="#虚拟环境管理常用命令" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看所有已创建的虚拟环境</span><br><span class="line">virtualenv_list()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="详细计算代码" class="article-heading"><a href="#详细计算代码" class="headerlink" title="详细计算代码"></a>详细计算代码<a class="article-anchor" href="#详细计算代码" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="数据读取与预处理" class="article-heading"><a href="#数据读取与预处理" class="headerlink" title="数据读取与预处理"></a>数据读取与预处理<a class="article-anchor" href="#数据读取与预处理" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">import pandas as pd</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取 2020 年上市公司与专利数据匹配结果</span></span><br><span class="line"><span class="comment"># dtype=str：全部读为字符串，与 R 的 read_csv(cols(.default = &quot;c&quot;)) 一致</span></span><br><span class="line">df_2020 <span class="operator">=</span> pd.read_csv<span class="punctuation">(</span><span class="string">&quot;2020年上市公司与专利数据匹配结果.csv&quot;</span><span class="punctuation">,</span> dtype<span class="operator">=</span>str<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;原始数据: &#123;len(df_2020)&#125; 行&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="专利去重" class="article-heading"><a href="#专利去重" class="headerlink" title="专利去重"></a>专利去重<a class="article-anchor" href="#专利去重" aria-label="本节链接" title="复制本节链接"></a></h3><p>按照以下步骤进行专利去重（与 R 代码逻辑完全一致）：</p>
+<ol>
+<li>清洗公开公告号（去掉末尾字母）</li>
+<li>按股票代码 + 年份 + 公开公告号去重</li>
+<li>按股票代码 + 年份 + 申请号去重</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Step 1: 清洗公开公告号（去掉末尾字母）</span><br><span class="line"># R: str_remove(公开公告号, &quot;[A-Z]$&quot;)</span><br><span class="line">df_2020[&quot;公开公告号_clean&quot;] = df_2020[&quot;公开公告号&quot;].str.replace(r&quot;[A-Z]$&quot;, &quot;&quot;, regex=True)</span><br><span class="line"></span><br><span class="line"># Step 2: 按 股票代码 + 年份 + 公开公告号_clean 去重</span><br><span class="line"># R: distinct(股票代码, 年份, 公开公告号_clean, .keep_all = TRUE)</span><br><span class="line">df_2020 = df_2020.drop_duplicates(subset=[&quot;股票代码&quot;, &quot;年份&quot;, &quot;公开公告号_clean&quot;], keep=&quot;first&quot;)</span><br><span class="line">print(f&quot;按公告号去重后: &#123;len(df_2020)&#125; 行&quot;)</span><br><span class="line"></span><br><span class="line"># Step 3: 按 股票代码 + 年份 + 申请号 去重</span><br><span class="line"># R: distinct(股票代码, 年份, 申请号, .keep_all = TRUE)</span><br><span class="line">df_2020 = df_2020.drop_duplicates(subset=[&quot;股票代码&quot;, &quot;年份&quot;, &quot;申请号&quot;], keep=&quot;first&quot;)</span><br><span class="line">print(f&quot;按申请号去重后: &#123;len(df_2020)&#125; 行&quot;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>str_remove(x, &quot;[A-Z]$&quot;)</code></td>
+<td><code>str.replace(r&quot;[A-Z]$&quot;, &quot;&quot;, regex=True)</code></td>
+<td>正则替换</td>
+</tr>
+<tr>
+<td><code>distinct(..., .keep_all=TRUE)</code></td>
+<td><code>drop_duplicates(subset=..., keep=&quot;first&quot;)</code></td>
+<td>去重保留首行</td>
+</tr>
+</tbody></table>
+<h3 id="提取-IPC-分类信息" class="article-heading"><a href="#提取-IPC-分类信息" class="headerlink" title="提取 IPC 分类信息"></a>提取 IPC 分类信息<a class="article-anchor" href="#提取-IPC-分类信息" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># IPC分类层级说明：</span><br><span class="line">#   部(Section): A-H（8个大部）</span><br><span class="line">#   大类(Class): 如 G06, H04（前3位，含部字母+2位数字）</span><br><span class="line">#   小类(Subclass): 如 G06F, H04L（前4位，含部字母+3位数字+可能字母）</span><br><span class="line">#</span><br><span class="line"># 文献定义：</span><br><span class="line">#   技术专业化 → 使用IPC小类（前4位，如G06F）</span><br><span class="line">#   技术多样化 → 使用IPC大类（前3位，如G06）</span><br><span class="line"></span><br><span class="line"># 检查 IPC主分类 的空值</span><br><span class="line">na_count = df_2020[&quot;IPC主分类&quot;].isna().sum()</span><br><span class="line">print(f&quot;IPC主分类的NA值数量: &#123;na_count&#125; (占比&#123;na_count/len(df_2020)*100:.2f&#125;%)&quot;)</span><br><span class="line"></span><br><span class="line"># 提取 IPC 分类层级</span><br><span class="line"># R: str_sub(IPC主分类, 1, 3) / str_sub(IPC主分类, 1, 4)</span><br><span class="line">df_2020[&quot;IPC大类&quot;] = df_2020[&quot;IPC主分类&quot;].str[:3]</span><br><span class="line">df_2020[&quot;IPC小类&quot;] = df_2020[&quot;IPC主分类&quot;].str[:4]</span><br><span class="line"></span><br><span class="line"># 移除 IPC 分类为 NA 的观测值</span><br><span class="line"># R: filter(!is.na(IPC大类) &amp; !is.na(IPC小类))</span><br><span class="line">df_2020 = df_2020.dropna(subset=[&quot;IPC大类&quot;, &quot;IPC小类&quot;])</span><br><span class="line">print(f&quot;移除IPC为NA后的数据维度: &#123;len(df_2020)&#125; 行&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="计算技术专业化（TSP）" class="article-heading"><a href="#计算技术专业化（TSP）" class="headerlink" title="计算技术专业化（TSP）"></a>计算技术专业化（TSP）<a class="article-anchor" href="#计算技术专业化（TSP）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 技术专业化：变异系数（Coefficient of Variation）</span><br><span class="line"># TSP = 标准差(各技术小类专利占比) / 均值(各技术小类专利占比)</span><br><span class="line"># TSP越大 → 技术越集中于少数小类 → 专业化程度越高</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;技术专业化(TSP)计算完成，共 &#123;len(TSP)&#125; 家企业&quot;)</span><br><span class="line">print(f&quot;TSP描述性统计:&quot;)</span><br><span class="line">print(TSP[&quot;TSP&quot;].describe())</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键函数对照</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>R 函数</th>
+<th>Python 函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>group_by() %&gt;% summarise(n())</code></td>
+<td><code>groupby().agg(size)</code></td>
+<td>分组计数</td>
+</tr>
+<tr>
+<td><code>sd(x)</code></td>
+<td><code>x.std()</code></td>
+<td>样本标准差（ddof=1）</td>
+</tr>
+<tr>
+<td><code>case_when()</code></td>
+<td><code>np.where()</code></td>
+<td>条件分支</td>
+</tr>
+</tbody></table>
+<h3 id="计算技术多样化（TDI）" class="article-heading"><a href="#计算技术多样化（TDI）" class="headerlink" title="计算技术多样化（TDI）"></a>计算技术多样化（TDI）<a class="article-anchor" href="#计算技术多样化（TDI）" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 技术多样化：Shannon熵指数</span><br><span class="line"># TDI = -Σ p_it_a * ln(p_it_a)</span><br><span class="line"># TDI越大 → 技术分布越分散 → 多样化程度越高</span><br><span class="line"></span><br><span class="line"># 此处代码需下载讲义材料查看～</span><br><span class="line"></span><br><span class="line">print(f&quot;技术多样化(TDI)计算完成，共 &#123;len(TDI)&#125; 家企业&quot;)</span><br><span class="line">print(f&quot;TDI描述性统计:&quot;)</span><br><span class="line">print(TDI[&quot;TDI&quot;].describe())</span><br></pre></td></tr></table></figure>
+
+<h3 id="合并结果并保存" class="article-heading"><a href="#合并结果并保存" class="headerlink" title="合并结果并保存"></a>合并结果并保存<a class="article-anchor" href="#合并结果并保存" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight r"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 合并 TSP 和 TDI 结果</span></span><br><span class="line"><span class="comment"># R: inner_join(...) %&gt;% arrange(股票代码)</span></span><br><span class="line">result <span class="operator">=</span> <span class="punctuation">(</span></span><br><span class="line">    TSP<span class="punctuation">[[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;技术小类数量&quot;</span><span class="punctuation">,</span> <span class="string">&quot;TSP&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span></span><br><span class="line">    .merge<span class="punctuation">(</span>TDI<span class="punctuation">[[</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> <span class="string">&quot;技术大类数量&quot;</span><span class="punctuation">,</span> <span class="string">&quot;TDI&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> on<span class="operator">=</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;inner&quot;</span><span class="punctuation">)</span></span><br><span class="line">    .merge<span class="punctuation">(</span>firm_total_patents<span class="punctuation">,</span> on<span class="operator">=</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">,</span> how<span class="operator">=</span><span class="string">&quot;inner&quot;</span><span class="punctuation">)</span></span><br><span class="line">    .sort_values<span class="punctuation">(</span><span class="string">&quot;股票代码&quot;</span><span class="punctuation">)</span></span><br><span class="line">    .reset_index<span class="punctuation">(</span>drop<span class="operator">=</span>True<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">print<span class="punctuation">(</span>f<span class="string">&quot;最终结果: &#123;len(result)&#125; 行, &#123;len(result.columns)&#125; 列&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述性统计</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n--- 描述性统计 ---&quot;</span><span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span>result<span class="punctuation">[[</span><span class="string">&quot;TSP&quot;</span><span class="punctuation">,</span> <span class="string">&quot;TDI&quot;</span><span class="punctuation">,</span> <span class="string">&quot;总专利数&quot;</span><span class="punctuation">]</span><span class="punctuation">]</span>.describe<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存结果</span></span><br><span class="line">result.to_csv<span class="punctuation">(</span><span class="string">&quot;技术专业化与多样化_2020年_python.csv&quot;</span><span class="punctuation">,</span> index<span class="operator">=</span>False<span class="punctuation">)</span></span><br><span class="line">print<span class="punctuation">(</span><span class="string">&quot;\n结果已保存到: 技术专业化与多样化_2020年_python.csv&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="结果概览" class="article-heading"><a href="#结果概览" class="headerlink" title="结果概览"></a>结果概览<a class="article-anchor" href="#结果概览" aria-label="本节链接" title="复制本节链接"></a></h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;=== 结果预览(前20行) ===&quot;)</span><br><span class="line">print(result.head(20).to_string(index=False))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">print(&quot;=== 详细描述性统计 ===&quot;)</span><br><span class="line">for col in [&quot;TSP&quot;, &quot;TDI&quot;, &quot;总专利数&quot;]:</span><br><span class="line">    s = result[col]</span><br><span class="line">    print(f&quot;\n&#123;col&#125;:&quot;)</span><br><span class="line">    print(f&quot;  最小值: &#123;s.min():.4f&#125;&quot;)</span><br><span class="line">    print(f&quot;  25%:    &#123;s.quantile(0.25):.4f&#125;&quot;)</span><br><span class="line">    print(f&quot;  中位数: &#123;s.median():.4f&#125;&quot;)</span><br><span class="line">    print(f&quot;  均值:   &#123;s.mean():.4f&#125;&quot;)</span><br><span class="line">    print(f&quot;  75%:    &#123;s.quantile(0.75):.4f&#125;&quot;)</span><br><span class="line">    print(f&quot;  最大值: &#123;s.max():.4f&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt;</span><br><span class="line">#&gt; TSP:</span><br><span class="line">#&gt;   最小值: 0.0000</span><br><span class="line">#&gt;   25%:    0.3764</span><br><span class="line">#&gt;   中位数: 0.7071</span><br><span class="line">#&gt;   均值:   0.8015</span><br><span class="line">#&gt;   75%:    1.1326</span><br><span class="line">#&gt;   最大值: 5.6952</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; TDI:</span><br><span class="line">#&gt;   最小值: -0.0000</span><br><span class="line">#&gt;   25%:    0.6365</span><br><span class="line">#&gt;   中位数: 1.1339</span><br><span class="line">#&gt;   均值:   1.1227</span><br><span class="line">#&gt;   75%:    1.6094</span><br><span class="line">#&gt;   最大值: 3.3103</span><br><span class="line">#&gt;</span><br><span class="line">#&gt; 总专利数:</span><br><span class="line">#&gt;   最小值: 1.0000</span><br><span class="line">#&gt;   25%:    6.0000</span><br><span class="line">#&gt;   中位数: 13.0000</span><br><span class="line">#&gt;   均值:   47.0864</span><br><span class="line">#&gt;   75%:    31.0000</span><br><span class="line">#&gt;   最大值: 11741.0000</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/f60028067ed945658184d221dece39b3">名师讲堂｜使用  Python 测算上市公司技术专业化与技术多样化</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:48.872Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/51477/" title="名师讲堂｜使用 Stata 测算上市公司技术专业化与技术多样化"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/62613/" title="名师讲堂｜使用 R 语言测算上市公司技术专业化与技术多样化"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/77197/">名师讲堂｜使用 Python 测算地区产业专业化指标</a><span class="tf-related-meta">2026-08-07 · 约 10 分钟</span></li><li><a href="/posts/61278/">名师讲堂｜使用 Python 测算城市数字经济发展的工具变量</a><span class="tf-related-meta">2026-08-04 · 约 5 分钟</span></li><li><a href="/posts/64056/">名师讲堂｜使用 Python 测算上市公司数字技术复杂度</a><span class="tf-related-meta">2026-06-15 · 约 17 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E6%A0%87%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%8E%9F%E7%90%86"><span class="toc-text">指标来源与计算原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E4%B8%93%E4%B8%9A%E5%8C%96%EF%BC%88TSP%EF%BC%89"><span class="toc-text">技术专业化（TSP）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E5%A4%9A%E6%A0%B7%E5%8C%96%EF%BC%88TDI%EF%BC%89"><span class="toc-text">技术多样化（TDI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%AD%A5%E9%AA%A4%E6%A6%82%E8%BF%B0"><span class="toc-text">计算步骤概述</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-reticulate-%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86-Python-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">使用 reticulate 创建与管理 Python 虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-reticulate%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">安装 reticulate（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%AE%89%E8%A3%85-Python-%E5%8C%85%EF%BC%88%E4%BB%85%E9%A6%96%E6%AC%A1%EF%BC%89"><span class="toc-text">在虚拟环境中安装 Python 包（仅首次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">验证激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">虚拟环境管理常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81"><span class="toc-text">详细计算代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96%E4%B8%8E%E9%A2%84%E5%A4%84%E7%90%86"><span class="toc-text">数据读取与预处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E5%8E%BB%E9%87%8D"><span class="toc-text">专利去重</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IPC-%E5%88%86%E7%B1%BB%E4%BF%A1%E6%81%AF"><span class="toc-text">提取 IPC 分类信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E4%B8%93%E4%B8%9A%E5%8C%96%EF%BC%88TSP%EF%BC%89"><span class="toc-text">计算技术专业化（TSP）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E5%A4%9A%E6%A0%B7%E5%8C%96%EF%BC%88TDI%EF%BC%89"><span class="toc-text">计算技术多样化（TDI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E7%BB%93%E6%9E%9C%E5%B9%B6%E4%BF%9D%E5%AD%98"><span class="toc-text">合并结果并保存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E6%A6%82%E8%A7%88"><span class="toc-text">结果概览</span></a></li></ol></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

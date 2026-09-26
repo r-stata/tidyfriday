@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8">
+  <!-- 深浅色主题：必须在任何样式生效之前同步执行，否则深色用户会先看到一帧白屏。
+       localStorage 里有显式选择就用它，否则跟随系统偏好。 -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('tf-theme');
+        var dark = saved ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <title>如何使用 Stata 绘制不等宽柱状图？ | 微信公众号 RStata</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://tidyfriday.cn/posts/88960/index.html">
+  <!-- Alternative links -->
+  
+  <!-- Icon -->
+  <link rel="icon" href="/images/pad.svg">
+  <meta name="msapplication-TileColor" content="#2f83cd">
+  <meta name="msapplication-TileImage" content="/images/pad.svg">
+  <!-- CSS -->
+  <!-- build:css build/css/navy.css -->
+  
+<link rel="stylesheet" href="/css/navy.css">
+
+  <!-- endbuild -->
+  <!-- 站点定制样式 -->
+  <link rel="stylesheet" href="/assets/tf.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-lato@0.0.75/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.3.0/css/font-awesome.min.css">
+  <!-- RSS -->
+  <link rel="alternate" href="/atom.xml" title="微信公众号 RStata" type="application/atom+xml">
+  <!-- Open Graph -->
+  <!-- 显式传 image 是有意的：open_graph() 在 images 为空时会把正文里的每张配图
+       都塞成一条 og:image（实测 4 条），分享时抓到哪张完全看运气。
+       这里改传构建期生成的 1200×630 卡片图，一篇文章只对应一张。 -->
+  <meta name="description" content="如何使用 Stata 绘制不等宽柱状图？这是 Statalist 上的一个问题。How can I get a histogram with varying bin widths?。一种方法是使用 Nicholas J. Cox 编写的 eqprhistogram 命令，不过使用 twoway bar 也可以直接绘制出来。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何使用 Stata 绘制不等宽柱状图？">
+<meta property="og:url" content="https://tidyfriday.cn/posts/88960/">
+<meta property="og:site_name" content="微信公众号 RStata">
+<meta property="og:description" content="如何使用 Stata 绘制不等宽柱状图？这是 Statalist 上的一个问题。How can I get a histogram with varying bin widths?。一种方法是使用 Nicholas J. Cox 编写的 eqprhistogram 命令，不过使用 twoway bar 也可以直接绘制出来。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tidyfriday.cn/og/88960.png">
+<meta property="article:published_time" content="2022-06-19T18:42:14.000Z">
+<meta property="article:modified_time" content="2026-09-26T14:18:52.953Z">
+<meta property="article:author" content="RStata">
+<meta property="article:tag" content="可视化与绘图">
+<meta property="article:tag" content="Stata">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tidyfriday.cn/og/88960.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="如何使用 Stata 绘制不等宽柱状图？">
+  <!-- 结构化数据（JSON-LD） -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"微信公众号 RStata","alternateName":"一起来学习 R 语言和 Stata 吧！","url":"https://tidyfriday.cn/","description":"一起来学习 R 语言和 Stata 吧！","inLanguage":"zh-Hans-CN","publisher":{"@type":"Organization","name":"RStata","url":"https://tidyfriday.cn/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"如何使用 Stata 绘制不等宽柱状图？","description":"如何使用 Stata 绘制不等宽柱状图？这是 Statalist 上的一个问题。How can I get a histogram with varying bin widths?。一种方法是使用 Nicholas J. Cox 编写的 eqprhistogram 命令，不过使用 twoway bar 也可以直接绘制出来。","url":"https://tidyfriday.cn/posts/88960/","mainEntityOfPage":{"@type":"WebPage","@id":"https://tidyfriday.cn/posts/88960/"},"image":["https://tidyfriday.cn/og/88960.png"],"datePublished":"2022-06-19T18:42:14.000Z","dateModified":"2026-09-26T14:18:52.953Z","author":{"@type":"Person","name":"RStata","url":"https://tidyfriday.cn/"},"publisher":{"@type":"Organization","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"isPartOf":{"@type":"Blog","name":"微信公众号 RStata","url":"https://tidyfriday.cn/"},"inLanguage":"zh-Hans-CN","keywords":"可视化与绘图, Stata","articleSection":"课程"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://tidyfriday.cn/"},{"@type":"ListItem","position":2,"name":"课程","item":"https://tidyfriday.cn/tags/#cat=%E8%AF%BE%E7%A8%8B"},{"@type":"ListItem","position":3,"name":"如何使用 Stata 绘制不等宽柱状图？","item":"https://tidyfriday.cn/posts/88960/"}]}</script>
+  <!-- Google Analytics -->
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <header id="header" class="wrapper">
+  <div id="header-inner" class="inner">
+    <h1 id="logo-wrap">
+      <a id="logo" href="/">RStata</a>
+    </h1>
+    <nav id="main-nav">
+      <ul class="tf-nav-list"><li class="tf-nav-item"><a class="tf-nav-link" href="/archives/">归档</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/tags/">标签</a></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">绘图案例<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/r-gallery/"><span class="tf-nav-sub-name">R 语言绘图案例</span><span class="tf-nav-sub-desc">精选 R 语言绘图案例，附带完整代码</span></a><a class="tf-nav-sub-link" href="/stata-gallery/"><span class="tf-nav-sub-name">Stata 绘图案例</span><span class="tf-nav-sub-desc">精选 Stata 绘图案例，附带完整代码</span></a></div></div></li><li class="tf-nav-item tf-has-sub"><span class="tf-nav-link tf-nav-toggle" tabindex="0" role="button" aria-haspopup="true">学习资源<i class="fa fa-angle-down"></i></span><div class="tf-nav-sub"><div class="tf-nav-sub-inner"><a class="tf-nav-sub-link" href="/books/"><span class="tf-nav-sub-name">电子书与工具箱</span><span class="tf-nav-sub-desc">电子书收藏与在线工具箱集合</span></a><a class="tf-nav-sub-link" href="/templates/"><span class="tf-nav-sub-name">模板库</span><span class="tf-nav-sub-desc">RMarkdown 讲义模板与排版方案</span></a><a class="tf-nav-sub-link" href="/pamphlets/"><span class="tf-nav-sub-name">小册子</span><span class="tf-nav-sub-desc">专题小册子，随查随用</span></a></div></div></li><li class="tf-nav-item"><a class="tf-nav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-nav-item"><a class="tf-nav-link" href="/about/">关于</a></li></ul>
+    </nav>
+    <div id="header-actions">
+      <button type="button" class="tf-theme-toggle" data-tf-theme-toggle aria-label="切换深浅色主题" title="切换深浅色主题（Shift + 点击恢复跟随系统）">
+        <span class="tf-theme-icon tf-theme-icon-sun" aria-hidden="true"><i class="fa fa-sun-o"></i></span>
+        <span class="tf-theme-icon tf-theme-icon-moon" aria-hidden="true"><i class="fa fa-moon-o"></i></span>
+      </button>
+      <button type="button" class="tf-search-trigger" data-tf-search-open aria-label="搜索全站">
+        <i class="fa fa-search"></i>
+        <span class="tf-search-trigger-label">搜索</span>
+        <kbd>/</kbd>
+      </button>
+      <a href="https://github.com/r-stata" class="main-nav-link" target="_blank" rel="noopener external nofollow noreferrer" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+    </div>
+    <a id="mobile-nav-toggle" aria-label="菜单">
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+      <span class="mobile-nav-toggle-bar"></span>
+    </a>
+  </div>
+</header>
+
+    
+
+
+<div id="content-wrap">
+  <div id="content" class="wrapper">
+    <div id="content-inner" class="content-inner-flat">
+      <article class="article-container" itemscope itemtype="http://schema.org/Article">
+        <div class="article-inner">
+          <div class="article post">
+            <div class="inner">
+              <header class="article-header">
+                <nav class="tf-breadcrumb" aria-label="面包屑导航">
+                  <a href="/">首页</a>
+                  <span class="tf-breadcrumb-sep">/</span>
+                  
+                  <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  
+                  <span class="tf-breadcrumb-sep">/</span>
+                  <span class="tf-breadcrumb-cur">如何使用 Stata 绘制不等宽柱状图？</span>
+                </nav>
+                <h1 class="article-title" itemprop="name">如何使用 Stata 绘制不等宽柱状图？</h1>
+                <div class="article-meta">
+                  <span class="article-meta-item">
+                    <i class="fa fa-calendar-o"></i>
+                    <time datetime="2022-06-19T18:42:14.000Z" itemprop="datePublished">2022-06-19</time>
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-file-text-o"></i>1087 字
+                  </span>
+                  <span class="article-meta-item">
+                    <i class="fa fa-clock-o"></i>约 5 分钟
+                  </span>
+                  <span class="article-meta-item" id="busuanzi_container_page_pv" style="display:none">
+                    <i class="fa fa-eye"></i><span id="busuanzi_value_page_pv"></span> 次阅读
+                  </span>
+                  
+                  <span class="article-meta-item article-meta-cats">
+                    <i class="fa fa-folder-o"></i>
+                    <a href="/tags/#cat=%E8%AF%BE%E7%A8%8B">课程</a>
+                  </span>
+                  
+                  
+                  <span class="article-meta-item article-meta-tags">
+                    <i class="fa fa-tags"></i>
+                    <a href="/tags/#tag=%E5%8F%AF%E8%A7%86%E5%8C%96%E4%B8%8E%E7%BB%98%E5%9B%BE">可视化与绘图</a><a href="/tags/#tag=Stata">Stata</a>
+                  </span>
+                  
+                </div>
+              </header>
+              <div class="article-content" itemprop="articleBody">
+                <p>如何使用 Stata 绘制不等宽柱状图？这是 Statalist 上的一个问题。<code>How can I get a histogram with varying bin widths?</code>。一种方法是使用 Nicholas J. Cox 编写的 eqprhistogram 命令，不过使用 twoway bar 也可以直接绘制出来。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>链接：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.stata.com/support/faqs/graphics/histograms-with-varying-bin-widths/">https://www.stata.com/support/faqs/graphics/histograms-with-varying-bin-widths/</a></p>
+</blockquote>
+<p>最近也有培训班的小伙伴问到了这个问题，正好一块看下这个问题的解决方案。</p>
+<p>首先我们看一下 eqprhistogram 命令的安装和使用：</p>
+<h3 id="安装-eqprhistogram" class="article-heading"><a href="#安装-eqprhistogram" class="headerlink" title="安装 eqprhistogram"></a>安装 eqprhistogram<a class="article-anchor" href="#安装-eqprhistogram" aria-label="本节链接" title="复制本节链接"></a></h3><p>从 ssc 上安装即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ssc install eqprhistogram</span><br></pre></td></tr></table></figure>
+
+<p>使用方法很简单，例如：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> womenwage, <span class="keyword">clear</span></span><br><span class="line"><span class="comment">* bin(10) 表示指定每个条形代表分布中总概率的 1/10</span></span><br><span class="line">eqprhistogram wage, bin(10) <span class="comment">///</span></span><br><span class="line">    <span class="keyword">plot</span>(<span class="keyword">kdensity</span> wage, biweight <span class="built_in">w</span>(5)) <span class="comment">///</span></span><br><span class="line">    yla(, <span class="keyword">format</span>(%6.2f)) yti(Density) <span class="comment">///</span></span><br><span class="line">    leg(pos(2) ring(0)) <span class="comment">///</span></span><br><span class="line">    xti(<span class="string">&quot;Wages in 1000s of dollars&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634707926_516684.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>所以这里的每个柱体代表的数据是总体的十分之一。</p>
+<p>而实际上如果你了解 twoway bar 的一些特殊功能，你可以直接绘制不等宽柱形图，例如对于 Altman (1991, 25)的数据集：</p>
+<table>
+<thead>
+<tr>
+<th>Age</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0-4</td>
+<td>28</td>
+</tr>
+<tr>
+<td>5-9</td>
+<td>46</td>
+</tr>
+<tr>
+<td>10-15</td>
+<td>58</td>
+</tr>
+<tr>
+<td>16</td>
+<td>20</td>
+</tr>
+<tr>
+<td>17</td>
+<td>31</td>
+</tr>
+<tr>
+<td>18-19</td>
+<td>64</td>
+</tr>
+<tr>
+<td>20-24</td>
+<td>149</td>
+</tr>
+<tr>
+<td>25-59</td>
+<td>316</td>
+</tr>
+<tr>
+<td>60+</td>
+<td>103</td>
+</tr>
+</tbody></table>
+<p>我们把这个数据集输入 Stata：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">input</span> Age Frequency</span><br><span class="line"> 0  28</span><br><span class="line"> 5  46</span><br><span class="line">10  58</span><br><span class="line">16  20</span><br><span class="line">17  31</span><br><span class="line">18  64</span><br><span class="line">20 149</span><br><span class="line">25 316</span><br><span class="line">60 103</span><br><span class="line">80   .</span><br><span class="line">end</span><br><span class="line"><span class="keyword">sum</span> Freq</span><br><span class="line"><span class="comment">* 计算密度</span></span><br><span class="line"><span class="keyword">gen</span> Density = Freq / (`<span class="built_in">r</span>(<span class="keyword">sum</span>)&#x27; * (Age[_n+1] - Age))</span><br><span class="line"><span class="keyword">twoway</span> bar Density Age, bartype(spanning) bstyle(<span class="keyword">histogram</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634708420_994241.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><code>spanning</code>将柱体向右拓展，这也就是为什么要指定上下界。 另外数据应该是排好序的，<code>bstyle(histogram)</code>选项不是必须的。如果柱体不是从 0 开始，你可能需要添加选项<code>yscale(range(0))</code>。</p>
+<p>因此实际上我们也可以使用 twoway bar 绘制图 1：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> womenwage, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">sum</span> wage, meanonly</span><br><span class="line"></span><br><span class="line"><span class="comment">* 计算分位数</span></span><br><span class="line"><span class="keyword">gen</span> <span class="keyword">quantile</span> = <span class="built_in">r</span>(min) <span class="keyword">in</span> 1</span><br><span class="line"><span class="keyword">replace</span> <span class="keyword">quantile</span> = <span class="built_in">r</span>(max) <span class="keyword">in</span> 11</span><br><span class="line">_pctile wage, nq(10)</span><br><span class="line"><span class="keyword">ret</span> <span class="keyword">list</span></span><br><span class="line"><span class="keyword">forval</span> i = 1/9 &#123;</span><br><span class="line"> <span class="keyword">replace</span> <span class="keyword">quantile</span> = <span class="built_in">r</span>(r<span class="symbol">`i&#x27;</span>) <span class="keyword">in</span> `=<span class="symbol">`i&#x27;</span> + 1&#x27;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">* 计算密度</span></span><br><span class="line"><span class="keyword">gen</span> density = 1 / (10 * (<span class="keyword">quantile</span>[_n+1] - <span class="keyword">quantile</span>))</span><br><span class="line"><span class="keyword">label</span> <span class="keyword">var</span> density <span class="string">&quot;Density&quot;</span></span><br><span class="line"><span class="keyword">sort</span> <span class="keyword">quantile</span> density</span><br><span class="line"><span class="keyword">twoway</span> bar density <span class="keyword">quantile</span>, <span class="comment">///</span></span><br><span class="line"> bartype(spanning) bstyle(<span class="keyword">histogram</span>) <span class="comment">///</span></span><br><span class="line"> yscale(<span class="keyword">range</span>(0)) || <span class="comment">///</span></span><br><span class="line"> <span class="keyword">kdensity</span> wage, biweight <span class="built_in">w</span>(5) <span class="comment">///</span></span><br><span class="line"> yla(, <span class="keyword">format</span>(%6.2f)) yti(Density) <span class="comment">///</span></span><br><span class="line">    leg(pos(2) ring(0)) <span class="comment">///</span></span><br><span class="line">    xti(<span class="string">&quot;Wages in 1000s of dollars&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634708634_445619.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>那么如何绘制这样的一幅不等宽柱形图呢？</p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634709445_657951.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这幅图来源于：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://www.highcharts.com.cn/demo/highcharts/variwide">https://www.highcharts.com.cn/demo/highcharts/variwide</a></p>
+<p>下面我们使用 twoway bar 来绘制这幅图。</p>
+<p>首先输入数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">clear</span><br><span class="line">input str15 country cost gdp</span><br><span class="line">&quot;挪威&quot; 50.2 335504</span><br><span class="line">&quot;丹麦&quot; 42 277339</span><br><span class="line">&quot;比利时&quot; 39.2 421611</span><br><span class="line">&quot;瑞典&quot; 38 462057</span><br><span class="line">&quot;法国&quot; 35.6 2228857</span><br><span class="line">&quot;荷兰&quot; 34.3 702641</span><br><span class="line">&quot;芬兰&quot; 33.2 215615</span><br><span class="line">&quot;德国&quot; 33.0 3144050</span><br><span class="line">&quot;奥地利&quot; 32.7 349344</span><br><span class="line">&quot;爱尔兰&quot; 30.4 275567</span><br><span class="line">&quot;意大利&quot; 27.8 1672438</span><br><span class="line">&quot;英国&quot; 26.7 2366911</span><br><span class="line">&quot;西班牙&quot; 21.3 1113851</span><br><span class="line">&quot;希腊&quot; 14.2 175887</span><br><span class="line">&quot;葡萄牙&quot; 13.7 184933</span><br><span class="line">&quot;捷克共和国&quot; 10.2 176564</span><br><span class="line">&quot;波兰&quot; 8.6 424269</span><br><span class="line">&quot;罗马尼亚&quot; 5.5 169578</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>根据 GDP 分组生成 x 轴变量：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">* 生成累加值</span></span><br><span class="line"><span class="keyword">gen</span> cumsum = <span class="built_in">sum</span>(gdp)</span><br><span class="line"><span class="keyword">set</span> obs 19</span><br><span class="line"><span class="keyword">gen</span> cumsum2 = .</span><br><span class="line"></span><br><span class="line"><span class="keyword">forval</span> i = 2/`=_N&#x27; &#123;</span><br><span class="line">    <span class="keyword">replace</span> cumsum2 = cumsum[<span class="symbol">`i&#x27;</span> - 1] <span class="keyword">in</span> <span class="symbol">`i&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">replace</span> cumsum2 = 0 <span class="keyword">if</span> <span class="built_in">missing</span>(cumsum2)</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以绘制一幅简单的不等宽柱形图了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">twoway bar cost cumsum2, bartype(spanning) ///</span><br><span class="line">    bstyle(histogram) yla(, format(%6.2f))</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634708860_281365.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>每一个柱形图的中心值为：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> x = .</span><br><span class="line"><span class="keyword">forval</span> i = 2/`=_N&#x27; &#123;</span><br><span class="line">    <span class="keyword">replace</span> x = (cumsum2[_n + 1] + cumsum2[_n]) / 2</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再生成一个 color 变量：</p>
+<blockquote>
+<p>配色网站：<a href="https://tidyfriday.cn/colors/">https://tidyfriday.cn/colors/</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">input str11 color</span><br><span class="line">&quot;230 75 53&quot;</span><br><span class="line">&quot;77 187 213&quot;</span><br><span class="line">&quot;0 160 135&quot;</span><br><span class="line">&quot;60 84 136&quot;</span><br><span class="line">&quot;243 155 127&quot;</span><br><span class="line">&quot;132 145 180&quot;</span><br><span class="line">&quot;145 209 194&quot;</span><br><span class="line">&quot;220 0 0&quot;</span><br><span class="line">&quot;126 97 72&quot;</span><br><span class="line">&quot;176 156 133&quot;</span><br><span class="line">&quot;0 160 135&quot;</span><br><span class="line">&quot;60 84 136&quot;</span><br><span class="line">&quot;243 155 127&quot;</span><br><span class="line">&quot;132 145 180&quot;</span><br><span class="line">&quot;145 209 194&quot;</span><br><span class="line">&quot;220 0 0&quot;</span><br><span class="line">&quot;126 97 72&quot;</span><br><span class="line">&quot;176 156 133&quot;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>散点标签：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">tostring</span> cost, <span class="keyword">gen</span>(costlab) <span class="keyword">format</span>(%6.0f) force</span><br><span class="line"><span class="keyword">replace</span> costlab = costlab + <span class="string">&quot; €/h&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>循环生成绘图语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">local cmd = &quot;tw&quot;</span><br><span class="line">local leg = &quot;&quot;</span><br><span class="line">local xtext = &quot;&quot;</span><br><span class="line">forval i = 1/18 &#123;</span><br><span class="line">    * 绘图语句</span><br><span class="line">    local cmd = `&quot;`cmd&#x27; (bar cost cumsum2 in `i&#x27;/`=`i&#x27;+1&#x27;, bartype(spanning) bstyle(histogram) fc(&quot;`=color[`i&#x27;]&#x27;&quot;) lc(&quot;`=color[`i&#x27;]&#x27;&quot;))&quot;&#x27;</span><br><span class="line">    * 图例</span><br><span class="line">    local leg = `&quot;`leg&#x27; `i&#x27; &quot;`=country[`i&#x27;]&#x27;&quot; &quot;&#x27;</span><br><span class="line">    * x 轴标签</span><br><span class="line">    if &quot;`=country[`i&#x27;]&#x27;&quot; != &quot;葡萄牙&quot;&#123;</span><br><span class="line">        local xtext = `&quot; `xtext&#x27; `=x[`i&#x27;]&#x27; &quot;`=country[`i&#x27;]&#x27;&quot; &quot;&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">`cmd&#x27;, xla(`xtext&#x27;, ang(90) labsize(*0.9) nogrid) ///</span><br><span class="line">    xti(&quot;&quot;) yti(&quot;人工成本(€/h)&quot;) || ///</span><br><span class="line">    sc cost x if gdp &gt;= 1113851, ///</span><br><span class="line">    m(i) mla(costlab) mlabpos(12) mlabcolor(black) ///</span><br><span class="line">    yla(0(8)56) ///</span><br><span class="line">    ti(&quot;2016 年欧洲各国人工成本&quot;) ///</span><br><span class="line">    subti(&quot;绘制：微信公众号 RStata｜柱体的宽度表示各国 GDP 的大小&quot;) ///</span><br><span class="line">    caption(&quot;数据来源：eurostat&quot; &quot;http://ec.europa.eu/eurostat/web/&quot;) ///</span><br><span class="line">    leg(off)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2022/06/19/18/02b79j1bdbe1b168g4/common/content/1655634709203_635335.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p>这里我虽然生成了图例标签，但是并没有使用。</p>
+<blockquote>
+<p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/cb69f51eb0d14bfd96d6bcf65cb8b862">如何使用 Stata 绘制不等宽柱状图？</a></p>
+</blockquote>
+
+              </div>
+              <footer class="article-footer">
+                <time class="article-footer-updated" datetime="2026-09-26T14:18:52.953Z" itemprop="dateModified">上次更新：2026-09-26</time>
+                <a class="article-footer-prev" href="/posts/80498/" title="RStata 定制｜百度指数省市面板数据定制"><i class="fa fa-chevron-left"></i><span>上一篇</span></a><a class="article-footer-next" href="/posts/19556/" title="1992～2019 年中国各省市区县用电量面板数据+栅格数据（根据夜间灯光估算）"><span>下一篇</span><i class="fa fa-chevron-right"></i></a>
+              </footer>
+              <section class="tf-related"><h2 class="tf-related-title">相关文章</h2><ul class="tf-related-list"><li><a href="/posts/31379/">如何编写一个使用 Stata 绘制地图的 SKILLS？</a><span class="tf-related-meta">2026-03-22 · 约 4 分钟</span></li><li><a href="/posts/42594/">如何从论文图表中提取数据重新使用 Stata 或者 R 语言绘图</a><span class="tf-related-meta">2025-09-09 · 约 6 分钟</span></li><li><a href="/posts/38277/">使用 Stata 绘制中国地图+台风路径（线条+箭头）</a><span class="tf-related-meta">2025-07-18 · 约 4 分钟</span></li></ul></section>
+              
+<section id="comments">
+  <h2 class="tf-comments-title">评论</h2>
+  <div id="valine-thread"></div>
+  <p class="tf-comments-fallback" id="tf-comments-fallback" style="display:none">
+    评论组件没能加载出来（可能是网络或 CDN 的问题），刷新页面再试试，也可以直接加小编微信 r_stata 交流。
+  </p>
+</section>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  (function () {
+    var fallback = document.getElementById('tf-comments-fallback');
+
+    function fail() {
+      if (fallback) fallback.style.display = 'block';
+    }
+
+    function boot() {
+      if (typeof window.Valine !== 'function') return fail();
+
+      try {
+        new window.Valine({
+          el: '#valine-thread',
+          notify: true,
+          verify: false,
+          app_id: 'HS0fE2GH92TyPjSpxeuEpr9P-gzGzoHsz',
+          app_key: 'hyvGUifU6e34ODKmahBUtoN6',
+          placeholder: '在这里评论～记得留下邮箱哈，这样有回复的时候会有邮件通知。',
+          avatar: 'monsterid',
+          avatar_cdn: 'https://gravatar.loli.net/avatar/',
+          pageSize: '2'
+        });
+      } catch (e) {
+        fail();
+      }
+    }
+
+    /* 脚本走 CDN，慢或被挡时留个说明，而不是一个空框 */
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+  }());
+</script>
+
+
+            </div>
+          </div>
+          
+          <aside id="article-toc" role="navigation">
+            <div id="article-toc-inner">
+              <strong class="sidebar-title">目录</strong>
+              <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-eqprhistogram"><span class="toc-text">安装 eqprhistogram</span></a></li></ol>
+              <a href="#" id="article-toc-top">回到顶部</a>
+            </div>
+          </aside>
+          
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+    <footer id="footer" class="wrapper">
+  <div class="inner">
+    <div id="footer-copyright">
+      &copy; 2026 <a href="https://github.com/hexojs/hexo/graphs/contributors" rel="external nofollow noreferrer" target="_blank">RStata</a><br>
+      Documentation licensed under <a href="http://creativecommons.org/licenses/by/4.0/" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>.
+    </div>
+    <div id="footer-links">
+      <a href="https://github.com/r-stata" rel="external nofollow noreferrer" class="footer-link" target="_blank" aria-label="GitHub"><i class="fa fa-github-alt"></i></a>
+
+      <a href="/wechat" class="footer-link" target="_blank" aria-label="联系微信"><i class="fa fa-weixin"></i></a>
+
+      <a href="/atom.xml" class="footer-link" aria-label="RSS 订阅"><i class="fa fa-rss"></i></a>
+
+      <a href="/tags/" class="footer-link" aria-label="标签与分类"><i class="fa fa-tags"></i></a>
+    </div>
+    <div id="footer-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">访问 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <div id="mobile-nav-dimmer"></div>
+  <nav id="mobile-nav">
+  <div id="mobile-nav-inner">
+    <ul id="mobile-nav-list">
+      <li class="tf-mnav-item tf-mnav-search"><a class="tf-mnav-link" href="javascript:;" rel="external nofollow noreferrer" data-tf-search-open><i class="fa fa-search"></i> 搜索全站</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/archives/">归档</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/tags/">标签</a></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">绘图案例<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/r-gallery/">R 语言绘图案例</a></li><li><a class="tf-mnav-sublink" href="/stata-gallery/">Stata 绘图案例</a></li></ul></li><li class="tf-mnav-item tf-mnav-has-sub"><a class="tf-mnav-link tf-mnav-toggle" href="javascript:;" rel="external nofollow noreferrer">学习资源<i class="fa fa-angle-down"></i></a><ul class="tf-mnav-sub"><li><a class="tf-mnav-sublink" href="/books/">电子书与工具箱</a></li><li><a class="tf-mnav-sublink" href="/templates/">模板库</a></li><li><a class="tf-mnav-sublink" href="/pamphlets/">小册子</a></li></ul></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/rsdb2/">RStata 数据库</a></li><li class="tf-mnav-item"><a class="tf-mnav-link" href="/about/">关于</a></li>
+      <li class="tf-mnav-item">
+        <a href="https://github.com/r-stata" class="tf-mnav-link" rel="external" target="_blank">
+          <i class="fa fa-github-alt"></i> GitHub
+        </a>
+      </li>
+    </ul>
+    
+  </div>
+  <div id="mobile-lang-select-wrap">
+    <span id="mobile-lang-select-label"><i class="fa fa-globe"></i><span>简体中文</span></span>
+    <select id="mobile-lang-select" data-canonical="">
+      
+        <option value="en">English</option>
+      
+        <option value="zh-tw">正體中文</option>
+      
+        <option value="zh-cn" selected>简体中文</option>
+      
+        <option value="ru">Русский</option>
+      
+        <option value="ko">한국어</option>
+      
+        <option value="pt-br">Português (Brasil)</option>
+      
+        <option value="th">ภาษาไทย</option>
+      
+    </select>
+  </div>
+</nav>
+
+  <div id="tf-progress"></div>
+  <button type="button" id="tf-back-top" aria-label="返回顶部"><i class="fa fa-angle-up"></i></button>
+  
+<script>window.TF_SEARCH_URL = "/search.json";</script>
+<div id="tf-search" class="tf-search" hidden>
+  <div class="tf-search-mask" data-tf-search-close></div>
+  <div class="tf-search-panel" role="dialog" aria-modal="true" aria-label="全站搜索">
+    <div class="tf-search-bar">
+      <i class="fa fa-search"></i>
+      <input type="search" id="tf-search-input" placeholder="搜索文章、绘图案例、模板…" autocomplete="off" spellcheck="false">
+      <button type="button" id="tf-search-clear" class="tf-search-clear" style="display:none" aria-label="清空">&#10005;</button>
+      <kbd>Esc</kbd>
+    </div>
+    <div class="tf-search-tabs">
+      <button type="button" class="tf-search-tab on" data-type="all">全部</button>
+      <button type="button" class="tf-search-tab" data-type="post">文章</button>
+      <button type="button" class="tf-search-tab" data-type="gallery">绘图案例</button>
+      <button type="button" class="tf-search-tab" data-type="template">模板</button>
+      <span class="tf-search-status" id="tf-search-status"></span>
+    </div>
+    <div class="tf-search-results" id="tf-search-results"></div>
+    <div class="tf-search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 打开</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span class="tf-foot-total">共 <b id="tf-search-total">0</b> 条结果</span>
+    </div>
+  </div>
+</div>
+
+  <!-- Scripts -->
+<!-- Cookie -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<!-- build:js build/js/main.js -->
+
+<script src="/js/lang_select.js"></script>
+
+
+<script src="/js/mobile_nav.js"></script>
+
+<!-- endbuild -->
+
+<!-- 站点定制脚本：导航下拉 / 全站搜索 / 文章目录 -->
+<script src="/assets/tf-core.js"></script>
+
+<!-- 深浅色主题切换（首帧已由 head 里的内联脚本定好，这里只管交互） -->
+<script src="/assets/tf-theme.js"></script>
+
+<!-- 文章配图灯箱（页面上没有 .article-content 时会自行退出） -->
+<script src="/assets/tf-lightbox.js"></script>
+
+<!-- 文章页增强：代码块复制 / 小节锚点复制 -->
+<script src="/assets/tf-post.js"></script>
+
+
+
+<!-- 阅读量统计（不蒜子）。服务不可达时容器保持隐藏，页面不会出现空数字 -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
