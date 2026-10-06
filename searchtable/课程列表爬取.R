@@ -3,13 +3,13 @@ library(httr)
 
 cookies = c(
   csrftoken = "BkH8VBLsUUJiN1w41FirgliSCFcJAVD8zdiVNqbAZYMHrz8av7iM0tp8xmw225xN",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1789208619,1789318213,1789482281,1789493736",
-  `_clck` = "164110b^2^g9j^0^2444",
-  auid = "1b8da3b7cb69433a85f0c60c7ee7aa06",
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJjOWM4MGU4ZGU2OGU0OWJjYTJmNjZlZDNkMWUyZDg0YyIsImV4cCI6MTc4OTY5NDczN30.2vBqr4r05HilDxt-jy5S3Szl5t6VHJqUcPTgjvAntL4",
-  `_clsk` = "1f01m47^1789673138218^5^1^j.clarity.ms/collect",
-  `ds-csrf-token` = "eyJpdiI6ImZOajFMRHFOaTE5d3FCeVQ4Vjg1cXc9PSIsInZhbHVlIjoiR2J3bkhuSitrMk5La0JaUHUrZjd2dWpYRDJESUgyR3MrUUthWnNkQ1NmWk1UV2lcLzNiQ0NTR2d4Z3pcL1oyeWM4WXdDTEdVQTVuQVFhMTI5V0hFZGVZZz09IiwibWFjIjoiNDUwZjBiZTliOGUzNDQ1ZmQ4OTA1Y2YzNDNlZmMzNTFjOTMyZmM1ZDY2NTYwNzRiZjA1YTY1MmEzODkxMTRhZCJ9",
-  deprecated_duanshu_session = "eyJpdiI6IjBCSlwvNzdkZUhkS0E1REdEVjY4dStnPT0iLCJ2YWx1ZSI6ImRiajlWUFFKUUVWNm5vcmkwMjV4eWozeW1idjZUeFBLalh3SnNzbnZCSnlwR1BGd1l2ZXNBUjk3MjJ6MlNWYnJZVnRoZlphMmRnZFExUkk0djJLQ0lRPT0iLCJtYWMiOiIwMGY5NTBhYTI1YWIxMjA3N2I5NDg2ZGM3NmMxMWU5OGMxNTI3MDc4NTBhNjRmZWYyNTMzZGI5NGI0NGZkZDM3In0="
+  `_clck` = "164110b^2^ga1^0^2444",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1791189375,1791195645,1791208816,1791216514",
+  auid = "74d48d7452844f2b8132f79d2e4b0bee",
+  `_clsk` = "14w6rx2^1791222504675^4^1^t.clarity.ms/collect",
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJhYzRjZjQ4ZDI0NDg0ZTlkYTYwODQ1NDg3ODk1Y2ExNCIsImV4cCI6MTc5MTI0NDEwNX0.71oIEpPpVlOXJD9ZH0v_8QtvfPMmrvTfZ-5H7djtQ9c",
+  `ds-csrf-token` = "eyJpdiI6IjhzbkdkTTM3QWJ5TlwvTmdEQU9tVmlRPT0iLCJ2YWx1ZSI6IjJuamRFM0NzVXBHXC9aVGxLRjdJMVVcL0ptNlZKNXpHQUFVa2pabzJRZnF6d2FiRUliVWhtYU1xU09oczRadTJwWEpVWG94VmNCZFdkbHl0eFd1U1dzTHc9PSIsIm1hYyI6IjAzYTUxYjU3MTA1MDdhNDk1YzFiZjIxY2NiYzJiNWIxOWFjNGJiMTUxZmVmYWE3YzIxYWRkZTA3MzliMGQwNjUifQ==",
+  deprecated_duanshu_session = "eyJpdiI6ImFvUUt1YVc1eGhPak5FR0NKUGxWbVE9PSIsInZhbHVlIjoiaGIxQXYzclgxd05xSXYrcmdCUjJnejZIM0FUN3JpbWU2S1pMM0hwWHhHbWgzSzZibzdsc1wvalR3RTMzUTFEQ1UyaUIrQUNneVdrOG1FbnRFa204Y2hBPT0iLCJtYWMiOiIyNmIwNmRjN2NiNGI1ZTEwOGRkODgwZDE3M2JmZjE0MTcwMDVkNzU0NjQ1MTQ5OWJmYTk2OWRlODcwNjM3OGNlIn0="
 )
 
 headers = c(
@@ -18,20 +18,27 @@ headers = c(
   origin = "https://my.duanshu.com",
   priority = "u=1, i",
   referer = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Google Chrome";v="153", "Not_A Brand";v="8", "Chromium";v="153"',
+  `sec-ch-ua` = '"Chromium";v="154", "Google Chrome";v="154", "Not A(Brand";v="99"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
 
 params = list(
+  page = "2",
+  count = "10"
+)
+
+res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies))
+
+params = list(
   page = "1",
-  count = "1500"
+  count = "1600"
 )
 
 res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies)) 
@@ -51,7 +58,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-09-10")) %>% 
+  filter(create_time >= ymd("2026-09-18")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 
@@ -519,3 +526,5 @@ df %>%
   write_csv("可以年度更新的课程和数据.csv") 
 
 df
+
+file.copy("~/Documents/GitHub/tfsite/themes/navy/source/searchtable/RStata 课程&数据列表raw.csv", "~/Documents/global_dir/data.csv", overwrite = T)
