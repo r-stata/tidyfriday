@@ -1,15 +1,20 @@
 library(tidyverse)
 library(httr)
 
+library(httr)
+
 cookies = c(
   csrftoken = "BkH8VBLsUUJiN1w41FirgliSCFcJAVD8zdiVNqbAZYMHrz8av7iM0tp8xmw225xN",
-  `_clck` = "164110b^2^ga1^0^2444",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1791189375,1791195645,1791208816,1791216514",
-  auid = "74d48d7452844f2b8132f79d2e4b0bee",
-  `_clsk` = "14w6rx2^1791222504675^4^1^t.clarity.ms/collect",
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJhYzRjZjQ4ZDI0NDg0ZTlkYTYwODQ1NDg3ODk1Y2ExNCIsImV4cCI6MTc5MTI0NDEwNX0.71oIEpPpVlOXJD9ZH0v_8QtvfPMmrvTfZ-5H7djtQ9c",
-  `ds-csrf-token` = "eyJpdiI6IjhzbkdkTTM3QWJ5TlwvTmdEQU9tVmlRPT0iLCJ2YWx1ZSI6IjJuamRFM0NzVXBHXC9aVGxLRjdJMVVcL0ptNlZKNXpHQUFVa2pabzJRZnF6d2FiRUliVWhtYU1xU09oczRadTJwWEpVWG94VmNCZFdkbHl0eFd1U1dzTHc9PSIsIm1hYyI6IjAzYTUxYjU3MTA1MDdhNDk1YzFiZjIxY2NiYzJiNWIxOWFjNGJiMTUxZmVmYWE3YzIxYWRkZTA3MzliMGQwNjUifQ==",
-  deprecated_duanshu_session = "eyJpdiI6ImFvUUt1YVc1eGhPak5FR0NKUGxWbVE9PSIsInZhbHVlIjoiaGIxQXYzclgxd05xSXYrcmdCUjJnejZIM0FUN3JpbWU2S1pMM0hwWHhHbWgzSzZibzdsc1wvalR3RTMzUTFEQ1UyaUIrQUNneVdrOG1FbnRFa204Y2hBPT0iLCJtYWMiOiIyNmIwNmRjN2NiNGI1ZTEwOGRkODgwZDE3M2JmZjE0MTcwMDVkNzU0NjQ1MTQ5OWJmYTk2OWRlODcwNjM3OGNlIn0="
+  `_clck` = "164110b^2^gam^0^2444",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1792854977,1792927848,1792999392,1793034405",
+  HMACCOUNT = "F799D9102E45B06F",
+  auid = "aa33f7c633964472bb65903d2e61909c",
+  user_info = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyNTg4YzI5YmU1M2U0MTVmODNmMDAxODQxZmZmOTZjZSIsImV4cCI6MTc5MzA1NjY1NH0.9E1bbMhysPvuN7vwUBUYCKPCEk5FVQ7bpPAHRmUyNOM",
+  Hm_lpvt_8659756219f35439f2eecb18bd255656 = "1793035163",
+  `ds-csrf-token` = "eyJpdiI6IlhDaktPYmxVeHpheXpPNW1PREFJNXc9PSIsInZhbHVlIjoielI2d0J0M1lEMTR5ZEpxdk53ZnZ4UDhJdHA4MXA0emo4eERNXC9ESmVQR1ZLdm5jNHkyWFpsUGJHNU1ObEdPNks5UVNXT210Z2cxS1U5U1hxcjluVUZRPT0iLCJtYWMiOiI2YjY1ZTJiMTkxMmNmNmM0YWRjNmQ4Yzg1MTE1NmRkMmM5OTY3MjFlNTM4YmI2MzY1MjBmYzljOTRlYjZjYzczIn0=",
+  deprecated_duanshu_session = "eyJpdiI6IkNaclBPU0JHenBaMDVIem0wZTlJbUE9PSIsInZhbHVlIjoiSWNUNVJzazdBaStpTEdEVlZ4RVlcL20xTENWc3BqaFlibWJ4XC9sOUR6RmE1cnlVemszQmkwTTd6Yzl4eW11UnMyUFQ3Vlg4YjdZTENtU1hpQkhHU1d2UT09IiwibWFjIjoiMjI0YzlmM2Y2OTRhN2QxODViZDE5NjhkZDkzNWRlNjA4ZWIzYjBlMjZlNWIxYTg5NTY5ODBjMDg1ZWIyNDcwNSJ9",
+  `_clsk` = "mbo6on^1793035288842^73^1^s.clarity.ms/collect"
 )
 
 headers = c(
@@ -18,27 +23,27 @@ headers = c(
   origin = "https://my.duanshu.com",
   priority = "u=1, i",
   referer = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Chromium";v="154", "Google Chrome";v="154", "Not A(Brand";v="99"',
+  `sec-ch-ua` = '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
 
-params = list(
-  page = "2",
-  count = "10"
-)
-
-res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies))
+# params = list(
+#   page = "2",
+#   count = "10"
+# )
+# 
+# res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies))
 
 params = list(
   page = "1",
-  count = "1600"
+  count = "1700"
 )
 
 res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies)) 
@@ -58,7 +63,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-09-18")) %>% 
+  filter(create_time >= ymd("2026-10-06")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 
@@ -110,7 +115,8 @@ df %>%
   select(-类别) %>% 
   mutate(PC端链接 = str_replace_all(链接, "https://rstata.duanshu.com/#/course/", "https://rstata-pc.duanshu.com/course/detail/"),
          手机端链接 = paste0("<a target=\"_blank\" href=\"", 链接, "\">手机端链接</a>"),
-         PC端链接 = paste0("<a target=\"_blank\" href=\"", PC端链接, "\">PC端链接</a>")) %>% 
+         PC端链接 = paste0("<a target=\"_blank\" href=\"", PC端链接, "\">PC端链接</a>"),
+         复制 = "<button class=\"dtcopy\" onclick=\"copyRow(this)\">复制</button>") %>% 
   DT::datatable(width = "100%", height = "400px",
                 rownames = FALSE, # 去除表头
                 filter = "top", # 在顶部添加过滤控件
@@ -122,7 +128,7 @@ df %>%
                 ),
                 options = list(
                   columnDefs = list(
-                    list(visible = FALSE, targets = c(1))  # 隐藏第2列和第4列（索引从0开始）
+                    list(visible = FALSE, targets = c(1))  # 隐藏第2列（链接，索引从0开始）
                   ),
                   autoWidth = TRUE,
                   pageLength = 10, # 每页显示的数量
@@ -147,7 +153,50 @@ df %>%
                          ))
                   )
                 )
-  ) %>% 
+  ) -> dt_old
+
+# 复制功能所需的样式与脚本（复制「名称：手机端链接」）
+copy_style <- htmltools::tags$style(htmltools::HTML(
+  ".dtcopy{margin-left:8px;border:1px solid #3b6fe0;background:#fff;color:#3b6fe0;border-radius:8px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s ease}
+   .dtcopy:hover{background:#3b6fe0;color:#fff;box-shadow:0 3px 10px rgba(59,111,224,.3)}
+   .dtcopy.done{border-color:#27b06f;color:#27b06f}
+   .dtcopy.done:hover{background:#27b06f;color:#fff}"
+))
+copy_script <- htmltools::tags$script(htmltools::HTML(
+  "function copyText(text, btn){
+     function ok(){ if(btn){ btn.classList.add('done'); var t=btn.textContent; btn.textContent='已复制 ✓'; setTimeout(function(){ btn.textContent=t; btn.classList.remove('done'); }, 1200); } }
+     function fb(){ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ alert('复制失败，请手动复制'); } document.body.removeChild(ta); }
+     if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok).catch(fb); } else { fb(); }
+   }
+   function copyRow(btn){ var tr=btn.closest('tr'); if(!tr) return; var t=tr.cells[0].textContent.trim(); var link=''; var as=tr.getElementsByTagName('a'); for(var i=0;i<as.length;i++){ var h=as[i].getAttribute('href')||''; if(h.indexOf('rstata.duanshu.com/#/course/')!==-1){ link=h; break; } } if(!link && tr.cells[1]) link=tr.cells[1].textContent.trim(); copyText(t+'：'+link, btn); }"
+))
+
+# 仅做样式美化（不改变任何功能），与 index.html 的 navy 主题保持一致
+beautify_style <- htmltools::tags$style(htmltools::HTML(
+  "/* ===== RStata 课程索引：仅样式美化，不改变任何功能 ===== */
+   body{background:linear-gradient(135deg,#f4f7fc 0%,#eaeff8 100%) !important;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Source Han Sans SC',sans-serif !important}
+   #htmlwidget_container{max-width:1180px;margin:0 auto !important;padding:34px 20px 56px !important}
+   .dataTables_wrapper{background:#fff;border:1px solid #e6ecf7;border-radius:16px;box-shadow:0 10px 34px rgba(21,35,63,.10);padding:20px 20px 16px}
+   .dataTables_wrapper caption,table.dataTable caption{caption-side:top !important;text-align:center !important;font-size:26px !important;font-weight:700 !important;color:#1f3a8a !important;letter-spacing:.5px;padding:4px 0 18px !important}
+   table.dataTable thead th{background:#f2f6fd !important;color:#1f3a8a !important;font-weight:600;border-bottom:2px solid #d7e0f3 !important;padding:12px 14px !important;white-space:nowrap}
+   table.dataTable tbody td{padding:11px 14px !important;color:#36405a;border-top:1px solid #eef1f7 !important}
+   table.dataTable tbody tr:nth-child(even) td{background:#fafbfe}
+   table.dataTable tbody tr:hover td{background:#eef3ff !important}
+   table.dataTable tbody a{color:#3b6fe0;text-decoration:none}
+   table.dataTable tbody a:hover{text-decoration:underline}
+   .dataTables_wrapper .dataTables_filter input,.dataTables_wrapper tfoot input,.dataTables_wrapper .form-control{border:1px solid #d7e0f3 !important;border-radius:9px !important;padding:6px 11px !important;outline:none;box-shadow:none !important}
+   .dataTables_wrapper input:focus{border-color:#3b6fe0 !important;box-shadow:0 0 0 3px rgba(59,111,224,.15) !important}
+   .dataTables_wrapper tfoot th{background:#fbfcfe}
+   .dt-buttons .dt-button{background:linear-gradient(180deg,#4a7df0,#3b6fe0) !important;color:#fff !important;border:none !important;border-radius:10px !important;padding:8px 16px !important;font-size:13px !important;font-weight:600 !important;box-shadow:0 4px 12px rgba(59,111,224,.28) !important;margin:0 8px 8px 0 !important;transition:transform .12s ease,box-shadow .12s ease}
+   .dt-buttons .dt-button:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(59,111,224,.38) !important}
+   .dataTables_wrapper .dataTables_length select,.dataTables_wrapper .dataTables_length,.dataTables_wrapper .dataTables_info,.dataTables_wrapper .dataTables_filter label{color:#56627a !important;font-size:13px}
+   .dataTables_paginate .paginate_button{border:1px solid #e1e8f5 !important;border-radius:8px !important;color:#3b6fe0 !important;background:#fff !important;margin-left:4px !important}
+   .dataTables_paginate .paginate_button:hover{background:#eef3ff !important;border-color:#3b6fe0 !important}
+   .dataTables_paginate .paginate_button.current,.dataTables_paginate .paginate_button.current:hover{background:#3b6fe0 !important;color:#fff !important;border-color:#3b6fe0 !important}"
+))
+
+dt_old %>% 
+  htmlwidgets::appendContent(copy_style, copy_script, beautify_style) %>% 
   htmlwidgets::saveWidget("index-old.html", title = "RStata 课程与图表数据库索引") 
 
 # 读取原始 HTML 文件
@@ -257,6 +306,19 @@ tbody tr:hover{background:#f7f9fd}
 .pgsize{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
 .pgsize select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;outline:none;background:#fbfcfe;cursor:pointer;transition:.18s}
 .pgsize select:focus{border-color:var(--accent)}
+.chk{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);vertical-align:middle}
+tr.selected{background:#eef3ff}
+.card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,111,224,.22)}
+.copy-btn{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;transition:.18s;white-space:nowrap}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.done{border-color:var(--c-data);color:var(--c-data)}
+.selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);margin:14px 0}
+.selbar .info{color:var(--muted);font-size:13px}
+.selbar .info b{color:var(--accent)}
+.btn-sel{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.18s}
+.btn-sel:hover{background:var(--accent);color:#fff}
+.btn-sel.primary{background:var(--accent);color:#fff}
+.btn-sel[disabled]{opacity:.5;cursor:not-allowed}
 footer{max-width:1180px;margin:0 auto;padding:24px;text-align:center;color:var(--muted);font-size:13px}
 @media(max-width:760px){
   .stats{grid-template-columns:repeat(2,1fr)}
@@ -299,10 +361,16 @@ footer{max-width:1180px;margin:0 auto;padding:24px;text-align:center;color:var(-
       <button class="btn-dl" id="download">下载 CSV</button>
     </div>
   </section>
+  <div class="selbar" id="selbar">
+    <span class="info">已选 <b id="selCount">0</b> 项</span>
+    <button class="btn-sel" id="selectAllFiltered">全选筛选结果</button>
+    <button class="btn-sel primary" id="copySelected">复制选中</button>
+    <button class="btn-sel" id="clearSel">清空选择</button>
+  </div>
   <div class="resultcount" id="resultcount"></div>
   <div class="table-wrap" id="tableView">
     <table>
-      <thead><tr><th>类别</th><th>名称</th><th>访问</th></tr></thead>
+      <thead><tr><th style="width:42px"><input type="checkbox" class="chk" id="selectAllPage" title="全选本页" /></th><th>类别</th><th>名称</th><th>访问</th><th style="width:92px">复制</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
     <div id="emptyRow" class="empty" style="display:none">没有匹配的资源</div>
@@ -365,37 +433,49 @@ function renderTable(rows){
   if(!rows.length){ er.style.display=""; return; }
   er.style.display="none";
   rows.forEach(function(d){
+    var key=d["链接"];
     var tr=el("tr");
+    if(state.selected.has(key)) tr.className="selected";
+    var td0=el("td");
+    var cb=el("input","chk"); cb.type="checkbox"; cb.checked=state.selected.has(key);
+    cb.setAttribute("data-key", key);
+    cb.addEventListener("change", function(){ toggleSel(key, cb.checked); });
+    td0.appendChild(cb); tr.appendChild(td0);
     var td1=el("td"); td1.appendChild(el("span","badge "+d["类别"], d["类别"])); tr.appendChild(td1);
     tr.appendChild(el("td","title-cell", d["标题"]));
     var td3=el("td","links");
     td3.appendChild(makeLink(d["链接"],"m","手机端"));
     td3.appendChild(makeLink(d["PC端链接"],"p","PC端"));
     tr.appendChild(td3);
+    var td4=el("td");
+    var cp=el("button","copy-btn","复制");
+    cp.addEventListener("click", function(){ copyOne(d, cp); });
+    td4.appendChild(cp); tr.appendChild(td4);
     tb.appendChild(tr);
   });
+  syncSelUI();
 }
 function renderCards(rows){
   var box=document.getElementById("cardView"); box.innerHTML="";
   if(!rows.length){ box.appendChild(el("div","empty","没有匹配的资源")); return; }
   rows.forEach(function(d){
-    var card=el("div","card");
-    var top=el("div","top"); top.appendChild(el("span","badge "+d["类别"], d["类别"])); card.appendChild(top);
+    var key=d["链接"];
+    var card=el("div","card"); if(state.selected.has(key)) card.className="card selected";
+    var top=el("div","top"); top.appendChild(el("span","badge "+d["类别"], d["类别"]));
+    var cb=el("input","chk"); cb.type="checkbox"; cb.checked=state.selected.has(key); cb.setAttribute("data-key", key);
+    cb.addEventListener("change", function(){ toggleSel(key, cb.checked); });
+    top.appendChild(cb); card.appendChild(top);
     card.appendChild(el("div","ctitle", d["标题"]));
     var actions=el("div","cactions");
     actions.appendChild(makeLink(d["链接"],"m","手机端打开"));
     actions.appendChild(makeLink(d["PC端链接"],"p","PC端打开"));
     card.appendChild(actions);
-    var copy=el("button","copy","复制链接");
-    copy.setAttribute("data-link", d["链接"]);
-    copy.addEventListener("click", function(){
-      navigator.clipboard.writeText(d["链接"]).then(function(){
-        var t=copy.textContent; copy.textContent="已复制 ✓"; setTimeout(function(){ copy.textContent=t; }, 1200);
-      });
-    });
+    var copy=el("button","copy","复制：链接");
+    copy.addEventListener("click", function(){ copyOne(d, copy); });
     card.appendChild(copy);
     box.appendChild(card);
   });
+  syncSelUI();
 }
 function totalPages(total){
   if(state.pageSize==="all") return 1;
@@ -442,7 +522,36 @@ function renderAll(){
   document.getElementById("resultcount").textContent="共 " + all.length + " 项，第 " + state.page + " / " + tp + " 页，本页显示 " + rows.length + " 条";
   renderPager(all.length);
 }
-var state={cat:"全部",q:"",view:"table",page:1,pageSize:20};
+var state={cat:"全部",q:"",view:"table",page:1,pageSize:20,selected:new Set()};
+function copyText(text, btn){
+  function ok(){ if(btn){ btn.classList.add("done"); var t=btn.textContent; btn.textContent="已复制 ✓"; setTimeout(function(){ btn.textContent=t; btn.classList.remove("done"); }, 1200); } }
+  function fb(){ var ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.top="-9999px"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); ok(); }catch(e){ alert("复制失败，请手动复制"); } document.body.removeChild(ta); }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok).catch(fb); } else { fb(); }
+}
+function copyOne(d, btn){ copyText(d["标题"] + "：" + d["链接"], btn); }
+function toggleSel(key, on){ if(on) state.selected.add(key); else state.selected.delete(key); syncSelUI(); }
+function syncSelUI(){
+  var n=state.selected.size;
+  var sc=document.getElementById("selCount"); if(sc) sc.textContent=n;
+  var cs=document.getElementById("copySelected"); if(cs) cs.disabled=(n===0);
+  var sap=document.getElementById("selectAllPage");
+  if(sap){ var pageKeys=pageRows(filtered()).map(function(d){ return d["链接"]; }); var onPage=pageKeys.length>0 && pageKeys.every(function(k){ return state.selected.has(k); }); var some=pageKeys.some(function(k){ return state.selected.has(k); }); sap.checked=onPage; sap.indeterminate=(!onPage && some); }
+}
+document.getElementById("selectAllPage").addEventListener("change", function(){
+  var pageKeys=pageRows(filtered()).map(function(d){ return d["链接"]; });
+  if(this.checked){ pageKeys.forEach(function(k){ state.selected.add(k); }); } else { pageKeys.forEach(function(k){ state.selected.delete(k); }); }
+  syncSelUI(); renderTable(pageRows(filtered()));
+});
+document.getElementById("selectAllFiltered").addEventListener("click", function(){
+  filtered().forEach(function(d){ state.selected.add(d["链接"]); }); syncSelUI(); renderAll();
+});
+document.getElementById("copySelected").addEventListener("click", function(){
+  var items=DATA.filter(function(d){ return state.selected.has(d["链接"]); });
+  if(!items.length) return;
+  var text=items.map(function(d){ return d["标题"] + "：" + d["链接"]; }).join("\n");
+  copyText(text, this);
+});
+document.getElementById("clearSel").addEventListener("click", function(){ state.selected.clear(); syncSelUI(); renderAll(); });
 document.getElementById("search").addEventListener("input", function(e){ state.q=e.target.value; state.page=1; renderAll(); });
 document.querySelectorAll(".viewtoggle button").forEach(function(b){ b.onclick=function(){
   state.view=b.dataset.view;
