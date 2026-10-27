@@ -173,7 +173,7 @@
 <li>地理层级：全国 → 省 → 市 → 县（含经纬度与行政区代码）</li>
 <li>数据预览如下：</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230689945_794498.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230689945_794498.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="3317"></p>
 <p>数据包含的 29 个变量可大致分为四类：</p>
 <ul>
 <li>标识类：zgsid（子公司观测值编号）、证券代码、年份、统计截止日期、子公司名称</li>
@@ -183,11 +183,11 @@
 </ul>
 <p>这份数据的价值在于把「上市公司子公司」与「精确地理坐标 + 行政区划」对应起来，因此可作为空间分析的基础底表：例如研究上市公司子公司的地理集聚与扩张路径、刻画子公司规模与业绩的地域差异，或作为地理基础变量与夜间灯光、污染、专利、政府采购、土地出让等区域/POI 数据按经纬度或省市区县进行匹配合并（RStata 已基于该底表产出多份衍生匹配数据）。</p>
 <h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下图展示了 1999～2024 年各省份上市公司子公司的数量分布（基于省份级着色地图）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230704102_832129.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230704102_832129.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3529"></p>
 <p>下图展示了 1999～2024 年每年上市公司子公司数量的时间趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230705021_129896.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230705021_129896.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下面这张是 2024 年上市公司子公司的地理分布图（按省份着色）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230704499_114657.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/20/20/02b79j1bdbe1b168g4/common/content/1787230704499_114657.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3596"></p>
 <h2 id="处理代码" class="article-heading"><a href="#处理代码" class="headerlink" title="处理代码"></a>处理代码<a class="article-anchor" href="#处理代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面列出几段关键的处理代码（<code>code/</code> 文件夹，Stata 编写）。</p>
 <p><strong>1. 导入并合并原始子公司表、提取年份：</strong></p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 读取两份子公司情况表并合并</span></span><br><span class="line">import excel using <span class="string">&quot;上市公司子公司情况表214615838/FN_Fn061.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">save</span> data1, <span class="keyword">replace</span></span><br><span class="line">import excel using <span class="string">&quot;上市公司子公司情况表214615838/FN_Fn0611.xlsx&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">save</span> data2, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">append</span> using data2</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">in</span> 1</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 从统计截止日期中提取年份</span></span><br><span class="line"><span class="keyword">gen</span> 年份 = <span class="built_in">substr</span>(统计截止日期, 1, 4)</span><br><span class="line"><span class="keyword">destring</span> 年份, <span class="keyword">replace</span> force</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">mi</span>(年份)</span><br></pre></td></tr></table></figure>

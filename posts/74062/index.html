@@ -156,11 +156,11 @@
 <p>前几天给大家分享了区县和城市的逆温数据，今天我们再更新份省份版的，可能用处就没有上面的两份大了。</p>
 <p>首先我们先了解下<strong>逆温</strong>。正常情况下，海拔越高，气温越低，但是有时候会出现海拔高的地方气温反而更高，这个时候冷空气在下方，空气不易流通，污染物扩散慢。这种现象称为逆温，由于逆温对污染物扩散的外生性和相关性，所以<strong>逆温是研究空气污染影响很好的工具变量</strong>。</p>
 <h2 id="计算方法" class="article-heading"><a href="#计算方法" class="headerlink" title="计算方法"></a>计算方法<a class="article-anchor" href="#计算方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>逆温的衡量计算方法有很多，这里我们采用 Shuai Chen（2018）中的方法进行计算：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031309635_133362.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031309635_133362.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1294" height="772"></p>
 <p>不过文中对这种逆温的衡量计算方法并不完全准确，NASA 的 MERRA-2 数据集提供了 0.5 度×0.625 度分辨率、42 个气压层（不同的海拔有着不同的气压）的气温等数据，但是并不是每个格点在 42 个气压层都有数据，例如青藏高原的海拔在 5000 m 以上，底部很多气压层是没数据的：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">rast<span class="punctuation">(</span><span class="string">&quot;data/MERRA2_100.inst6_3d_ana_Np.19900718.SUB.nc&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line">cairo_pdf<span class="punctuation">(</span><span class="string">&quot;levtemp.pdf&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>rst<span class="punctuation">)</span></span><br><span class="line">dev.off<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031309841_131183.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031309841_131183.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1554" height="1550"></p>
 <p>所以我们计算逆温的应该采用每个格点近地的第一层和第二层（也就是最开始有数据的两层）。</p>
 <p>因此我们可以通过下面的流程计算中国各省份的逆温：</p>
 <blockquote>
@@ -171,16 +171,16 @@
 </blockquote>
 <p><strong>第一步</strong>：从 NASA 下载 1980 年至今的 MERRA-2 数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://disc.gsfc.nasa.gov/datasets/M2I6NPANA_5.12.4/summary">https://disc.gsfc.nasa.gov/datasets/M2I6NPANA_5.12.4/summary</a>（需要登陆注册）；</p>
 <p><strong>第二步</strong>：从下载到的 netCDF 数据提取近地的第一、二、三层数据（第三层数据可以用来进行稳健性分析），例如 2022 年 1 月 31 日的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031310241_982449.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/14/02b79j1bdbe1b168g4/common/content/1740031310241_982449.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1532" height="512"></p>
 <p><strong>第三步</strong>：把栅格数据准换成省份面板数据（使用的是 2021 年中国市级行政区划）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039601520_584388.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039601520_584388.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2700" height="2700"></p>
 <p><strong>第四步</strong>：比较第一层和第二层的平均气温就可以判断逆温情况了，如果第二层的气温高于第一层就是逆温，差值就是逆温强度，反之就不是逆温，逆温强度为 0（每天都有四个时点的数据，只有有一个时点的结果是逆温当天就视为逆温天）；</p>
 <p><strong>第五步</strong>：另外可以使用一三层的温度进行比较得到逆温2 和逆温强度2 用于稳健性检验。</p>
 <h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><h3 id="各省份逆温数据" class="article-heading"><a href="#各省份逆温数据" class="headerlink" title="各省份逆温数据"></a>各省份逆温数据<a class="article-anchor" href="#各省份逆温数据" aria-label="本节链接" title="复制本节链接"></a></h3><p>经过上述的计算就得到了 1980 年 1 月 1 日～2024 年 12 月 31 日的省份逆温数据：</p>
 <blockquote>
 <p>1980年～2024年省份逆温数据.rds</p>
 </blockquote>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039610392_615797.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039610392_615797.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2735"></p>
 <p>该数据包含如下变量，各个变量的含义如下：</p>
 <ul>
 <li>date：日期</li>
@@ -217,9 +217,9 @@
 
 <p>其中 days1 表示根据一二层判断的逆温天数，days3 表示根据一三层判断的逆温天数。</p>
 <p>这样就得到了 <code>1980～2024年各省份年逆温天数</code>数据：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039610016_147713.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039610016_147713.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4618" height="3282"></p>
 <p>下图展示了 2021 年各个省份的逆温天数分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039600749_422852.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/20/16/02b79j1bdbe1b168g4/common/content/1740039600749_422852.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="5400" height="2700"></p>
 <p>还挺有意思，原来华北地区的空气状况不好也跟逆温天太多有关系！</p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fc3e9aed756347f79899fbe0c9230df2">旧版本｜1980～2024 年中国各省份逆温数据（空气污染影响相关研究的工具变量）</a></p>

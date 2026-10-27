@@ -159,27 +159,27 @@
 </blockquote>
 <p>最近有培训班的小伙伴提出需要将工企数据和更新版的专利数据进行匹配，所以今天给大家分享的就是工企专利数据匹配的结果。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>工企和专利数据匹配结果的时间范围 1998～2014 年，各年匹配到的专利数量如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735820361872_814461.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735820361872_814461.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="2880"></p>
 <p>作为对比，上图还展示了寇宗来&amp;刘学锐(2020) 在「经济研究」中提供的工企和专利数据匹配结果，其中蓝色柱子表示本数据中各年专利数量，橙色柱子表示寇宗来&amp;刘学锐(2020)中各年专利数量。可以看出，寇宗来&amp;刘学锐(2020) 匹配的结果中在个别年份有缺失，虽然我们有些年份匹配的专利数量比寇宗来&amp;刘学锐(2020) 略少，这是由于我们用了精确匹配而非模糊匹配。</p>
 <p>数据格式方面，我提供了供 stata 读取的 dta 格式的数据。因为数据较大，我分年份存放了 1998～2014 年工企与专利数据匹配结果。以 2014 年为例，该数据是直接使用工企数据和专利数据匹配得到的，包含工企的变量和专利的变量，每条观测值是一条专利，预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822760814_622451.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822760814_622451.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2624" height="1598"></p>
 <p>为了便于大家使用，我还提供了历年工企各种类型专利申请与授权信息：</p>
 <ul>
 <li>1998~2014年工企各种类型专利申请数量（仅包含有专利申请的企业）.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822761552_267912.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822761552_267912.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2632" height="1610"></p>
 <ul>
 <li>1998~2014年工企各种类型专利授权数量（仅包含有专利授权的企业）.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822761938_276845.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/02/20/02b79j1bdbe1b168g4/common/content/1735822761938_276845.jpg?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2638" height="1606"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><ol>
 <li>专利数据中有个申请人变量，每个专利可能有多个申请人，申请人之间使用冒号分隔，因此需要首先处理申请人变量，处理思路如下：</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141131_477261.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141131_477261.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="798" height="266"></p>
 <ol start="2">
 <li>然后分别处理工企数据库里的企业名称和专利数据的申请人。具体处理方法是剔除企业名称中干扰匹配的一些字符（股份有限、集团有限、有限责任、有限公司、有限、责任、股份、公司、厂、” “、(集团)、（集团）、（、）、(、)、回族自治区、壮族自治区、维吾尔自治区、自治区、省、市、区、县）。很多文献会说自己采用了模糊匹配，实际上在模糊匹配课程（这里可以看到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我讲过模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配，这也应该就是我们的匹配结果不如寇宗来&amp;刘学悦（2020）的好的原因。">https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我讲过模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配，这也应该就是我们的匹配结果不如寇宗来&amp;刘学悦（2020）的好的原因。</a></li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141382_253258.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141382_253258.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="933" height="575"></p>
 <ol start="3">
 <li>直接使用专利数据中的申请人和工企数据中的企业名称匹配即可得到匹配结果。</li>
 </ol>
@@ -188,7 +188,7 @@
 <p>1998～2024 的专利引用与被引用信息及次数统计：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/de4968acb01047b3801c200e9cf7ed41">https://rstata.duanshu.com/#/brief/course/de4968acb01047b3801c200e9cf7ed41</a></p>
 </blockquote>
 <h2 id="注意事项" class="article-heading"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项<a class="article-anchor" href="#注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><p>在计算工企专利申请数量时需要注意，专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746140942_974282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746140942_974282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1612" height="112"></p>
 <p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。代码大致如下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*- 使用 duplicates drop 去除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br></pre></td></tr></table></figure>
 

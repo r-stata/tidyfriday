@@ -154,9 +154,9 @@
                 <p>前不久给大家更新了一份绿色专利数据：</p>
 <span id="more"></span>
 
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810258314_836655.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810258314_836655.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <p>最近有培训班的小伙伴提出需要将金融网点机构和更新版的绿色专利数据进行匹配，但是数据量比较大，希望我能帮忙处理一下。金融网点机构的数据我之前也分享过：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810281552_144692.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810281552_144692.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <p>今天给大家分享的就是这份<code>金融机构网点和绿色专利数据匹配</code>的结果。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>数据的时间范围为 1988～2022 年，绿色专利数据里面有分类号和主分类号两个变量，所以匹配的结果也分为两种：</p>
 <ol>
@@ -164,11 +164,11 @@
 <li>根据主分类号筛选。</li>
 </ol>
 <p>例如根据分类号筛选的 2001～2022 年金融机构网点与绿色专利数据匹配情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810227408_681894.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810227408_681894.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>dta 格式的数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810226608_229842.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/22/02b79j1bdbe1b168g4/common/content/1704810226608_229842.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1454" height="1098"></p>
 <h2 id="注意事项" class="article-heading"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项<a class="article-anchor" href="#注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><p>在计算绿色专利申请数量时需要注意，专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/21/02b79j1bdbe1b168g4/common/content/1704807274261_928726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/01/09/21/02b79j1bdbe1b168g4/common/content/1704807274261_928726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1612" height="112"></p>
 <p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*- 使用 duplicates drop 去除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br></pre></td></tr></table></figure>
 

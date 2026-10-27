@@ -1,20 +1,16 @@
 library(tidyverse)
 library(httr)
 
-library(httr)
-
 cookies = c(
   csrftoken = "BkH8VBLsUUJiN1w41FirgliSCFcJAVD8zdiVNqbAZYMHrz8av7iM0tp8xmw225xN",
-  `_clck` = "164110b^2^gam^0^2444",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1792854977,1792927848,1792999392,1793034405",
-  HMACCOUNT = "F799D9102E45B06F",
-  auid = "aa33f7c633964472bb65903d2e61909c",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1792927848,1792999392,1793034405,1793038224",
+  `_clck` = "164110b^2^gan^0^2444",
+  auid = "32c4d231f6e84a038da6c5ec9121655d",
   user_info = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiIyNTg4YzI5YmU1M2U0MTVmODNmMDAxODQxZmZmOTZjZSIsImV4cCI6MTc5MzA1NjY1NH0.9E1bbMhysPvuN7vwUBUYCKPCEk5FVQ7bpPAHRmUyNOM",
-  Hm_lpvt_8659756219f35439f2eecb18bd255656 = "1793035163",
-  `ds-csrf-token` = "eyJpdiI6IlhDaktPYmxVeHpheXpPNW1PREFJNXc9PSIsInZhbHVlIjoielI2d0J0M1lEMTR5ZEpxdk53ZnZ4UDhJdHA4MXA0emo4eERNXC9ESmVQR1ZLdm5jNHkyWFpsUGJHNU1ObEdPNks5UVNXT210Z2cxS1U5U1hxcjluVUZRPT0iLCJtYWMiOiI2YjY1ZTJiMTkxMmNmNmM0YWRjNmQ4Yzg1MTE1NmRkMmM5OTY3MjFlNTM4YmI2MzY1MjBmYzljOTRlYjZjYzczIn0=",
-  deprecated_duanshu_session = "eyJpdiI6IkNaclBPU0JHenBaMDVIem0wZTlJbUE9PSIsInZhbHVlIjoiSWNUNVJzazdBaStpTEdEVlZ4RVlcL20xTENWc3BqaFlibWJ4XC9sOUR6RmE1cnlVemszQmkwTTd6Yzl4eW11UnMyUFQ3Vlg4YjdZTENtU1hpQkhHU1d2UT09IiwibWFjIjoiMjI0YzlmM2Y2OTRhN2QxODViZDE5NjhkZDkzNWRlNjA4ZWIzYjBlMjZlNWIxYTg5NTY5ODBjMDg1ZWIyNDcwNSJ9",
-  `_clsk` = "mbo6on^1793035288842^73^1^s.clarity.ms/collect"
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI2M2FmMzc5M2VjMmQ0YWM4OWY4NzBhMmU3MWIwODg1MCIsImV4cCI6MTc5MzEzNjgwOH0.le9AoHnoZJnds6Fte4iJbBEKGfi9S3TAvqDhXsAWWR4",
+  `_clsk` = "1i9e6ab^1793115211117^12^1^s.clarity.ms/collect",
+  `ds-csrf-token` = "eyJpdiI6IlwvYVQzTENmNEFhQzRucWNZVTFrOWlBPT0iLCJ2YWx1ZSI6IlJDZ2lFN0MyazhJZnhRbEpiUUdPampRSGZWVnNzWEd5cFQ1VzFScHlzK2NDY2s1aFgzOVN1ME1nUkNVWjUyZ1JiaW9GSGVCVUdYdWRLbGxDdXViRjZRPT0iLCJtYWMiOiIyMjUzMzRiMTY4MGI0ZjY1ODZjMWEyNjJkZWZlYTY0MzYyYzBjMzkyYmNhOTMzOGVjNzA4MjgwMDYyNDUzZDk2In0=",
+  deprecated_duanshu_session = "eyJpdiI6Im5RZkJPSFhiRFwvMERHWVhUU2hOYm1nPT0iLCJ2YWx1ZSI6IlRVd1RDazNxZ29uVGJFNE5uaktWT0JGOEdrajhycG5ONXQ4dGVEREMzOERuNGdEaUx0czhQNXJHQnpVYWkrREorakRQcGlDc3VMdTh1YlJ6amdscHVnPT0iLCJtYWMiOiIxMjU4OWJkNTU0NTBiNDY2MmU4ODM2ZTdlZTljNjcxY2Q4Y2I5ZDcwZGIyNDE3NTgwY2I2ZTJiODZkMDAxYzViIn0="
 )
 
 headers = c(
@@ -23,23 +19,16 @@ headers = c(
   origin = "https://my.duanshu.com",
   priority = "u=1, i",
   referer = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
+  `sec-ch-ua` = '"Not:A-Brand";v="8", "Chromium";v="156", "Google Chrome";v="156"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
-
-# params = list(
-#   page = "2",
-#   count = "10"
-# )
-# 
-# res <- httr::GET(url = "https://api.duanshu.com/admin/content/course/lists", httr::add_headers(.headers=headers), query = params, httr::set_cookies(.cookies = cookies))
 
 params = list(
   page = "1",
@@ -63,7 +52,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd("2026-10-06")) %>% 
+  filter(create_time >= ymd_hms("2026-10-27 00:25:26")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 
@@ -192,11 +181,94 @@ beautify_style <- htmltools::tags$style(htmltools::HTML(
    .dataTables_wrapper .dataTables_length select,.dataTables_wrapper .dataTables_length,.dataTables_wrapper .dataTables_info,.dataTables_wrapper .dataTables_filter label{color:#56627a !important;font-size:13px}
    .dataTables_paginate .paginate_button{border:1px solid #e1e8f5 !important;border-radius:8px !important;color:#3b6fe0 !important;background:#fff !important;margin-left:4px !important}
    .dataTables_paginate .paginate_button:hover{background:#eef3ff !important;border-color:#3b6fe0 !important}
-   .dataTables_paginate .paginate_button.current,.dataTables_paginate .paginate_button.current:hover{background:#3b6fe0 !important;color:#fff !important;border-color:#3b6fe0 !important}"
+   .dataTables_paginate .paginate_button.current,.dataTables_paginate .paginate_button.current:hover{background:#3b6fe0 !important;color:#fff !important;border-color:#3b6fe0 !important}
+   /* 嵌入博客文章（iframe 内）时去掉独立页面的留白与悬浮卡片感，做到无缝融合 */
+   .in-iframe body{background:#fff !important}
+   .in-iframe #htmlwidget_container{max-width:100% !important;margin:0 !important;padding:0 !important}
+   .in-iframe .dataTables_wrapper{box-shadow:none !important;border-radius:12px !important}"
+))
+
+# 嵌入博客（iframe）时：自动撑高，消除滚动条与“盒子感”
+embed_script <- htmltools::tags$script(htmltools::HTML(
+  "(function(){
+    function sendHeight(){
+      try{
+        var d=document.documentElement;
+        var h=Math.ceil(Math.max(d.scrollHeight,d.offsetHeight,document.body.scrollHeight||0));
+        if(window.self!==window.top){ window.parent.postMessage({__rsdbResize:true,height:h},'*'); }
+      }catch(e){}
+    }
+    if('ResizeObserver' in window){ try{ var ro=new ResizeObserver(sendHeight); ro.observe(document.documentElement); }catch(e){} }
+    window.addEventListener('resize',sendHeight);
+    window.addEventListener('load',sendHeight);
+    document.addEventListener('draw.dt',function(){ setTimeout(sendHeight,30); });
+    document.addEventListener('init.dt',function(){ setTimeout(sendHeight,30); });
+    [200,600,1200,2000].forEach(function(t){ setTimeout(sendHeight,t); });
+  })();"
+))
+
+# 批量选择与复制（复刻 index.html 交互：勾选 + 全选本页/筛选结果 + 复制选中）
+batch_style <- htmltools::tags$style(htmltools::HTML(
+  ".dataTables_wrapper .selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid #e6ecf7;border-radius:12px;padding:10px 14px;margin:0 0 14px}
+   .dataTables_wrapper .selbar .info{color:#56627a;font-size:13px}
+   .dataTables_wrapper .selbar .info b{color:#3b6fe0}
+   .dataTables_wrapper .btn-sel{border:1px solid #d7e0f3;background:#fff;color:#36405a;padding:7px 14px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+   .dataTables_wrapper .btn-sel:hover{border-color:#3b6fe0;color:#3b6fe0}
+   .dataTables_wrapper .btn-sel.primary{background:linear-gradient(180deg,#4a7df0,#3b6fe0);color:#fff;border:none}
+   .dataTables_wrapper .btn-sel.primary:hover{filter:brightness(1.05)}
+   .dataTables_wrapper .btn-sel:disabled{opacity:.5;cursor:not-allowed}
+   .dataTables_wrapper .chk{width:16px;height:16px;cursor:pointer;accent-color:#3b6fe0;vertical-align:middle}
+   table.dataTable tbody tr.selected td{background:#eef3ff !important}"
+))
+
+batch_script <- htmltools::tags$script(htmltools::HTML(
+  "(function(){
+    var selMap={};
+    function J(){ return window.jQuery||window.$; }
+    function tableEl(){ return document.querySelector('.dataTables_wrapper table.dataTable'); }
+    function api(){ var t=tableEl(), j=J(); return (t&&j)? j(t).DataTable() : null; }
+    function rowKey(tr){ var as=tr.getElementsByTagName('a'); for(var i=0;i<as.length;i++){ var h=as[i].getAttribute('href')||''; if(h.indexOf('rstata.duanshu.com/#/course/')!==-1) return h; } return tr.cells[0]?tr.cells[0].textContent.trim():''; }
+    function rowHandler(tr){ return function(){ var key=rowKey(tr); if(this.checked){ selMap[key]={t:tr.cells[0].textContent.trim(), l:key}; } else { delete selMap[key]; } tr.classList.toggle('selected', this.checked); syncSelUI(); }; }
+    function ensureSelbar(){
+      var w=document.querySelector('.dataTables_wrapper'); if(!w||document.getElementById('selbar')) return;
+      var bar=document.createElement('div'); bar.className='selbar'; bar.id='selbar';
+      bar.innerHTML='<span class=\"info\" id=\"selInfo\">已选 <b>0</b> 项</span><button class=\"btn-sel\" id=\"selectAllFiltered\">全选筛选结果</button><button class=\"btn-sel primary\" id=\"copySelected\" disabled>复制选中</button><button class=\"btn-sel\" id=\"clearSel\">清除</button>';
+      w.insertBefore(bar, w.firstChild);
+      document.getElementById('selectAllFiltered').addEventListener('click', function(){ var a=api(); if(!a) return; a.rows({search:'applied'}).every(function(){ var d=this.data(); selMap[d[1]]={t:d[0], l:d[1]}; }); syncSelUI(); ensureChecks(); });
+      document.getElementById('copySelected').addEventListener('click', function(){ var keys=Object.keys(selMap); if(!keys.length) return; var text=keys.map(function(k){ return selMap[k].t+'：'+selMap[k].l; }).join('\\n'); copyText(text, this); });
+      document.getElementById('clearSel').addEventListener('click', function(){ selMap={}; syncSelUI(); ensureChecks(); });
+    }
+    function ensureChecks(){
+      var t=tableEl(); if(!t) return;
+      var th0=t.querySelector('thead th:first-child');
+      if(th0 && !th0.querySelector('#selectAllPage')){
+        th0.innerHTML='<input type=\"checkbox\" class=\"chk\" id=\"selectAllPage\" title=\"全选本页\">';
+        document.getElementById('selectAllPage').addEventListener('change', function(){ var a=api(); if(!a) return; var on=this.checked; a.rows({page:'current', search:'applied'}).every(function(){ var d=this.data(); if(on){ selMap[d[1]]={t:d[0], l:d[1]}; } else { delete selMap[d[1]]; } }); syncSelUI(); ensureChecks(); });
+      }
+      var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
+      rows.forEach(function(tr){ var td0=tr.querySelector('td:first-child'); if(!td0) return; var k=rowKey(tr); var cb=td0.querySelector('.rowchk'); if(!cb){ cb=document.createElement('input'); cb.type='checkbox'; cb.className='rowchk'; cb.style.marginRight='6px'; cb.addEventListener('change', rowHandler(tr)); td0.insertBefore(cb, td0.firstChild); } cb.checked=!!selMap[k]; tr.classList.toggle('selected', cb.checked); });
+      syncHeader();
+    }
+    function syncHeader(){
+      var sap=document.getElementById('selectAllPage'); if(!sap) return;
+      var t=tableEl(); if(!t) return;
+      var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
+      var keys=rows.map(rowKey);
+      var onPage=keys.length>0 && keys.every(function(k){ return !!selMap[k]; });
+      var some=keys.some(function(k){ return !!selMap[k]; });
+      sap.checked=onPage; sap.indeterminate=(!onPage && some);
+    }
+    function syncSelUI(){ var n=Object.keys(selMap).length; var info=document.getElementById('selInfo'); if(info) info.innerHTML='已选 <b>'+n+'</b> 项'; var cs=document.getElementById('copySelected'); if(cs) cs.disabled=(n===0); syncHeader(); }
+    function init(){ ensureSelbar(); ensureChecks(); }
+    document.addEventListener('init.dt', init);
+    document.addEventListener('draw.dt', function(){ ensureChecks(); });
+    document.addEventListener('length.dt', function(){ ensureChecks(); });
+    [200,500,1000,2000].forEach(function(t){ setTimeout(init, t); });
+  })();"
 ))
 
 dt_old %>% 
-  htmlwidgets::appendContent(copy_style, copy_script, beautify_style) %>% 
+  htmlwidgets::appendContent(copy_style, copy_script, beautify_style, embed_script, batch_style, batch_script) %>% 
   htmlwidgets::saveWidget("index-old.html", title = "RStata 课程与图表数据库索引") 
 
 # 读取原始 HTML 文件
@@ -207,6 +279,12 @@ modified_content <- sub(
   "</head>",
   '<link rel="icon" href="https://tidyfriday.cn/images/pad.svg">\n</head>',
   html_content
+)
+# 若是嵌入博客（iframe）内打开，则给 <html> 加 in-iframe 类，便于无缝样式接管
+modified_content <- sub(
+  '<body style="background-color: white;">',
+  '<body style="background-color: white;">\n<script>if(window.self!==window.top){document.documentElement.className+=\' in-iframe\';}</script>',
+  modified_content
 )
 
 # 保存修改后的文件
@@ -548,7 +626,7 @@ document.getElementById("selectAllFiltered").addEventListener("click", function(
 document.getElementById("copySelected").addEventListener("click", function(){
   var items=DATA.filter(function(d){ return state.selected.has(d["链接"]); });
   if(!items.length) return;
-  var text=items.map(function(d){ return d["标题"] + "：" + d["链接"]; }).join("\n");
+  var text=items.map(function(d){ return d["标题"] + "：" + d["链接"]; }).join(String.fromCharCode(10));
   copyText(text, this);
 });
 document.getElementById("clearSel").addEventListener("click", function(){ state.selected.clear(); syncSelUI(); renderAll(); });

@@ -167,21 +167,21 @@
 <ul>
 <li>1998~2014年工企与WIPO绿色专利数据匹配结果.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624954266_624441.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624954266_624441.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="3416"></p>
 <p>第二份数据是对第一组数据的汇总和统计，需要注意统计专利数量的时候要去除重复的，具体可以参考下文的<strong>注意事项</strong>：</p>
 <ul>
 <li>1998~2014年工企WIPO绿色专利申请与授权数量统计.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624955002_219652.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624955002_219652.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4618" height="3348"></p>
 <p>第三份数据是绿色专利分类：</p>
 <ul>
 <li>WIPO绿色专利分类.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624955353_246257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624955353_246257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4644" height="3297"></p>
 <p>下图展示了历年各工企绿色专利申请与授权量变化：</p>
 <p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/07/21/02b79j1bdbe1b168g4/common/content/1746624885956_171769.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
 <h2 id="注意事项" class="article-heading"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项<a class="article-anchor" href="#注意事项" aria-label="本节链接" title="复制本节链接"></a></h2><p>在计算工企绿色专利申请数量时需要注意，专利数据里面有很多申请和授权同时存在的专利，在统计专利数量的时候应该先去除这种重复情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/06/23/02b79j1bdbe1b168g4/common/content/1746544798234_184885.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/06/23/02b79j1bdbe1b168g4/common/content/1746544798234_184885.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1612" height="112"></p>
 <p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*- 使用 duplicates drop 去除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br></pre></td></tr></table></figure>
 

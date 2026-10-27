@@ -156,19 +156,19 @@
 <blockquote>
 <p>2000～2022 年上市公司的办公地址和注册地址（含经纬度、省市区县及搬迁距离）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/3a50d0aa7a274b3b9ae1b543bec92fab">https://rstata.duanshu.com/#/brief/course/3a50d0aa7a274b3b9ae1b543bec92fab</a></p>
 </blockquote>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647175105_192638.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647175105_192638.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="2880"></p>
 <p>之前也给大家分享过金融许可证持有机构列表的数据：</p>
 <blockquote>
 <p>金融许可证持有机构列表、经纬度及省市区县分布数据（含已退出的金融机构网点）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/505d39a727574abfb66d8fe838770b71">https://rstata.duanshu.com/#/brief/course/505d39a727574abfb66d8fe838770b71</a></p>
 </blockquote>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647174197_789412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647174197_789412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3596"></p>
 <p>使用这两份数据就可以计算历年上市公司办公地址和注册地址周边一定范围内的金融机构网点数量了。</p>
 <p>之前也给大家分享过工企的：</p>
 <blockquote>
 <p>1998～2014 年工企 5km、10km、15km、20km、25km 和 30 km 范围内的金融机构网点数量（分机构类型）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/3d6c7e2225174554bdd3104327eac13c">https://rstata.duanshu.com/#/brief/course/3d6c7e2225174554bdd3104327eac13c</a></p>
 </blockquote>
 <p>首先我们可以给金融机构生成一个编号 yhid，也就是附件中的 <code>金融机构网点数据yhid（2023年8月7日更新，含经纬度和所处省市区县）.dta</code> 文件。</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647175764_982823.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647175764_982823.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3164" height="1686"></p>
 <p>然后根据批准日期、退出日期可以把这份数据整理成年度面板数据：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> 批准日期 = 发证日期 <span class="keyword">if</span> <span class="built_in">mi</span>(批准日期)</span><br><span class="line"><span class="keyword">order</span> 批准日期 退出日期</span><br><span class="line"><span class="keyword">replace</span> 退出日期 = <span class="built_in">mdy</span>(1, 1, 2050) <span class="keyword">if</span> <span class="built_in">mi</span>(退出日期)</span><br><span class="line"><span class="keyword">replace</span> 批准日期 = <span class="built_in">mdy</span>(1, 1, 1949) <span class="keyword">if</span> <span class="built_in">mi</span>(批准日期)</span><br><span class="line"><span class="keyword">save</span> data1, <span class="keyword">replace</span></span><br><span class="line"></span><br><span class="line"><span class="comment">*- 每年的金融机构数据</span></span><br><span class="line"><span class="keyword">cap</span> <span class="keyword">mkdir</span> <span class="string">&quot;分年数据&quot;</span></span><br><span class="line"><span class="keyword">forval</span> y = 1990/2022 &#123;</span><br><span class="line"> <span class="keyword">use</span> data1, <span class="keyword">clear</span></span><br><span class="line"> <span class="keyword">keep</span> <span class="keyword">if</span> 批准日期 &lt;= <span class="built_in">mdy</span>(12, 31, <span class="symbol">`y&#x27;</span>) &amp; 退出日期 &gt;= <span class="built_in">mdy</span>(1, 1, <span class="symbol">`y&#x27;</span>)</span><br><span class="line"> <span class="keyword">keep</span> yhid 机构名称 经度 纬度</span><br><span class="line"> <span class="keyword">gen</span> 年份 = <span class="symbol">`y&#x27;</span></span><br><span class="line"> <span class="keyword">save</span> 分年数据/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 合并所有的</span></span><br><span class="line"><span class="keyword">use</span> 分年数据/1990, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">forval</span> y = 1991/2022 &#123;</span><br><span class="line"> <span class="keyword">append</span> using 分年数据/<span class="symbol">`y&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">save</span> 金融机构面板数据, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
 
@@ -181,12 +181,12 @@
 <li>上市公司办公地址与金融机构网点的距离（&lt;=30km）.dta</li>
 </ul>
 <p>下图展示了 2010 年平安银行周边 5km 的金融机构分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647177052_345857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647177052_345857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1680" height="1754"></p>
 <p>通过分距离汇总就可以得到历年各上市公司周边 1km、2km、3km、4km、5km、10km、15km、20km、25km、30km 各种类型的金融机构网点数量了：</p>
 <ul>
 <li>1990~2022年上市公司办公地址及注册地址周边1～30km范围内各种类型金融机构的数量.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647176412_643282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/09/15/02b79j1bdbe1b168g4/common/content/1712647176412_643282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3160" height="1688"></p>
 <p>这里的机构类型分类标准如下：</p>
 <ol>
 <li>政策性银行：原数据中机构类型变量为 “政策性银行” 的；</li>

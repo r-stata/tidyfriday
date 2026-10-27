@@ -154,17 +154,17 @@
                 <p>之前给大家分享过不少碳排放相关的数据，例如：</p>
 <span id="more"></span>
 
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529135922_732756.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529140486_279522.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529146730_428712.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529156655_271629.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529165508_392432.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529135922_732756.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529140486_279522.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529146730_428712.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529156655_271629.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529165508_392432.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>不过大多都是一些宏观层面的碳排放数据，只有最后一个是上市公司的，只是时间范围特别段，实用性有限。</p>
 <p>在其他研究中，经常我们会使用例如样本所在城市的人口、GDP 作为该样本本身变量的一些代理变量。因此我想是不是也可以使用上市公司周边一定区域的碳排放量作为其自身碳排放量的代理（这种做法的问题会很多，但是如果实在没有更好的方法，或许也是一种手段）。</p>
 <p>借助地理计算，我们可以构建工企周围半径一定距离的范围，然后以此来裁剪「1970～2021 年中国各省市区县 CO2 排放量面板数据 &amp; 栅格数据」中的栅格数据得到该范围内的碳排放总量。</p>
 <p>前不久给大家分享过上市公司周边的碳排放数据，今天再给大家分享一份工企的。</p>
 <p>工企数据我使用的是之前分享的这个：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529179257_377228.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688529179257_377228.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>其中经纬度是使用高德地图地理编码接口进行解析的。</p>
 <p>首先分别生成了工企地址周边 1km、2km、3km、4km、5km 的缓冲区（因为计算量非常大，所以这次没有计算 10km、15km 和 20km 的），例如注册地址 5km 的缓冲区是这样生成的：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;1998～2014年工企地理位置面板数据.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  filter<span class="punctuation">(</span>年份 <span class="operator">==</span> <span class="number">2014</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>gqid<span class="punctuation">,</span> contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2_5km</span><br></pre></td></tr></table></figure>
@@ -182,12 +182,12 @@
 <li>工企周边的碳排放.dta</li>
 </ul>
 <p>例如 dta 格式的数据是这样的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528943072_456412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528943072_456412.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1620" height="890"></p>
 <p>为了便于大家理解这个计算过程，我绘制了一副这样的图：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528943637_947485.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528943637_947485.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2438" height="1950"></p>
 <p>方格子就是栅格数据，圆圈是工企周围 5km 范围的缓冲区。例如某个缓冲区和四个格子交叉，那么就是根据交叉部分的比例计算其范围内的碳排放总量。</p>
 <p>作为演示，下图展示了历年来中国印刷总公司周边1～5km范围内碳排放总量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528944241_537744.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/07/05/11/02b79j1bdbe1b168g4/common/content/1688528944241_537744.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <blockquote>
 <p>注意数据里面的碳排放单位均为吨，绘图的时候处理成了万吨。</p>
 </blockquote>

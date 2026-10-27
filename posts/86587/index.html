@@ -154,16 +154,16 @@
                 <p>之前给大家分享过不少碳排放相关的数据，例如：</p>
 <span id="more"></span>
 
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317316000_682169.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317321465_276225.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317327586_928622.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317338816_455415.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317345152_495946.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317316000_682169.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317321465_276225.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317327586_928622.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317338816_455415.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317345152_495946.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>不过大多都是一些宏观层面的碳排放数据，只有最后一个是上市公司的，只是时间范围特别段，实用性有限。</p>
 <p>在其他研究中，经常我们会使用例如样本所在城市的人口、GDP 作为该样本本身变量的一些代理变量。因此我想是不是也可以使用上市公司周边一定区域的碳排放量作为其自身碳排放量的代理（这种做法的问题会很多，但是如果实在没有更好的方法，或许也是一种手段）。</p>
 <p>借助地理计算，我们可以构建上市公司周围半径一定距离的范围，然后以此来裁剪「1970～2021 年中国各省市区县 CO2 排放量面板数据 &amp; 栅格数据」中的栅格数据得到该范围内的碳排放总量。</p>
 <p>上市公司数据我使用的是之前分享的这个：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317372922_346988.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317372922_346988.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>来源于和讯网和国泰安数据库，共计 5415 家上市公司的基本信息（含办公地址和注册地址的经纬度）。</p>
 <p>首先分别生成了上市公司办公地址和注册地址周边 1km、2km、3km、4km、5km、10km、15km、20km 的缓冲区，例如注册地址 5km 的缓冲区是这样生成的：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>sf<span class="punctuation">)</span></span><br><span class="line">haven<span class="operator">::</span>read_dta<span class="punctuation">(</span><span class="string">&quot;上市公司基本资料及办公地址与注册地址经纬度信息.dta&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  mutate<span class="punctuation">(</span>gsid <span class="operator">=</span> row_number<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>gsid<span class="punctuation">,</span> 股票代码<span class="punctuation">,</span> 股票名称<span class="punctuation">,</span> 公司名称<span class="punctuation">,</span> contains<span class="punctuation">(</span><span class="string">&quot;度&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df1</span><br><span class="line"></span><br><span class="line">df1 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span>gsid<span class="punctuation">,</span> 股票代码<span class="punctuation">,</span> 股票名称<span class="punctuation">,</span> 公司名称<span class="punctuation">,</span> contains<span class="punctuation">(</span><span class="string">&quot;注册地址&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_as_sf<span class="punctuation">(</span>coords <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;注册地址经度&quot;</span><span class="punctuation">,</span> <span class="string">&quot;注册地址纬度&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> crs <span class="operator">=</span> <span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2</span><br><span class="line"></span><br><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2_5km</span><br></pre></td></tr></table></figure>
@@ -185,12 +185,12 @@
 <li>历年上市公司周边碳排放总量.xlsx</li>
 </ol>
 <p>例如 dta 格式的数据是这样的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317387006_468657.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317387006_468657.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2546" height="1656"></p>
 <p>为了便于大家理解这个计算过程，我绘制了一副这样的图：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317389764_694218.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317389764_694218.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1998" height="1690"></p>
 <p>方格子就是栅格数据，圆圈是上市公司周围 5km 范围的缓冲区。例如某个缓冲区和四个格子交叉，那么就是根据交叉部分的比例计算其范围内的碳排放总量。</p>
 <p>作为演示，下图展示了历年来平安银行（深发展）周边的碳排放量增长趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317419108_142122.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/21/11/02b79j1bdbe1b168g4/common/content/1687317419108_142122.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3000" height="2400"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/1db40a28078840afb8a63fd664d6fff5">旧版本｜1985～2021 年上市公司周边碳排放量面板数据</a></p>
 </blockquote>

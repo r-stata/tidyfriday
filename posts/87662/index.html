@@ -156,15 +156,15 @@
 <blockquote>
 <p>如何判断工企业在南方还是北方 &amp; 计算每个工企业距离秦岭淮河线的距离？：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8a4e1e28c1e54c30a7d6996823648242">https://rstata.duanshu.com/#/course/8a4e1e28c1e54c30a7d6996823648242</a></p>
 </blockquote>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982288518_933833.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982288518_933833.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1778"></p>
 <p>最近有培训班的小伙伴问是否也可以计算下工企所处的东西部属性及其与胡焕庸线的距离，这不就来了！</p>
 <h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>通常我们使用胡焕庸线划分东西部，胡焕庸线也即黑河-腾冲线，是我国地理学家胡焕庸在 1935 年提出的划分我国人口密度的对比线，例如之前使用 R 语言绘制的这幅图人口密度图：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982287337_645274.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982287337_645274.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2442" height="1590"></p>
 <blockquote>
 <p>该图来源于课程：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/8f921af271a04b6db79c52ce48a04d49">https://rstata.duanshu.com/#/brief/course/8f921af271a04b6db79c52ce48a04d49</a></p>
 </blockquote>
 <p>数据格式方面，我提供了 dta 格式的<code>工企的东西部及其与胡焕庸线的距离</code>，时间范围是 1998～2014 年，经过计算之后一共得到了 471.8 万条结果：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982288204_314483.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982288204_314483.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1092" height="986"></p>
 <p>包含如下变量：</p>
 <ul>
 <li>gqid</li>
@@ -174,9 +174,9 @@
 <li>与胡焕庸线的距离_km</li>
 </ul>
 <p>下图以 2014 年为例，展示了中国工业企业与胡焕庸线的距离：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982289003_196257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982289003_196257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1778"></p>
 <h2 id="处理方法" class="article-heading"><a href="#处理方法" class="headerlink" title="处理方法"></a>处理方法<a class="article-anchor" href="#处理方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>通常我们使用胡焕庸线划分东西部，不过胡焕庸线是线条元素，不能用于经纬度的判别。所以我们需要生成东西部区域的多边形。一种思路就是先生成中国范围的方框，然后延长胡焕庸线把这个方框切分成两个区域：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982287829_956288.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/06/15/02b79j1bdbe1b168g4/common/content/1714982287829_956288.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1955"></p>
 <p>使用胡焕庸线划分东西之后，就可以对工企进行东西部分类了。首先把工企地理位置数据转换成 sf 对象，再计算工企距离胡焕庸线的距离，就可以得到附件中的<code>工企的东西部及其与胡焕庸线的距离.dta</code>了。</p>
 <p>对处理过程感兴趣的小伙伴可以学习下面的课程：</p>
 <blockquote>

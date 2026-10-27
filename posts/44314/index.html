@@ -164,9 +164,9 @@
 <li>1985~2024年各乡镇各类型土地覆盖面积面板数据.dta</li>
 </ul>
 <p>数据包含了乡镇名称和行政区划代码、各种覆被类型面积，预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769580862_999978.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769580862_999978.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2640"></p>
 <p>图表展示效果更好些。下图展示了 2024 年各乡镇耕地面积：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769573811_262331.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769573811_262331.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2464" height="1794"></p>
 <h2 id="处理方法" class="article-heading"><a href="#处理方法" class="headerlink" title="处理方法"></a>处理方法<a class="article-anchor" href="#处理方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>对栅格数据的裁剪与面积汇总感兴趣的小伙伴可以学习下面这个课程：</p>
 <blockquote>
 <p>栅格数据的裁剪与面积汇总——基于 R 语言的方法：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d2c2710928f44ad7a7518b8a178562c0">https://rstata.duanshu.com/#/course/d2c2710928f44ad7a7518b8a178562c0</a></p>
@@ -174,7 +174,7 @@
 <p>不过这次的数据处理方法和课程里面讲解的有所差异，因为这个数据并不是要分区域求均值之类的统计量，而是分区域统计每种植被类型的像元数。该数据一共包含了如下几种类型：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">readxl<span class="operator">::</span>read_xlsx<span class="punctuation">(</span><span class="string">&quot;CLCD_classificationsystem.xlsx&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  knitr<span class="operator">::</span>kable<span class="punctuation">(</span>align <span class="operator">=</span> <span class="string">&quot;c&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769581269_923814.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/12/03/21/02b79j1bdbe1b168g4/common/content/1764769581269_923814.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4618" height="2265"></p>
 <p>所以这里数据处理的过程和之前课程中讲解的差异是我们需要编写一个 countfun 函数：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">countfun <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">  x <span class="operator">&lt;-</span> x<span class="punctuation">[</span><span class="operator">!</span><span class="built_in">is.na</span><span class="punctuation">(</span>x<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">  x <span class="operator">%&gt;%</span></span><br><span class="line">    dplyr<span class="operator">::</span>as_tibble<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    dplyr<span class="operator">::</span>count<span class="punctuation">(</span>value<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 

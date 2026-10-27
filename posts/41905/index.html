@@ -154,11 +154,11 @@
 
 <p>首先我们先了解下<strong>逆温</strong>。正常情况下，海拔越高，气温越低，但是有时候会出现海拔高的地方气温反而更高，这个时候冷空气在下方，空气不易流通，污染物扩散慢。这种现象称为逆温，由于逆温对污染物扩散的外生性和相关性，所以<strong>逆温是研究空气污染影响很好的工具变量</strong>。</p>
 <h2 id="计算方法" class="article-heading"><a href="#计算方法" class="headerlink" title="计算方法"></a>计算方法<a class="article-anchor" href="#计算方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>逆温的衡量计算方法有很多，这里我们采用 Shuai Chen（2018）中的方法进行计算：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731763627_825129.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731763627_825129.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1294" height="772"></p>
 <p>不过文中对这种逆温的衡量计算方法并不完全准确，NASA 的 MERRA-2 数据集提供了 0.5 度×0.625 度分辨率、42 个气压层（不同的海拔有着不同的气压）的气温等数据，但是并不是每个格点在 42 个气压层都有数据，例如青藏高原的海拔在 5000 m 以上，底部很多气压层是没数据的：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>terra<span class="punctuation">)</span></span><br><span class="line">rast<span class="punctuation">(</span><span class="string">&quot;data/MERRA2_100.inst6_3d_ana_Np.19900718.SUB.nc&quot;</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rst</span><br><span class="line">cairo_pdf<span class="punctuation">(</span><span class="string">&quot;levtemp.pdf&quot;</span><span class="punctuation">,</span> width <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> height <span class="operator">=</span> <span class="number">10</span><span class="punctuation">)</span></span><br><span class="line">plot<span class="punctuation">(</span>rst<span class="punctuation">)</span></span><br><span class="line">dev.off<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731800250_768682.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731800250_768682.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3000" height="3000"></p>
 <p>所以我们计算逆温的应该采用每个格点近地的第一层和第二层（也就是最开始有数据的两层）。</p>
 <blockquote>
 <p>关于这份数据是如何处理的，可以参考区县逆温数据的计算，注意不要使用区县的平均作为城市数据。需要类似区县逆温数据的计算流程计算城市的。</p>
@@ -170,10 +170,10 @@
 <li><p>从 NASA 下载 1980 年至今的 MERRA-2 数据：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://disc.gsfc.nasa.gov/datasets/M2I6NPANA_5.12.4/summary">https://disc.gsfc.nasa.gov/datasets/M2I6NPANA_5.12.4/summary</a> （需要登陆注册）；</p>
 </li>
 <li><p>从下载到的 netCDF 数据提取近地的第一、二、三层数据（第三层数据可以用来进行稳健性分析），例如 1990 年 7 月 18 日的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731770588_899153.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731770588_899153.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1532" height="512"></p>
 </li>
 <li><p>把栅格数据准换成城市面板数据（使用的是 2021 年中国市级行政区划）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731773687_258299.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731773687_258299.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2700" height="2700"></p>
 </li>
 <li><p>比较第一层和第二层的平均气温就可以判断逆温情况了，如果第二层的气温高于第一层就是逆温，差值就是逆温强度，反之就不是逆温，逆温强度为 0（每天都有四个时点的数据，只有有一个时点的结果是逆温当天就视为逆温天）；</p>
 </li>
@@ -185,9 +185,9 @@
 <p>1980年～2025年城市逆温数据.rds</p>
 </blockquote>
 <p>由于这个文件非常大 （使用 R 语言的 readr::read_rds() 函数读取，使用该文件请确保你的电脑有 32G 以上的内存），为了方便大家使用，我把数据拆分成了每年的 xlsx 文件：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731777965_998264.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731777965_998264.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2948" height="1864"></p>
 <p>以 <code>2025年各城市逆温数据</code>为例，数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731805661_217812.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731805661_217812.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2687"></p>
 <p>该数据包含如下变量，各个变量的含义如下：</p>
 <ul>
 <li>date：日期</li>
@@ -226,16 +226,16 @@
 
 <p>其中 days1 表示根据一二层判断的逆温天数，days3 表示根据一三层判断的逆温天数。</p>
 <p>这样就得到了 <code>1980～2025年各城市年逆温天数</code>数据：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731805081_227798.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731805081_227798.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4618" height="3347"></p>
 <h3 id="绘图展示" class="article-heading"><a href="#绘图展示" class="headerlink" title="绘图展示"></a>绘图展示<a class="article-anchor" href="#绘图展示" aria-label="本节链接" title="复制本节链接"></a></h3><p>下图展示了 2025 年 1 月 1 日中国各城市近地第一层平均气温：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731797025_523191.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731797025_523191.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2700" height="2700"></p>
 <p>根据近地第一、二层判断逆温情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731799686_492564.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731799686_492564.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3000" height="3000"></p>
 <p>2025 年各个城市的逆温天数分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731798194_719126.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731798194_719126.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="5400" height="2700"></p>
 <p>还挺有意思，原来华北地区的空气状况不好也跟逆温天太多有关系！</p>
 <h2 id="代码" class="article-heading"><a href="#代码" class="headerlink" title="代码"></a>代码<a class="article-anchor" href="#代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>为方便大家学习，附件中还提供了数据处理和绘图代码以供参考：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731781171_846279.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/02/10/21/02b79j1bdbe1b168g4/common/content/1770731781171_846279.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1704" height="1904"></p>
 <h2 id="数据引用格式" class="article-heading"><a href="#数据引用格式" class="headerlink" title="数据引用格式"></a>数据引用格式<a class="article-anchor" href="#数据引用格式" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于该数据包含较多 RStata 处理的内容，在研究中使用该数据请使用清晰的方式注明数据来源于 <code>RStata</code> 或者 <code>RStata 数据中心</code>，并使用如下格式引用：</p>
 <blockquote>
 <p>RStata 数据中心: 1980～2025 年中国各城市逆温数据. 2026. <a href="https://tidyfriday.cn/rsdb2/">https://tidyfriday.cn/rsdb2/</a></p>

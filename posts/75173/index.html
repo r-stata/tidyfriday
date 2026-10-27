@@ -159,7 +159,7 @@
 </blockquote>
 <p>最近有培训班的小伙伴提出需要将上市公司和绿色低碳专利数据进行匹配，但是数据量比较大，希望我能帮忙处理一下。今天分享给大家的就是该数据和上市公司的匹配结果。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>上市公司与绿色低碳专利数据匹配结果的时间范围为 1985～2024 年（这里没有考虑上市公司上市和退市的问题，大家如果需要考虑的话，可以再处理），不过由于专利从申请到公开需要时间，所以 2022 年之后的专利数据可能不够全，使用的时候需要注意：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746142291_361225.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746142291_361225.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="2880"></p>
 <p>提供的数据包含三份：</p>
 <ul>
 <li>1985~2024年上市公司绿色低碳专利申请与授权量统计（国家知识产权局标准）.dta</li>
@@ -167,19 +167,19 @@
 <li>有绿色低碳专利申请的公司数量.dta</li>
 </ul>
 <p><code>1985~2024年上市公司与绿色低碳专利数据匹配结果（国家知识产权局标准）.dta</code> 数据是直接使用上市公司数据和绿色低碳专利数据匹配得到的，包含上市公司的变量和绿色低碳专利的变量，每条观测值是一条绿色低碳专利，数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141578_919845.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141578_919845.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2414" height="1806"></p>
 <p><code>1985~2024年上市公司绿色低碳专利申请与授权量统计（国家知识产权局标准）.dta</code> 是对上面数据的汇总结果：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141947_444688.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141947_444688.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2416" height="1810"></p>
 <p><code>有绿色低碳专利申请的公司数量.dta</code> 提供了历年有绿色低碳专利申请的公司数量。</p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>使用上市公司的名称、曾用名等和绿色低碳专利数据中的申请人进行匹配。</p>
 <ol>
 <li>绿色低碳专利数据中有个申请人变量，每个绿色低碳专利可能有多个申请人，申请人之间使用冒号分隔，因此需要首先处理申请人变量，处理思路如下：</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141131_477261.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141131_477261.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="798" height="266"></p>
 <ol start="2">
 <li>然后分别处理上市公司数据公司列表和绿色低碳专利数据的申请人。具体处理方法是剔除公司名称中干扰匹配的一些字符（股份有限、集团有限、有限责任、有限公司、有限、责任、股份、公司、厂、” “、(集团)、（集团）、（、）、(、)、回族自治区、壮族自治区、维吾尔自治区、自治区、省、市、区、县）。很多文献会说自己采用了模糊匹配，实际上在模糊匹配课程（这里可以看到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我讲过模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配（插图来自工企专利匹配的推文，这里实际上是绿色低碳专利申请人变量和上市公司数据企业名称匹配。）：">https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我讲过模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配（插图来自工企专利匹配的推文，这里实际上是绿色低碳专利申请人变量和上市公司数据企业名称匹配。）：</a></li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141382_253258.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746141382_253258.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="933" height="575"></p>
 <p>按照上述匹配方法，一共匹配到了 17.75 万条绿色低碳专利。<strong>由于每个绿色低碳专利对应的申请人有多个，所以同一个绿色低碳专利可能会匹配到多个公司，这是正常的。</strong></p>
 <h2 id="专利引用及被引用信息" class="article-heading"><a href="#专利引用及被引用信息" class="headerlink" title="专利引用及被引用信息"></a>专利引用及被引用信息<a class="article-anchor" href="#专利引用及被引用信息" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于专利引用及被引用信息也非常巨大，这里就不再加进来了，如果需要引用及被引用信息，可以使用 ipzlid 变量和之前分享的这个数据匹配：</p>
 <blockquote>
@@ -190,7 +190,7 @@
 <li>多个公司共同申请同一个绿色低碳专利；</li>
 <li>低碳专利的申请和授权公告同时存在数据中。</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746140942_974282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/01/23/02b79j1bdbe1b168g4/common/content/1735746140942_974282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1612" height="112"></p>
 <p>统计的时候可以先去除公开公告号里面的 A、B、U、S。其中 A 代表发明专利的申请公开，B 代表发明专利的授权公告，U 代表实用新型专利的授权公告，S 代表外观设计专利的授权公告。代码大致如下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 公开公告号 = <span class="built_in">subinstr</span>(公开公告号, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line"><span class="comment">*- 使用 duplicates drop 去除重复的</span></span><br><span class="line"><span class="keyword">duplicates</span> <span class="keyword">drop</span> 公开公告号, force</span><br></pre></td></tr></table></figure>
 

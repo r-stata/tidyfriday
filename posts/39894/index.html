@@ -159,11 +159,11 @@
 <p>年份、股票代码、股票简称、距离范围、地址类别、CO、NO2、O3、PM10、PM2_5、SO2</p>
 </blockquote>
 <p>数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445897155_692126.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445897155_692126.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4648" height="2864"></p>
 <h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下图展示了平安银行周边 1～30km 范围内年平均 PM10 浓度变化：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445887045_987724.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445887045_987724.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了平安银行周边 1～30km 范围内年平均 PM2.5 浓度变化：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445886381_832764.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445886381_832764.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="处理代码" class="article-heading"><a href="#处理代码" class="headerlink" title="处理代码"></a>处理代码<a class="article-anchor" href="#处理代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>该数据使用 R 语言的 terra、sf 包进行处理，并通过 Stata 绘制展示图。处理流程如下：</p>
 <ol>
 <li>生成上市公司地址周边 1～30km 的缓冲区</li>
@@ -179,7 +179,7 @@
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 读取数据并筛选平安银行办公地址</span></span><br><span class="line"><span class="keyword">use</span> 2000～2024年上市公司周边一定范围内的空气污染指标面板数据（CHAP来源）.dta, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 距离范围 距离范围_km</span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> 股票代码 == <span class="string">&quot;000001&quot;</span> &amp; 地址类别 == <span class="string">&quot;办公地址&quot;</span></span><br><span class="line"><span class="keyword">tostring</span> 距离范围_km, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">replace</span> 距离范围_km = <span class="string">&quot;PM2_5_&quot;</span> + 距离范围_km + <span class="string">&quot;km&quot;</span></span><br><span class="line">spread 距离范围_km PM2_5</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 绘制折线图并导出</span></span><br><span class="line"><span class="keyword">tw</span> <span class="keyword">line</span> PM2_5_1km 年份 || <span class="keyword">line</span> PM2_5_5km 年份 || <span class="comment">///</span></span><br><span class="line">  <span class="keyword">line</span> PM2_5_10km 年份 || <span class="keyword">line</span> PM2_5_30km 年份, <span class="comment">///</span></span><br><span class="line">  xla(2000(2)2024) yti(<span class="string">&quot;平均PM2.5浓度(µg/m³)&quot;</span>)</span><br><span class="line"><span class="keyword">gr</span> export <span class="string">&quot;平安银行周边1～30km范围内年平均PM2_5.png&quot;</span>, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
 
 <p>附件中也提供了该数据的处理代码供参考：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445887705_943687.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/03/25/21/02b79j1bdbe1b168g4/common/content/1774445887705_943687.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1275" height="1650"></p>
 <h2 id="数据引用格式" class="article-heading"><a href="#数据引用格式" class="headerlink" title="数据引用格式"></a>数据引用格式<a class="article-anchor" href="#数据引用格式" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于该数据包含较多 RStata 处理的内容，在研究中使用该数据请使用清晰的方式注明数据来源于 <code>RStata</code> 或者 <code>RStata 数据中心</code>，并使用如下格式引用：</p>
 <blockquote>
 <p>RStata 数据中心: 2000～2024年上市公司周边一定范围内的空气污染指标面板数据（CHAP来源）. 2026. <a href="https://tidyfriday.cn/rsdb2/">https://tidyfriday.cn/rsdb2/</a></p>

@@ -162,13 +162,13 @@
 </blockquote>
 <p>最近有小伙伴想把这两份数据匹配起来，由于两份数据都非常巨大，所以我就直接帮大家匹配好了。</p>
 <h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了避免数据过大，所以这个数据只是企业名称和工商注册信息的，使用的话，可以用企业名称再和海关数据匹配下就好了。海关企业与工商注册信息匹配结果的时间范围为 2000~2016 年，共包含 74.69 万条观测值，数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757178032207_229285.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757178032207_229285.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2666" height="1724"></p>
 <p>包含的变量如下：</p>
 <blockquote>
 <p>经营单位名称、newgcid、企业名称、成立日期、注册资本、实缴资本、行业门类、行业门类代码、行业大类、行业大类代码、行业中类、行业中类代码、行业小类、行业小类代码、省份、城市、区县、法人代表、经营状态、统一社会信用代码、工商注册号、纳税人识别号、组织机构代码、企业类型、登记机关、营业期限、纳税人资质、人员规模、参保人数、曾用名、英文名、注册地址、经营范围、邮箱、标签、成立年份、经度、纬度、省、省代码、市、市代码、县、县代码、核准日期、英文名称、法定代表人、公司规模、网址</p>
 </blockquote>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了让大家更直观地感受这份数据，我还绘制了一幅图进行展示。下图展示了海关与工商注册数据每年匹配成功的数量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757178030585_583495.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757178030585_583495.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合海关数据与工商企业注册信息的变量，根据<code>企业名称</code>进行匹配。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</p>
 <blockquote>
 <p>Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e">https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e</a></p>

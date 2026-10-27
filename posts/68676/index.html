@@ -195,18 +195,18 @@
 <p>如果您关心的是“地区绿色创新活跃度”，可以直接按省、市、县比较总专利申请量与授权量；如果您关心的是“绿色技术结构变化”，则可以利用部、大类、小类三个层级观察不同技术方向的时序演变和空间差异。</p>
 <p>3 份数据的预览如下：</p>
 <p>部层级数据预览：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391339631_691952.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391339631_691952.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2687"></p>
 <p>大类层级数据预览：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391341316_843911.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391341316_843911.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2687"></p>
 <p>小类层级数据预览：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391340779_223182.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391340779_223182.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="2687"></p>
 <h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了更直观地感受这份数据，文件夹中还基于 Stata 生成了 3 幅图。</p>
 <p>第一幅图展示了 1985～2024 年全国绿色专利申请量与授权量的长期趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391330222_916446.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391330222_916446.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>第二幅图展示了 2024 年各地级市绿色专利申请量与授权量之间的关系，并加入了 OLS 拟合线，便于观察城市层面的相关性：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391329627_516273.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391329627_516273.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>第三幅图展示了 2024 年各地级市绿色专利申请量的空间分布，更适合快速识别高值地区和区域差异：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391327997_254478.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391327997_254478.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3510"></p>
 <h2 id="处理代码说明" class="article-heading"><a href="#处理代码说明" class="headerlink" title="处理代码说明"></a>处理代码说明<a class="article-anchor" href="#处理代码说明" aria-label="本节链接" title="复制本节链接"></a></h2><p>这个文件夹里同时保留了 R 和 Stata 代码。前者主要负责绿色专利筛选、IPC 拆分和汇总统计，后者负责绘图展示。</p>
 <p>从 <code>code/main.do</code> 来看，原始专利数据的处理首先是按年份读取，并对公开公告号和申请号进行去重。核心思路如下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 提取申请数据并按地区和专利标识去重</span></span><br><span class="line"><span class="keyword">forval</span> y = 2013/2024 &#123;</span><br><span class="line">    <span class="keyword">use</span> <span class="string">&quot;/Volumes/rstata2t/newIP专利数据分年/`y&#x27;.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">replace</span> 公开公告号 = ustrregexs(1) <span class="keyword">if</span> ustrregexm(公开公告号, <span class="string">&quot;(.*)[A-Z]$&quot;</span>)</span><br><span class="line">    <span class="keyword">duplicates</span> <span class="keyword">drop</span> 年份 省 省代码 市 市代码 县 县代码 公开公告号, force</span><br><span class="line">    <span class="keyword">duplicates</span> <span class="keyword">drop</span> 年份 省 省代码 市 市代码 县 县代码 申请号, force</span><br><span class="line">    <span class="keyword">replace</span> 专利类型 = <span class="string">&quot;发明&quot;</span> <span class="keyword">if</span> <span class="built_in">index</span>(专利类型, <span class="string">&quot;发明&quot;</span>)</span><br><span class="line">    <span class="keyword">keep</span> newipzlid 年份 公开公告号 专利类型 授权公告日 省 省代码 市 市代码 县 县代码 IPC</span><br><span class="line">    <span class="keyword">save</span> res/<span class="symbol">`y&#x27;</span>, <span class="keyword">replace</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -219,7 +219,7 @@
 
 <p>此外，<code>code/green_patent_3charts.do</code> 里还给出了这份数据的可视化脚本，包括全国趋势图、城市散点图和城市地图，方便直接复现图表或继续改图。</p>
 <p>附件中也提供了该数据的处理代码供参考：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391330765_838141.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/28/23/02b79j1bdbe1b168g4/common/content/1777391330765_838141.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="6800" height="4400"></p>
 <p>对应文件为 <code>Encrypted_Code_Report.pdf</code>。</p>
 <h2 id="数据引用格式" class="article-heading"><a href="#数据引用格式" class="headerlink" title="数据引用格式"></a>数据引用格式<a class="article-anchor" href="#数据引用格式" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于该数据包含较多 RStata 处理的内容，在研究中使用该数据请使用清晰的方式注明数据来源于 <code>RStata</code> 或者 <code>RStata 数据中心</code>，并使用如下格式引用：</p>
 <blockquote>
