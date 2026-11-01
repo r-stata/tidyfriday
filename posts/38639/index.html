@@ -163,18 +163,18 @@
 </blockquote>
 <p>今天分享给大家的就是上市公司子公司与土地出让数据的匹配结果。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>上市公司子公司与土地出让数据匹配结果的时间范围为 2001～2024 年，经过匹配之后一共得到了 49601 条匹配结果。数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023028695_489492.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023028695_489492.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="3380"></p>
 <p>为了让大家更直观地感受这份数据，我还绘制了一幅图进行展示。上市公司子公司每年匹配成功的地块数量如下图所示：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023023593_247733.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023023593_247733.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合上市公司子公司数据与土地出让数据的变量，我们使用上市公司子公司数据中的企业名称与土地出让数据中的土地使用权人进行匹配。具体匹配方法分为三步：</p>
 <ol>
 <li>首先土地使用权人可能是多个公司或个人，因此我们首先需要把这些土地使用权人拆分开，例如下面两个地块：</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023007034_713682.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023007034_713682.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2078" height="810"></p>
 <ol start="2">
 <li>再对上市公司子公司数据里的企业名称和土地出让数据里的土地使用权人变量进行处理。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023006639_788629.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023006639_788629.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2030" height="890"></p>
 <p>Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/d4fb816566244662ab6359fa848f1f1e">https://rstata.duanshu.com/#/brief/course/d4fb816566244662ab6359fa848f1f1e</a></p>
 <ol start="3">
 <li>最后直接使用处理后的企业名称和土地使用权人匹配即可得到匹配结果。</li>
@@ -191,7 +191,7 @@
 </blockquote>
 <p>另外也建议在说明数据来源的同时，根据本文的介绍在论文中描述数据的详细处理方法。</p>
 <h2 id="处理代码" class="article-heading"><a href="#处理代码" class="headerlink" title="处理代码"></a>处理代码<a class="article-anchor" href="#处理代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>附件中也提供了该数据的处理代码供参考：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023019437_132815.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/09/10/14/02b79j1bdbe1b168g4/common/content/1789023019437_132815.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="6800" height="4400"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/69598976426b4ebb8aaacc07b24d0b8c">2001～2024 年上市公司子公司与土地出让数据匹配结果</a></p>
 </blockquote>

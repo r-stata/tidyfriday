@@ -163,15 +163,15 @@
 </blockquote>
 <p>最近有小伙伴想把这两份数据匹配起来，由于两份数据都非常巨大，所以我就直接帮大家匹配好了。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>工商注册信息与土地出让数据匹配结果的时间范围为 2000～2024 年，经过漫长的匹配过程，一共得到了 162 万多条匹配结果。数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/21/02b79j1bdbe1b168g4/common/content/1747055287286_427253.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/21/02b79j1bdbe1b168g4/common/content/1747055287286_427253.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2488" height="1702"></p>
 <p>为了让大家更直观地感受这份数据，我还绘制了一幅图进行展示。工商企业每年匹配成功的地块数量如下图所示：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/20/02b79j1bdbe1b168g4/common/content/1747054357373_157791.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/20/02b79j1bdbe1b168g4/common/content/1747054357373_157791.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>不过需要注意的是，有差不多 20 万条匹配结果是个人购地的，这些实际上难以确认是匹配成功的结果。毕竟同名的人很多（不同的公司是不允许同名的），所以大家可以考虑使用下面的代码删去这些个人购地的记录：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 人名通常是三个字或者两个字的（Stata 中每个汉字的长度为 3）</span><br><span class="line">drop if strlen(公司名称) &lt;= 9</span><br></pre></td></tr></table></figure>
 
 <p>另外也有些四、五个字的可能也是人名，不过这些要谨慎删除，避免删除到不该删除的观测值。这些我并没有删除，是因为考虑到有些小伙伴会使用一些“宽松”的准则删除，例如同一个区县（购地人所处的区县和地块所在的区县相同）的同名人可以被视为同一个人，这些就不用删除了。</p>
 <p>2024 年各省土地出让地块分布如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/20/02b79j1bdbe1b168g4/common/content/1747054357935_365734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/05/12/20/02b79j1bdbe1b168g4/common/content/1747054357935_365734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3562"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合工商注册信息与土地出让数据的变量，我们使用工商注册信息中的企业名称与土地出让数据中的土地使用权人进行匹配。具体匹配方法分为三步：</p>
 <ol>
 <li>首先土地使用权人可能是多个公司或个人，因此我们首先需要把这些土地使用权人拆分开，例如下面两个地块：</li>

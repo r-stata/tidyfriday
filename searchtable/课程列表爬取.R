@@ -3,14 +3,18 @@ library(httr)
 
 cookies = c(
   csrftoken = "BkH8VBLsUUJiN1w41FirgliSCFcJAVD8zdiVNqbAZYMHrz8av7iM0tp8xmw225xN",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1792927848,1792999392,1793034405,1793038224",
-  `_clck` = "164110b^2^gan^0^2444",
-  auid = "32c4d231f6e84a038da6c5ec9121655d",
-  user_info = '{"id":109736,"name":"182****3720","source":"mobile","shop":{"id":"02b79j1bdbe1b168g4","version":"advanced2019","admin":1,"account_id":"4469b866d2b74021a47a4fcc46e79564","permission":[],"applet_version":"basic","is_promotion":0,"announce":0,"sms_status":"enough","is_obs":0,"is_online_live":0,"is_applet_refund":0,"is_version_expire":false}}',
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI2M2FmMzc5M2VjMmQ0YWM4OWY4NzBhMmU3MWIwODg1MCIsImV4cCI6MTc5MzEzNjgwOH0.le9AoHnoZJnds6Fte4iJbBEKGfi9S3TAvqDhXsAWWR4",
-  `_clsk` = "1i9e6ab^1793115211117^12^1^s.clarity.ms/collect",
-  `ds-csrf-token` = "eyJpdiI6IlwvYVQzTENmNEFhQzRucWNZVTFrOWlBPT0iLCJ2YWx1ZSI6IlJDZ2lFN0MyazhJZnhRbEpiUUdPampRSGZWVnNzWEd5cFQ1VzFScHlzK2NDY2s1aFgzOVN1ME1nUkNVWjUyZ1JiaW9GSGVCVUdYdWRLbGxDdXViRjZRPT0iLCJtYWMiOiIyMjUzMzRiMTY4MGI0ZjY1ODZjMWEyNjJkZWZlYTY0MzYyYzBjMzkyYmNhOTMzOGVjNzA4MjgwMDYyNDUzZDk2In0=",
-  deprecated_duanshu_session = "eyJpdiI6Im5RZkJPSFhiRFwvMERHWVhUU2hOYm1nPT0iLCJ2YWx1ZSI6IlRVd1RDazNxZ29uVGJFNE5uaktWT0JGOEdrajhycG5ONXQ4dGVEREMzOERuNGdEaUx0czhQNXJHQnpVYWkrREorakRQcGlDc3VMdTh1YlJ6amdscHVnPT0iLCJtYWMiOiIxMjU4OWJkNTU0NTBiNDY2MmU4ODM2ZTdlZTljNjcxY2Q4Y2I5ZDcwZGIyNDE3NTgwY2I2ZTJiODZkMDAxYzViIn0="
+  MEIQIA_TRACK_ID = "3LPh7u9nLBszqvB5ksWJSNZQAAd",
+  MEIQIA_VISIT_ID = "3LPh7q2sNqwKf5XHJbw5dS5RoXc",
+  Hm_lvt_64c33900b1f45b302e16a732efb245b6 = "1793262268,1793361445,1793366917,1793383808",
+  `_clck` = "164110b^2^gas^0^2444",
+  auid = "a03940a663e246f9a93aa4a8f664305a",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1793437552,1793460701,1793550044,1793553695",
+  Hm_lpvt_8659756219f35439f2eecb18bd255656 = "1793553695",
+  HMACCOUNT = "F799D9102E45B06F",
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI3NTVjMTc5NDQwNDM0MTk3OGIwZDEyOTVlMjAyMGY2ZSIsImV4cCI6MTc5MzU3NjExMn0.jxabrG923tuWi-HFwL_mnfOsUtmi2a-sZnnheQOz2Rk",
+  `_clsk` = "2hpxzi^1793554512383^27^1^z.clarity.ms/collect",
+  `ds-csrf-token` = "eyJpdiI6IkhiN244UFwvQ2Y5d1dWOHBQVkt6dFZnPT0iLCJ2YWx1ZSI6IlVTdTdYUzg5dXlIOHpjaGV6R1BLaWIzNHAzdzhzV2lPWnEremw1WVB2QWZwUSs3azBsa1pqTWtVckhyem5HUU9udGxnMW1hY1REdHNXeHVQZzEreFVBPT0iLCJtYWMiOiIzNzg0NGU5OWNlYjYyMDhmMDY2ZGI1ODdkZGZiNTQ5MmZhNjM2MDZlZWQwMzEyZjBlZTQ2ZTVmNzIyMzkzNDNiIn0=",
+  deprecated_duanshu_session = "eyJpdiI6IlNqYldjNGZsK0xrS2tXeGg1eEd6bGc9PSIsInZhbHVlIjoiRnNPb3lEQjh4UkV1RHZjNUdBaHJlMWVNbVg4YjZlNVpkSTlcLzRRYTRIQUNuQVloZ3BQZ013ZEE1UEpEbkpKbFU3Z2lmYm8zSkpHNFBPUDZFbHlDXC92Zz09IiwibWFjIjoiNTliZDAzYmZmYTg4YmI5MzIxZWRmYjMzN2Q5ODJmODA3YTI3NzBiNjhkMzk0YTBjMzY5NGMzNzg0MzYzNjg0MCJ9"
 )
 
 headers = c(
