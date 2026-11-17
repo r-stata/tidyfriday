@@ -162,15 +162,15 @@
 <p>2007~2016 年税调企业地理信息数据（含经纬度及其所处的省市区县）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/76d38022cd004b09b2aa09647936beb0">https://rstata.duanshu.com/#/course/76d38022cd004b09b2aa09647936beb0</a></p>
 </blockquote>
 <h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了方便大家使用，我计算了税调企业周边 1km、2km、3km、4km、5km 范围内的平均和最大年度 NDVI 数据，最终得到了附件中的：<code>2007～2016 年税调企业周边的 NDVI 平均值与最大值.dta</code>，数据概览：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663582_215288.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663582_215288.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1378" height="1122"></p>
 <p>包含如下变量：</p>
 <blockquote>
 <p>年份、sdid、sdgroup、法人代码、企业名称、dist1km_max、dist1km_mean、dist2km_max、dist2km_mean、dist3km_max、dist3km_mean、dist4km_max、dist4km_mean、dist5km_max、dist5km_mean</p>
 </blockquote>
 <p>下图展示了各年税调企业周边 NDVI 最大值的变化：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663892_489639.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663892_489639.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>各年税调企业周边 NDVI 平均值的变化：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900664285_771549.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900664285_771549.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="处理方法" class="article-heading"><a href="#处理方法" class="headerlink" title="处理方法"></a>处理方法<a class="article-anchor" href="#处理方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先我们可以使用类似这样的 R 语言代码构造税调企业周边 5km 的缓冲区：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">df2 <span class="operator">%&gt;%</span></span><br><span class="line">  st_buffer<span class="punctuation">(</span>dist <span class="operator">=</span> units<span class="operator">::</span>set_units<span class="punctuation">(</span><span class="number">5</span><span class="punctuation">,</span> km<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> df2_5km</span><br></pre></td></tr></table></figure>
 
@@ -182,7 +182,7 @@
 <p>使用 R 语言计算工企周边一定范围内的平均 PM2.5 浓度：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/016330182fb64ecd9fab8ada0d816130">https://rstata.duanshu.com/#/brief/course/016330182fb64ecd9fab8ada0d816130</a></p>
 </blockquote>
 <p>为了便于大家理解这个计算过程，我绘制了一幅这样的图：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663322_125787.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/05/17/02b79j1bdbe1b168g4/common/content/1714900663322_125787.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1324" height="1150"></p>
 <p>方块表示的是 NDVI 栅格数据，圆圈表示的是税调企业周边 5km 范围。计算过程实际上就是提取圆圈范围内的区域求平均或者最大值。圆圈边缘的按照比例计算进入圈内的部分。</p>
 <blockquote>
 <p>注意这里使用的栅格数据是年度生长季均值合成结果，计算结果中的均值是指区域的均值，最大值是指区域的最大值。</p>

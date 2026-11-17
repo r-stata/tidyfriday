@@ -5,16 +5,14 @@ cookies = c(
   csrftoken = "BkH8VBLsUUJiN1w41FirgliSCFcJAVD8zdiVNqbAZYMHrz8av7iM0tp8xmw225xN",
   MEIQIA_TRACK_ID = "3LPh7u9nLBszqvB5ksWJSNZQAAd",
   MEIQIA_VISIT_ID = "3LPh7q2sNqwKf5XHJbw5dS5RoXc",
-  Hm_lvt_64c33900b1f45b302e16a732efb245b6 = "1793262268,1793361445,1793366917,1793383808",
-  `_clck` = "164110b^2^gas^0^2444",
-  auid = "a03940a663e246f9a93aa4a8f664305a",
-  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1793437552,1793460701,1793550044,1793553695",
-  Hm_lpvt_8659756219f35439f2eecb18bd255656 = "1793553695",
-  HMACCOUNT = "F799D9102E45B06F",
-  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiI3NTVjMTc5NDQwNDM0MTk3OGIwZDEyOTVlMjAyMGY2ZSIsImV4cCI6MTc5MzU3NjExMn0.jxabrG923tuWi-HFwL_mnfOsUtmi2a-sZnnheQOz2Rk",
-  `_clsk` = "2hpxzi^1793554512383^27^1^z.clarity.ms/collect",
-  `ds-csrf-token` = "eyJpdiI6IkhiN244UFwvQ2Y5d1dWOHBQVkt6dFZnPT0iLCJ2YWx1ZSI6IlVTdTdYUzg5dXlIOHpjaGV6R1BLaWIzNHAzdzhzV2lPWnEremw1WVB2QWZwUSs3azBsa1pqTWtVckhyem5HUU9udGxnMW1hY1REdHNXeHVQZzEreFVBPT0iLCJtYWMiOiIzNzg0NGU5OWNlYjYyMDhmMDY2ZGI1ODdkZGZiNTQ5MmZhNjM2MDZlZWQwMzEyZjBlZTQ2ZTVmNzIyMzkzNDNiIn0=",
-  deprecated_duanshu_session = "eyJpdiI6IlNqYldjNGZsK0xrS2tXeGg1eEd6bGc9PSIsInZhbHVlIjoiRnNPb3lEQjh4UkV1RHZjNUdBaHJlMWVNbVg4YjZlNVpkSTlcLzRRYTRIQUNuQVloZ3BQZ013ZEE1UEpEbkpKbFU3Z2lmYm8zSkpHNFBPUDZFbHlDXC92Zz09IiwibWFjIjoiNTliZDAzYmZmYTg4YmI5MzIxZWRmYjMzN2Q5ODJmODA3YTI3NzBiNjhkMzk0YTBjMzY5NGMzNzg0MzYzNjg0MCJ9"
+  Hm_lvt_64c33900b1f45b302e16a732efb245b6 = "1793366917,1793383808,1794643427,1794736021",
+  Hm_lvt_8659756219f35439f2eecb18bd255656 = "1794625888,1794653315,1794741717,1794787912",
+  `_clck` = "164110b^2^gb8^0^2444",
+  auid = "b242d8f8cb914d7085b8812d258944b8",
+  ds_auth = "eyJ1aWQiOjEwOTczNiwic2lkIjoiMDJiNzlqMWJkYmUxYjE2OGc0IiwicnQiOiJlZTcwNjdmNTM5Yjk0OTQ5YmY5N2IwMTBjMTczMmUxYSIsImV4cCI6MTc5NDkwOTc2Nn0.lYu_XD0ghSZxy8UErF4dBQqG_u4zJJvf1O9Homhjd2U",
+  `_clsk` = "1f35wv3^1794888166745^7^1^f.clarity.ms/collect",
+  `ds-csrf-token` = "eyJpdiI6IkdsOHNJMkEzcG5WZFJuVnhMMDA1WFE9PSIsInZhbHVlIjoiSjFMRGpQQXFwZVVUeVpvWHNhdUxPY25ZYW1GbFd1b2M0UFFlMFJFaUhPXC9ONHp0M1FtMER3K1dhVDJCKzBSdUxUdVFUWUNUTkFZQzdvOFBpOCtOOGhRPT0iLCJtYWMiOiI4ZDEwZjNkNzNjNzNjMjk0NDgyMjZhYTU2YzQzZjZkODFkMmI3M2Y4OGNjOGEzMGM0ODA2Zjk0YzBlYzU4YjJmIn0=",
+  deprecated_duanshu_session = "eyJpdiI6ImNFcDc5S0NjOHcyS1JaNlNFamM2VkE9PSIsInZhbHVlIjoiY1M4QmppVmVYTUtPYXgxbnpxK0ZJWFpkMTBMdXFkYzVLS3dPTGVRQ2cwVXJJK0p1Mml5UDRobU0zV081aXF6VlZKakExeFUzWDNnY1Z4ZTNIVDFablE9PSIsIm1hYyI6ImMxMTUzNDE1M2M3Y2Q3Y2Y2MGQyZWRhZDRlNDVkYmI5NWI5MjgzNWU1YThlZDIxNzUzNjUxOGQwNDQ2YzMxYTQifQ=="
 )
 
 headers = c(
@@ -23,13 +21,13 @@ headers = c(
   origin = "https://my.duanshu.com",
   priority = "u=1, i",
   referer = "https://my.duanshu.com/",
-  `sec-ch-ua` = '"Not:A-Brand";v="8", "Chromium";v="156", "Google Chrome";v="156"',
+  `sec-ch-ua` = '"Not-A.Brand";v="99", "Google Chrome";v="157", "Chromium";v="157"',
   `sec-ch-ua-mobile` = "?0",
   `sec-ch-ua-platform` = '"macOS"',
   `sec-fetch-dest` = "empty",
   `sec-fetch-mode` = "cors",
   `sec-fetch-site` = "same-site",
-  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+  `user-agent` = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
   `x-shop` = "02b79j1bdbe1b168g4",
   `x-shop-platform` = "duanshu"
 )
@@ -56,7 +54,7 @@ lst$response$data %>%
   select(title, status, price, hashid, create_time) %>% 
   unnest() %>% 
   mutate(create_time = ymd_hms(create_time)) %>% 
-  filter(create_time >= ymd_hms("2026-10-27 00:25:26")) %>% 
+  filter(create_time >= ymd_hms("2026-11-01 00:00:00")) %>% 
   mutate(hashid = paste0("https://rstata.duanshu.com/#/course/", hashid)) %>% 
   rename(链接 = hashid) %>% 
   select(-create_time, -status, -price) %>% 

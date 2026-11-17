@@ -156,18 +156,18 @@
                 <p>之前给大家分享了上市公司<code>专利技术空间相似度</code>、<code>企业层面的知识宽度</code>、<code>新技术空间专利申请</code>及<code>IPC 号新增数</code>这四个指标的计算结果，今天再给大家分享一份税调公司的相关计算结果。计算税调公司如上指标的数据来源为税调公司与专利数据匹配结果，我之前也分享过：</p>
 <span id="more"></span>
 
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446487090_588287.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446487090_588287.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <h2 id="数据预览" class="article-heading"><a href="#数据预览" class="headerlink" title="数据预览"></a>数据预览<a class="article-anchor" href="#数据预览" aria-label="本节链接" title="复制本节链接"></a></h2><p>dta 格式的数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446430510_171613.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446430510_171613.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2282" height="1652"></p>
 <p>为了让大家更直观的感受这份数据，我还绘制了一幅图进行展示。下图展示了 2007～2016 年税调公司专利技术空间相似度、企业层面的知识宽度计算结果、新技术空间专利申请及 IPC 号新增数：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446431267_342347.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446431267_342347.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>连续性看起来还不错！</p>
 <h2 id="处理方法" class="article-heading"><a href="#处理方法" class="headerlink" title="处理方法"></a>处理方法<a class="article-anchor" href="#处理方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>需要注意的是，上市公司可以直接使用股票代码作为企业的标志符，而税调数据里面并没有现成的公司标志符，所以我们首先需要构建一个税调公司的面板数据。这里我们可以使用之前分享的税调与工商注册信息的匹配结果：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446533303_255873.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446533303_255873.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <p>具体来说，就是使用匹配结果数据里面的公司 ID（每家公司有一个独特的公司 ID 编号，对于没有匹配成功的部分，再依次使用公司名称和组织机构代码进行填充，最终生成了 sdgroup 变量用来标志每一家企业）。在设定面板时，也可以使用 xtset sdgroup year 命令。附件也有这部分的代码，感兴趣的小伙伴可以学习。sdgroup 变量和税号 ID 的对照表也在附件中。税调公司的面板数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446431011_751625.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446431011_751625.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1358" height="1094"></p>
 <p>构建好税调公司的面板数据之后，就可以计算 <code>专利技术空间相似度</code>、<code>企业层面的知识宽度</code>、<code>新技术空间专利申请</code>及<code>IPC 号新增数</code>指标了。如果大家对这些指标的计算方法感兴趣的话，可以学习这个课程：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446567247_579621.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/12/02/00/02b79j1bdbe1b168g4/common/content/1701446567247_579621.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/8853cbf2bb8342359ce9bbe24ea64163">2007～2016 年税调公司专利技术空间相似度、企业层面的知识宽度计算结果、新技术空间专利申请及IPC号新增数面板数据</a></p>
 </blockquote>

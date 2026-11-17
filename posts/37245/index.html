@@ -164,19 +164,19 @@
 <li>专精特新企业工商注册信息匹配结果.dta</li>
 </ol>
 <p>第一个文件是初步整理的结果，包含了认定年份之类的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359745475_388262.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359745475_388262.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2460" height="1698"></p>
 <p>由于专精特新的认定有效期一般为 3 年，所以我们可以根据 3 年的有效期把数据拓展成面板数据：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359780256_927958.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359780256_927958.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2464" height="1698"></p>
 <p>时间范围为 2013～2027 年。</p>
 <p>最后就是与工商注册信息匹配的结果了：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359796661_925211.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359796661_925211.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2470" height="1706"></p>
 <p>包含如下变量：</p>
 <blockquote>
 <p>zjtxid、年份、机构ID、公司名称、所属省份、所属城市、入选批次、认定类型、认定级别、是否上市公司、上市公司代码、与关联上市公司关系、关联上市公司代码、newgcid、企业名称_工商、成立日期、注册资本、实缴资本、行业门类、行业门类代码、行业大类、行业大类代码、行业中类、行业中类代码、行业小类、行业小类代码、省份、城市、区县、法人代表、经营状态、统一社会信用代码、工商注册号、纳税人识别号、组织机构代码、企业类型、登记机关、营业期限、纳税人资质、人员规模、参保人数、曾用名、英文名、注册地址、经营范围、邮箱、标签、成立年份、经度、纬度、省、省代码、市、市代码、县、县代码、核准日期、英文名称、法定代表人、公司规模、网址</p>
 </blockquote>
 <p>其中 zjtxid 是观测值编号，由 年份 + 观测值编号组成。平台上相关的数据都有这个编号，方便互相匹配。</p>
 <p>下图展示了各年的匹配率：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359815350_243274.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/02/12/19/02b79j1bdbe1b168g4/common/content/1739359815350_243274.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合专精特新企业数据与工商企业注册信息的变量，我选择了使用企业名称匹配。</p>
 <p>为便于两个数据集的连接，我在专精特新数据中生成了zjtxid 变量以在匹配过程中识别每个观测值。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</p>
 <blockquote>

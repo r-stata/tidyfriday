@@ -169,7 +169,7 @@
 <li><strong>企业名称标准化处理</strong>：考虑到中文企业名称中经常混用”有限公司”和”有限责任公司”、”股份有限”和”股份有限”等情况，匹配前需要统一处理这些变体，删除”集团有限”、”有限责任”、”股份”、”公司”、”厂”等词汇后再进行匹配，这样可以大大提高匹配成功率。</li>
 <li><strong>精确匹配</strong>：使用标准化后的企业名称与土地使用权人进行精确匹配。</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835283292_365754.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835283292_365754.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="6800" height="4400"></p>
 <p>匹配的关键代码如下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 企业名称标准化处理</span></span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;-&quot;&#x27;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;(&quot;&#x27;</span>, <span class="string">&quot;（&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;)&quot;&#x27;</span>, <span class="string">&quot;）&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;·&quot;&#x27;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 统一有限公司的写法</span></span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;有&quot;&#x27;</span>, <span class="string">&quot;有限公司&quot;</span>, .) <span class="keyword">if</span> <span class="built_in">substr</span>(企业名称, -3, 3) == <span class="string">&quot;有&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;有限&quot;&#x27;</span>, <span class="string">&quot;有限公司&quot;</span>, .) <span class="keyword">if</span> <span class="built_in">substr</span>(企业名称, -6, 6) == <span class="string">&quot;有限&quot;</span></span><br><span class="line"><span class="keyword">replace</span> 企业名称 = <span class="built_in">subinstr</span>(企业名称, <span class="string">`&quot;有限责任公司&quot;&#x27;</span>, <span class="string">&quot;有限公司&quot;</span>, .)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 使用 joinby 进行精确匹配</span></span><br><span class="line"><span class="keyword">joinby</span> 企业名称 using 待匹配土地数据</span><br></pre></td></tr></table></figure>
 
@@ -212,31 +212,31 @@
 </tr>
 </tbody></table>
 <p>经过匹配，共获得 <strong>11,960</strong> 条匹配记录，涉及 <strong>38,166</strong> 家瞪羚、独角兽及创新型企业。数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835275985_417561.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835275985_417561.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4651" height="3238"></p>
 <h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下图展示了各省份土地出让数量分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835301768_753926.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835301768_753926.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3529"></p>
 <p>下图展示了2002-2024年土地出让数量的时间变化趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835298778_522278.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835298778_522278.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了土地成交价格的年度变化趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835883134_967265.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835883134_967265.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了各省份土地出让数量排名（前15名）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835308493_778456.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835308493_778456.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了土地成交价格分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835307427_954157.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835307427_954157.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了各省份成交价格对比（箱线图）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835306378_152847.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835306378_152847.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了不同供地方式的年度分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835304964_138325.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835304964_138325.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了主要土地用途占比趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835304094_446535.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835304094_446535.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了出让数量与平均供地面积的变化趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835303120_626712.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835303120_626712.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了土地出让的地理分布（经纬度散点图）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835299870_664822.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835299870_664822.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3510"></p>
 <p>下图展示了成交价格区间分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835379715_222573.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835379715_222573.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了供地面积分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835380910_886379.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/04/22/13/02b79j1bdbe1b168g4/common/content/1776835380910_886379.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="数据引用格式" class="article-heading"><a href="#数据引用格式" class="headerlink" title="数据引用格式"></a>数据引用格式<a class="article-anchor" href="#数据引用格式" aria-label="本节链接" title="复制本节链接"></a></h2><p>在研究中使用该数据请声明数据来源于 <code>RStata 数据中心</code>，或者 <code>RStata Data Center</code>，并使用下述格式引用：</p>
 <blockquote>
 <p>RStata 数据中心: 2002～2024年瞪羚、独角兽、创新型企业与土地出让数据匹配结果. 2026. <a href="https://tidyfriday.cn/rsdb2/">https://tidyfriday.cn/rsdb2/</a></p>

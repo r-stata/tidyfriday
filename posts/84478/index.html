@@ -159,13 +159,13 @@
 </blockquote>
 <p>最近有小伙伴想把这份数据和上市公司数据匹配起来，由于两份数据都非常巨大，所以我就直接帮大家匹配好了。</p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>上市公司与政府采购数据匹配结果的时间范围为 2013～2024 年，经过匹配之后一共得到了 41403 条匹配结果：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/12/30/00/02b79j1bdbe1b168g4/common/content/1735488236619_398736.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/12/30/00/02b79j1bdbe1b168g4/common/content/1735488236619_398736.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2416" height="1812"></p>
 <p>包含的变量如下：</p>
 <blockquote>
 <p>供应商联系方式、年份、合同名称、详情链接、签订时间、发布时间、采购人、供应商、合同编号、项目编号、采购人地址、采购人联系方式、供应商地址、合同金额num_万元、主要标的名称、规格型号或服务要求、主要标的数量、主要标的单价、合同金额、履约期限和地点等简要信息、采购方式、所属地域、所属行业、代理机构、合同签订日期、合同公告日期、股票代码</p>
 </blockquote>
 <p>下图展示了历年上市公司与政府采购数据匹配情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/12/30/00/02b79j1bdbe1b168g4/common/content/1735488236307_151742.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/12/30/00/02b79j1bdbe1b168g4/common/content/1735488236307_151742.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>这里需要注意，匹配使用的政府采购数据是截止 2024 年 3 月 29 日的，所以 2024 年的数据还不够全。</p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合上市公司数据与政府采购数据库的变量，使用上市公司的<code>名称</code>、<code>曾用名</code>等和采购合同数据中的<code>供应商</code>名称进行匹配。</p>
 <p>首先需要分别处理上市公司数据公司列表和采购合同数据中的供应商名称。具体处理方法是剔除公司名称中干扰匹配的一些字符（股份有限、集团有限、有限责任、有限公司、有限、责任、股份、公司、厂、” “、(集团)、（集团）、（、）、(、)、回族自治区、壮族自治区、维吾尔自治区、自治区、省、市、区、县）。很多文献会说自己采用了模糊匹配，实际上在模糊匹配课程中，我讲过模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配（插图来自工企专利匹配的推文，这里实际上是和上市公司数据企业名称匹配。）：</p>

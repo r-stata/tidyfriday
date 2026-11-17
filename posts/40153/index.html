@@ -161,13 +161,13 @@
 <p>2007～2016年税调数据与工商注册数据匹配结果（版本2）：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/cb8992583a404b73bd01a0a5486ac640">https://rstata.duanshu.com/#/brief/course/cb8992583a404b73bd01a0a5486ac640</a></p>
 </blockquote>
 <p>今天再给大家分享一份税调企业与绿色低碳专利数据的匹配结果。时间范围为 2007～2016 年。数据格式方面，我提供的是供 Stata 读取的 dta 格式。数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/30/15/02b79j1bdbe1b168g4/common/content/1738223930717_941629.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/30/15/02b79j1bdbe1b168g4/common/content/1738223930717_941629.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2362" height="1692"></p>
 <blockquote>
 <p>网上也有流传 2017～2020 年的税调数据，不过缺少企业名称等关键变量，真假难辨，还是不要被忽悠了。</p>
 <p>统计数量的时候注意去除重复专利，详情可以阅读绿色低碳专利的介绍（文初的链接）。</p>
 </blockquote>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了让大家更直观地感受这份数据，我还绘制了两幅图进行展示。下图展示了税收调查与绿色低碳专利数据匹配结果中各年总匹配专利的数量，以及各年各种类型的专利数量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/30/15/02b79j1bdbe1b168g4/common/content/1738223945464_156111.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/30/15/02b79j1bdbe1b168g4/common/content/1738223945464_156111.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <blockquote>
 <p>附件中也提供了申请量与授权量的统计结果：<code>2007～2016年税调企业绿色低碳专利申请与授权量(国家知识产权局筛选标准).dta</code></p>
 </blockquote>
@@ -176,11 +176,11 @@
 <ol>
 <li>专利数据中有个申请人变量，每个专利可能有多个申请人，申请人之间使用冒号分隔。因此需要首先处理申请人变量，处理思路如下：</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/29/23/02b79j1bdbe1b168g4/common/content/1738166026069_418132.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/29/23/02b79j1bdbe1b168g4/common/content/1738166026069_418132.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2122" height="572"></p>
 <ol>
 <li>其次，对税调数据库里的企业名称和专利数据里的申请人变量进行处理，主要是改正错字和去除对匹配没有帮助的词汇（例如“有限公司”、“有限责任公司”）。为便于两个数据集的连接，我在税调数据中生成了sdid 变量以在匹配过程中识别每个观测值。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/29/23/02b79j1bdbe1b168g4/common/content/1738166026380_436355.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/01/29/23/02b79j1bdbe1b168g4/common/content/1738166026380_436355.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2144" height="1092"></p>
 <blockquote>
 <p>Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/brief/course/d4fb816566244662ab6359fa848f1f1e">https://rstata.duanshu.com/#/brief/course/d4fb816566244662ab6359fa848f1f1e</a></p>
 </blockquote>

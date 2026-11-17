@@ -162,15 +162,15 @@
 </blockquote>
 <p>最近有培训班的小伙伴想要将更新后的税调数据与海关数据进行匹配，考虑到工作量较大，于是我就直接帮忙处理好了。</p>
 <h2 id="数据概览" class="article-heading"><a href="#数据概览" class="headerlink" title="数据概览"></a>数据概览<a class="article-anchor" href="#数据概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>因为数据较大，所以我提供了 dta 格式的税收调查数据与海关数据匹配结果的分年版本，时间范围为 2007～2016 年。以 2016 年为例，数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179722269_252654.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179722269_252654.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4650" height="3408"></p>
 <p>包含的变量如下：</p>
 <blockquote>
 <p>sdid、newhgid、年份、截止日期、进出口分类名称、商品编码、商品名称、金额、数量、价格、经营单位代码、经营单位名称、产消国代码、产消国名称、贸易方式名称、运输方式名称、数量单位名称、企业名称、产消地区名称、企业性质名称、起运国或目的国名称、海关口岸名称、中转国名称、经营单位地址、电话、传真、邮编、电子邮件、联系人</p>
 </blockquote>
 <p>附件中还提供了<code>2007~2016年有进出口的税调企业每年进出口额.dta</code>文件：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179720900_928542.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179720900_928542.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4618" height="3348"></p>
 <p>为了让大家更直观地感受这份数据，我还绘制了一幅图进行展示。下图展示了 2007~2016 年涉及进出口的税调企业每年平均进出口额：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179723234_125977.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/09/07/01/02b79j1bdbe1b168g4/common/content/1757179723234_125977.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合税收调查数据与海关数据的变量，根据<code>企业名称</code>进行数据集的匹配。</p>
 <p>在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了<code>精确匹配</code>，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</p>
 <blockquote>
