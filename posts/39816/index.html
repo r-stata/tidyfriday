@@ -174,19 +174,19 @@
 <li>海关数据分年/2019.dta</li>
 <li>海关数据分年/2020.dta</li>
 </ul>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355781312_851357.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355781312_851357.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2322" height="1754"></p>
 <h2 id="图表展示" class="article-heading"><a href="#图表展示" class="headerlink" title="图表展示"></a>图表展示<a class="article-anchor" href="#图表展示" aria-label="本节链接" title="复制本节链接"></a></h2><p>下面展示由这份数据绘制的几幅图表：</p>
 <p>下图展示了 2017～2020 年中国各省份进出口金额的分布情况：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355774405_199919.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355774405_199919.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3529"></p>
 <p>下图展示了 2017～2020 年进出口金额的月度时间趋势：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355774822_815152.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355774822_815152.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了各省份进出口金额排名 Top 15：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355775543_632295.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355775543_632295.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="处理代码" class="article-heading"><a href="#处理代码" class="headerlink" title="处理代码"></a>处理代码<a class="article-anchor" href="#处理代码" aria-label="本节链接" title="复制本节链接"></a></h2><p>数据文件夹中的 <code>code/generate_charts.do</code> 给出了由原始分年海关数据绘制上述三幅图表的完整 Stata 处理流程，核心步骤如下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 读取 4 个分年原始 dta，仅保留所需变量并去除缺失省份</span></span><br><span class="line"><span class="keyword">foreach</span> y of <span class="keyword">numlist</span> 2017/2020 &#123;</span><br><span class="line">    <span class="keyword">use</span> <span class="string">&quot;`y&#x27;.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line">    <span class="keyword">keep</span> 经营单位所在省名称 年份 月份 金额 进出口</span><br><span class="line">    <span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(经营单位所在省名称)</span><br><span class="line"><span class="comment">    *- 按 省份-年-月-进出口 汇总金额（美元）</span></span><br><span class="line">    <span class="keyword">collapse</span> (<span class="keyword">sum</span>) 金额, <span class="keyword">by</span>(经营单位所在省名称 年份 月份 进出口)</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 金额换算为 亿美元，便于阅读与图例展示</span></span><br><span class="line"><span class="keyword">gen</span> 金额_亿 = 金额 / 1e8</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 与省份地图数据库合并，绘制着色地图</span></span><br><span class="line"><span class="keyword">use</span> <span class="string">&quot;`mapdata&#x27;/province/chinaprov2021mini_db.dta&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 省 经营单位所在省名称</span><br><span class="line"><span class="keyword">merge</span> 1:1 经营单位所在省名称 using <span class="string">&quot;temp_prov.dta&quot;</span>, <span class="keyword">keep</span>(master match) nogenerate</span><br></pre></td></tr></table></figure>
 
 <p>附件中也提供了该数据的处理代码供参考：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355767869_654944.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2026/08/10/17/02b79j1bdbe1b168g4/common/content/1786355767869_654944.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="6800" height="4400"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/c02ec8b0fb4044839bdd9406583a8ff3">2017～2020 年海关数据（地区层面）</a></p>
 </blockquote>
