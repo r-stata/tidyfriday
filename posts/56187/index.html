@@ -172,7 +172,7 @@
 <p>这样就把所有模型的结果保存到了 temp.csv 中，把这个文件读入 Stata 中：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">import delimited using temp.csv, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788463_552542.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788463_552542.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1574" height="686"></p>
 <p>然后去除所有的 =””：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> _all &#123;</span><br><span class="line">    <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = ustrregexs(1) <span class="keyword">if</span> ustrregexm(<span class="symbol">`i&#x27;</span>, <span class="string">`&quot;=&quot;(.*)&quot;&quot;&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -182,21 +182,21 @@
 <p>由于我们只关注显著性，所以保留 <code>pvalue_*</code> 行即可：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 只关注显著性</span><br><span class="line">keep if index(v1, &quot;pvalue_&quot;) | v1 == &quot;cmdline&quot;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788708_429579.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788708_429579.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1572" height="684"></p>
 <p>然后我们把数据转置下：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 安装 sxpose：ssc install sxpose</span><br><span class="line">sxpose, clear</span><br></pre></td></tr></table></figure>
 
 <p>把第一行作为变量名：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 安装 nrow：ssc install nrow</span><br><span class="line">nrow 1</span><br><span class="line">*- 把 cmdline 放到第一列</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788947_737813.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781788947_737813.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1652" height="686"></p>
 <p>然后去掉 p 值的括号：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">foreach</span> i of <span class="keyword">varlist</span> pvalue_* &#123;</span><br><span class="line">    <span class="keyword">replace</span> <span class="symbol">`i&#x27;</span> = ustrregexs(1) <span class="keyword">if</span> ustrregexm(<span class="symbol">`i&#x27;</span>, <span class="string">&quot;\((.*)\)&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">destring</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
 
 <p>然后我们就可以筛选自变量系数均显著的模型了：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 判断是否显著（5% 标准）</span></span><br><span class="line"><span class="keyword">egen</span> ind = rowmax(pvalue_*)</span><br><span class="line"><span class="keyword">replace</span> ind = (ind &lt; 0.05)</span><br><span class="line"></span><br><span class="line"><span class="comment">*- 也可以删去常数项</span></span><br><span class="line"><span class="keyword">drop</span> pvalue__cons</span><br><span class="line"><span class="keyword">egen</span> ind2 = rowmax(pvalue_*)</span><br><span class="line"><span class="keyword">replace</span> ind2 = (ind &lt; 0.05)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781789178_453353.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781789178_453353.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1760" height="694"></p>
 <p>这样我们就解决了这个问题。</p>
 <p>不过如果组合特别多的时候（超过 300 个）使用这个方法会报错，因为 Stata 最多只能在内存中存储 300 个模型。为此我们再来看一下组合特别多的时候该怎么办？</p>
 <p>首先我们生产多一些变量：</p>
@@ -223,7 +223,7 @@
 <p>然后就可以筛选自变量系数都显著的模型了：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 判断是否显著（5% 标准）</span></span><br><span class="line"><span class="keyword">egen</span> ind = rowmax(pvalue_*)</span><br><span class="line"><span class="keyword">replace</span> ind = (ind &lt; 0.05)</span><br><span class="line"></span><br><span class="line"><span class="keyword">keep</span> <span class="keyword">if</span> ind == 1</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781789404_217222.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/06/03/16/02b79j1bdbe1b168g4/common/content/1685781789404_217222.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1754" height="698"></p>
 <p>这样也可以解决这个问题。</p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/1e0a8803f83d49e0ab89c111e947d239">​如何使用 Stata 生成所有自变量的组合进行回归并筛选自变量系数估计值均显著的模型？</a></p>

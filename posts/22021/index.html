@@ -154,10 +154,10 @@
                 <p>最近有小伙伴想爬取和讯网的上市公司列表然后绘图展示各省上市公司数量：<a target="_blank" rel="noopener external nofollow noreferrer" href="http://stockdata.stock.hexun.com/gszl/jbgk.aspx">http://stockdata.stock.hexun.com/gszl/jbgk.aspx</a></p>
 <span id="more"></span>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212086_275433.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212086_275433.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1952" height="1942"></p>
 <p>实际上在之前的系列课程「Stata 编程导论」的 &lt;8. Stata网络数据爬取：JSON篇&gt; 中讲解过这个案例，今天我们再单独看一下。</p>
 <p>通过网页分析(Fn + F12)可以看到这个表格对应的数据在这里：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212339_682664.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212339_682664.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3832" height="1932"></p>
 <p>对应的链接是这个：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://stockdata.stock.hexun.com/gszl/data/jsondata/jbgk.ashx?count=20&amp;titType=null&amp;page=1&amp;callback=hxbase_json15</span><br></pre></td></tr></table></figure>
 
@@ -206,15 +206,15 @@
 <p>然后我们就可以根据里面的 district 变量统计各省上市公司的数量并绘图展示了：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> cnstock3, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">contract</span> district</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> <span class="built_in">missing</span>(district)</span><br><span class="line"><span class="keyword">encode</span> district, <span class="keyword">gen</span>(district2)</span><br><span class="line"><span class="keyword">tw</span> bar _freq district2, hori <span class="comment">///</span></span><br><span class="line"> yla(1(1)32, val) xsize(16) ysize(20) <span class="comment">///</span></span><br><span class="line"> xti(<span class="string">&quot;上市公司数量&quot;</span>) ti(<span class="string">&quot;各个省份上司公司的数量&quot;</span>) <span class="comment">///</span></span><br><span class="line"> subti(<span class="string">&quot;数据来源：和讯网&quot;</span>) caption(<span class="string">&quot;绘制：微信公众号 RStata&quot;</span>) yti(<span class="string">&quot;&quot;</span>)</span><br><span class="line"><span class="keyword">gr</span> export pic6_3.png, <span class="keyword">replace</span> width(4800)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966213325_814223.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966213325_814223.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="6000"></p>
 <p>如果想要根据柱条的高度排序，可以使用 sencode 命令：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 安装 sencode: ssc install sencode</span><br><span class="line">sencode district, gen(district3) gsort(_freq)</span><br><span class="line">tw bar _freq district3, hori ///</span><br><span class="line"> yla(1(1)32, val) xsize(16) ysize(20) ///</span><br><span class="line"> xti(&quot;上市公司数量&quot;) ti(&quot;各个省份上司公司的数量&quot;) ///</span><br><span class="line"> subti(&quot;数据来源：和讯网&quot;) caption(&quot;绘制：微信公众号 RStata&quot;) yti(&quot;&quot;)</span><br><span class="line">gr export pic6_4.png, replace width(4800)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212934_593186.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212934_593186.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="6000"></p>
 <p>反过来排序也可以：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sencode district, gen(district4) gsort(-_freq)</span><br><span class="line">tw bar _freq district4, hori ///</span><br><span class="line"> yla(1(1)32, val) xsize(16) ysize(20) ///</span><br><span class="line"> xti(&quot;上市公司数量&quot;) ti(&quot;各个省份上司公司的数量&quot;) ///</span><br><span class="line"> subti(&quot;数据来源：和讯网&quot;) caption(&quot;绘制：微信公众号 RStata&quot;) yti(&quot;&quot;)</span><br><span class="line">gr export pic6_5.png, replace width(4800)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212656_822764.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/09/17/23/02b79j1bdbe1b168g4/common/content/1694966212656_822764.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="6000"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/1bf3f499e7c04e5b880ac1078165d6ec">Stata 如何爬取所有 A 股上市公司的基本信息并展示地域分布？</a></p>
 </blockquote>

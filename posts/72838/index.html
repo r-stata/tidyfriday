@@ -155,13 +155,13 @@
                 <p>在上市公司和绿色专利数据匹配的介绍中我们绘制了两幅图：</p>
 <span id="more"></span>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020349_257726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020693_377722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020349_257726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020693_377722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>今天我们再来看一下在 Stata 中如何绘制这种柱状图 + 线图。</p>
 <p>附件中有绘图所需的数据 <code>zldata20230131.dta</code>，这份数据的计算可以阅读上市公司和绿色专利数据匹配的介绍推文：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> zldata20230131.dta, <span class="keyword">clear</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172378635_799995.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172378635_799995.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1384" height="910"></p>
 <p>为了绘制上面效果的图，首先我们需要设置绘图主题（图表的整体样式）：</p>
 <p>这个绘图主题是我自己设计的，附件中有该主题的安装文件（使用 net install … 即可安装）：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* 安装：</span><br><span class="line">net install rstata_scheme.pkg, from(&quot;rstata_scheme.pkg 文件所在的文件夹路径（需要替换成自己电脑上的）&quot;) replace</span><br><span class="line">* 设置使用：</span><br><span class="line">set scheme lightscheme, perm</span><br><span class="line">* perm 选项表示永久使用该主题。</span><br></pre></td></tr></table></figure>
@@ -172,14 +172,14 @@
 <p>然后通过设定恰当的 barwidth() 就可以了：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据主分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据主分类号筛选 year2, barwidth(0.4)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172409825_961293.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172409825_961293.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>再添加 line 图层：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据主分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据主分类号筛选 year2, barwidth(0.4) || ///</span><br><span class="line"> line 总专利数量 year || ///</span><br><span class="line"> line 总绿色专利数量_根据主分类号筛选 year</span><br></pre></td></tr></table></figure>
 
 <p>设置图例的位置：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据主分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据主分类号筛选 year2, barwidth(0.4) || ///</span><br><span class="line"> line 总专利数量 year || ///</span><br><span class="line"> line 总绿色专利数量_根据主分类号筛选 year ||, ///</span><br><span class="line"> leg(order(1 &quot;发明型专利&quot; 2 &quot;发明型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  3 &quot;实用型专利&quot; 4 &quot;实用型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  5 &quot;总专利数量&quot; 6 &quot;总绿色专利数量(根据主分类号筛选)&quot;) ///</span><br><span class="line">  pos(11) ring(0) row(3))</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172409573_268934.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675172409573_268934.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>设置 x 轴的标签：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据主分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据主分类号筛选 year2, barwidth(0.4) || ///</span><br><span class="line"> line 总专利数量 year || ///</span><br><span class="line"> line 总绿色专利数量_根据主分类号筛选 year ||, ///</span><br><span class="line"> leg(order(1 &quot;发明型专利&quot; 2 &quot;发明型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  3 &quot;实用型专利&quot; 4 &quot;实用型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  5 &quot;总专利数量&quot; 6 &quot;总绿色专利数量(根据主分类号筛选)&quot;) ///</span><br><span class="line">  pos(11) ring(0) row(3)) ///</span><br><span class="line"> xla(1992(1)2019, ang(90))</span><br></pre></td></tr></table></figure>
 
@@ -187,13 +187,13 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据主分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据主分类号筛选 year2, barwidth(0.4) || ///</span><br><span class="line"> line 总专利数量 year || ///</span><br><span class="line"> line 总绿色专利数量_根据主分类号筛选 year ||, ///</span><br><span class="line"> leg(order(1 &quot;发明型专利&quot; 2 &quot;发明型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  3 &quot;实用型专利&quot; 4 &quot;实用型绿色专利(根据主分类号筛选)&quot; ///</span><br><span class="line">  5 &quot;总专利数量&quot; 6 &quot;总绿色专利数量(根据主分类号筛选)&quot;) ///</span><br><span class="line">  pos(11) ring(0) row(3)) ///</span><br><span class="line"> xla(1992(1)2019, ang(90)) ///</span><br><span class="line"> ti(&quot;1992~2019 年上市公司与绿色专利数据匹配情况（根据主分类号筛选）&quot;, size(*0.8)) ///</span><br><span class="line"> subti(&quot;由于专利数据库后面年份的不是很全，2017 年及之后年份的数据需要谨慎使用。&quot;, size(*0.8)) ///</span><br><span class="line"> caption(&quot;数据来源：上市公司数据来源于和讯网，专利数据来源于国家知识产权局，绿色专利分类标准来自 WIPO。&quot;)</span><br></pre></td></tr></table></figure>
 
 <p>这样就得到了推文开头的图：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020349_257726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020349_257726.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>另外一幅图代码类似，把主分类号替换成分类号即可：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tw bar 发明型专利 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 发明型绿色专利_根据分类号筛选 year1, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型专利 year2, barwidth(0.4) || ///</span><br><span class="line"> bar 实用型绿色专利_根据分类号筛选 year2, barwidth(0.4) || ///</span><br><span class="line"> line 总专利数量 year || ///</span><br><span class="line"> line 总绿色专利数量_根据分类号筛选 year ||, ///</span><br><span class="line"> leg(order(1 &quot;发明型专利&quot; 2 &quot;发明型绿色专利(根据分类号筛选)&quot; ///</span><br><span class="line">  3 &quot;实用型专利&quot; 4 &quot;实用型绿色专利(根据分类号筛选)&quot; ///</span><br><span class="line">  5 &quot;总专利数量&quot; 6 &quot;总绿色专利数量(根据分类号筛选)&quot;) ///</span><br><span class="line">  pos(11) ring(0) row(3)) ///</span><br><span class="line"> xla(1992(1)2019, ang(90)) ///</span><br><span class="line"> ti(&quot;1992~2019 年上市公司与绿色专利数据匹配情况（根据分类号筛选）&quot;, size(*0.8)) ///</span><br><span class="line"> subti(&quot;由于专利数据库后面年份的不是很全，2017 年及之后年份的数据需要谨慎使用。&quot;, size(*0.8)) ///</span><br><span class="line"> caption(&quot;数据来源：上市公司数据来源于和讯网，专利数据来源于国家知识产权局，绿色专利分类标准来自 WIPO。&quot;)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020693_377722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171020693_377722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>另外 rstata_scheme 主题包里面还有另外一个 darkrstata 主题，绘制出来的图表是这样的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171021017_223249.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/31/21/02b79j1bdbe1b168g4/common/content/1675171021017_223249.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/084ea3a17fa2418396cb41da10a35f5f">Stata：如何绘制并列柱状图 + 线图？以上市公司绿色专利数量数据为例</a></p>
 </blockquote>

@@ -154,27 +154,27 @@
 
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">use</span> mpg, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">sc</span> hwy <span class="keyword">displ</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603767891_185282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603767891_185282.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>这种重叠问题往往会影响我们对数据的判断，本文我们将会分享几种解决方法。</p>
 <h2 id="方法一：设置透明度" class="article-heading"><a href="#方法一：设置透明度" class="headerlink" title="方法一：设置透明度"></a>方法一：设置透明度<a class="article-anchor" href="#方法一：设置透明度" aria-label="本节链接" title="复制本节链接"></a></h2><p>在 Stata 15 之后，绘图可以设置颜色的透明度了：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sc hwy displ, mc(red%30)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768258_952196.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768258_952196.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>这样可以区分哪些点有重叠、哪些没有，但是不是特别直观。</p>
 <h2 id="方法二：使用散点扰动" class="article-heading"><a href="#方法二：使用散点扰动" class="headerlink" title="方法二：使用散点扰动"></a>方法二：使用散点扰动<a class="article-anchor" href="#方法二：使用散点扰动" aria-label="本节链接" title="复制本节链接"></a></h2><p>scatter 命令可以使用 jitter() 选项设置散点扰动：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sc hwy displ, name(p1, replace) ti(没有添加散点扰动)</span><br><span class="line">sc hwy displ, name(p2, replace) jitter(3) ti(添加了散点扰动)</span><br><span class="line">gr combine p1 p2</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768608_135974.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768608_135974.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>也可以通过增加 <code>jitter()</code> 里面的数字来增加扰动。</p>
 <h2 id="方法三：使用太阳花的花瓣数量表示重叠程度" class="article-heading"><a href="#方法三：使用太阳花的花瓣数量表示重叠程度" class="headerlink" title="方法三：使用太阳花的花瓣数量表示重叠程度"></a>方法三：使用太阳花的花瓣数量表示重叠程度<a class="article-anchor" href="#方法三：使用太阳花的花瓣数量表示重叠程度" aria-label="本节链接" title="复制本节链接"></a></h2><p>ssc 上有个陈年的老命令，安装：<code>ssc install flower</code>，使用：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flower hwy displ</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768810_546734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603768810_546734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>这里的黑色背景实际上是没背景，可以绘制出来图之后对着图复制，然后粘贴到 word 文档里面得到白色背景的图（但是效果可能很差）。</p>
 <p>Stata 官方也有一个绘制太阳花的命令：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sunflower hwy displ</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603769015_522213.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603769015_522213.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>更加好用。</p>
 <h2 id="方法四：使用-E-F-Haghish-开发的-neat-命令" class="article-heading"><a href="#方法四：使用-E-F-Haghish-开发的-neat-命令" class="headerlink" title="方法四：使用 E. F. Haghish 开发的 neat 命令"></a>方法四：使用 E. F. Haghish 开发的 neat 命令<a class="article-anchor" href="#方法四：使用-E-F-Haghish-开发的-neat-命令" aria-label="本节链接" title="复制本节链接"></a></h2><p>附件中有安装包：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net install neat.pkg, from(&quot;neat.pkg 文件所在的文件夹路径&quot;)</span><br></pre></td></tr></table></figure>
@@ -182,7 +182,7 @@
 <p>使用：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">neat hwy displ</span><br><span class="line">sc hwy displ</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603769280_357298.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/04/27/21/02b79j1bdbe1b168g4/common/content/1682603769280_357298.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2400" height="1600"></p>
 <p>需要注意的是，neat 并不是绘图的命令，而是一个修改数据的命令，也就是对数据进行偏移之后再绘图。</p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/a20c6688cde94f3cb46593cbe5921651">Stata 中如何解决散点图的散点重叠问题？</a></p>
