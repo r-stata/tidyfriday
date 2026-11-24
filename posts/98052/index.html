@@ -153,19 +153,19 @@
                 <p>最近有小伙伴问到如何使用 Stata 处理一份这样的数据：</p>
 <span id="more"></span>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122185784_622834.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122185784_622834.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2478" height="1674"></p>
 <p>每个 PT J 行开头的都是一段文献数据：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122186519_269589.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122186519_269589.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2478" height="1662"></p>
 <p>然后需要将前两个字母作为变量名，将该数据整理成变量表的形式。</p>
 <p>下面我们来一步步处理：</p>
 <p>首先把数据读取为一个变量 v，提取前两个字符生成 v1：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">infix</span> strL v 1-10000 using <span class="string">&quot;download2010u895.txt&quot;</span>, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> v1 = ustrregexs(0) <span class="keyword">if</span> ustrregexm(v, <span class="string">&quot;^[A-Z]&#123;2&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> v = <span class="built_in">subinstr</span>(v, v1, <span class="string">&quot;&quot;</span>, 1)</span><br><span class="line"><span class="keyword">order</span> v1 v</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122187095_575863.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122187095_575863.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1630" height="1464"></p>
 <p>每个“PT”开头的都是一段文献计量数据，所以我们可以生成一个变量标识下：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> v2 = _n <span class="keyword">if</span> v1 == <span class="string">&quot;PT&quot;</span></span><br><span class="line"><span class="comment">*- ssc install fillmissing</span></span><br><span class="line">fillmissing v2, with(previous)</span><br><span class="line">fillmissing v1, with(previous)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122187744_962918.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122187744_962918.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1792" height="1464"></p>
 <p>这样 v2 取不同值对应的就是不同的文献计量数据。下面我们还需要解决一个问题，就是例如 “AU” 字段对应了多个作者，我们需要把这些作者合并到一个格子里面。常用的方法就是先把数据转换成宽数据，合并同字段的变量。</p>
 <p>为了达成这部分目标，我们需要首先生成一个 v3 作为转换成宽数据之后的变量名：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">bysort</span> v1 v2: <span class="keyword">gen</span> v3 = _n</span><br><span class="line"><span class="keyword">gsort</span> id</span><br><span class="line"><span class="keyword">tostring</span> v3, <span class="keyword">replace</span></span><br><span class="line"><span class="keyword">replace</span> v3 = <span class="string">&quot;m&quot;</span> + v3</span><br><span class="line"><span class="keyword">drop</span> id</span><br><span class="line"><span class="keyword">replace</span> v = <span class="built_in">strtrim</span>(v)</span><br><span class="line"><span class="comment">*- ssc install tidy</span></span><br><span class="line">spread v3 v</span><br><span class="line"><span class="keyword">gsort</span> v2</span><br></pre></td></tr></table></figure>
@@ -174,7 +174,7 @@
 <p>对 m 开头的变量排个序，方便观察：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">local vlist = &quot;m1&quot;</span><br><span class="line">forval i = 2/86 &#123;</span><br><span class="line"> local vlist `vlist&#x27; m`i&#x27;</span><br><span class="line">&#125;</span><br><span class="line">di &quot;`vlist&#x27;&quot;</span><br><span class="line">order v1 v2 `vlist&#x27;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122188055_794127.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122188055_794127.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2382" height="1658"></p>
 <p>合并 m 开头的变量，这里为了便于和数据里面的单词间空格区分，我使用了 5 个连续的空格作为分隔符（当然 4 个也行，随意）：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">unite m*, gen(value) sep(&quot;     &quot;)</span><br><span class="line">drop m*</span><br></pre></td></tr></table></figure>
 
@@ -187,7 +187,7 @@
 <p>最后再稍作处理，这份数据我们就处理好了：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">order</span> v2 PT AU AF TI <span class="keyword">SO</span> <span class="keyword">LA</span> DT <span class="keyword">DE</span> ID AB RP EM FU CR BU FI HO IK NR TC PU PI PA SN EI JI PD PY VL IS BP EP <span class="keyword">DI</span> PG WC <span class="keyword">SC</span> GA UT PM DA ER</span><br><span class="line"><span class="keyword">drop</span> v2</span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">order</span> id</span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> result, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122188670_952281.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/12/22/02b79j1bdbe1b168g4/common/content/1697122188670_952281.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2378" height="1660"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/98a78be4ab784e829cfb4d78fa4e5540">使用 Stata 处理文献计量数据</a></p>
 </blockquote>

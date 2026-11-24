@@ -154,7 +154,7 @@
                 <p>今天我们一起来看下如何使用 Stata 从 pdf 文档中提取表格并处理，具体来说是提取「数字经济核心产业分类与国际专利分类参照关系表（2023）」文件中的专利分类号范围。</p>
 <span id="more"></span>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505386424_388777.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505386424_388777.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2356" height="1674"></p>
 <p>首先第一步我们可以使用这个在线 pdf 文本识别应用把 pdf 里面的表格转换成 xlsx 格式的，由于该网站免费转换的文档不能超过 10 页，所以我把这个文档拆分成了两个 pdf 分别转换，得到了下面两个文件：</p>
 <blockquote>
 <p>在线文本识别转换：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ocr.wdku.net/">https://ocr.wdku.net/</a></p>
@@ -177,14 +177,14 @@
 <p>填补下前几个变量的缺失值：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">carryforward 数字经济核心产业大类 数字经济核心产业中类 数字经济核心产业小类, replace</span><br><span class="line">formatallstr %10s</span><br><span class="line">label data &quot;数据处理：微信公众号 RStata&quot;</span><br><span class="line">save &quot;数字经济核心产业分类与国际专利分类参照关系表&quot;, replace</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505387242_687587.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505387242_687587.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2138" height="1642"></p>
 <p>formatallstr 也是我现编的，用于快速把所有的字符串变量按照指定格式 format：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*! formatallstr %10s：直接把所有的 string 变量格式化成 %10s</span><br><span class="line">cap prog drop formatallstr</span><br><span class="line">prog def formatallstr</span><br><span class="line"> syntax anything</span><br><span class="line"> foreach i of varlist _all &#123;</span><br><span class="line">  cap format `i&#x27; `anything&#x27;</span><br><span class="line"> &#125;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
 
 <p>数据中国际专利分类是用“、”符号隔开的，下面我们把这个变量适应顿号分开，然后再转换成长数据：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 拆分 IPC</span></span><br><span class="line"><span class="keyword">use</span> 数字经济核心产业分类与国际专利分类参照关系表, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">gen</span> id = _n</span><br><span class="line"><span class="keyword">split</span> 国际专利分类, <span class="keyword">parse</span>(<span class="string">&quot;、&quot;</span>)</span><br><span class="line"><span class="keyword">drop</span> 国际专利分类</span><br><span class="line">gather 国际专利分类*</span><br><span class="line"><span class="keyword">order</span> id</span><br><span class="line"><span class="keyword">gsort</span> id</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">var</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> value == <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">ren</span> value IPC</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505387834_769863.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505387834_769863.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2270" height="1644"></p>
 <p>这里面专利分类号类别有很多种形式，下面我们通过长度来分类：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">gen</span> len = <span class="built_in">strlen</span>(IPC)</span><br><span class="line"><span class="keyword">gsort</span> id IPC</span><br><span class="line"><span class="keyword">gen</span> ipcid = _n</span><br><span class="line"><span class="keyword">tab</span> len</span><br><span class="line"></span><br><span class="line"><span class="comment">*&gt;         len |      Freq.     Percent        Cum.</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;           4 |          1        0.09        0.09</span></span><br><span class="line"><span class="comment">*&gt;           5 |        202       18.74       18.83</span></span><br><span class="line"><span class="comment">*&gt;           6 |        204       18.92       37.76</span></span><br><span class="line"><span class="comment">*&gt;           7 |        374       34.69       72.45</span></span><br><span class="line"><span class="comment">*&gt;           8 |        121       11.22       83.67</span></span><br><span class="line"><span class="comment">*&gt;           9 |        122       11.32       94.99</span></span><br><span class="line"><span class="comment">*&gt;          10 |         40        3.71       98.70</span></span><br><span class="line"><span class="comment">*&gt;          11 |         14        1.30      100.00</span></span><br><span class="line"><span class="comment">*&gt; ------------+-----------------------------------</span></span><br><span class="line"><span class="comment">*&gt;       Total |      1,078      100.00</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">save</span> <span class="string">&quot;data1&quot;</span>, <span class="keyword">replace</span></span><br></pre></td></tr></table></figure>
 
@@ -217,7 +217,7 @@
 </ul>
 <p>使用 <code>ipcres1.dta</code> 进行筛选的时候，提取 IPC 分类号的前 4 位字符串就可以匹配筛选了；使用 <code>ipcres2.dta</code> 进行筛选的时候是提取前 5 位；使用 <code>ipcres3.dta</code> 进行筛选的时候是提取前 6 位；使用 <code>ipcres4.dta</code> 进行筛选的时候是直接进行匹配；使用 <code>ipcres5.dta</code> 进行筛选的时候是提取前 7 位。</p>
 <p>这部分操作也可以参考平台上的绿色专利筛选课程。</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505469823_522782.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/28/23/02b79j1bdbe1b168g4/common/content/1698505469823_522782.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/b2c71978336b4b39b69f05d6537d9d8f">使用 Stata 提取和处理数字经济核心产业分类与国际专利分类参照关系表</a></p>
 </blockquote>

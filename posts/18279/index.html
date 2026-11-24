@@ -159,7 +159,7 @@
 <p>里面使用的方法准确性也不错，不过最近在处理《2009全国地市县财政统计资料》时感觉还不是非常好用，因此我又更换了新方法。</p>
 <p>使用百度大脑的 OCR 接口解析的效果感觉更好，本次课我们将介绍如何在 Stata 中调用该接口从扫描文档中提取表格。</p>
 <p>附件中的 <code>一般预算1-4.pdf</code> 文件是《2009全国地市县财政统计资料》书中一般预算部分的前 4 页。</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537567890_261899.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537567890_261899.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1914" height="1362"></p>
 <p>这个文档是拍的照片，堪称是最难识别的了。</p>
 <h2 id="表格文字识别-V2-接口" class="article-heading"><a href="#表格文字识别-V2-接口" class="headerlink" title="表格文字识别 V2 接口"></a>表格文字识别 V2 接口<a class="article-anchor" href="#表格文字识别-V2-接口" aria-label="本节链接" title="复制本节链接"></a></h2><p>该接口的介绍文档在这里：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ai.baidu.com/ai-doc/OCR/Al1zvpylt">https://ai.baidu.com/ai-doc/OCR/Al1zvpylt</a> 。</p>
 <p>和之前介绍的情感倾向分析接口一样，该接口的使用也分为两步：</p>
@@ -168,12 +168,12 @@
 <li>调用该接口。</li>
 </ol>
 <h2 id="创建应用" class="article-heading"><a href="#创建应用" class="headerlink" title="创建应用"></a>创建应用<a class="article-anchor" href="#创建应用" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先我们领取点免费的额度：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://console.bce.baidu.com/ai/#/ai/ocr/overview/index">https://console.bce.baidu.com/ai/#/ai/ocr/overview/index</a></p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537568576_832729.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537568576_832729.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2758" height="1802"></p>
 <p>每个月是有 1000 次的免费额度。如果觉得免费额度不够用，可以点击开通付费使用。</p>
 <p>然后需要在控制台创建一个应用 ：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537568816_189413.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537568816_189413.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3454" height="1914"></p>
 <p>创建后就可以看到这个应用了：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537569074_823889.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537569074_823889.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3414" height="852"></p>
 <p>API Key 和 Secret Key 就是我们需要在代码中调用的东西，大家需要替换成自己的。</p>
 <h2 id="获取-accsee-token" class="article-heading"><a href="#获取-accsee-token" class="headerlink" title="获取 accsee_token"></a>获取 accsee_token<a class="article-anchor" href="#获取-accsee-token" aria-label="本节链接" title="复制本节链接"></a></h2><p>根据接口的文档介绍，我们需要先根据 API Key 和 Secret Key 请求获取 access_token。</p>
 <p>access_token 的获取方法可以参考这个文档：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://ai.baidu.com/ai-doc/REFERENCE/Ck3dwjhhu">https://ai.baidu.com/ai-doc/REFERENCE/Ck3dwjhhu</a></p>
@@ -199,7 +199,7 @@
 <p>然后就可以调用百度接口进行 OCR 了：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">POST<span class="punctuation">(</span>paste0<span class="punctuation">(</span><span class="string">&quot;https://aip.baidubce.com/rest/2.0/ocr/v1/table?return_excel=true&amp;access_token=&quot;</span><span class="punctuation">,</span> lst<span class="operator">$</span>access_token<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">     httr<span class="operator">::</span>add_headers<span class="punctuation">(</span>.headers <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">       <span class="string">&#x27;Content-Type&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span></span><br><span class="line">     <span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">     body <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>pdf_file <span class="operator">=</span> base64_string<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> res</span><br><span class="line">content<span class="punctuation">(</span>res<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  listviewer<span class="operator">::</span>jsonedit<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537567675_567351.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/08/13/16/02b79j1bdbe1b168g4/common/content/1723537567675_567351.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1592" height="834"></p>
 <p>得到的 excel 文件也是以加密字符串的形式，使用下面的代码就可以转换了：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">content<span class="punctuation">(</span>res<span class="punctuation">)</span> <span class="operator">-&gt;</span> excellst</span><br><span class="line"></span><br><span class="line">excellst<span class="operator">$</span>excel_file <span class="operator">%&gt;%</span></span><br><span class="line">  base64_dec<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  writeBin<span class="punctuation">(</span><span class="string">&quot;temp.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 

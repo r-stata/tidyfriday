@@ -153,9 +153,9 @@
                 <p>最近有小伙伴问到了关于如何处理从 <a target="_blank" rel="noopener external nofollow noreferrer" href="https://disc.gsfc.nasa.gov/datasets/M2I1NXLFO_5.12.4/summary">https://disc.gsfc.nasa.gov/datasets/M2I1NXLFO_5.12.4/summary</a> 页面下载到的近地表的气压、比湿、风速和气温的数据。直接下载到的数据为 NetCDF 格式，虽然之前也讲解过类似的栅格数据转面板课程，不过感觉之前的代码都不够简洁。今天的课程中我们来一起看看如何高效的处理这份数据。</p>
 <span id="more"></span>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131712997_388546.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131712997_388546.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2300" height="838"></p>
 <p>该数据包含如下变量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131715904_179933.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131715904_179933.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1080" height="743"></p>
 <p>其中比湿（specific humidity）是指在一团湿空气中，水汽的质量与该团空气总质量（水汽质量加上干空气质量）的比值。如果湿空气与外界无质量交换，并且没有相变发生，那么比湿会保持不变。比湿通常以g/g或g/kg为单位来表示，通常大气中的比湿都小于40g/kg，是记录大气水汽状况的一个重要指标。</p>
 <p>下面我们一起来看下这个数据该如何下载和处理。</p>
 <h2 id="从-NASA-下载-MERRA-2-数据" class="article-heading"><a href="#从-NASA-下载-MERRA-2-数据" class="headerlink" title="从 NASA 下载 MERRA-2 数据"></a>从 NASA 下载 MERRA-2 数据<a class="article-anchor" href="#从-NASA-下载-MERRA-2-数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>首先你需要注册一个 NASA 的账号，这里就不再演示了：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://disc.gsfc.nasa.gov/datasets/M2I1NXLFO_5.12.4/summary">https://disc.gsfc.nasa.gov/datasets/M2I1NXLFO_5.12.4/summary</a></p>
@@ -170,15 +170,15 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#&gt; [1] &quot;73.502,3.837,135.096,53.564&quot;</span><br></pre></td></tr></table></figure>
 
 <p>然后变量都选上：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131716518_771372.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131716518_771372.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2222" height="1168"></p>
 <p>最后点击 Get Data 就可以获取数据下载链接了：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131717358_979613.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131717358_979613.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2226" height="1128"></p>
 <p>点击 <code>Download links list</code> 下载所有的数据链接，就是附件中的 <code>subset_M2I1NXLFO_5.12.4_20240515_082340_.txt</code> 文件，不过需要注意里面的数据链接有效期仅为两天（大家需要自己重新生成这个链接）。</p>
 <p>然后我们就可以使用 NASA 上面介绍的方法下载这些数据了：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131718354_222857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131718354_222857.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2230" height="1134"></p>
 <p>由于这些数据需要登录验证才能下载，所以大家可以一个个把链接复制到浏览器的地址栏回车下载，也可以使用官网介绍的一些方法批量下载：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://disc.gsfc.nasa.gov/data-access">https://disc.gsfc.nasa.gov/data-access</a></p>
 <p>这里我演示下 Mac 上使用 curl 批量下载的方法：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131718987_229871.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716131718987_229871.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1944" height="944"></p>
 <blockquote>
 <p>这里演示的方法仅适用于 Mac。由于我手上没有 Windows 电脑，所以如果大家使用 Windows 话可以对着上述网页的介绍自己尝试下。</p>
 </blockquote>
@@ -201,7 +201,7 @@
 <p>注意我这里使用的是 1.7.71 版本的 terra 包。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 读取 nc 文件</span><br><span class="line">rast(&quot;data/MERRA2_400.inst1_2d_lfo_Nx.20230219.nc4.nc4&quot;) -&gt; rst</span><br><span class="line"></span><br><span class="line">plot(rst$TLML_24)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132050848_994576.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132050848_994576.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="564" height="432"></p>
 <p>如果发现读取的结果不对，可以考虑使用 <code>trans()</code> 和 <code>flip()</code> 进行旋转和镜像变换。</p>
 <p>如果发现没有识别到 extent，可以用下面的代码设置范围：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">ext<span class="punctuation">(</span>rst<span class="punctuation">)</span> <span class="operator">&lt;-</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">73.4375</span><span class="punctuation">,</span> <span class="number">135.3125</span><span class="punctuation">,</span> <span class="number">3.75</span><span class="punctuation">,</span> <span class="number">53.75</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
@@ -212,11 +212,11 @@
 <p>由于这个数据是个小时数据，所以可以通过平均得到日度的，一个直观的方法是加总再平均：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">(rst$HLML_1 + rst$HLML_2 + rst$HLML_3 +</span><br><span class="line">  rst$HLML_4 + rst$HLML_5 + rst$HLML_6 +</span><br><span class="line">  rst$HLML_7 + rst$HLML_8 + rst$HLML_9 +</span><br><span class="line">  rst$HLML_10 + rst$HLML_11 + rst$HLML_12 +</span><br><span class="line">  rst$HLML_13 + rst$HLML_14 + rst$HLML_15 +</span><br><span class="line">  rst$HLML_16 + rst$HLML_17 + rst$HLML_18 +</span><br><span class="line">  rst$HLML_19 + rst$HLML_20 + rst$HLML_21 +</span><br><span class="line">  rst$HLML_22 + rst$HLML_23 + rst$HLML_24)/24 -&gt; newrst</span><br><span class="line">plot(newrst)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132051969_526621.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132051969_526621.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="560" height="431"></p>
 <p>由于 HLML 指标是 rst 的 1～24 层，所以也可以用下面的代码进行平均：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app(rst[[1:24]], fun = mean) -&gt; newrst</span><br><span class="line">plot(newrst)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132052414_129135.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132052414_129135.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="562" height="435"></p>
 <p>由于这个文件含有多个指标，可以一并处理：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">rast<span class="punctuation">(</span></span><br><span class="line">  <span class="built_in">list</span><span class="punctuation">(</span></span><br><span class="line">    app<span class="punctuation">(</span>rst<span class="punctuation">[[</span><span class="number">1</span><span class="operator">:</span><span class="number">24</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    app<span class="punctuation">(</span>rst<span class="punctuation">[[</span><span class="number">25</span><span class="operator">:</span><span class="number">48</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    app<span class="punctuation">(</span>rst<span class="punctuation">[[</span><span class="number">49</span><span class="operator">:</span><span class="number">72</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    app<span class="punctuation">(</span>rst<span class="punctuation">[[</span><span class="number">73</span><span class="operator">:</span><span class="number">96</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">    app<span class="punctuation">(</span>rst<span class="punctuation">[[</span><span class="number">97</span><span class="operator">:</span><span class="number">120</span><span class="punctuation">]</span><span class="punctuation">]</span><span class="punctuation">,</span> fun <span class="operator">=</span> mean<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  `names&lt;-`<span class="punctuation">(</span>varnames<span class="punctuation">(</span>rst<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> newrst</span><br><span class="line"></span><br><span class="line">newrst</span><br></pre></td></tr></table></figure>
 
@@ -224,7 +224,7 @@
 
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">plot(newrst)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132052769_248499.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/05/19/23/02b79j1bdbe1b168g4/common/content/1716132052769_248499.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="684" height="436"></p>
 <p>为了方便使用，我们可以把这个对象再保存成 tif 文件：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">newrst <span class="operator">%&gt;%</span></span><br><span class="line">  writeRaster<span class="punctuation">(</span><span class="string">&quot;temp.tif&quot;</span><span class="punctuation">,</span> overwrite <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 

@@ -159,7 +159,7 @@
 <p>读取二级河流矢量数据：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;china/二级河流.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span><span class="number">4326</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> rivers</span><br><span class="line"></span><br><span class="line">plot<span class="punctuation">(</span>rivers<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177596417_224555.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177596417_224555.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1668" height="1070"></p>
 <p>读取市级行政区划数据：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">read_sf<span class="punctuation">(</span><span class="string">&quot;2021行政区划/市.shp&quot;</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="operator">-</span>contains<span class="punctuation">(</span><span class="string">&quot;类型&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_make_valid<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> city</span><br></pre></td></tr></table></figure>
 
@@ -178,7 +178,7 @@
 <p>绘图观察结果：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>mapview<span class="punctuation">)</span></span><br><span class="line">mapview<span class="punctuation">(</span>cityres1<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">  mapview<span class="punctuation">(</span>rivers<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177596866_281444.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177596866_281444.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1726" height="1120"></p>
 <p>该计算结果包含的城市列表：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cityres1 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">4</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cityres1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 254 个城市</span></span><br></pre></td></tr></table></figure>
 
@@ -188,7 +188,7 @@
 <p>绘图观察：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mapview(riversbuffer)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177597288_179525.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177597288_179525.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1722" height="1122"></p>
 <p>再次计算：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cityline <span class="operator">%&gt;%</span></span><br><span class="line">  st_transform<span class="punctuation">(</span>mycrs<span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_intersection<span class="punctuation">(</span></span><br><span class="line">    st_transform<span class="punctuation">(</span>riversbuffer<span class="punctuation">,</span> mycrs<span class="punctuation">)</span></span><br><span class="line">  <span class="punctuation">)</span> <span class="operator">-&gt;</span> cityres2</span><br><span class="line"></span><br><span class="line">cityres2 <span class="operator">%&gt;%</span></span><br><span class="line">  select<span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="number">4</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  st_drop_geometry<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">  distinct<span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">-&gt;</span> cityres2</span><br></pre></td></tr></table></figure>
 
@@ -198,7 +198,7 @@
 <p>绘图观察这两个城市是否符合要求：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mapview(riversbuffer) +</span><br><span class="line">  mapview(temp)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177597641_473272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/14/21/02b79j1bdbe1b168g4/common/content/1755177597641_473272.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1714" height="1122"></p>
 <p>可以看出这两个城市不算是以河流为边界，还是舍去，因此最终我们还是选择 cityres1 的结果：</p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">cityres1 <span class="operator">%&gt;%</span></span><br><span class="line">  writexl<span class="operator">::</span>write_xlsx<span class="punctuation">(</span><span class="string">&quot;边界与二级河流交汇的城市列表.xlsx&quot;</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
