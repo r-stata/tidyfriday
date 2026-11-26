@@ -185,7 +185,7 @@
 </blockquote>
 <p>在使用本地部署的离线模型之前，我们先介绍下如何使用 Deeseek 的 API 进行请求。</p>
 <p>首先我们需要在 deepseek 的网站上充值和申请 API key：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://platform.deepseek.com/">https://platform.deepseek.com/</a></p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764961410_962722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764961410_962722.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3452" height="1898"></p>
 <p>需要注意这个密钥只有在创建的时候是可以看到的，记得及时复制保存下来。</p>
 <p>在终端（Mac）或 DOS 窗口（Windows）运行：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl https://api.deepseek.com/chat/completions -H &quot;Content-Type: application/json&quot; -H &quot;Authorization: Bearer sk-1c6ee***********************54a1&quot; -d &#x27;&#123;&quot;model&quot;: &quot;deepseek-chat&quot;,&quot;messages&quot;: [&#123;&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;根据下面的简历信息判断该主体是否有从政经历或者政治背景，仅返回是或者否即可：“郑钟焕先生：1962年出生，大学本科，工程师职称。曾在深圳市轻纺工业公司、深圳市轻工业公司就职；自1985年10月起进入深圳中华自行车集团（股份）有限公司工作，历任计划部副经理、经理，资材部经理、制造部经理等职；现为本公司监事、深圳市阿米尼实业有限公司采购物管部经理。”&quot;&#125;, &#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hello!&quot;&#125;], &quot;stream&quot;: false&#125;&#x27; -o temp1.json</span><br></pre></td></tr></table></figure>
@@ -205,7 +205,7 @@
 <p><strong>使用 Windows 小伙伴记得把后面代码里面的单引号和双引号都做出这样的调整。</strong></p>
 <p>关于 deepseek api 的使用可以阅读官方文档：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://api-docs.deepseek.com/zh-cn/">https://api-docs.deepseek.com/zh-cn/</a></p>
 <p>考虑到这个 api 的调用是需要付费的，所以我们还是转而使用本地部署的离线模型：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764961106_417429.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764961106_417429.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1258" height="942"></p>
 <p>这个请求也可以使用 curl 语句（在终端（Mac）或 DOS 窗口（Windows）运行）：</p>
 <blockquote>
 <p>记得先退出 ollama 聊天窗口再运行！</p>
@@ -214,7 +214,7 @@
 
 <p>返回的结果会被保存到 temp0.json 文件中。</p>
 <p>R 语言中可以使用 system() 函数调用 shell 语句，不过不如使用 httr 构造 curl 请求。使用这个网站应用可以非常容易把 curl 语句转换成 R 语言代码：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://curlconverter.com/r/">https://curlconverter.com/r/</a></p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764960693_123526.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/08/21/16/02b79j1bdbe1b168g4/common/content/1755764960693_123526.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2752" height="1908"></p>
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>tidyverse<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>httr<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">headers <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span></span><br><span class="line">  `Content-Type` <span class="operator">=</span> <span class="string">&quot;application/x-www-form-urlencoded&quot;</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">data <span class="operator">=</span> <span class="string">&#x27;&#123;&quot;model&quot;: &quot;deepseek-r1:1.5b&quot;, &quot;prompt&quot;: &quot;根据下面的简历信息判断该主体是否有从政经历或者政治背景，仅返回是或者否即可：“郑钟焕先生：1962年出生，大学本科，工程师职称。曾在深圳市轻纺工业公司、深圳市轻工业公司就职；自1985年10月起进入深圳中华自行车集团（股份）有限公司工作，历任计划部副经理、经理，资材部经理、制造部经理等职；现为本公司监事、深圳市阿米尼实业有限公司采购物管部经理。”&quot;, &quot;stream&quot;: false&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">res <span class="operator">&lt;-</span> httr<span class="operator">::</span>POST<span class="punctuation">(</span>url <span class="operator">=</span> <span class="string">&quot;http://localhost:11434/api/generate&quot;</span><span class="punctuation">,</span> httr<span class="operator">::</span>add_headers<span class="punctuation">(</span>.headers<span class="operator">=</span>headers<span class="punctuation">)</span><span class="punctuation">,</span> body <span class="operator">=</span> data<span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
 
 <p>提取 res 的内容：</p>

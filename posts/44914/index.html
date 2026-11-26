@@ -165,7 +165,7 @@
 <p>例如对于字符串“1;2;7;1;2;3;4;6;7;1;2;3;4;5;6;”：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">a = ustrsplit(&quot;1;2;7;1;2;3;4;6;7;1;2;3;4;5;6;7&quot;, &quot;;&quot;)</span><br><span class="line">a</span><br><span class="line">n = cols(a)</span><br><span class="line">n</span><br><span class="line">b = a[1]</span><br><span class="line">for(i=2;i&lt;=n;i++) &#123;</span><br><span class="line"> if(indexnot(a[i], invtokens(b, &quot;;&quot;))) &#123;</span><br><span class="line">  b = (b, a[i])</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line">invtokens(b, &quot;;&quot;)</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020597747_531222.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020597747_531222.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1770" height="1184"></p>
 <p>ustrsplit() 函数的功能是把字符串根据“;”拆分成字符串向量（行向量）；cols() 函数的功能是计算行向量的长度（列数）；然后生成一个 b 向量来存储结果，循环判断 a 向量里面的每个元素是否在 b 中，如果不在 b 中就把该元素放到 b 中。invtokens(b, “;”) 是把向量再合并成字符串，indexnot() 表示判断一个字符串是否在另外一个字符串里面。</p>
 <p>如果想要把 mata 处理的结果存储到 local 变量里面可以编写如下函数：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">mata clear</span><br><span class="line">void uniquefun(string x) &#123;</span><br><span class="line">    a = ustrsplit(x, &quot;;&quot;)</span><br><span class="line">    b = a[1]</span><br><span class="line">    for(i=2;i&lt;=cols(a);i++) &#123;</span><br><span class="line">        if(indexnot(a[i], invtokens(b, &quot;;&quot;))) &#123;</span><br><span class="line">            b = (b, a[i])</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    st_local(&quot;uniquefunres&quot;, invtokens(b, &quot;;&quot;))</span><br><span class="line">&#125;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">mata: uniquefun(&quot;1;2;7;1;2;3;4;6;7;1;2;3;4;5;6;7&quot;)</span><br><span class="line">di `&quot;`uniquefunres&#x27;&quot;&#x27;</span><br><span class="line"></span><br><span class="line">*&gt; 1;2;7;3;4;6;5</span><br></pre></td></tr></table></figure>
@@ -185,7 +185,7 @@
 <p>附件中的 data.dta 是一份专利的样本：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">use</span> data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598056_662929.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598056_662929.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1088" height="678"></p>
 <p>删除设计专利：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">*- 删除设计专利</span><br><span class="line">drop if !index(IPC, &quot;/&quot;)</span><br></pre></td></tr></table></figure>
 
@@ -196,11 +196,11 @@
 <p>使用：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="comment">*- 获取所有的大类（去除重复的）：_gipc_unique_sub.ado</span></span><br><span class="line"><span class="keyword">egen</span> subipc_unique = ipc_unique_sub(IPC), <span class="keyword">parse</span>(;) from(1) to(3)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598283_462671.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598283_462671.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1350" height="1072"></p>
 <p>在专利 IPC 分类号中我们还经常会遇到需要统计分类号数量的问题。一个传统的方法是可以使用 moss 命令：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">moss IPC, <span class="built_in">match</span>(<span class="string">&quot;;&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> _count = _count + 1</span><br><span class="line"><span class="keyword">ren</span> _count <span class="keyword">n</span></span><br><span class="line"><span class="keyword">drop</span> _*</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598548_753985.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598548_753985.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1582" height="1074"></p>
 <p>实际上这个也可以用 mata 来实现：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mata:</span><br><span class="line">a = ustrsplit(&quot;C02F9/08(2006.01)I;B01D36/04(2006.01)I;C02F1/52(2006.01)I;C02F1/38(2006.01)I;C02F1/467(2006.01)I&quot;, &quot;;&quot;)</span><br><span class="line">cols(a)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">*&gt; 5</span><br></pre></td></tr></table></figure>
 
@@ -223,7 +223,7 @@
 <p>如果不想去除重复，可以使用：<code>_gipc_sub.ado</code>：</p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">egen</span> subipc13 = ipc_sub(IPC), <span class="keyword">parse</span>(;) from(1) to(3)</span><br><span class="line"><span class="keyword">egen</span> subipc14 = ipc_sub(IPC), <span class="keyword">parse</span>(;) from(1) to(4)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598807_278757.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020598807_278757.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2488" height="1402"></p>
 <p>有时候需要提取“/”前面的部分（大组）：<code>_gipc_sub2.ado</code></p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">clear</span> all</span><br><span class="line"><span class="keyword">use</span> data, <span class="keyword">clear</span></span><br><span class="line"><span class="keyword">ren</span> 分类号 IPC</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">if</span> !<span class="built_in">index</span>(IPC, <span class="string">&quot;/&quot;</span>)</span><br><span class="line"><span class="keyword">replace</span> IPC = <span class="built_in">subinstr</span>(IPC, <span class="string">&quot;//&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> IPC = <span class="built_in">subinstr</span>(IPC, <span class="string">&quot;(&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">replace</span> IPC = <span class="built_in">subinstr</span>(IPC, <span class="string">&quot;)&quot;</span>, <span class="string">&quot;&quot;</span>, .)</span><br><span class="line"><span class="keyword">egen</span> sub2ipc = ipc_sub2(IPC), <span class="keyword">parse</span>(;) parse2(/) choose(1)</span><br></pre></td></tr></table></figure>
 
@@ -240,7 +240,7 @@
 <p>重复使用多个 egen 函数，可能会降低效率，所以还是单独编写一个函数：<code>_gipc_sub2_unique.ado</code></p>
 <figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">egen</span> sub2ipc3 = ipc_sub2_unique(IPC), <span class="keyword">parse</span>(;) parse2(/) choose(1)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020599154_921423.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2024/04/13/23/02b79j1bdbe1b168g4/common/content/1713020599154_921423.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2148" height="1412"></p>
 <p>这些基本就是专利 IPC 分类号处理中常用的一些操作了～</p>
 <hr>
 <p>最后再汇总下这几个函数的功能：</p>

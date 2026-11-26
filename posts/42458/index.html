@@ -154,7 +154,7 @@
 <span id="more"></span>
 
 <p>该数据的爬取分成两部分，首先需要爬取整理所有的目录页面：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944453_775257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944453_775257.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1956" height="1854"></p>
 <p>这样可以得到每一条政府采购公告数据的标题、链接、年份等信息。我爬取的是 2001 年到 2022 年 6 月 30 日的，经过爬取和整理一共得到了大约 1400 万条公告链接数据。</p>
 <p>第二部是循环爬取这 1300 万个链接，得到每个公告的详细信息。这部分工作又得分成两部分：1. 2013 年之前的爬取过程是反爬的；2. 2013 年之后的爬取过程不反爬。因此我先爬取了 2013 年之后的网页，大概是 1100 万个。</p>
 <p>各年、各种类型的政府采购公告样式千奇百怪，难以整理，所以详细数据的整理还在进行中。因此今天先分享第一步的结果，2001～2022 年 6 月全部的 1400 万条采购公告的基础信息，包含如下变量：</p>
@@ -173,7 +173,7 @@
 <figure class="highlight r"><table><tr><td class="code"><pre><span class="line">dfa <span class="operator">%&gt;%</span></span><br><span class="line">  arrange<span class="punctuation">(</span>desc<span class="punctuation">(</span>年份<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#&gt; # A tibble: 14,007,770 × 10</span></span><br><span class="line"><span class="comment">#&gt;     年份 链接                                                标题  文本  日期       采购人 代理…¹  类型  地区  类别</span></span><br><span class="line"><span class="comment">#&gt;    &lt;dbl&gt; &lt;chr&gt;                                               &lt;chr&gt; &lt;chr&gt; &lt;date&gt;     &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;</span></span><br><span class="line"><span class="comment">#&gt;  1  2022 http://www.ccgp.gov.cn/cggg/dfgg/gkzb/202201/t2022… 辉县… NA    2022-01-01 辉县…  河南嘉… 公开… 河南… &quot;&quot;</span></span><br><span class="line"><span class="comment">#&gt;  2  2022 http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202201/t2022… 新疆… NA    2022-01-01 新疆…  新疆普… 中标… 新疆… &quot;货…</span></span><br><span class="line"><span class="comment">#&gt;  3  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  4  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  5  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  6  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  7  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  8  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt;  9  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt; 10  2022 http://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202201/t202… 宜昌… NA    2022-01-01 夷陵…  中咨智… 竞争… 湖北… &quot;服…</span></span><br><span class="line"><span class="comment">#&gt; # … with 14,007,760 more rows, and abbreviated variable name ¹代理机构</span></span><br><span class="line"><span class="comment">#&gt; # ℹ Use `print(n = ...)` to see more rows</span></span><br></pre></td></tr></table></figure>
 
 <p>其中文本变量是指有些公告目录上有这样的一些描述：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037945058_287742.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037945058_287742.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1968" height="1058"></p>
 <p>由于数据非常大，所以我拆分成了逐年的文件，包括下面两种格式：</p>
 <ol>
 <li>供 Stata 读取的 dta 格式；</li>
@@ -181,11 +181,11 @@
 </ol>
 <p>大家可以根据自己的需要选择使用。</p>
 <p>详细的公告数据还在处理中。考虑到公告的样式各种个样，难以处理，所以只选择处理含有公告摘要的：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944813_222549.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037944813_222549.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1928" height="1774"></p>
 <p>没有公告摘要信息的公告会直接使用“公告文本”变量保存公告的内容方便有需要的小伙伴进行文本分析。</p>
 <p>详细的公告数据处理完成之后也会分享给大家，耐心等待即可～</p>
 <p>下图展示了历年各种类型的公告数量以及占比：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978637_158934.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async">)<img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978946_523562.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978637_158934.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3030" height="1862">)<img src="https://duanshu-1253562005.image.myqcloud.com/2023/01/18/18/02b79j1bdbe1b168g4/common/content/1674037978946_523562.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="3000" height="1854"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/fda64385deef47afb972d7a360b6bd64">历年政府采购公告数据（仅含条目数据，停止更新）</a></p>
 </blockquote>

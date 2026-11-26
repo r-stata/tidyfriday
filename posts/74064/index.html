@@ -161,15 +161,15 @@
 <p>在 SBERT 模型上，我在附件中准备了 <code>distiluse-base-multilingual-cased-v2</code> 和 <code>paraphrase-multilingual-MiniLM-L12-v2</code>。<code>paraphrase-multilingual-MiniLM-L12-v2</code> 是 轻量级多语言模型，支持中文，速度快；<code>distiluse-base-multilingual-cased-v2</code> 是多语言蒸馏模型，效果较好。</p>
 <p>除此之外，这些模型也可以自己使用语料库进行微调，不过这个就更复杂点，今天我们先来看现成模型的应用。</p>
 <p>在附件里的 「数字知识流动如何促进区域协调发展——兼论经济增长和平衡发展双重目标」文献中就提到了使用 <code>chinese_wwm_ext_pytorch</code> 模型：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163551742_839931.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163551742_839931.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1786" height="1320"></p>
 <p>不过这个文献是使用该模型进行专利分类的。</p>
 <p>「企业数字化转型与颠覆性技术创新——来自专利网络与SBERT模型的微观证据_黄先海」文献是使用微调后的 SBERT 模型计算专利文本相似度的。计算每个专利和其他所有专利的相似度是个计算量超级大的事情，所以这篇文献里面仅仅计算专利和其引用专利的相似度，这样大大减小了计算量（不过计算量依然非常大）。</p>
 <p>在这篇文献中，作者定义专利的创新度为其与所有引用专利相似度平均值的倒数（取对数）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163588263_822811.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163588263_822811.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1256" height="212"></p>
 <p>也就是和引用专利的相似度越低，创新度越高。</p>
 <p>然后定义<code>突破性技术创新</code>的专利为：同年同一行业企业的专利中，创新度位于前 20% 的专利。<code>重要影响力技术创新</code>的专利为：同年同一行业企业的专利中，3 年内被引次数排名前 20% 的专利。</p>
 <p>同时满足上述两个条件的专利即位具有<code>颠覆性创新</code>的。</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163552262_281178.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2025/07/22/13/02b79j1bdbe1b168g4/common/content/1753163552262_281178.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1864" height="1584"></p>
 <p>在处理前仅保留发明专利并且删除金融和保险类企业。</p>
 <h2 id="使用-reticulate-安装和运行-Python" class="article-heading"><a href="#使用-reticulate-安装和运行-Python" class="headerlink" title="使用 reticulate 安装和运行 Python"></a>使用 reticulate 安装和运行 Python<a class="article-anchor" href="#使用-reticulate-安装和运行-Python" aria-label="本节链接" title="复制本节链接"></a></h2><p>Python 使用中最头疼的就是安装和环境配置了。不过 R 语言的 reticulate 包可以很好的解决这个问题。为了避免库版本的冲突问题，这里我们使用虚拟环境来运行 Python 代码。</p>
 <p>加载所需 R 包：</p>
