@@ -156,23 +156,23 @@
 <span id="more"></span>
 
 <p>前不久给大家分享了一份全国税收调查数据：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794271493_222442.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794271493_222442.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <p>之前也给大家分享过专利全库的数据：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794299840_222429.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794299840_222429.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>最近有小伙伴想把这两份数据匹配起来，由于两份数据都非常巨大（20GB 和 100GB），所以我就直接帮大家匹配好了。</p>
 <p>因为数据较大，所以我特意将<code>税收调查数据与专利数据匹配结果</code>分拆成分年版本，时间范围为 2007～2016 年。数据格式方面，我提供的是供 Stata 读取的 dta 格式。以 2016 年为例，数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794340294_935151.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794340294_935151.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2546" height="1654"></p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了让大家更直观地感受这份数据，我还绘制了两幅图进行展示。下图展示了税收调查与专利数据匹配结果中各年总匹配专利的数量，以及各年各种类型的专利数量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794343036_632552.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794343036_632552.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <p>下图展示了 2016 年税调企业中专利申请人地址分布：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342487_842967.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342487_842967.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="5172"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合税收调查数据与专利数据的变量，我们使用税调数据中的<code>企业名称</code>与专利数据中的<code>申请人</code>进行匹配。具体匹配方法分为三步：</p>
 <ol>
 <li><p>专利数据中有个申请人变量，每个专利可能有多个申请人，申请人之间使用冒号分隔。因此需要首先处理申请人变量，处理思路如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342328_767734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342328_767734.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="798" height="266"></p>
 </li>
 <li><p>其次，对税调数据库里的企业名称和专利数据里的申请人变量进行处理，主要是改正错字和去除对匹配没有帮助的词汇（例如“有限公司”、“有限责任公司”）。为便于两个数据集的连接，我在税调数据中生成了sdid 变量以在匹配过程中识别每个观测值。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342072_228351.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/11/12/21/02b79j1bdbe1b168g4/common/content/1699794342072_228351.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="933" height="575"></p>
 </li>
 </ol>
 <blockquote>

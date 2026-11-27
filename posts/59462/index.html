@@ -172,35 +172,35 @@
 <li>完整版(含专利引用与被引数量)：比完整版多了这几个变量：被引用量、非专利引用量、同族专利被引用量、同族专利引用量、专利引用量。</li>
 </ol>
 <h2 id="匹配效果概览" class="article-heading"><a href="#匹配效果概览" class="headerlink" title="匹配效果概览"></a>匹配效果概览<a class="article-anchor" href="#匹配效果概览" aria-label="本节链接" title="复制本节链接"></a></h2><p>下图展示了匹配效果（附件中有绘图代码）：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509720_728872.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509720_728872.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1200" height="720"></p>
 <p>匹配结果中各年的各种类型的专利数量如下图所示：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508347_283523.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508347_283523.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1200" height="800"></p>
 <h2 id="包含哪些变量" class="article-heading"><a href="#包含哪些变量" class="headerlink" title="包含哪些变量"></a>包含哪些变量<a class="article-anchor" href="#包含哪些变量" aria-label="本节链接" title="复制本节链接"></a></h2><p>除了工企数据库里面的变量，完整版的数据还包含专利的如下变量：</p>
 <p>年份 申请日 分类号 主分类号 公开公告日 申请人 参考文献 代理人 代码 地址 分案原申请号 发布路径 发明设计人 国别 国际公布 国际申请 公开公告号 名称 审查员 申请国代码 申请号 申请来源 邮编 页数 优先权 专利代理机构 专利号 专利类型 主权项 摘要 摘要附图存储路径 进入国家日期 gqid zlid 被引用 非专利引用 同族专利被引用 同族专利引用 专利引用</p>
 <p>其中年份是根据申请日生成的。</p>
 <p>例如，2013 年完整版的数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508678_322779.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508678_322779.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1354" height="976"></p>
 <p>2013 年的汇总版的数据预览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508970_228529.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372508970_228529.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1353" height="973"></p>
 <p>由于数据过大，所以特意分拆成了各年的，如果需要面板数据，直接使用 Stata 的 append 命令即可合并（2014 年的数据没有企业匹配唯一标识码）。</p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>由于暂不提供专利数据的原始数据，所以我们就在这里讲解下工企和专利数据的匹配方法。</p>
 <ol>
 <li>专利数据中有个申请人变量，每个专利可能有多个申请人，申请人之间使用冒号分隔，因此需要首先处理申请人变量，处理思路如下：</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509269_269621.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509269_269621.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="798" height="266"></p>
 <ol>
 <li>然后在对工企数据库里的企业名称和专利数据里的申请人变量进行处理，主要是改正错字和去除对匹配没有帮助的词汇（例如“有限公司”、“有限责任公司”）。很多文献会说自己采用了模糊匹配，实际上在模糊匹配课程（这里可以看到：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我将结果模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配，这也应该就是我们的匹配结果不如">https://rstata.duanshu.com/#/course/d4fb816566244662ab6359fa848f1f1e）我将结果模糊匹配的缺点（匹配之后需要人工逐一检查，个人研究中难以实现，如果不检查又会有大量匹配错误的结果）。所以这里我采用的是去除干扰词汇匹配，这也应该就是我们的匹配结果不如</a> 寇宗来&amp;刘学悦（2020）的好的原因。</li>
 </ol>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509415_299342.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372509415_299342.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="933" height="575"></p>
 <ol>
 <li>直接使用申请人和企业名称匹配即可得到匹配结果。</li>
 <li>改进匹配结果。Chinese Patent Data Project 网站（<img src="https://sites.google.com/site/sipopdb/home/sipo---asie" alt loading="lazy" decoding="async">）提供了一份 1998～2009 年的工企专利匹配结果（这份数据是模糊匹配的），不过里面的专利数据不是很全，所以我们使用这份数据里面的专利申请号和我们手里的专利数据进行匹配，然后得到了一份更全的结果。</li>
 <li>将第 4 步中的 98～09 年结果和我们匹配得到的 10～14 年的结果合并就得到了这份数据。</li>
 </ol>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372615782_392121.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372628378_593881.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372615782_392121.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372628378_593881.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <h2 id="专利的引用与被引用信息" class="article-heading"><a href="#专利的引用与被引用信息" class="headerlink" title="专利的引用与被引用信息"></a>专利的引用与被引用信息<a class="article-anchor" href="#专利的引用与被引用信息" aria-label="本节链接" title="复制本节链接"></a></h2><p>完整版中展示了每个专利的引用与被引用数量，如果大家想知道每个专利具体引用了、或者被哪些专利引用了，可以在附件中的 <code>工企专利引用与被引用信息</code> 文件夹中查看，由于这个数据非常大（超过 2500 万条观测值），所以我把数据拆分成了 26 个 dta 文件，每个文件含有 100 万条观测值，并且文件小于 2G，方便低内存电脑打开。</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372724931_112922.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/08/18/23/02b79j1bdbe1b168g4/common/content/1692372724931_112922.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="1904" height="1036"></p>
 <p>可以使用公开公告号与每个专利相对应。</p>
 <h2 id="如何合成面板数据" class="article-heading"><a href="#如何合成面板数据" class="headerlink" title="如何合成面板数据"></a>如何合成面板数据<a class="article-anchor" href="#如何合成面板数据" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了方便大家读取和使用，我特意把数据拆分成了逐年的，如果大家的电脑内存不足，可以分别读取每年的数据仅仅保存自己需要的变量，然后再合并成面板数据，下面介绍下合并方法。</p>
 <p>首先由于 2014 年的数据没经过处理，我们需要把里面的一些变量处理下（主要是把一些变量里面的代号替换成其真实含义）：</p>

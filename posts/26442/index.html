@@ -155,7 +155,7 @@
 <span id="more"></span>
 
 <p><code>全国税收调查数据</code>包含了企业特征信息和税务信息，在近年来的研究中比较常用。之前也给大家分享过一份<code>带经纬度的工商企业注册信息</code>，最近有小伙伴想把这两份数据匹配起来，由于两份数据都非常巨大（20GB 和 300GB），所以我就直接帮大家匹配好了。</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073063775_825152.jpg" alt loading="lazy" decoding="async">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073063775_825152.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
 <p>因为数据较大，所以我提供了 dta 格式的税收调查数据与工商注册数据匹配结果的分年版本，时间范围为 2007～2016 年，最终得到如下数据集：</p>
 <ul>
 <li>2007sd_info.dta</li>
@@ -170,16 +170,16 @@
 <li>2016sd_info.dta</li>
 </ul>
 <p>例如，<code>2016sd_info.dta</code> 即 2016 年税收调查数据与工商注册数据匹配结果，数据概览如下：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073079525_989123.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073079525_989123.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="2420" height="1670"></p>
 <h2 id="匹配结果" class="article-heading"><a href="#匹配结果" class="headerlink" title="匹配结果"></a>匹配结果<a class="article-anchor" href="#匹配结果" aria-label="本节链接" title="复制本节链接"></a></h2><p>为了让大家更直观地感受这份数据，我还绘制了一幅图进行展示。下图展示了税收调查与工商注册数据每年匹配成功的数量：</p>
-<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073098136_941363.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async"></p>
+<p><img src="https://duanshu-1253562005.image.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073098136_941363.png?imageMogr2/auto-orient/thumbnail/!750x" alt loading="lazy" decoding="async" width="4800" height="3200"></p>
 <h2 id="匹配方法" class="article-heading"><a href="#匹配方法" class="headerlink" title="匹配方法"></a>匹配方法<a class="article-anchor" href="#匹配方法" aria-label="本节链接" title="复制本节链接"></a></h2><p>结合税收调查数据与工商企业注册信息的变量，我选择了两种匹配方式。</p>
 <p>首先根据<code>企业名称</code>进行匹配。为便于两个数据集的连接，我在税调数据中生成了sdid 变量以在匹配过程中识别每个观测值。在之前的课程「Stata 中的中文模糊匹配——以 2014 年工企数据和境外投资名录数据匹配为例」中，我分享过使用 Stata 进行模糊匹配的方法，不过模糊匹配耗时耗力，并且错误率很高。不同于英文，中文企业名称只要有一个字不同都可能不是同一家企业（英文企业名称有一两个字母不同可能是因为笔误）。所以中文企业名称的模糊匹配没有意义。因此这里我还是使用了精确匹配，考虑到企业名称中经常会把“有限公司”和“有限责任公司”混用，以及有限公司改股份有限公司之类的。所以这里在匹配前删除了下面词汇：股份有限、集团有限、有限责任、有限、责任、股份、公司、厂、 、(集团)、（集团）、（、）、(、)、省、市、区、县、回族自治区、壮族自治区、维吾尔自治区、自治区。这样可以大大提高匹配成功率。</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073135365_218677.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073135365_218677.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <p>之后再对没有匹配成功的使用<code>组织机构代码</code>进行匹配，最后合并两部分的匹配结果，就得到了我们需要的数据，附件中也提供了匹配使用的代码供大家参考。</p>
 <p>数据匹配的方法都差不多，感兴趣的小伙伴也可以学习下面两个课程：</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073165121_756557.jpg" alt loading="lazy" decoding="async">×</p>
-<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073178631_744842.jpg" alt loading="lazy" decoding="async"></p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073165121_756557.jpg" alt loading="lazy" decoding="async" width="668" height="100">×</p>
+<p><img src="http://duanshu-1253562005.cossh.myqcloud.com/2023/10/23/22/02b79j1bdbe1b168g4/common/content/1698073178631_744842.jpg" alt loading="lazy" decoding="async" width="668" height="100"></p>
 <blockquote>
 <p>点击这里跳转到 RStata 短书平台获取附件：<a target="_blank" rel="noopener external nofollow noreferrer" href="https://rstata.duanshu.com/#/course/4096b2cdeaee43cfb6538133b9095421">旧版本｜2007～2016 年税调数据与工商注册数据匹配结果</a></p>
 </blockquote>
